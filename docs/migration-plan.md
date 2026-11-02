@@ -1,5 +1,7 @@
 # Deferred web host migration checklist
 
+Dispatchable work packages: [migration sessions](migration-sessions.md).
+
 Status: planned, 2026-11-02. All work items remain unverified.
 
 This repository is reserved for a future self-hosted web application and

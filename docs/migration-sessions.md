@@ -24,6 +24,8 @@ Return the session receipt at the specified lead-repository path, including all 
 
 For optional work replace `Sxx` with `X01`, `X02` or `X03`.
 
+The [v2 coverage ledger](../../HarflowDesign/v2/docs/migration-coverage.md) is an optional workspace coordination reference, not a build dependency. S10-Gxx bounded gap sub-sessions follow scope approval and obtain exact design approval before dependent work; unresolved required states block only their dependent feature. Independent work continues. The approved mock does not establish runtime capability or authority. Existing S01 evidence and S02 status remain as recorded in their receipts.
+
 ## Sessions
 
 ### S03 — Freeze, parity and scope decisions
@@ -31,7 +33,7 @@ For optional work replace `Sxx` with `X01`, `X02` or `X03`.
 - Status: planned. Lead: HarflowMCP. Co-owned: HarflowMac, HarflowDesign, HarflowEngine, HarflowWeb.
 - Prerequisite receipts: S02.
 - Checklist coverage: B0-MC-02 (final contribution), B0-MA-04 (final contribution), B0-DS-01 (final contribution), C0-DS-04 (partial), B0-EN-01 (final contribution), B0-WE-01 (partial).
-- Scope and acceptance: Obtain owner decisions on freeze, parity, scope, representative datasets and performance budgets; inventory design approvals, engine scaffold and deferred Web; record accepted baselines and unknowns.
+- Scope and acceptance: Record Keep, Simplify, Deliberately remove and Undecided decisions in the v2 coverage ledger; obtain decisions on freeze, representative datasets and performance budgets, preserving unresolved scope and approved removals.
 - Output: lead receipt `docs/migration-receipts/S03.md`, with the evidence and identities required by the dispatch protocol.
 
 ### X03 — Deferred Web planning
@@ -39,5 +41,5 @@ For optional work replace `Sxx` with `X01`, `X02` or `X03`.
 - Status: planned. Lead: HarflowWeb. Co-owned: HarflowClient.
 - Prerequisite receipts: S03; S11 and a pinned package receipt if the optional fake-port harness is assigned.
 - Checklist coverage: B0-WE-01 (final contribution), C0-WE-01 (final contribution), C0-WE-02 (final contribution), C0-WE-03 (final contribution), E0-WE-01 (final contribution), O0-WE-01 (final contribution), O0-WE-02 (final contribution).
-- Scope and acceptance: Record deferred baseline, future host/HTTP authority and idempotency, isolation boundaries and independent delivery prerequisites; optional static fake-port harness only. Server, login, triggers and deployment require new authorization.
+- Scope and acceptance: Plan deferred Web around the same shared v2 client and future host/HTTP authority, idempotency and isolation. Optional static fake-port harness only; server, authentication, triggers and deployment require new authorization.
 - Output: lead receipt `docs/migration-receipts/X03.md`, with the evidence and identities required by the dispatch protocol.

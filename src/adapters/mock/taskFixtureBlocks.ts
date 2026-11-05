@@ -83,15 +83,15 @@ function slotReleaseDiagnosis(): readonly TranscriptBlock[] {
       meta: '0:41',
       bodyLines: [
         {
-          failedLead: true,
+          boldPrefix: 'FAILED',
           text: 'FAILED tests/test_slots.py::test_release_frees_slot[7] - AssertionError: waiter still blocked',
         },
         {
-          failedLead: true,
+          boldPrefix: 'FAILED',
           text: 'FAILED tests/test_slots.py::test_release_frees_slot[15] - AssertionError: waiter still blocked',
         },
         {
-          failedLead: false,
+          boldPrefix: null,
           text: '2 failed, 18 passed in 38.52s',
         },
       ],
@@ -193,8 +193,8 @@ export function preloadBlocks(): readonly TranscriptBlock[] {
       summary: [{ kind: 'text', value: 'Read 2 files' }],
       meta: '0:03',
       bodyLines: [
-        { failedLead: false, text: 'preload.ts' },
-        { failedLead: false, text: 'bridge.ts' },
+        { boldPrefix: null, text: 'preload.ts' },
+        { boldPrefix: null, text: 'bridge.ts' },
       ],
       initiallyExpanded: false,
     },

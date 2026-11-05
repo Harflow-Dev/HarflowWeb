@@ -24,8 +24,11 @@ export type ToolSummaryPart =
   | { readonly kind: 'removed'; readonly value: string }
 
 export type ToolBodyLine = {
-  /** When true, the leading token is rendered with emphasis (e.g. FAILED). */
-  readonly failedLead: boolean
+  /**
+   * Exact leading substring rendered with emphasis (e.g. FAILED or a path).
+   * Null means the whole line is plain text.
+   */
+  readonly boldPrefix: string | null
   readonly text: string
 }
 
@@ -64,6 +67,12 @@ export type TaskFailureExplanation = {
   readonly lastError: string
 }
 
+/** Approved summary section inside the transcript — fixture evidence only. */
+export type TaskSummary = {
+  readonly heading: string
+  readonly segments: readonly AgentSegment[]
+}
+
 type TaskObservationBase = {
   readonly taskId: TaskId
   readonly title: string
@@ -73,7 +82,11 @@ type TaskObservationBase = {
   readonly followUpPlaceholder: string
 }
 
-/** Explicit lifecycle — failed must not reuse running chrome. */
+/**
+ * Explicit lifecycle. Failed/completed must not reuse running chrome.
+ * Completed summary is reported fixture evidence — not independently verified
+ * change/artifact/authorship proof.
+ */
 export type TaskObservation =
   | (TaskObservationBase & {
       readonly status: 'running'
@@ -81,6 +94,10 @@ export type TaskObservation =
   | (TaskObservationBase & {
       readonly status: 'failed'
       readonly failure: TaskFailureExplanation
+    })
+  | (TaskObservationBase & {
+      readonly status: 'completed'
+      readonly summary: TaskSummary
     })
 
 export type TaskLoad =

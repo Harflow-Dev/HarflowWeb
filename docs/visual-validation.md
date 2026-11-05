@@ -134,6 +134,27 @@ expanded pytest failure body, failure banner with Retry / Copy resume unavailabl
 follow-up composer without Stop, send disabled. No working indicator. Document
 scrollWidth equals clientWidth (1280).
 
+## Completed-task transcript — verified 1280×800 captures
+
+Directory:
+`~/.codex/workflows/screenshots/2026-11-05-harflowweb-task-done-slice/`
+
+Captured from `/` after opening the mapped Recent work row “Add retry budget to
+delivery queue”. Same CDP clip + `sips` verification. Content-region color
+diversity is hundreds of distinct colors per file.
+
+| File | Scenario | Viewport / PNG | Appearance / chrome |
+| --- | --- | --- | --- |
+| `01-task-done-light-expanded.png` | task/done (transcript+summary) | 1280×800 | light, sidebar expanded |
+| `02-task-done-dark-expanded.png` | task/done (transcript+summary) | 1280×800 | dark, sidebar expanded |
+| `03-task-done-dark-collapsed.png` | task/done (transcript+summary) | 1280×800 | dark, sidebar collapsed |
+| `04-task-done-light-collapsed.png` | task/done (transcript+summary) | 1280×800 | light, sidebar collapsed |
+
+Observed: done badge (`Done 21:04`), diagnostic transcript, Summary separator and
+body, follow-up composer without Stop (send disabled). No failure banner, Retry,
+running badge, or working indicator. No Changes/Artifacts/Events right pane
+(deliberately out of scope). Document scrollWidth equals clientWidth (1280).
+
 Earlier new-task screenshots remain under
 `~/.codex/workflows/screenshots/2026-11-05-harflowweb-new-task-slice/`.
 
@@ -143,7 +164,8 @@ Earlier new-task screenshots remain under
 - Workflows: `v2/scripts/screens-workflows.js` (`workflows/list`, `workflows/empty`)
 - Resources: `v2/scripts/screens-resources.js` (`resources/slots` light/dark)
 - Statistics: `v2/scripts/screens-statistics.js` (`statistics/overview` light/dark)
-- Task: `v2/scripts/screens-task.js` (`task/running` and `task/failed` light/dark)
+- Task: `v2/scripts/screens-task.js` (`task/running`, `task/failed`, and
+  `task/done` transcript+summary light/dark)
 - Observed in the running Vite app (not substituted from hosted design)
 
 ## Checks performed
@@ -167,6 +189,8 @@ Earlier new-task screenshots remain under
   mutation.
 - Failed-task omits Stop and running chrome; Retry / Copy resume / follow-up
   send report unavailable without mutation or generated shell commands.
+- Completed-task omits Stop, failure banner, and Retry; follow-up send stays
+  disabled; right pane is not present (out of scope for this assignment).
 
 ## Limitations
 
@@ -182,5 +206,7 @@ Earlier new-task screenshots remain under
   not a claim of visual approval for an all-time populated specimen.
 - No public ctl statistics or transcript contract; success rate / median / cost
   and transcript blocks are fixture facts with explicit coverage gates.
-- Running- and failed-task captures omit specimen right-pane / more-actions
-  chrome (out of scope for this slice).
+- Running-, failed-, and completed-task captures omit specimen right-pane /
+  more-actions chrome (out of scope). Completed captures therefore do **not**
+  claim full `task/done` specimen coverage.
+- Completed summary / tool results are fixture-reported evidence only.

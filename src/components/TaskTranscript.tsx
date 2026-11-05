@@ -111,7 +111,8 @@ function ToolBlock({
 }
 
 function ToolBodyLineView({ line }: { readonly line: ToolBodyLine }) {
-  if (!line.failedLead) {
+  const prefix = line.boldPrefix
+  if (!prefix) {
     return (
       <>
         {line.text}
@@ -119,19 +120,18 @@ function ToolBodyLineView({ line }: { readonly line: ToolBodyLine }) {
       </>
     )
   }
-  const match = /^(FAILED)(\s.*)?$/.exec(line.text)
-  if (!match) {
+  if (line.text.startsWith(prefix)) {
     return (
       <>
-        <b>{line.text}</b>
+        <b>{prefix}</b>
+        {line.text.slice(prefix.length)}
         {'\n'}
       </>
     )
   }
   return (
     <>
-      <b>{match[1]}</b>
-      {match[2] ?? ''}
+      <b>{line.text}</b>
       {'\n'}
     </>
   )

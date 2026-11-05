@@ -86,15 +86,15 @@ function eventsReaderClosing(): readonly TranscriptBlock[] {
       meta: '0:19',
       bodyLines: [
         {
-          failedLead: true,
+          boldPrefix: 'FAILED',
           text: 'FAILED tests/test_events_reader.py::test_partial_trailing_line',
         },
         {
-          failedLead: false,
+          boldPrefix: null,
           text: 'E   json.decoder.JSONDecodeError: Unterminated string starting at: line 1 column 38',
         },
         {
-          failedLead: false,
+          boldPrefix: null,
           text: '1 failed, 14 passed in 1.77s',
         },
       ],

@@ -11,6 +11,7 @@ import {
 import {
   EVENTS_READER_FAILED_TASK_ID,
   PRELOAD_TASK_ID,
+  RETRY_BUDGET_DONE_TASK_ID,
   SLOT_RELEASE_TASK_ID,
   taskLoadFor,
 } from '../adapters/mock/taskFixtures'
@@ -219,6 +220,32 @@ describe('TaskSession', () => {
     if (load.kind === 'ready') {
       expect(load.observation.status).toBe('failed')
       expect(load.observation.title).toBe('Migrate events.jsonl reader')
+    }
+    session.dispose()
+  })
+
+  it('rejects a captured failed callback after switching to completed', async () => {
+    const { port, publish } = createDeferredPort()
+    const session = new TaskSession(createLoadTaskUseCase(port))
+    session.start()
+    session.openTask(EVENTS_READER_FAILED_TASK_ID)
+    session.openTask(RETRY_BUDGET_DONE_TASK_ID)
+    expect(session.getState().selectedTaskId).toBe(RETRY_BUDGET_DONE_TASK_ID)
+    expect(session.getState().load.kind).toBe('loading')
+
+    publish(
+      EVENTS_READER_FAILED_TASK_ID,
+      taskLoadFor(EVENTS_READER_FAILED_TASK_ID),
+    )
+    expect(session.getState().load.kind).toBe('loading')
+    expect(session.getState().selectedTaskId).toBe(RETRY_BUDGET_DONE_TASK_ID)
+
+    publish(RETRY_BUDGET_DONE_TASK_ID, taskLoadFor(RETRY_BUDGET_DONE_TASK_ID))
+    const load = session.getState().load
+    expect(load).toEqual(taskLoadFor(RETRY_BUDGET_DONE_TASK_ID))
+    if (load.kind === 'ready') {
+      expect(load.observation.status).toBe('completed')
+      expect(load.observation.title).toBe('Add retry budget to delivery queue')
     }
     session.dispose()
   })

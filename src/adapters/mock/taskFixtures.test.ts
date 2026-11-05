@@ -3,6 +3,7 @@ import { asTaskId } from '../../model'
 import {
   EVENTS_READER_FAILED_TASK_ID,
   PRELOAD_TASK_ID,
+  RETRY_BUDGET_DONE_TASK_ID,
   SLOT_RELEASE_TASK_ID,
   populatedTaskLoad,
   taskLoadFor,
@@ -26,7 +27,7 @@ describe('taskFixtures', () => {
     if (pytest?.kind === 'tool') {
       expect(pytest.initiallyExpanded).toBe(true)
       expect(pytest.bodyLines?.[0]?.text).toContain('FAILED')
-      expect(pytest.bodyLines?.[0]?.failedLead).toBe(true)
+      expect(pytest.bodyLines?.[0]?.boldPrefix).toBe('FAILED')
     }
     expect(load.observation.blocks.some((b) => b.kind === 'working')).toBe(
       true,
@@ -72,6 +73,31 @@ describe('taskFixtures', () => {
     expect(load.observation.followUpPlaceholder).toBe(
       'Tell the agent how to continue',
     )
+  })
+
+  it('maps the completed retry-budget specimen with summary evidence', () => {
+    const load = taskLoadFor(RETRY_BUDGET_DONE_TASK_ID)
+    expect(load.kind).toBe('ready')
+    if (load.kind !== 'ready') return
+    expect(load.observation.status).toBe('completed')
+    expect(load.observation.taskId).toBe(RETRY_BUDGET_DONE_TASK_ID)
+    expect(load.observation.title).toBe('Add retry budget to delivery queue')
+    expect(load.observation.statusBadge).toBe('Done 21:04')
+    expect(load.observation.headerMeta).toBe('Claude · Opus 5.5 · HarflowWeb')
+    expect(load.observation.blocks.some((b) => b.kind === 'working')).toBe(
+      false,
+    )
+    if (load.observation.status !== 'completed') return
+    expect(load.observation.summary.heading).toBe('Summary')
+    expect(load.observation.summary.segments[0]?.kind).toBe('paragraph')
+    expect(load.observation.followUpPlaceholder).toBe('Continue this task')
+    const pytest = load.observation.blocks.find(
+      (b) => b.id === 'tool-pytest-queue',
+    )
+    expect(pytest?.kind).toBe('tool')
+    if (pytest?.kind === 'tool') {
+      expect(pytest.bodyLines?.[1]?.text).toBe('11 passed in 2.04s')
+    }
   })
 
   it('returns unavailable for unmapped synthetic launch ids', () => {

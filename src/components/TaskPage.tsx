@@ -1,6 +1,7 @@
 import type { TaskObservation } from '../model'
 import { TaskFailureBanner } from './TaskFailureBanner'
 import { TaskFollowUp } from './TaskFollowUp'
+import { TaskSummarySection } from './TaskSummarySection'
 import { TaskTranscript } from './TaskTranscript'
 
 type Props = {
@@ -10,7 +11,7 @@ type Props = {
 
 /** Ready-state task body — topbar title lives in TaskMain. */
 export function TaskPage({ observation, onUnavailable }: Props) {
-  const failed = observation.status === 'failed'
+  const running = observation.status === 'running'
   return (
     <>
       <div
@@ -19,21 +20,32 @@ export function TaskPage({ observation, onUnavailable }: Props) {
       >
         <TaskTranscript
           blocks={observation.blocks}
-          footer={
-            failed ? (
-              <TaskFailureBanner
-                failure={observation.failure}
-                onUnavailable={onUnavailable}
-              />
-            ) : null
-          }
+          footer={transcriptFooter(observation, onUnavailable)}
         />
       </div>
       <TaskFollowUp
         placeholder={observation.followUpPlaceholder}
-        showStop={!failed}
+        showStop={running}
         onUnavailable={onUnavailable}
       />
     </>
   )
+}
+
+function transcriptFooter(
+  observation: TaskObservation,
+  onUnavailable: (label: string) => void,
+) {
+  if (observation.status === 'failed') {
+    return (
+      <TaskFailureBanner
+        failure={observation.failure}
+        onUnavailable={onUnavailable}
+      />
+    )
+  }
+  if (observation.status === 'completed') {
+    return <TaskSummarySection summary={observation.summary} />
+  }
+  return null
 }

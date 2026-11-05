@@ -28,6 +28,7 @@ export {
   EVENTS_READER_FAILED_TASK_ID,
   populatedTaskLoad,
   PRELOAD_TASK_ID,
+  RETRY_BUDGET_DONE_TASK_ID,
   SLOT_RELEASE_TASK_ID,
   taskLoadFor,
 } from './taskFixtures'

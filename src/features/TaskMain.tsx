@@ -53,6 +53,14 @@ function StatusBadge({
       </span>
     )
   }
+  if (observation.status === 'completed') {
+    return (
+      <span className="hd-badge hd-badge--done">
+        <Icon name="check" />
+        {observation.statusBadge}
+      </span>
+    )
+  }
   return (
     <span className="hd-badge hd-badge--running">
       <span className="hd-badge__spin" aria-hidden="true" />

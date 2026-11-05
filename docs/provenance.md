@@ -32,7 +32,11 @@
     right pane, task tabs, or approvals)
   - `task/failed/light` and `/dark` (failed badge, diagnostic transcript, failure
     banner; Retry / Copy resume command / follow-up send unavailable; no
-    completed-task view, right pane, or generated shell commands)
+    right pane or generated shell commands)
+  - `task/done/light` and `/dark` **transcript + summary only** (done badge,
+    diagnostic transcript, Summary section, follow-up send unavailable). The
+    approved specimen’s right pane (Changes / Artifacts / Events) is
+    deliberately outside this assignment and is not claimed as implemented.
 - Visual inspection also used hosted `https://design.harflow.dev/v2` (cheaper than a
   local archive server). Hosted content may be newer than the pinned commit;
   implementation citations remain the immutable commit above.
@@ -61,6 +65,7 @@
 | Statistics overview | Design `statistics/overview` specimen copy + distinct 7-day mock range | **Mock-only presentation** — not a public ctl statistics/billing API; success rate and median are fixture facts only when coverage is complete |
 | Running-task transcript | Design `task/running` specimen copy | **Mock-only presentation** — not a public ctl transcript protocol; mapped fixture ids only |
 | Failed-task transcript | Design `task/failed` specimen copy | **Mock-only presentation** — explicit failed status; no running chrome; Retry/Copy resume unavailable |
+| Completed-task transcript | Design `task/done` transcript+summary copy | **Mock-only presentation** — fixture evidence only; right pane out of scope; tool success ≠ verified authorship |
 | Repository options | Mock-only | Future server-hosted repos; not filesystem pickers; not ctl |
 
 ### Statistics semantic gaps (explicit)
@@ -85,11 +90,14 @@
   Unmapped rows and synthetic launch-accepted ids stay unavailable — never a
   fallback to another task.
 - Follow-up send, stop, cancel, retry, copy-resume, approval, steering, and
-  resume remain unavailable; expanding tools is local UI state only. Failed
-  tasks omit Stop and working indicators entirely.
+  resume remain unavailable; expanding tools is local UI state only. Failed and
+  completed tasks omit Stop and working indicators entirely.
+- Completed summary and tool results are **reported fixture evidence**. A done
+  badge or passing tool body does not imply independently verified repository
+  changes, artifact validity, or authorship.
 - Loading / unavailable treatments are proposals, not approved specimens, and
   must not show task A’s content under task B’s title when switching
-  running ↔ failed.
+  running ↔ failed ↔ completed.
 
 The mock adapter is not an HTTP protocol design and does not prove backend
 compatibility.

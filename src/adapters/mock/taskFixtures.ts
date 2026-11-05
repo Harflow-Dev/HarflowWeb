@@ -1,10 +1,14 @@
 /**
  * Deterministic task transcript fixtures from HarflowDesign
- * 3643d083… v2/scripts/screens-task.js (task/running, task/failed).
+ * 3643d083… v2/scripts/screens-task.js (running / failed / done).
  * Mock-only presentation — not a public ctl transcript protocol.
  */
 import { asTaskId } from '../../model'
 import type { TaskLoad, TaskObservation } from '../../model'
+import {
+  retryBudgetCompletedBlocks,
+  retryBudgetSummary,
+} from './taskCompletedBlocks'
 import { eventsReaderFailedBlocks } from './taskFailedBlocks'
 import { preloadBlocks, slotReleaseBlocks } from './taskFixtureBlocks'
 
@@ -16,6 +20,9 @@ export const PRELOAD_TASK_ID = asTaskId('task-preload-bridge')
 
 /** Mapped from Recent work "Migrate events.jsonl reader" (task/failed). */
 export const EVENTS_READER_FAILED_TASK_ID = asTaskId('task-events-reader-failed')
+
+/** Mapped from Recent work "Add retry budget to delivery queue" (task/done). */
+export const RETRY_BUDGET_DONE_TASK_ID = asTaskId('task-retry-budget-done')
 
 export function slotReleaseObservation(): TaskObservation {
   return {
@@ -61,10 +68,24 @@ export function eventsReaderFailedObservation(): TaskObservation {
   }
 }
 
+export function retryBudgetCompletedObservation(): TaskObservation {
+  return {
+    status: 'completed',
+    taskId: RETRY_BUDGET_DONE_TASK_ID,
+    title: 'Add retry budget to delivery queue',
+    statusBadge: 'Done 21:04',
+    headerMeta: 'Claude · Opus 5.5 · HarflowWeb',
+    blocks: retryBudgetCompletedBlocks(),
+    followUpPlaceholder: 'Continue this task',
+    summary: retryBudgetSummary(),
+  }
+}
+
 const BY_ID: ReadonlyMap<string, TaskObservation> = new Map([
   [SLOT_RELEASE_TASK_ID, slotReleaseObservation()],
   [PRELOAD_TASK_ID, preloadObservation()],
   [EVENTS_READER_FAILED_TASK_ID, eventsReaderFailedObservation()],
+  [RETRY_BUDGET_DONE_TASK_ID, retryBudgetCompletedObservation()],
 ])
 
 export function taskLoadFor(taskId: string): TaskLoad {

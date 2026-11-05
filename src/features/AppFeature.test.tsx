@@ -31,6 +31,7 @@ import { statisticsLoadFor } from '../adapters/mock/statisticsFixtures'
 import {
   EVENTS_READER_FAILED_TASK_ID,
   PRELOAD_TASK_ID,
+  RETRY_BUDGET_DONE_TASK_ID,
   taskLoadFor,
 } from '../adapters/mock/taskFixtures'
 import { POPULATED_WORKFLOWS } from '../adapters/mock/workflowFixtures'
@@ -697,5 +698,101 @@ describe('AppFeature navigation', () => {
         name: 'Stop (unavailable in this slice)',
       }),
     ).not.toBeInTheDocument()
+  })
+
+  it('opens the completed task with summary and without running/failure chrome', async () => {
+    const user = userEvent.setup()
+    const { port, starts } = createTestEngine()
+    renderApp(port)
+    await flush()
+
+    await user.click(
+      screen.getByRole('button', {
+        name: /Add retry budget to delivery queue/,
+      }),
+    )
+    const main = screen.getByRole('main')
+    expect(
+      await within(main).findByText('Add retry budget to delivery queue'),
+    ).toBeInTheDocument()
+    expect(within(main).getByText('Done 21:04')).toBeInTheDocument()
+    expect(within(main).getByText('Summary')).toBeInTheDocument()
+    expect(
+      within(main).getByText(/retry budget of 5 attempts per hour/),
+    ).toBeInTheDocument()
+    const toolBody = main.querySelector('.hd-tool__body')
+    expect(toolBody?.textContent).toContain('11 passed in 2.04s')
+    expect(main.querySelector('.hd-badge--running')).toBeNull()
+    expect(main.querySelector('.hd-badge--failed')).toBeNull()
+    expect(main.querySelector('.hd-working')).toBeNull()
+    expect(within(main).queryByRole('alert')).not.toBeInTheDocument()
+    expect(
+      within(main).queryByRole('button', {
+        name: 'Stop (unavailable in this slice)',
+      }),
+    ).not.toBeInTheDocument()
+    expect(
+      within(main).queryByRole('button', {
+        name: 'Retry (unavailable in this slice)',
+      }),
+    ).not.toBeInTheDocument()
+    expect(
+      screen.getByRole('button', {
+        name: 'Send follow-up (unavailable in this slice)',
+      }),
+    ).toBeDisabled()
+    expect(starts).toHaveLength(0)
+  })
+
+  it('navigates running → failed → completed without stale titles or content', async () => {
+    const user = userEvent.setup()
+    const { port, publishTask } = createTestEngine({
+      deferTaskIds: [RETRY_BUDGET_DONE_TASK_ID],
+    })
+    renderApp(port)
+    await flush()
+
+    await user.click(
+      screen.getByRole('button', { name: /Fix flaky slot release test/ }),
+    )
+    expect(await screen.findByText('Running tests…')).toBeInTheDocument()
+
+    await user.click(
+      screen.getByRole('button', { name: /Migrate events.jsonl reader/ }),
+    )
+    expect(
+      await screen.findByText('Task failed: the harness exited with code 1'),
+    ).toBeInTheDocument()
+    expect(screen.queryByText('Running tests…')).not.toBeInTheDocument()
+    expect(screen.getByText('Failed 07:48')).toBeInTheDocument()
+
+    await user.click(
+      screen.getByRole('button', {
+        name: /Add retry budget to delivery queue/,
+      }),
+    )
+    const main = screen.getByRole('main')
+    expect(
+      within(main).getByText('Add retry budget to delivery queue'),
+    ).toBeInTheDocument()
+    expect(
+      within(main).getByText(/Loading task… \(proposal/),
+    ).toBeInTheDocument()
+    expect(
+      within(main).queryByText('Task failed: the harness exited with code 1'),
+    ).not.toBeInTheDocument()
+    expect(within(main).queryByText('Failed 07:48')).not.toBeInTheDocument()
+    expect(within(main).queryByText('Running tests…')).not.toBeInTheDocument()
+
+    publishTask(
+      RETRY_BUDGET_DONE_TASK_ID,
+      taskLoadFor(RETRY_BUDGET_DONE_TASK_ID),
+    )
+    expect(await within(main).findByText('Done 21:04')).toBeInTheDocument()
+    expect(within(main).getByText('Summary')).toBeInTheDocument()
+    expect(
+      within(main).queryByText('Task failed: the harness exited with code 1'),
+    ).not.toBeInTheDocument()
+    expect(within(main).queryByText('Running 04:12')).not.toBeInTheDocument()
   })
 })

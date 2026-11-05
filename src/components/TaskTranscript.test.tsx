@@ -50,7 +50,7 @@ describe('TaskTranscript', () => {
         icon: 'terminal',
         summary: [{ kind: 'text', value: 'Ran probe' }],
         meta: '0:01',
-        bodyLines: [{ failedLead: false, text: 'body-secret-line' }],
+        bodyLines: [{ boldPrefix: null, text: 'body-secret-line' }],
         initiallyExpanded: false,
       },
     ]

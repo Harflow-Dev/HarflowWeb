@@ -27,6 +27,7 @@ populated fixture and shows a single “Mock engine” badge.
 | Statistics overview | Approved `statistics/overview` ranges (7d + 30d populated; All time incomplete) |
 | Task running | Approved `task/running` transcript for mapped sidebar rows |
 | Task failed | Approved `task/failed` transcript for the mapped recent-work row |
+| Task done | Approved `task/done` transcript+summary (right pane out of scope) |
 
 Sidebar navigation between **New task**, **Workflows**, **Resources**, and
 **Statistics** is live, and explicitly mapped Running / Recent rows open the

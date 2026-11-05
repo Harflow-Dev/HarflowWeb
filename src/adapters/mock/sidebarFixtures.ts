@@ -2,6 +2,7 @@ import { asTaskId, type SidebarData, type SidebarEntry } from '../../model'
 import {
   EVENTS_READER_FAILED_TASK_ID,
   PRELOAD_TASK_ID,
+  RETRY_BUDGET_DONE_TASK_ID,
   SLOT_RELEASE_TASK_ID,
 } from './taskFixtures'
 
@@ -35,7 +36,7 @@ export const POPULATED_RECENT: readonly SidebarEntry[] = [
     title: 'Add retry budget to delivery queue',
     meta: '12m',
     glyph: 'done',
-    mappedTaskId: null,
+    mappedTaskId: RETRY_BUDGET_DONE_TASK_ID,
   },
   {
     id: 'rec-2',

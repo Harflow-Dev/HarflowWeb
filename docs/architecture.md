@@ -38,12 +38,14 @@ new-task session and remain shared chrome for all routes.
 
 Only sidebar rows with an explicit `mappedTaskId` call `openTask`. Unmapped rows
 (and synthetic launch-accepted ids without a fixture) stay unavailable and never
-fall back to another task’s transcript.
+fall back to another task’s transcript. Task observations carry an explicit
+`status` of `running` or `failed`; failed observations must not reuse running
+badge, working indicator, or Stop chrome.
 
 Sidebar chrome is split across `sidebarNav.tsx`, `sidebarSections.tsx`, and a
 thin `Sidebar.tsx` shell so navigation growth does not pile more responsibilities
-onto one file. Running-task UI is split across `TaskMain`, `TaskPage`,
-`TaskTranscript`, and `TaskFollowUp`.
+onto one file. Task UI is split across `TaskMain`, `TaskPage`, `TaskTranscript`,
+`TaskFailureBanner`, and `TaskFollowUp`.
 
 ## EnginePort (slice-sized)
 
@@ -62,7 +64,7 @@ administration, install, release, repair, or configuration. Statistics are
 read-only overview observations for an explicit typed range — not billing,
 filesystem, or invented engine metrics. Task transcripts are mock presentation
 evidence for an explicit task id — not a public ctl transcript protocol, and
-not follow-up / cancel / retry / approval / steering commands.
+not follow-up / cancel / retry / copy-resume / approval / steering commands.
 
 Each page observation uses an independent epoch so disposed or replaced
 callbacks cannot mutate presentation state after cancel/replace. Changing the

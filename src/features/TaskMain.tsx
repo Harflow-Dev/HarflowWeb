@@ -1,5 +1,5 @@
-import { TaskPage } from '../components'
-import type { SidebarData } from '../model'
+import { Icon, TaskPage } from '../components'
+import type { SidebarData, TaskObservation } from '../model'
 import type { TaskScreenState } from '../presentation'
 
 type Props = {
@@ -9,7 +9,7 @@ type Props = {
 }
 
 /**
- * Slim running-task chrome. Loading/unavailable never keep the prior task's
+ * Slim task chrome. Loading/unavailable never keep the prior task's
  * transcript under the newly selected identity.
  */
 export function TaskMain({ state, sidebar, onUnavailable }: Props) {
@@ -29,19 +29,35 @@ export function TaskMain({ state, sidebar, onUnavailable }: Props) {
     >
       <div className="hd-topbar">
         <span className="hd-topbar__title">{title}</span>
+        {ready ? <StatusBadge observation={ready} /> : null}
         {ready ? (
-          <>
-            <span className="hd-badge hd-badge--running">
-              <span className="hd-badge__spin" aria-hidden="true" />
-              {ready.runningBadge}
-            </span>
-            <span className="hd-topbar__meta">{ready.headerMeta}</span>
-          </>
+          <span className="hd-topbar__meta">{ready.headerMeta}</span>
         ) : null}
         <span className="hd-topbar__spacer" />
       </div>
       <TaskBody state={state} onUnavailable={onUnavailable} />
     </div>
+  )
+}
+
+function StatusBadge({
+  observation,
+}: {
+  readonly observation: TaskObservation
+}) {
+  if (observation.status === 'failed') {
+    return (
+      <span className="hd-badge hd-badge--failed">
+        <Icon name="x" />
+        {observation.statusBadge}
+      </span>
+    )
+  }
+  return (
+    <span className="hd-badge hd-badge--running">
+      <span className="hd-badge__spin" aria-hidden="true" />
+      {observation.statusBadge}
+    </span>
   )
 }
 

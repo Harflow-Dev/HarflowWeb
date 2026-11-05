@@ -113,6 +113,27 @@ send disabled. Document/`hd-app` scrollWidth equals clientWidth (1280). Transcri
 scroll lives in `.hd-scroll` (column-reverse anchor per specimen; no JS auto-scroll).
 Tool disclosure toggles `aria-expanded` under pointer/keyboard.
 
+## Failed-task transcript — verified 1280×800 captures
+
+Directory:
+`~/.codex/workflows/screenshots/2026-11-05-harflowweb-task-failed-slice/`
+
+Captured from `/` after opening the mapped Recent work row “Migrate events.jsonl
+reader”. Same CDP clip + `sips` verification. Content-region color diversity is
+hundreds of distinct colors per file.
+
+| File | Scenario | Viewport / PNG | Appearance / chrome |
+| --- | --- | --- | --- |
+| `01-task-failed-light-expanded.png` | task/failed | 1280×800 | light, sidebar expanded |
+| `02-task-failed-dark-expanded.png` | task/failed | 1280×800 | dark, sidebar expanded |
+| `03-task-failed-dark-collapsed.png` | task/failed | 1280×800 | dark, sidebar collapsed |
+| `04-task-failed-light-collapsed.png` | task/failed | 1280×800 | light, sidebar collapsed |
+
+Observed: failed badge (`Failed 07:48`, no running spin), diagnostic transcript,
+expanded pytest failure body, failure banner with Retry / Copy resume unavailable,
+follow-up composer without Stop, send disabled. No working indicator. Document
+scrollWidth equals clientWidth (1280).
+
 Earlier new-task screenshots remain under
 `~/.codex/workflows/screenshots/2026-11-05-harflowweb-new-task-slice/`.
 
@@ -122,7 +143,7 @@ Earlier new-task screenshots remain under
 - Workflows: `v2/scripts/screens-workflows.js` (`workflows/list`, `workflows/empty`)
 - Resources: `v2/scripts/screens-resources.js` (`resources/slots` light/dark)
 - Statistics: `v2/scripts/screens-statistics.js` (`statistics/overview` light/dark)
-- Task: `v2/scripts/screens-task.js` (`task/running` light/dark)
+- Task: `v2/scripts/screens-task.js` (`task/running` and `task/failed` light/dark)
 - Observed in the running Vite app (not substituted from hosted design)
 
 ## Checks performed
@@ -144,6 +165,8 @@ Earlier new-task screenshots remain under
   table; harness table is visible.
 - Running-task follow-up send stays disabled; Stop reports unavailable without
   mutation.
+- Failed-task omits Stop and running chrome; Retry / Copy resume / follow-up
+  send report unavailable without mutation or generated shell commands.
 
 ## Limitations
 
@@ -159,5 +182,5 @@ Earlier new-task screenshots remain under
   not a claim of visual approval for an all-time populated specimen.
 - No public ctl statistics or transcript contract; success rate / median / cost
   and transcript blocks are fixture facts with explicit coverage gates.
-- Running-task captures omit specimen right-pane / more-actions chrome (out of
-  scope for this slice).
+- Running- and failed-task captures omit specimen right-pane / more-actions
+  chrome (out of scope for this slice).

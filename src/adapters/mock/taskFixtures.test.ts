@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { asTaskId } from '../../model'
 import {
+  EVENTS_READER_FAILED_TASK_ID,
   PRELOAD_TASK_ID,
   SLOT_RELEASE_TASK_ID,
   populatedTaskLoad,
@@ -12,9 +13,10 @@ describe('taskFixtures', () => {
     const load = taskLoadFor(SLOT_RELEASE_TASK_ID)
     expect(load.kind).toBe('ready')
     if (load.kind !== 'ready') return
+    expect(load.observation.status).toBe('running')
     expect(load.observation.taskId).toBe(SLOT_RELEASE_TASK_ID)
     expect(load.observation.title).toBe('Fix flaky slot release test')
-    expect(load.observation.runningBadge).toBe('Running 04:12')
+    expect(load.observation.statusBadge).toBe('Running 04:12')
     const user = load.observation.blocks.find((b) => b.kind === 'user')
     expect(user?.kind === 'user' && user.text).toContain(
       'without adding sleeps',
@@ -26,12 +28,16 @@ describe('taskFixtures', () => {
       expect(pytest.bodyLines?.[0]?.text).toContain('FAILED')
       expect(pytest.bodyLines?.[0]?.failedLead).toBe(true)
     }
+    expect(load.observation.blocks.some((b) => b.kind === 'working')).toBe(
+      true,
+    )
   })
 
   it('keeps HTML-like preload text as plain fixture values', () => {
     const load = taskLoadFor(PRELOAD_TASK_ID)
     expect(load.kind).toBe('ready')
     if (load.kind !== 'ready') return
+    expect(load.observation.status).toBe('running')
     const user = load.observation.blocks.find((b) => b.kind === 'user')
     expect(user?.kind === 'user' && user.text).toContain(
       '<script>alert("x")</script>',
@@ -43,6 +49,29 @@ describe('taskFixtures', () => {
     expect(segment?.kind).toBe('paragraph')
     if (segment?.kind !== 'paragraph') return
     expect(segment.runs.some((r) => r.value.includes('<img'))).toBe(true)
+  })
+
+  it('maps the failed events-reader specimen without running chrome fields', () => {
+    const load = taskLoadFor(EVENTS_READER_FAILED_TASK_ID)
+    expect(load.kind).toBe('ready')
+    if (load.kind !== 'ready') return
+    expect(load.observation.status).toBe('failed')
+    expect(load.observation.taskId).toBe(EVENTS_READER_FAILED_TASK_ID)
+    expect(load.observation.title).toBe('Migrate events.jsonl reader')
+    expect(load.observation.statusBadge).toBe('Failed 07:48')
+    expect(load.observation.blocks.some((b) => b.kind === 'working')).toBe(
+      false,
+    )
+    if (load.observation.status !== 'failed') return
+    expect(load.observation.failure.title).toBe(
+      'Task failed: the harness exited with code 1',
+    )
+    expect(load.observation.failure.lastError).toContain(
+      'JSONDecodeError: Unterminated string',
+    )
+    expect(load.observation.followUpPlaceholder).toBe(
+      'Tell the agent how to continue',
+    )
   })
 
   it('returns unavailable for unmapped synthetic launch ids', () => {

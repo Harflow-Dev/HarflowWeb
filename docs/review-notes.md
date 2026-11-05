@@ -2,10 +2,10 @@
 
 ## Intent
 
-Review checkpoint after the mock-backed running-task transcript slice (Statistics
-overview was committed first). Does not complete W01–W05, authenticate, connect
-a real engine, run workflows, administer slots, bill, submit follow-ups, or ship
-editor/run destinations.
+Review checkpoint after the mock-backed failed-task presentation (running-task
+transcript committed first). Does not complete W01–W05, authenticate, connect a
+real engine, run workflows, administer slots, bill, submit follow-ups, retry, or
+ship editor/run destinations.
 
 ## Known deviations
 
@@ -20,8 +20,9 @@ editor/run destinations.
 - Sidebar destinations outside New task, Workflows, Resources, Statistics, and
   explicitly mapped running-task rows stay unavailable.
 - Run, Edit, New workflow, “Describe one to an agent”, Resources task links,
-  Install, follow-up send, and Stop are visible per design and explicitly
-  unavailable in this slice — no run/editor/admin/steering screens and no
+  Install, follow-up send, Stop (running only), Retry, and Copy resume command
+  are visible per design and explicitly unavailable in this slice — no
+  run/editor/admin/steering screens, no generated shell commands, and no
   mutation from those controls.
 - Workflows list shows definition title, description, and node count only — no
   invented run status (matches screen-inventory note).
@@ -33,11 +34,14 @@ editor/run destinations.
   the UI. There is no public ctl statistics contract in this slice.
 - “All time” uses incomplete retained-history coverage rather than inventing
   all-time engine totals (retained history ≠ all-time).
-- Running-task view implements `task/running` only: slim header, transcript,
-  expandable tools, working indication, follow-up composer shell. No task-level
-  tabs, search, changes/diff pane, artifacts, approval cards, or
-  completed/failed/workflow-run destinations. Right-pane / more-actions chrome
-  from the specimen is omitted (those destinations are out of scope).
+- Running-task view implements `task/running`: slim header, transcript,
+  expandable tools, working indication, follow-up composer shell with Stop.
+- Failed-task view implements `task/failed`: failed badge, diagnostic transcript,
+  failure explanation banner; no running badge, working indicator, or Stop.
+  Retry / Copy resume / follow-up send stay unavailable.
+- No task-level tabs, search, changes/diff pane, artifacts, approval cards,
+  completed-task view, or workflow-run destinations. Right-pane / more-actions
+  chrome from the specimen is omitted (those destinations are out of scope).
 - Only rows with `mappedTaskId` open a transcript. Synthetic launch-accepted ids
   remain unmapped unless an explicit fixture exists.
 - Product search is deliberately omitted (coverage ledger: remove product search /
@@ -70,5 +74,5 @@ editor/run destinations.
 ## What this does not claim
 
 Production readiness, authentication, real engine compatibility, workflow
-execution/editing, slot administration, billing accuracy, follow-up execution,
-Linux runtime support, or migration-gate completion.
+execution/editing, slot administration, billing accuracy, follow-up/retry
+execution, Linux runtime support, or migration-gate completion.

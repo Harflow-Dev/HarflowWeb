@@ -23,6 +23,9 @@ type IconName =
   | 'pencil'
   | 'file'
   | 'terminal'
+  | 'alert'
+  | 'refresh'
+  | 'copy'
   | 'external'
   | 'play'
 

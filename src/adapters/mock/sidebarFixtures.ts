@@ -1,5 +1,9 @@
 import { asTaskId, type SidebarData, type SidebarEntry } from '../../model'
-import { PRELOAD_TASK_ID, SLOT_RELEASE_TASK_ID } from './taskFixtures'
+import {
+  EVENTS_READER_FAILED_TASK_ID,
+  PRELOAD_TASK_ID,
+  SLOT_RELEASE_TASK_ID,
+} from './taskFixtures'
 
 export const POPULATED_RUNNING: readonly SidebarEntry[] = [
   {
@@ -38,7 +42,7 @@ export const POPULATED_RECENT: readonly SidebarEntry[] = [
     title: 'Migrate events.jsonl reader',
     meta: '1h',
     glyph: 'failed',
-    mappedTaskId: null,
+    mappedTaskId: EVENTS_READER_FAILED_TASK_ID,
   },
   {
     id: 'rec-3',

@@ -9,6 +9,7 @@ import {
   type TaskLoad,
 } from '../model'
 import {
+  EVENTS_READER_FAILED_TASK_ID,
   PRELOAD_TASK_ID,
   SLOT_RELEASE_TASK_ID,
   taskLoadFor,
@@ -196,6 +197,29 @@ describe('TaskSession', () => {
     expect(session.getState().load.kind).toBe('loading')
     publish(SLOT_RELEASE_TASK_ID, taskLoadFor(SLOT_RELEASE_TASK_ID))
     expect(session.getState().load).toEqual(taskLoadFor(SLOT_RELEASE_TASK_ID))
+    session.dispose()
+  })
+
+  it('rejects a captured running callback after switching to failed', async () => {
+    const { port, publish } = createDeferredPort()
+    const session = new TaskSession(createLoadTaskUseCase(port))
+    session.start()
+    session.openTask(SLOT_RELEASE_TASK_ID)
+    session.openTask(EVENTS_READER_FAILED_TASK_ID)
+    expect(session.getState().selectedTaskId).toBe(EVENTS_READER_FAILED_TASK_ID)
+    expect(session.getState().load.kind).toBe('loading')
+
+    publish(SLOT_RELEASE_TASK_ID, taskLoadFor(SLOT_RELEASE_TASK_ID))
+    expect(session.getState().load.kind).toBe('loading')
+    expect(session.getState().selectedTaskId).toBe(EVENTS_READER_FAILED_TASK_ID)
+
+    publish(EVENTS_READER_FAILED_TASK_ID, taskLoadFor(EVENTS_READER_FAILED_TASK_ID))
+    const load = session.getState().load
+    expect(load).toEqual(taskLoadFor(EVENTS_READER_FAILED_TASK_ID))
+    if (load.kind === 'ready') {
+      expect(load.observation.status).toBe('failed')
+      expect(load.observation.title).toBe('Migrate events.jsonl reader')
+    }
     session.dispose()
   })
 })

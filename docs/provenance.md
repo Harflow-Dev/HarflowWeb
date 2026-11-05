@@ -29,7 +29,10 @@
     coverage rather than inventing all-time totals)
   - `task/running/light` and `/dark` (slim header, transcript, expandable tools,
     running indication, follow-up composer shell — send/stop unavailable; no
-    right pane, task tabs, approvals, or completed/failed destinations)
+    right pane, task tabs, or approvals)
+  - `task/failed/light` and `/dark` (failed badge, diagnostic transcript, failure
+    banner; Retry / Copy resume command / follow-up send unavailable; no
+    completed-task view, right pane, or generated shell commands)
 - Visual inspection also used hosted `https://design.harflow.dev/v2` (cheaper than a
   local archive server). Hosted content may be newer than the pinned commit;
   implementation citations remain the immutable commit above.
@@ -57,6 +60,7 @@
 | Resources slot observation | Design `resources/slots` specimen copy | **Mock-only presentation** — not a public ctl resources catalog; no install/release/admin |
 | Statistics overview | Design `statistics/overview` specimen copy + distinct 7-day mock range | **Mock-only presentation** — not a public ctl statistics/billing API; success rate and median are fixture facts only when coverage is complete |
 | Running-task transcript | Design `task/running` specimen copy | **Mock-only presentation** — not a public ctl transcript protocol; mapped fixture ids only |
+| Failed-task transcript | Design `task/failed` specimen copy | **Mock-only presentation** — explicit failed status; no running chrome; Retry/Copy resume unavailable |
 | Repository options | Mock-only | Future server-hosted repos; not filesystem pickers; not ctl |
 
 ### Statistics semantic gaps (explicit)
@@ -80,10 +84,12 @@
 - Only sidebar rows with an explicit `mappedTaskId` open a transcript.
   Unmapped rows and synthetic launch-accepted ids stay unavailable — never a
   fallback to another task.
-- Follow-up send, stop, cancel, retry, approval, steering, and resume remain
-  unavailable; expanding tools is local UI state only.
+- Follow-up send, stop, cancel, retry, copy-resume, approval, steering, and
+  resume remain unavailable; expanding tools is local UI state only. Failed
+  tasks omit Stop and working indicators entirely.
 - Loading / unavailable treatments are proposals, not approved specimens, and
-  must not show task A’s content under task B’s title.
+  must not show task A’s content under task B’s title when switching
+  running ↔ failed.
 
 The mock adapter is not an HTTP protocol design and does not prove backend
 compatibility.

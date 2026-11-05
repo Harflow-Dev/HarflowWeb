@@ -58,14 +58,30 @@ export type TranscriptBlock =
       readonly label: string
     }
 
-export type TaskObservation = {
+export type TaskFailureExplanation = {
+  readonly title: string
+  readonly intro: string
+  readonly lastError: string
+}
+
+type TaskObservationBase = {
   readonly taskId: TaskId
   readonly title: string
-  readonly runningBadge: string
+  readonly statusBadge: string
   readonly headerMeta: string
   readonly blocks: readonly TranscriptBlock[]
   readonly followUpPlaceholder: string
 }
+
+/** Explicit lifecycle — failed must not reuse running chrome. */
+export type TaskObservation =
+  | (TaskObservationBase & {
+      readonly status: 'running'
+    })
+  | (TaskObservationBase & {
+      readonly status: 'failed'
+      readonly failure: TaskFailureExplanation
+    })
 
 export type TaskLoad =
   | { readonly kind: 'loading' }

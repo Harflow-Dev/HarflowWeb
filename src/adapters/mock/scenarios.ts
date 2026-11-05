@@ -52,6 +52,7 @@ export type ScenarioId =
   | 'resources-slots'
   | 'statistics-overview'
   | 'task-running'
+  | 'task-failed'
 
 export type ScenarioDefinition = {
   readonly id: ScenarioId
@@ -241,6 +242,15 @@ export const SCENARIOS: readonly ScenarioDefinition[] = [
     id: 'task-running',
     label: 'Task running',
     description: 'Approved task/running transcript for mapped sidebar rows.',
+    context: readyContext(),
+    tasks: (taskId) => taskLoadFor(taskId),
+    startOutcome: accepted,
+    holdStart: false,
+  }),
+  base({
+    id: 'task-failed',
+    label: 'Task failed',
+    description: 'Approved task/failed transcript for the mapped recent row.',
     context: readyContext(),
     tasks: (taskId) => taskLoadFor(taskId),
     startOutcome: accepted,

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, type ReactNode } from 'react'
 import type {
   AgentSegment,
   InlineRun,
@@ -10,14 +10,16 @@ import { Icon, type IconName } from './Icon'
 
 type Props = {
   readonly blocks: readonly TranscriptBlock[]
+  readonly footer?: ReactNode
 }
 
-export function TaskTranscript({ blocks }: Props) {
+export function TaskTranscript({ blocks, footer }: Props) {
   return (
     <div className="hd-transcript">
       {blocks.map((block) => (
         <TranscriptItem key={block.id} block={block} />
       ))}
+      {footer ?? null}
     </div>
   )
 }

@@ -2,13 +2,18 @@ import { Icon } from './Icon'
 
 type Props = {
   readonly placeholder: string
+  readonly showStop: boolean
   readonly onUnavailable: (label: string) => void
 }
 
 /**
- * Follow-up composer shell from task/running — send and stop stay unavailable.
+ * Follow-up composer shell — send stays unavailable; Stop only for running.
  */
-export function TaskFollowUp({ placeholder, onUnavailable }: Props) {
+export function TaskFollowUp({
+  placeholder,
+  showStop,
+  onUnavailable,
+}: Props) {
   return (
     <div
       style={{
@@ -40,15 +45,17 @@ export function TaskFollowUp({ placeholder, onUnavailable }: Props) {
         />
         <div className="hd-composer__bar">
           <span className="hd-composer__spacer" />
-          <button
-            type="button"
-            className="hd-btn hd-btn--secondary hd-btn--sm"
-            aria-label="Stop (unavailable in this slice)"
-            title="Stop — unavailable in this slice"
-            onClick={() => onUnavailable('Stop')}
-          >
-            <Icon name="stop" size="sm" /> Stop
-          </button>
+          {showStop ? (
+            <button
+              type="button"
+              className="hd-btn hd-btn--secondary hd-btn--sm"
+              aria-label="Stop (unavailable in this slice)"
+              title="Stop — unavailable in this slice"
+              onClick={() => onUnavailable('Stop')}
+            >
+              <Icon name="stop" size="sm" /> Stop
+            </button>
+          ) : null}
           <button
             type="submit"
             className="hd-composer__send"

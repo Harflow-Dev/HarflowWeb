@@ -28,7 +28,11 @@ import { createControllablePromise } from '../adapters/mock/controllable'
 import { populatedComposer, populatedSidebar } from '../adapters/mock/fixtures'
 import { populatedResourcesLoad } from '../adapters/mock/resourceFixtures'
 import { statisticsLoadFor } from '../adapters/mock/statisticsFixtures'
-import { PRELOAD_TASK_ID, taskLoadFor } from '../adapters/mock/taskFixtures'
+import {
+  EVENTS_READER_FAILED_TASK_ID,
+  PRELOAD_TASK_ID,
+  taskLoadFor,
+} from '../adapters/mock/taskFixtures'
 import { POPULATED_WORKFLOWS } from '../adapters/mock/workflowFixtures'
 import { createAppPresenter } from '../presentation'
 import { AppFeature } from './AppFeature'
@@ -588,5 +592,110 @@ describe('AppFeature navigation', () => {
       screen.getByText(/Accepted mock task kept-from-task/),
     ).toBeInTheDocument()
     expect(starts).toHaveLength(1)
+  })
+
+  it('opens the failed task without running chrome and keeps actions inert', async () => {
+    const user = userEvent.setup()
+    const { port, starts } = createTestEngine()
+    renderApp(port)
+    await flush()
+
+    await user.click(
+      screen.getByRole('button', { name: /Migrate events.jsonl reader/ }),
+    )
+    const main = screen.getByRole('main')
+    expect(
+      await within(main).findByText('Migrate events.jsonl reader'),
+    ).toBeInTheDocument()
+    expect(within(main).getByText('Failed 07:48')).toBeInTheDocument()
+    expect(
+      within(main).getByText('Task failed: the harness exited with code 1'),
+    ).toBeInTheDocument()
+    const alert = within(main).getByRole('alert')
+    expect(alert.textContent).toContain(
+      'json.decoder.JSONDecodeError: Unterminated string starting at: line 1 column 38',
+    )
+    expect(within(main).queryByText('Running tests…')).not.toBeInTheDocument()
+    expect(
+      within(main).queryByRole('button', {
+        name: 'Stop (unavailable in this slice)',
+      }),
+    ).not.toBeInTheDocument()
+    expect(within(main).queryByText(/^Running /)).not.toBeInTheDocument()
+    expect(main.querySelector('.hd-badge--running')).toBeNull()
+    expect(main.querySelector('.hd-working')).toBeNull()
+
+    await user.click(
+      screen.getByRole('button', {
+        name: 'Retry (unavailable in this slice)',
+      }),
+    )
+    expect(
+      screen.getByText(/Retry is unavailable in this exploratory slice/),
+    ).toBeInTheDocument()
+    await user.click(
+      screen.getByRole('button', {
+        name: 'Copy resume command (unavailable in this slice)',
+      }),
+    )
+    expect(
+      screen.getByText(
+        /Copy resume command is unavailable in this exploratory slice/,
+      ),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('button', {
+        name: 'Send follow-up (unavailable in this slice)',
+      }),
+    ).toBeDisabled()
+    expect(starts).toHaveLength(0)
+  })
+
+  it('clears running content when navigating to the failed task', async () => {
+    const user = userEvent.setup()
+    const { port, publishTask } = createTestEngine({
+      deferTaskIds: [EVENTS_READER_FAILED_TASK_ID],
+    })
+    renderApp(port)
+    await flush()
+
+    await user.click(
+      screen.getByRole('button', { name: /Fix flaky slot release test/ }),
+    )
+    expect(await screen.findByText('Running tests…')).toBeInTheDocument()
+    expect(screen.getByText('Running 04:12')).toBeInTheDocument()
+
+    await user.click(
+      screen.getByRole('button', { name: /Migrate events.jsonl reader/ }),
+    )
+    const main = screen.getByRole('main')
+    expect(
+      within(main).getByText('Migrate events.jsonl reader'),
+    ).toBeInTheDocument()
+    expect(
+      within(main).getByText(/Loading task… \(proposal/),
+    ).toBeInTheDocument()
+    expect(within(main).queryByText('Running tests…')).not.toBeInTheDocument()
+    expect(within(main).queryByText('Running 04:12')).not.toBeInTheDocument()
+    expect(
+      within(main).queryByText(/test_release_frees_slot/),
+    ).not.toBeInTheDocument()
+
+    publishTask(
+      EVENTS_READER_FAILED_TASK_ID,
+      taskLoadFor(EVENTS_READER_FAILED_TASK_ID),
+    )
+    expect(
+      await within(main).findByText(
+        'Task failed: the harness exited with code 1',
+      ),
+    ).toBeInTheDocument()
+    expect(within(main).getByText('Failed 07:48')).toBeInTheDocument()
+    expect(within(main).queryByText('Running tests…')).not.toBeInTheDocument()
+    expect(
+      within(main).queryByRole('button', {
+        name: 'Stop (unavailable in this slice)',
+      }),
+    ).not.toBeInTheDocument()
   })
 })

@@ -5,6 +5,7 @@ import {
   createLoadContextUseCase,
   createLoadResourcesUseCase,
   createLoadStatisticsUseCase,
+  createLoadTaskChangesUseCase,
   createLoadTaskUseCase,
   createLoadWorkflowsUseCase,
   createStartTaskUseCase,
@@ -20,6 +21,8 @@ import {
   type StartTaskRequest,
   type StatisticsLoad,
   type StatisticsRangeId,
+  type TaskChangesLoad,
+  type TaskChangesQuery,
   type TaskId,
   type TaskLoad,
   type WorkflowsLoad,
@@ -28,6 +31,11 @@ import { createControllablePromise } from '../adapters/mock/controllable'
 import { populatedComposer, populatedSidebar } from '../adapters/mock/fixtures'
 import { populatedResourcesLoad } from '../adapters/mock/resourceFixtures'
 import { statisticsLoadFor } from '../adapters/mock/statisticsFixtures'
+import {
+  CONFIG_PY_PATH,
+  QUEUE_PY_PATH,
+  taskChangesLoadFor,
+} from '../adapters/mock/taskChangesFixtures'
 import {
   EVENTS_READER_FAILED_TASK_ID,
   PRELOAD_TASK_ID,
@@ -51,12 +59,15 @@ function createTestEngine(options?: {
   workflows?: WorkflowsLoad
   deferStatisticsRanges?: readonly StatisticsRangeId[]
   deferTaskIds?: readonly TaskId[]
+  deferChanges?: boolean
 }): {
   port: EnginePort
   starts: StartTaskRequest[]
   resolveStart: (outcome: StartTaskOutcome) => void
   publishStatistics: (range: StatisticsRangeId, load: StatisticsLoad) => void
   publishTask: (taskId: TaskId, load: TaskLoad) => void
+  publishTaskChanges: (query: TaskChangesQuery, load: TaskChangesLoad) => void
+  captureChangesCallback: () => ((load: TaskChangesLoad) => void) | null
 } {
   const starts: StartTaskRequest[] = []
   let held = createControllablePromise<StartTaskOutcome>()
@@ -72,6 +83,11 @@ function createTestEngine(options?: {
     (load: StatisticsLoad) => void
   >()
   const taskListeners = new Map<TaskId, (load: TaskLoad) => void>()
+  const changesListeners = new Map<
+    string,
+    (load: TaskChangesLoad) => void
+  >()
+  let lastChangesCallback: ((load: TaskChangesLoad) => void) | null = null
   const port: EnginePort = {
     observeContext(onUpdate) {
       queueMicrotask(() => onUpdate(readyContext()))
@@ -129,6 +145,22 @@ function createTestEngine(options?: {
         },
       }
     },
+    observeTaskChanges(query, onUpdate) {
+      const key = `${query.taskId}\0${query.selectedPath ?? ''}`
+      lastChangesCallback = onUpdate
+      changesListeners.set(key, onUpdate)
+      if (!options?.deferChanges) {
+        queueMicrotask(() => onUpdate(taskChangesLoadFor(query)))
+      }
+      return {
+        id: asObservationId('ui-changes'),
+        cancel() {
+          if (changesListeners.get(key) === onUpdate) {
+            changesListeners.delete(key)
+          }
+        },
+      }
+    },
     async startTask(request) {
       starts.push(request)
       if (options?.holdStart) {
@@ -150,6 +182,11 @@ function createTestEngine(options?: {
     publishTask(taskId, load) {
       taskListeners.get(taskId)?.(load)
     },
+    publishTaskChanges(query, load) {
+      const key = `${query.taskId}\0${query.selectedPath ?? ''}`
+      changesListeners.get(key)?.(load)
+    },
+    captureChangesCallback: () => lastChangesCallback,
   }
 }
 
@@ -161,6 +198,7 @@ function renderApp(engine: EnginePort) {
     loadResources: createLoadResourcesUseCase(engine),
     loadStatistics: createLoadStatisticsUseCase(engine),
     loadTask: createLoadTaskUseCase(engine),
+    loadTaskChanges: createLoadTaskChangesUseCase(engine),
   })
   const view = render(<AppFeature presenter={presenter} />)
   return { presenter, ...view }
@@ -794,5 +832,232 @@ describe('AppFeature navigation', () => {
       within(main).queryByText('Task failed: the harness exited with code 1'),
     ).not.toBeInTheDocument()
     expect(within(main).queryByText('Running 04:12')).not.toBeInTheDocument()
+  })
+
+  it('opens and closes the Changes pane and selects two fixture files', async () => {
+    const user = userEvent.setup()
+    const { port, starts } = createTestEngine()
+    renderApp(port)
+    await flush()
+
+    await user.click(
+      screen.getByRole('button', {
+        name: /Add retry budget to delivery queue/,
+      }),
+    )
+    const main = screen.getByRole('main')
+    expect(await within(main).findByText('Done 21:04')).toBeInTheDocument()
+    expect(
+      within(main).queryByRole('complementary', { name: 'Task details' }),
+    ).not.toBeInTheDocument()
+
+    await user.click(
+      within(main).getByRole('button', { name: 'Toggle right pane' }),
+    )
+    const pane = await within(main).findByRole('complementary', {
+      name: 'Task details',
+    })
+    expect(within(pane).getByRole('tab', { name: /Changes/ })).toHaveAttribute(
+      'aria-selected',
+      'true',
+    )
+    const files = within(pane).getByRole('list', { name: 'Changed files' })
+    expect(files).toHaveTextContent(QUEUE_PY_PATH)
+    expect(within(pane).getByText('+24')).toBeInTheDocument()
+    expect(within(pane).getByText('\u22123')).toBeInTheDocument()
+    expect(
+      within(pane).getByRole('group', { name: 'Diff of queue.py' }),
+    ).toBeInTheDocument()
+    expect(
+      within(pane).getByText('@@ -41,9 +41,18 @@ class DeliveryQueue'),
+    ).toBeInTheDocument()
+
+    await user.click(
+      within(files).getByRole('button', {
+        name: CONFIG_PY_PATH,
+      }),
+    )
+    expect(
+      await within(pane).findByRole('group', { name: 'Diff of config.py' }),
+    ).toBeInTheDocument()
+    expect(
+      within(pane).getByText(/<script>alert\('x'\)<\/script>/),
+    ).toBeInTheDocument()
+    expect(within(pane).getByText(/日本語/)).toBeInTheDocument()
+    expect(
+      within(pane).queryByText('@@ -41,9 +41,18 @@ class DeliveryQueue'),
+    ).not.toBeInTheDocument()
+
+    await user.click(
+      within(pane).getByRole('tab', { name: 'Artifacts' }),
+    )
+    expect(
+      screen.getByText(/Artifacts is unavailable in this exploratory slice/),
+    ).toBeInTheDocument()
+    expect(starts).toHaveLength(0)
+
+    await user.click(
+      within(main).getByRole('button', { name: 'Toggle right pane' }),
+    )
+    expect(
+      within(main).queryByRole('complementary', { name: 'Task details' }),
+    ).not.toBeInTheDocument()
+  })
+
+  it('keeps keyboard focus on the file list while a deferred diff loads', async () => {
+    const user = userEvent.setup()
+    const { port, captureChangesCallback, publishTaskChanges } =
+      createTestEngine({ deferChanges: true })
+    const { presenter } = renderApp(port)
+    await flush()
+
+    await user.click(
+      screen.getByRole('button', {
+        name: /Add retry budget to delivery queue/,
+      }),
+    )
+    await within(screen.getByRole('main')).findByText('Done 21:04')
+    await user.click(
+      screen.getByRole('button', { name: 'Toggle right pane' }),
+    )
+    const main = screen.getByRole('main')
+    const queryNull = {
+      taskId: RETRY_BUDGET_DONE_TASK_ID,
+      selectedPath: null as string | null,
+    }
+    publishTaskChanges(queryNull, taskChangesLoadFor(queryNull))
+    const pane = await within(main).findByRole('complementary', {
+      name: 'Task details',
+    })
+    expect(
+      within(pane).getByRole('group', { name: 'Diff of queue.py' }),
+    ).toBeInTheDocument()
+
+    const stale = captureChangesCallback()
+    expect(stale).not.toBeNull()
+    expect(typeof stale).toBe('function')
+
+    const configRow = within(pane).getByRole('button', {
+      name: CONFIG_PY_PATH,
+    })
+    configRow.focus()
+    expect(configRow).toHaveFocus()
+    await user.keyboard('{Enter}')
+    await flush()
+    expect(presenter.getState().task.changesLoad.kind).toBe('loading')
+    expect(presenter.getState().task.selectedChangePath).toBe(CONFIG_PY_PATH)
+    expect(
+      within(pane).getByRole('button', { name: CONFIG_PY_PATH }),
+    ).toBeInTheDocument()
+    expect(
+      within(pane).queryByRole('group', { name: 'Diff of queue.py' }),
+    ).not.toBeInTheDocument()
+    expect(
+      within(pane).getByText(/Loading changes… \(proposal/),
+    ).toBeInTheDocument()
+    expect(
+      within(pane).getByRole('button', { name: CONFIG_PY_PATH }),
+    ).toHaveFocus()
+
+    stale!(taskChangesLoadFor(queryNull))
+    expect(presenter.getState().task.changesLoad.kind).toBe('loading')
+    expect(
+      within(pane).queryByRole('group', { name: 'Diff of queue.py' }),
+    ).not.toBeInTheDocument()
+
+    const queryConfig = {
+      taskId: RETRY_BUDGET_DONE_TASK_ID,
+      selectedPath: CONFIG_PY_PATH,
+    }
+    publishTaskChanges(queryConfig, taskChangesLoadFor(queryConfig))
+    expect(
+      await within(pane).findByRole('group', { name: 'Diff of config.py' }),
+    ).toBeInTheDocument()
+    expect(
+      within(pane).getByRole('button', { name: CONFIG_PY_PATH }),
+    ).toBeInTheDocument()
+  })
+
+  it('closes Changes when navigating completed → running → failed', async () => {
+    const user = userEvent.setup()
+    const { port, captureChangesCallback, publishTaskChanges } =
+      createTestEngine({ deferChanges: true })
+    const { presenter } = renderApp(port)
+    await flush()
+
+    await user.click(
+      screen.getByRole('button', {
+        name: /Add retry budget to delivery queue/,
+      }),
+    )
+    await screen.findByText('Done 21:04')
+    await user.click(
+      screen.getByRole('button', { name: 'Toggle right pane' }),
+    )
+    const queryNull = {
+      taskId: RETRY_BUDGET_DONE_TASK_ID,
+      selectedPath: null as string | null,
+    }
+    publishTaskChanges(queryNull, taskChangesLoadFor(queryNull))
+    expect(
+      await screen.findByRole('complementary', { name: 'Task details' }),
+    ).toBeInTheDocument()
+    const stale = captureChangesCallback()
+    expect(stale).not.toBeNull()
+
+    await user.click(
+      screen.getByRole('button', { name: /Fix flaky slot release test/ }),
+    )
+    expect(await screen.findByText('Running 04:12')).toBeInTheDocument()
+    expect(presenter.getState().task.changesPaneOpen).toBe(false)
+    expect(
+      screen.queryByRole('complementary', { name: 'Task details' }),
+    ).not.toBeInTheDocument()
+    expect(
+      screen.queryByRole('button', { name: 'Toggle right pane' }),
+    ).not.toBeInTheDocument()
+    stale!(taskChangesLoadFor(queryNull))
+    expect(presenter.getState().task.changesPaneOpen).toBe(false)
+
+    await user.click(
+      screen.getByRole('button', { name: /Migrate events.jsonl reader/ }),
+    )
+    expect(
+      await screen.findByText('Task failed: the harness exited with code 1'),
+    ).toBeInTheDocument()
+    expect(presenter.getState().task.changesPaneOpen).toBe(false)
+    expect(
+      screen.queryByRole('complementary', { name: 'Task details' }),
+    ).not.toBeInTheDocument()
+    expect(
+      screen.queryByRole('button', { name: 'Toggle right pane' }),
+    ).not.toBeInTheDocument()
+  })
+
+  it('keeps follow-up and unavailable destinations from mutating or launching', async () => {
+    const user = userEvent.setup()
+    const { port, starts } = createTestEngine()
+    renderApp(port)
+    await flush()
+    await user.click(
+      screen.getByRole('button', {
+        name: /Add retry budget to delivery queue/,
+      }),
+    )
+    await screen.findByText('Done 21:04')
+    await user.click(
+      screen.getByRole('button', { name: 'Toggle right pane' }),
+    )
+    await screen.findByRole('complementary', { name: 'Task details' })
+    await user.click(screen.getByRole('tab', { name: 'Events' }))
+    expect(
+      screen.getByText(/Events is unavailable in this exploratory slice/),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('button', {
+        name: 'Send follow-up (unavailable in this slice)',
+      }),
+    ).toBeDisabled()
+    expect(starts).toHaveLength(0)
   })
 })

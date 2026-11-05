@@ -33,10 +33,12 @@
   - `task/failed/light` and `/dark` (failed badge, diagnostic transcript, failure
     banner; Retry / Copy resume command / follow-up send unavailable; no
     right pane or generated shell commands)
-  - `task/done/light` and `/dark` **transcript + summary only** (done badge,
-    diagnostic transcript, Summary section, follow-up send unavailable). The
-    approved specimen’s right pane (Changes / Artifacts / Events) is
-    deliberately outside this assignment and is not claimed as implemented.
+  - `task/done/light` and `/dark` transcript + summary + **read-only Changes
+    pane** (done badge, diagnostic transcript, Summary section, follow-up send
+    unavailable; Changes open/close with fixture file rows and selected diff).
+    Artifacts and Events tabs remain explicitly unavailable. The specimen’s
+    Artifacts/Events destinations and any edit/download/apply actions are not
+    implemented.
 - Visual inspection also used hosted `https://design.harflow.dev/v2` (cheaper than a
   local archive server). Hosted content may be newer than the pinned commit;
   implementation citations remain the immutable commit above.
@@ -65,7 +67,8 @@
 | Statistics overview | Design `statistics/overview` specimen copy + distinct 7-day mock range | **Mock-only presentation** — not a public ctl statistics/billing API; success rate and median are fixture facts only when coverage is complete |
 | Running-task transcript | Design `task/running` specimen copy | **Mock-only presentation** — not a public ctl transcript protocol; mapped fixture ids only |
 | Failed-task transcript | Design `task/failed` specimen copy | **Mock-only presentation** — explicit failed status; no running chrome; Retry/Copy resume unavailable |
-| Completed-task transcript | Design `task/done` transcript+summary copy | **Mock-only presentation** — fixture evidence only; right pane out of scope; tool success ≠ verified authorship |
+| Completed-task transcript | Design `task/done` transcript+summary copy | **Mock-only presentation** — fixture evidence only; tool success ≠ verified authorship |
+| Completed-task Changes | Design `task/done` Changes pane file list + selected diff | **Mock-only presentation** — recorded repository observations; not Git/fs; not authorship proof; independent of task success |
 | Repository options | Mock-only | Future server-hosted repos; not filesystem pickers; not ctl |
 
 ### Statistics semantic gaps (explicit)
@@ -95,9 +98,16 @@
 - Completed summary and tool results are **reported fixture evidence**. A done
   badge or passing tool body does not imply independently verified repository
   changes, artifact validity, or authorship.
+- Changes pane rows and diffs are **recorded repository observations** for the
+  mapped completed fixture only. They are independent of task success and are
+  not Git, filesystem access, patch application, downloads, or authorship proof.
+  Empty recorded diffs stay distinct from unavailable content. Default
+  (null-path) observations keep accepting later updates after display selection
+  resolves. Artifacts and Events remain unavailable. Loading / empty /
+  unavailable changes treatments beyond the populated fixture are proposals.
 - Loading / unavailable treatments are proposals, not approved specimens, and
   must not show task A’s content under task B’s title when switching
-  running ↔ failed ↔ completed.
+  running ↔ failed ↔ completed, nor a prior file’s diff under a new selection.
 
 The mock adapter is not an HTTP protocol design and does not prove backend
 compatibility.

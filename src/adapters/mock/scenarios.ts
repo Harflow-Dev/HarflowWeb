@@ -5,6 +5,8 @@ import {
   type StartTaskOutcome,
   type StatisticsLoad,
   type StatisticsRangeId,
+  type TaskChangesLoad,
+  type TaskChangesQuery,
   type TaskId,
   type TaskLoad,
   type WorkflowsLoad,
@@ -32,6 +34,11 @@ export type TasksScenario =
   | 'default'
   | 'defer'
   | ((taskId: TaskId) => TaskLoad)
+
+export type TaskChangesScenario =
+  | 'default'
+  | 'defer'
+  | ((query: TaskChangesQuery) => TaskChangesLoad)
 
 /**
  * Deterministic preview scenarios for /preview.
@@ -64,6 +71,7 @@ export type ScenarioDefinition = {
   readonly resources: ResourcesLoad | 'defer'
   readonly statistics: StatisticsScenario
   readonly tasks: TasksScenario
+  readonly taskChanges: TaskChangesScenario
   readonly startOutcome: StartTaskOutcome
   readonly holdStart: boolean
 }
@@ -85,16 +93,21 @@ const resources = populatedResourcesLoad()
 const workflows = populatedWorkflowsLoad()
 const statistics: StatisticsScenario = 'default'
 const tasks: TasksScenario = 'default'
+const taskChanges: TaskChangesScenario = 'default'
 
 function base(
   partial: Omit<
     ScenarioDefinition,
-    'workflows' | 'resources' | 'statistics' | 'tasks'
+    'workflows' | 'resources' | 'statistics' | 'tasks' | 'taskChanges'
   > &
     Partial<
       Pick<
         ScenarioDefinition,
-        'workflows' | 'resources' | 'statistics' | 'tasks'
+        | 'workflows'
+        | 'resources'
+        | 'statistics'
+        | 'tasks'
+        | 'taskChanges'
       >
     >,
 ): ScenarioDefinition {
@@ -103,6 +116,7 @@ function base(
     resources,
     statistics,
     tasks,
+    taskChanges,
     ...partial,
   }
 }
@@ -261,7 +275,7 @@ export const SCENARIOS: readonly ScenarioDefinition[] = [
     id: 'task-done',
     label: 'Task done',
     description:
-      'Approved task/done transcript+summary (right pane out of scope).',
+      'Approved task/done transcript+summary with read-only Changes pane.',
     context: readyContext(),
     tasks: (taskId) => taskLoadFor(taskId),
     startOutcome: accepted,

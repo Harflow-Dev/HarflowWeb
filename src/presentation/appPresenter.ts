@@ -2,6 +2,7 @@ import type {
   LoadContextUseCase,
   LoadResourcesUseCase,
   LoadStatisticsUseCase,
+  LoadTaskChangesUseCase,
   LoadTaskUseCase,
   LoadWorkflowsUseCase,
   StartTaskUseCase,
@@ -26,6 +27,8 @@ export type AppPresenter = {
   dispose(): void
   navigate(route: AppRoute): void
   openTask(taskId: TaskId): void
+  setTaskChangesPaneOpen(open: boolean): void
+  selectTaskChangedFile(path: string): void
   selectStatisticsRange(range: StatisticsRangeId): void
   setAppearance(appearance: Appearance): void
   cycleAppearance(): void
@@ -46,6 +49,7 @@ type Deps = {
   readonly loadResources: LoadResourcesUseCase
   readonly loadStatistics: LoadStatisticsUseCase
   readonly loadTask: LoadTaskUseCase
+  readonly loadTaskChanges: LoadTaskChangesUseCase
 }
 
 export function createAppPresenter(deps: Deps): AppPresenter {
@@ -57,6 +61,8 @@ export function createAppPresenter(deps: Deps): AppPresenter {
     dispose: () => session.dispose(),
     navigate: (route) => session.navigate(route),
     openTask: (taskId) => session.openTask(taskId),
+    setTaskChangesPaneOpen: (open) => session.setTaskChangesPaneOpen(open),
+    selectTaskChangedFile: (path) => session.selectTaskChangedFile(path),
     selectStatisticsRange: (range) => session.selectStatisticsRange(range),
     setAppearance: (appearance) => session.setAppearance(appearance),
     cycleAppearance: () => session.cycleAppearance(),

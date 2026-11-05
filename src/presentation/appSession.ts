@@ -2,6 +2,7 @@ import type {
   LoadContextUseCase,
   LoadResourcesUseCase,
   LoadStatisticsUseCase,
+  LoadTaskChangesUseCase,
   LoadTaskUseCase,
   LoadWorkflowsUseCase,
   StartTaskUseCase,
@@ -32,11 +33,12 @@ type Deps = {
   readonly loadResources: LoadResourcesUseCase
   readonly loadStatistics: LoadStatisticsUseCase
   readonly loadTask: LoadTaskUseCase
+  readonly loadTaskChanges: LoadTaskChangesUseCase
 }
 
 /**
  * App shell session: owns new-task, workflows, resources, statistics, and
- * running-task lifetimes + route. Navigating does not dispose child sessions,
+ * task lifetimes + route. Navigating does not dispose child sessions,
  * so drafts, range selection, task identity, and in-flight launches survive.
  */
 export class AppSession {
@@ -57,7 +59,7 @@ export class AppSession {
     this.workflows = new WorkflowsSession(deps.loadWorkflows)
     this.resources = new ResourcesSession(deps.loadResources)
     this.statistics = new StatisticsSession(deps.loadStatistics)
-    this.task = new TaskSession(deps.loadTask)
+    this.task = new TaskSession(deps.loadTask, deps.loadTaskChanges)
     this.snapshot = this.buildSnapshot()
     this.newTask.subscribe(() => this.emit())
     this.workflows.subscribe(() => this.emit())
@@ -104,6 +106,14 @@ export class AppSession {
     this.route = 'task'
     this.task.openTask(taskId)
     this.emit()
+  }
+
+  setTaskChangesPaneOpen(open: boolean): void {
+    this.task.setChangesPaneOpen(open)
+  }
+
+  selectTaskChangedFile(path: string): void {
+    this.task.selectChangedFile(path)
   }
 
   selectStatisticsRange(range: StatisticsRangeId): void {

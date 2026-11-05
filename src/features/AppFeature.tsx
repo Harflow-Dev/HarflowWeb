@@ -73,6 +73,12 @@ export function AppFeature({ presenter }: Props) {
               state={state.task}
               sidebar={ready?.sidebar ?? null}
               onUnavailable={(label) => ephemeral.show(label)}
+              onToggleChangesPane={(open) =>
+                presenter.setTaskChangesPaneOpen(open)
+              }
+              onSelectChangedFile={(path) =>
+                presenter.selectTaskChangedFile(path)
+              }
             />
           )}
         </main>

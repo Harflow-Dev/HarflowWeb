@@ -2,10 +2,10 @@
 
 ## Intent
 
-Review checkpoint after the mock-backed completed-task transcript/summary
-(failed-task view committed first). Does not complete W01–W05, authenticate,
-connect a real engine, run workflows, administer slots, bill, submit follow-ups,
-retry, or ship editor/run destinations.
+Review checkpoint after the mock-backed completed-task Changes pane
+(completed-task transcript/summary committed first). Does not complete W01–W05,
+authenticate, connect a real engine, run workflows, administer slots, bill,
+submit follow-ups, retry, apply patches, or ship editor/run destinations.
 
 ## Known deviations
 
@@ -39,16 +39,20 @@ retry, or ship editor/run destinations.
 - Failed-task view implements `task/failed`: failed badge, diagnostic transcript,
   failure explanation banner; no running badge, working indicator, or Stop.
   Retry / Copy resume / follow-up send stay unavailable.
-- Completed-task view implements `task/done` **transcript + summary only**: done
-  badge, diagnostic transcript, Summary separator/body, follow-up send
-  unavailable; no Stop, failure banner, or Retry. The approved specimen’s right
-  pane (Changes / Artifacts / Events) is deliberately outside this assignment —
-  do not treat this slice as full `task/done` specimen coverage.
-- Summary and tool outcomes are fixture-reported evidence only; they do not
-  claim independently verified diffs, artifact validity, or authorship.
-- No task-level tabs, search, changes/diff pane, artifacts, approval cards, or
-  workflow-run destinations. Right-pane / more-actions chrome from the specimen
-  is omitted (those destinations are out of scope).
+- Completed-task view implements `task/done` transcript + summary + **read-only
+  Changes pane**: done badge, diagnostic transcript, Summary separator/body,
+  follow-up send unavailable; no Stop, failure banner, or Retry. Toggle opens
+  the Changes pane with fixture file rows, counts, selected path, and literal
+  diff lines. File selection keeps the list mounted and clears the prior diff
+  while the new observation loads. Navigating to another task closes the pane
+  immediately (no unclosable open pane on running/failed). Artifacts and Events
+  tabs announce unavailable. No Git, patch apply, edit, download, or external
+  links.
+- Summary, tool outcomes, and Changes diffs are fixture-reported / recorded
+  observations only; they do not claim independently verified authorship or
+  working-tree proof. Change evidence is independent of task success.
+- No task-level Summary/Prompt tabs, product search, artifact browser, approval
+  cards, or workflow-run destinations. More-actions chrome remains omitted.
 - Only rows with `mappedTaskId` open a transcript. Synthetic launch-accepted ids
   remain unmapped unless an explicit fixture exists.
 - Product search is deliberately omitted (coverage ledger: remove product search /

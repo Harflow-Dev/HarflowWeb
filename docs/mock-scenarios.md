@@ -27,7 +27,7 @@ populated fixture and shows a single “Mock engine” badge.
 | Statistics overview | Approved `statistics/overview` ranges (7d + 30d populated; All time incomplete) |
 | Task running | Approved `task/running` transcript for mapped sidebar rows |
 | Task failed | Approved `task/failed` transcript for the mapped recent-work row |
-| Task done | Approved `task/done` transcript+summary (right pane out of scope) |
+| Task done | Approved `task/done` transcript+summary + read-only Changes pane |
 
 Sidebar navigation between **New task**, **Workflows**, **Resources**, and
 **Statistics** is live, and explicitly mapped Running / Recent rows open the
@@ -37,12 +37,16 @@ pages; navigation never starts or repeats a task. Changing the statistics range
 requests that range through `observeStatistics(range, …)` and cancels the prior
 observation — it does not relabel unchanged totals. Opening another mapped task
 requests `observeTask(taskId, …)` and cancels the prior task observation.
+Opening the Changes pane on the completed fixture observes
+`observeTaskChanges({ taskId, selectedPath }, …)`; selecting a file re-keys that
+observation and clears the prior diff immediately.
 
 Run, Edit, New workflow, “Describe one to an agent”, Resources task links,
-Install, unmapped sidebar rows, follow-up send, Stop (running only), Retry, and
-Copy resume command remain visible where the design shows them and report
-unavailable in this slice — no mutation, no admin, no engine calls, and no
-generated shell commands. Tool-row expand/collapse is local UI only.
+Install, unmapped sidebar rows, follow-up send, Stop (running only), Retry,
+Copy resume command, Artifacts, and Events remain visible where the design shows
+them and report unavailable in this slice — no mutation, no admin, no engine
+calls, and no generated shell commands. Tool-row expand/collapse and Changes
+file selection are local UI only (selection re-observes fixture content).
 
 Valid zero task counts and observed zero cost remain distinct from unavailable
 observation data. Unknown or unavailable facts are not coerced to zero.

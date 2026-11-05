@@ -3,6 +3,7 @@ import {
   createLoadContextUseCase,
   createLoadResourcesUseCase,
   createLoadStatisticsUseCase,
+  createLoadTaskChangesUseCase,
   createLoadTaskUseCase,
   createLoadWorkflowsUseCase,
   createStartTaskUseCase,
@@ -27,6 +28,7 @@ import { createControllablePromise } from '../adapters/mock/controllable'
 import { populatedComposer, populatedSidebar } from '../adapters/mock/fixtures'
 import { populatedResourcesLoad } from '../adapters/mock/resourceFixtures'
 import { statisticsLoadFor } from '../adapters/mock/statisticsFixtures'
+import { taskChangesLoadFor } from '../adapters/mock/taskChangesFixtures'
 import {
   PRELOAD_TASK_ID,
   SLOT_RELEASE_TASK_ID,
@@ -113,6 +115,15 @@ function createTestEngine(options?: {
         },
       }
     },
+    observeTaskChanges(query, onUpdate) {
+      queueMicrotask(() => onUpdate(taskChangesLoadFor(query)))
+      return {
+        id: asObservationId('app-changes'),
+        cancel() {
+          /* no-op */
+        },
+      }
+    },
     async startTask(request) {
       starts.push(request)
       if (options?.holdStart) {
@@ -146,6 +157,7 @@ function createPresenter(engine: EnginePort) {
     loadResources: createLoadResourcesUseCase(engine),
     loadStatistics: createLoadStatisticsUseCase(engine),
     loadTask: createLoadTaskUseCase(engine),
+    loadTaskChanges: createLoadTaskChangesUseCase(engine),
   })
 }
 

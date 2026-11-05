@@ -20,6 +20,10 @@ export {
   type LoadTaskUseCase,
 } from './loadTask'
 export {
+  createLoadTaskChangesUseCase,
+  type LoadTaskChangesUseCase,
+} from './loadTaskChanges'
+export {
   createStartTaskUseCase,
   type StartTaskUseCase,
 } from './startTask'

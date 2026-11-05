@@ -28,6 +28,8 @@ type IconName =
   | 'copy'
   | 'external'
   | 'play'
+  | 'panel-right'
+  | 'more'
 
 type Props = {
   readonly name: IconName

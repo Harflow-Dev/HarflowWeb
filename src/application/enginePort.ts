@@ -6,14 +6,16 @@ import type {
   StartTaskRequest,
   StatisticsLoad,
   StatisticsRangeId,
+  TaskChangesLoad,
+  TaskChangesQuery,
   TaskId,
   TaskLoad,
   WorkflowsLoad,
 } from '../model'
 
 /**
- * Slice-sized EnginePort: new-task, workflows, resources, statistics, and
- * running-task transcript observation.
+ * Slice-sized EnginePort: new-task, workflows, resources, statistics,
+ * task transcript, and completed-task changes observation.
  * Future production path: browser → authenticated Web server → harflow-ctl.
  * The browser never invokes ctl, MCP, or engine SQLite directly.
  */
@@ -60,6 +62,16 @@ export type EnginePort = {
   observeTask(
     taskId: TaskId,
     onUpdate: (load: TaskLoad) => void,
+  ): ObservationHandle
+
+  /**
+   * Read recorded repository changes for an explicit task + selected path.
+   * Unmapped ids must yield unavailable — never another task’s diff.
+   * Mock-only presentation — not a public ctl changes/diff protocol.
+   */
+  observeTaskChanges(
+    query: TaskChangesQuery,
+    onUpdate: (load: TaskChangesLoad) => void,
   ): ObservationHandle
 
   /**

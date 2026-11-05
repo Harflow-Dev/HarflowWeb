@@ -1,11 +1,14 @@
 import type { EnginePort } from '../../application'
 import {
+  asTaskId,
   type ContextLoad,
   type ResourcesLoad,
   type StartTaskOutcome,
   type StartTaskRequest,
   type StatisticsLoad,
   type StatisticsRangeId,
+  type TaskChangesLoad,
+  type TaskChangesQuery,
   type TaskId,
   type TaskLoad,
   type WorkflowsLoad,
@@ -15,9 +18,12 @@ import {
   createHeldStartTracker,
   createListenerSets,
   resolveStatisticsLoad,
+  resolveTaskChangesLoad,
   resolveTaskLoad,
+  taskChangesKey,
+  type MockListenerSets,
 } from './mockEngineCore'
-import { scenarioById, type ScenarioId } from './scenarios'
+import { scenarioById, type ScenarioDefinition, type ScenarioId } from './scenarios'
 
 export type MockEngineControls = {
   readonly engine: EnginePort
@@ -27,9 +33,54 @@ export type MockEngineControls = {
   publishResources(load: ResourcesLoad): void
   publishStatistics(range: StatisticsRangeId, load: StatisticsLoad): void
   publishTask(taskId: TaskId, load: TaskLoad): void
+  publishTaskChanges(query: TaskChangesQuery, load: TaskChangesLoad): void
   resolveHeldStart(outcome?: StartTaskOutcome): void
   readonly startRequestCount: () => number
   readonly lastStartRequest: () => StartTaskRequest | null
+}
+
+function queryFromChangesKey(key: string): TaskChangesQuery {
+  const sep = key.indexOf('\0')
+  return {
+    taskId: asTaskId(key.slice(0, sep)),
+    selectedPath: key.slice(sep + 1) === '' ? null : key.slice(sep + 1),
+  }
+}
+
+function republishScenario(
+  scenario: ScenarioDefinition,
+  listeners: MockListenerSets,
+): void {
+  for (const listener of listeners.context) {
+    listener(
+      scenario.context === 'defer' ? { kind: 'loading' } : scenario.context,
+    )
+  }
+  for (const listener of listeners.workflows) {
+    listener(
+      scenario.workflows === 'defer'
+        ? { kind: 'loading' }
+        : scenario.workflows,
+    )
+  }
+  for (const listener of listeners.resources) {
+    listener(
+      scenario.resources === 'defer'
+        ? { kind: 'loading' }
+        : scenario.resources,
+    )
+  }
+  for (const listener of listeners.statistics) {
+    listener.send(resolveStatisticsLoad(scenario, listener.key))
+  }
+  for (const listener of listeners.tasks) {
+    listener.send(resolveTaskLoad(scenario, listener.key))
+  }
+  for (const listener of listeners.taskChanges) {
+    listener.send(
+      resolveTaskChangesLoad(scenario, queryFromChangesKey(listener.key)),
+    )
+  }
 }
 
 export function createMockEngine(
@@ -57,31 +108,7 @@ export function createMockEngine(
     setScenario(id) {
       scenario = scenarioById(id)
       held.take()
-      for (const listener of listeners.context) {
-        listener(
-          scenario.context === 'defer' ? { kind: 'loading' } : scenario.context,
-        )
-      }
-      for (const listener of listeners.workflows) {
-        listener(
-          scenario.workflows === 'defer'
-            ? { kind: 'loading' }
-            : scenario.workflows,
-        )
-      }
-      for (const listener of listeners.resources) {
-        listener(
-          scenario.resources === 'defer'
-            ? { kind: 'loading' }
-            : scenario.resources,
-        )
-      }
-      for (const listener of listeners.statistics) {
-        listener.send(resolveStatisticsLoad(scenario, listener.key))
-      }
-      for (const listener of listeners.tasks) {
-        listener.send(resolveTaskLoad(scenario, listener.key))
-      }
+      republishScenario(scenario, listeners)
     },
     publishContext(load) {
       for (const listener of listeners.context) listener(load)
@@ -100,6 +127,12 @@ export function createMockEngine(
     publishTask(taskId, load) {
       for (const listener of listeners.tasks) {
         if (listener.key === taskId) listener.send(load)
+      }
+    },
+    publishTaskChanges(query, load) {
+      const key = taskChangesKey(query)
+      for (const listener of listeners.taskChanges) {
+        if (listener.key === key) listener.send(load)
       }
     },
     resolveHeldStart(outcome) {

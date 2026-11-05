@@ -1,4 +1,4 @@
-import { Icon, TaskPage } from '../components'
+import { Icon, TaskChangesPane, TaskPage } from '../components'
 import type { SidebarData, TaskObservation } from '../model'
 import type { TaskScreenState } from '../presentation'
 
@@ -6,39 +6,71 @@ type Props = {
   readonly state: TaskScreenState
   readonly sidebar: SidebarData | null
   readonly onUnavailable: (label: string) => void
+  readonly onToggleChangesPane: (open: boolean) => void
+  readonly onSelectChangedFile: (path: string) => void
 }
 
 /**
  * Slim task chrome. Loading/unavailable never keep the prior task's
- * transcript under the newly selected identity.
+ * transcript under the newly selected identity. Opening the Changes pane
+ * must not remount the transcript column (scroll position preserved).
  */
-export function TaskMain({ state, sidebar, onUnavailable }: Props) {
+export function TaskMain({
+  state,
+  sidebar,
+  onUnavailable,
+  onToggleChangesPane,
+  onSelectChangedFile,
+}: Props) {
   const title = resolveTitle(state, sidebar)
   const ready =
     state.load.kind === 'ready' ? state.load.observation : null
+  const showPane = state.changesPaneOpen
 
   return (
-    <div
-      style={{
-        flex: '1 1 auto',
-        minWidth: 0,
-        display: 'flex',
-        flexDirection: 'column',
-        minHeight: 0,
-      }}
-    >
-      <div className="hd-topbar">
-        <span className="hd-topbar__title">{title}</span>
-        {ready ? <StatusBadge observation={ready} /> : null}
-        {ready ? (
-          <span className="hd-topbar__meta">{ready.headerMeta}</span>
-        ) : null}
-        <span className="hd-topbar__spacer" />
+    <div className={showPane ? 'hd-split' : undefined} style={showPane ? undefined : columnStyle}>
+      <div style={columnStyle}>
+        <div className="hd-topbar">
+          <span className="hd-topbar__title">{title}</span>
+          {ready ? <StatusBadge observation={ready} /> : null}
+          {ready ? (
+            <span className="hd-topbar__meta">{ready.headerMeta}</span>
+          ) : null}
+          <span className="hd-topbar__spacer" />
+          {ready?.status === 'completed' || showPane ? (
+            <button
+              type="button"
+              className="hd-btn hd-btn--icon hd-btn--sm"
+              aria-label="Toggle right pane"
+              aria-pressed={showPane}
+              onClick={() => onToggleChangesPane(!showPane)}
+            >
+              <Icon name="panel-right" />
+            </button>
+          ) : null}
+        </div>
+        <TaskBody state={state} onUnavailable={onUnavailable} />
       </div>
-      <TaskBody state={state} onUnavailable={onUnavailable} />
+      {showPane ? (
+        <TaskChangesPane
+          load={state.changesLoad}
+          files={state.changesFiles}
+          selectedPath={state.selectedChangePath}
+          onSelectFile={onSelectChangedFile}
+          onUnavailable={onUnavailable}
+        />
+      ) : null}
     </div>
   )
 }
+
+const columnStyle = {
+  flex: '1 1 auto',
+  minWidth: 0,
+  display: 'flex',
+  flexDirection: 'column',
+  minHeight: 0,
+} as const
 
 function StatusBadge({
   observation,

@@ -28,7 +28,8 @@ A green import check does **not** prove semantic architecture correctness.
 - workflows child session (definition list observation)
 - resources child session (slot observation)
 - statistics child session (selected range + range-scoped observation)
-- task child session (selected task id + task-scoped observation)
+- task child session (selected task id + transcript observation + optional
+  Changes-pane observation keyed by task and selected file path)
 
 Navigating does **not** dispose any child. In-flight launches keep applying;
 returning to New task shows the current pending/accepted/refused/unknown state
@@ -42,12 +43,19 @@ fall back to another task’s transcript. Task observations carry an explicit
 `status` of `running`, `failed`, or `completed`. Failed/completed observations
 must not reuse running badge, working indicator, or Stop chrome. Completed
 summary text is fixture-reported evidence inside the transcript — not proof of
-independently verified diffs, artifacts, or authorship.
+independently verified diffs, artifacts, or authorship. Changes pane content is
+a separate recorded-repository observation (not Git, not authorship proof) and
+stays independent of task success. The changes observation query path (`null` =
+fixture default) is kept distinct from the resolved display selection, so later
+updates on the same default observation remain accepted. Switching task closes
+the Changes pane and clears retained file rows; selecting a file keeps the file
+list mounted while clearing the prior diff under the new identity. Stale
+callbacks are rejected by task, query path, and generation.
 
 Sidebar chrome is split across `sidebarNav.tsx`, `sidebarSections.tsx`, and a
 thin `Sidebar.tsx` shell so navigation growth does not pile more responsibilities
 onto one file. Task UI is split across `TaskMain`, `TaskPage`, `TaskTranscript`,
-`TaskFailureBanner`, `TaskSummarySection`, and `TaskFollowUp`.
+`TaskFailureBanner`, `TaskSummarySection`, `TaskChangesPane`, and `TaskFollowUp`.
 
 ## EnginePort (slice-sized)
 
@@ -56,6 +64,8 @@ onto one file. Task UI is split across `TaskMain`, `TaskPage`, `TaskTranscript`,
 - `observeResources(onUpdate) → ObservationHandle` — harness slot usage observation
 - `observeStatistics(range, onUpdate) → ObservationHandle` — range-scoped overview
 - `observeTask(taskId, onUpdate) → ObservationHandle` — running-task transcript
+- `observeTaskChanges(query, onUpdate) → ObservationHandle` — recorded changes
+  for an explicit task + selected path
 - `startTask(request) → Promise<StartTaskOutcome>` — accepted | refused | unknown
 - `ObservationHandle.cancel()` — dispose outstanding observations
 
@@ -67,12 +77,15 @@ read-only overview observations for an explicit typed range — not billing,
 filesystem, or invented engine metrics. Task transcripts are mock presentation
 evidence for an explicit task id — not a public ctl transcript protocol, and
 not follow-up / cancel / retry / copy-resume / approval / steering commands.
+Task changes are mock recorded-repository observations — not Git, patch apply,
+downloads, or a public ctl diff protocol.
 
 Each page observation uses an independent epoch so disposed or replaced
 callbacks cannot mutate presentation state after cancel/replace. Changing the
-statistics range or selected task cancels the prior observation, clears into
-`loading` immediately, and rejects late responses for any other key. Switching
-task A → B never keeps A’s transcript under B’s title.
+statistics range, selected task, or selected change file cancels the prior
+observation, clears into `loading` immediately, and rejects late responses for
+any other key. Switching task A → B never keeps A’s transcript or diff under
+B’s title.
 
 ## Future production path (not implemented)
 

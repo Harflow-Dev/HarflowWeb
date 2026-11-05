@@ -152,8 +152,36 @@ diversity is hundreds of distinct colors per file.
 
 Observed: done badge (`Done 21:04`), diagnostic transcript, Summary separator and
 body, follow-up composer without Stop (send disabled). No failure banner, Retry,
-running badge, or working indicator. No Changes/Artifacts/Events right pane
-(deliberately out of scope). Document scrollWidth equals clientWidth (1280).
+running badge, or working indicator. Pane closed in these captures. Document
+scrollWidth equals clientWidth (1280).
+
+## Completed-task Changes pane — verified 1280×800 captures
+
+Directory:
+`~/.codex/workflows/screenshots/2026-11-05-harflowweb-task-changes-slice/`
+
+Captured from `/` after opening the completed Recent row and toggling the right
+pane open (and a closed counterpart). Same CDP clip + `sips` verification.
+
+| File | Scenario | Viewport / PNG | Appearance / chrome |
+| --- | --- | --- | --- |
+| `01-task-changes-open-light-expanded.png` | task/done Changes open | 1280×800 | light, sidebar expanded |
+| `02-task-changes-open-dark-expanded.png` | task/done Changes open | 1280×800 | dark, sidebar expanded |
+| `03-task-changes-open-dark-collapsed.png` | task/done Changes open | 1280×800 | dark, sidebar collapsed |
+| `04-task-changes-closed-light-expanded.png` | task/done Changes closed | 1280×800 | light, sidebar expanded |
+| `05-task-changes-open-light-expanded-fix.png` | task/done Changes open (post-fix) | 1280×800 | light, sidebar expanded |
+| `06-task-changes-config-light-expanded.png` | task/done `config.py` selected | 1280×800 | light, sidebar expanded |
+| `07-task-changes-config-dark-expanded.png` | task/done `config.py` selected | 1280×800 | dark, sidebar expanded |
+
+Observed with pane open: Changes tab with count 3, three file rows with +/−
+counts, selected file caption and hunk/add/del diff lines, Artifacts and
+Events tabs present. `05` shows default `queue.py`; `06`/`07` show
+`harflow_web/config.py` after selection (queue diff absent). Transcript column
+remains visible beside the pane; document scrollWidth equals clientWidth
+(1280). Closed capture confirms toggle restores the full-width transcript.
+File selection keeps the file list mounted (focus retained) while clearing the
+prior diff; navigating to a running task closes the pane (no toggle, no pane)
+so running/failed never leave an unclosable Changes surface.
 
 Earlier new-task screenshots remain under
 `~/.codex/workflows/screenshots/2026-11-05-harflowweb-new-task-slice/`.
@@ -165,7 +193,7 @@ Earlier new-task screenshots remain under
 - Resources: `v2/scripts/screens-resources.js` (`resources/slots` light/dark)
 - Statistics: `v2/scripts/screens-statistics.js` (`statistics/overview` light/dark)
 - Task: `v2/scripts/screens-task.js` (`task/running`, `task/failed`, and
-  `task/done` transcript+summary light/dark)
+  `task/done` transcript+summary+Changes light/dark)
 - Observed in the running Vite app (not substituted from hosted design)
 
 ## Checks performed

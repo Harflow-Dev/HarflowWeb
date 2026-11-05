@@ -6,6 +6,8 @@ import type {
   StartTaskRequest,
   StatisticsLoad,
   StatisticsRangeId,
+  TaskChangesLoad,
+  TaskChangesQuery,
   TaskId,
   TaskLoad,
   WorkflowsLoad,
@@ -18,7 +20,14 @@ import {
 } from './mockObservation'
 import type { ScenarioDefinition } from './scenarios'
 import { statisticsLoadFor } from './statisticsFixtures'
+import { taskChangesLoadFor } from './taskChangesFixtures'
 import { taskLoadFor } from './taskFixtures'
+
+export type TaskChangesKey = string
+
+export function taskChangesKey(query: TaskChangesQuery): TaskChangesKey {
+  return `${query.taskId}\0${query.selectedPath ?? ''}`
+}
 
 export type MockListenerSets = {
   readonly context: Set<(load: ContextLoad) => void>
@@ -26,6 +35,7 @@ export type MockListenerSets = {
   readonly resources: Set<(load: ResourcesLoad) => void>
   readonly statistics: Set<KeyedListener<StatisticsRangeId, StatisticsLoad>>
   readonly tasks: Set<KeyedListener<TaskId, TaskLoad>>
+  readonly taskChanges: Set<KeyedListener<TaskChangesKey, TaskChangesLoad>>
 }
 
 export function createListenerSets(): MockListenerSets {
@@ -35,6 +45,7 @@ export function createListenerSets(): MockListenerSets {
     resources: new Set(),
     statistics: new Set(),
     tasks: new Set(),
+    taskChanges: new Set(),
   }
 }
 
@@ -54,6 +65,15 @@ export function resolveTaskLoad(
   if (scenario.tasks === 'defer') return { kind: 'loading' }
   if (scenario.tasks === 'default') return taskLoadFor(taskId)
   return scenario.tasks(taskId)
+}
+
+export function resolveTaskChangesLoad(
+  scenario: ScenarioDefinition,
+  query: TaskChangesQuery,
+): TaskChangesLoad {
+  if (scenario.taskChanges === 'defer') return { kind: 'loading' }
+  if (scenario.taskChanges === 'default') return taskChangesLoadFor(query)
+  return scenario.taskChanges(query)
 }
 
 export function buildMockEnginePort(options: {
@@ -107,6 +127,14 @@ export function buildMockEnginePort(options: {
         taskId,
         onUpdate,
         (id) => resolveTaskLoad(getScenario(), id),
+      )
+    },
+    observeTaskChanges(query, onUpdate) {
+      return createKeyedObservation(
+        listeners.taskChanges,
+        taskChangesKey(query),
+        onUpdate,
+        () => resolveTaskChangesLoad(getScenario(), query),
       )
     },
     startTask(request) {

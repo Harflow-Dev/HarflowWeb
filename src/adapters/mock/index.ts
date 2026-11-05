@@ -32,6 +32,15 @@ export {
   SLOT_RELEASE_TASK_ID,
   taskLoadFor,
 } from './taskFixtures'
+export {
+  CONFIG_PY_PATH,
+  QUEUE_PY_PATH,
+  TEST_QUEUE_PATH,
+  emptyDiffChangesLoad,
+  retryBudgetChangesObservation,
+  taskChangesLoadFor,
+  unavailableDiffChangesLoad,
+} from './taskChangesFixtures'
 export { UNMAPPED_LAUNCH_TASK_ID } from './sidebarFixtures'
 export {
   emptyWorkflowsLoad,

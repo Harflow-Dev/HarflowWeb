@@ -23,24 +23,35 @@ A green import check does **not** prove semantic architecture correctness.
 
 `AppPresenter` / `AppSession` owns:
 
-- route (`new-task` | `workflows`)
+- route (`new-task` | `workflows` | `resources`)
 - new-task child session (draft, selections, appearance, sidebar collapse, launch)
 - workflows child session (definition list observation)
+- resources child session (slot observation)
 
-Navigating does **not** dispose either child. In-flight launches keep applying;
+Navigating does **not** dispose any child. In-flight launches keep applying;
 returning to New task shows the current pending/accepted/refused/unknown state
 without resubmitting. Appearance and sidebar collapse live on the new-task
-session and remain shared chrome for both routes.
+session and remain shared chrome for all three routes.
+
+Sidebar chrome is split across `sidebarNav.tsx`, `sidebarSections.tsx`, and a
+thin `Sidebar.tsx` shell so navigation growth does not pile more responsibilities
+onto one file.
 
 ## EnginePort (slice-sized)
 
 - `observeContext(onUpdate) → ObservationHandle` — composer + sidebar load
 - `observeWorkflows(onUpdate) → ObservationHandle` — workflow definition summaries
+- `observeResources(onUpdate) → ObservationHandle` — harness slot usage observation
 - `startTask(request) → Promise<StartTaskOutcome>` — accepted | refused | unknown
 - `ObservationHandle.cancel()` — dispose outstanding observations
 
 No shell commands, generic RPC, or “call operation” methods. Workflows are
 definitions (title, description, node count) — not runs and not run status.
+Resources are read-only slot observation (usage, holders, waiters) — not
+administration, install, release, repair, or configuration.
+
+Each page observation uses an independent epoch so disposed or replaced
+callbacks cannot mutate presentation state after cancel/replace.
 
 ## Future production path (not implemented)
 

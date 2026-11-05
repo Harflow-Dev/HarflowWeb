@@ -1,5 +1,6 @@
 import type {
   LoadContextUseCase,
+  LoadResourcesUseCase,
   LoadWorkflowsUseCase,
   StartTaskUseCase,
 } from '../application'
@@ -36,6 +37,7 @@ type Deps = {
   readonly loadContext: LoadContextUseCase
   readonly startTask: StartTaskUseCase
   readonly loadWorkflows: LoadWorkflowsUseCase
+  readonly loadResources: LoadResourcesUseCase
 }
 
 export function createAppPresenter(deps: Deps): AppPresenter {

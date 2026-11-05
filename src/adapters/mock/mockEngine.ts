@@ -1,51 +1,24 @@
 import type { EnginePort } from '../../application'
 import {
-  asObservationId,
   type ContextLoad,
-  type ObservationHandle,
+  type ResourcesLoad,
   type StartTaskOutcome,
   type StartTaskRequest,
   type WorkflowsLoad,
 } from '../../model'
 import { createControllablePromise, type ControllablePromise } from './controllable'
+import { createObservation } from './mockObservation'
 import { scenarioById, type ScenarioId } from './scenarios'
 
 export type MockEngineControls = {
   readonly engine: EnginePort
   setScenario(id: ScenarioId): void
-  /** Publish a deferred/held context update (for stale tests). */
   publishContext(load: ContextLoad): void
-  /** Publish a workflows list update (for stale/nav tests). */
   publishWorkflows(load: WorkflowsLoad): void
-  /** Resolve the outstanding held startTask, if any. */
+  publishResources(load: ResourcesLoad): void
   resolveHeldStart(outcome?: StartTaskOutcome): void
   readonly startRequestCount: () => number
   readonly lastStartRequest: () => StartTaskRequest | null
-}
-
-let observationSeq = 0
-
-function createObservation<T>(
-  listeners: Set<(load: T) => void>,
-  onUpdate: (load: T) => void,
-  current: () => T,
-): ObservationHandle {
-  const id = asObservationId(`obs-${++observationSeq}`)
-  let active = true
-  const wrapped = (load: T) => {
-    if (active) onUpdate(load)
-  }
-  listeners.add(wrapped)
-  queueMicrotask(() => {
-    if (active) onUpdate(current())
-  })
-  return {
-    id,
-    cancel() {
-      active = false
-      listeners.delete(wrapped)
-    },
-  }
 }
 
 export function createMockEngine(
@@ -57,27 +30,21 @@ export function createMockEngine(
   let heldStart: ControllablePromise<StartTaskOutcome> | null = null
   const contextListeners = new Set<(load: ContextLoad) => void>()
   const workflowListeners = new Set<(load: WorkflowsLoad) => void>()
-
-  function emitContext(load: ContextLoad): void {
-    for (const listener of contextListeners) listener(load)
-  }
-
-  function emitWorkflows(load: WorkflowsLoad): void {
-    for (const listener of workflowListeners) listener(load)
-  }
+  const resourceListeners = new Set<(load: ResourcesLoad) => void>()
 
   function currentContext(): ContextLoad {
-    if (scenario.context === 'defer') {
-      return { kind: 'loading' }
-    }
+    if (scenario.context === 'defer') return { kind: 'loading' }
     return scenario.context
   }
 
   function currentWorkflows(): WorkflowsLoad {
-    if (scenario.workflows === 'defer') {
-      return { kind: 'loading' }
-    }
+    if (scenario.workflows === 'defer') return { kind: 'loading' }
     return scenario.workflows
+  }
+
+  function currentResources(): ResourcesLoad {
+    if (scenario.resources === 'defer') return { kind: 'loading' }
+    return scenario.resources
   }
 
   const engine: EnginePort = {
@@ -86,6 +53,9 @@ export function createMockEngine(
     },
     observeWorkflows(onUpdate) {
       return createObservation(workflowListeners, onUpdate, currentWorkflows)
+    },
+    observeResources(onUpdate) {
+      return createObservation(resourceListeners, onUpdate, currentResources)
     },
     async startTask(request) {
       startCount += 1
@@ -103,14 +73,18 @@ export function createMockEngine(
     setScenario(id) {
       scenario = scenarioById(id)
       heldStart = null
-      emitContext(currentContext())
-      emitWorkflows(currentWorkflows())
+      for (const listener of contextListeners) listener(currentContext())
+      for (const listener of workflowListeners) listener(currentWorkflows())
+      for (const listener of resourceListeners) listener(currentResources())
     },
     publishContext(load) {
-      emitContext(load)
+      for (const listener of contextListeners) listener(load)
     },
     publishWorkflows(load) {
-      emitWorkflows(load)
+      for (const listener of workflowListeners) listener(load)
+    },
+    publishResources(load) {
+      for (const listener of resourceListeners) listener(load)
     },
     resolveHeldStart(outcome) {
       const target = heldStart

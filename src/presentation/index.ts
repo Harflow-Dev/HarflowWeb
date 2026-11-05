@@ -16,6 +16,11 @@ export {
   type SubmissionStatus,
 } from './screenState'
 export {
+  initialResourcesState,
+  type ResourcesScreenState,
+} from './resourcesState'
+export { ResourcesSession } from './resourcesSession'
+export {
   initialWorkflowsState,
   type WorkflowsScreenState,
 } from './workflowsState'

@@ -1,6 +1,7 @@
 import {
   asTaskId,
   type ContextLoad,
+  type ResourcesLoad,
   type StartTaskOutcome,
   type WorkflowsLoad,
 } from '../../model'
@@ -10,6 +11,7 @@ import {
   populatedComposer,
   populatedSidebar,
 } from './fixtures'
+import { populatedResourcesLoad } from './resourceFixtures'
 import {
   emptyWorkflowsLoad,
   populatedWorkflowsLoad,
@@ -31,6 +33,7 @@ export type ScenarioId =
   | 'stale-response'
   | 'workflows-populated'
   | 'workflows-empty'
+  | 'resources-slots'
 
 export type ScenarioDefinition = {
   readonly id: ScenarioId
@@ -38,14 +41,12 @@ export type ScenarioDefinition = {
   readonly description: string
   readonly context: ContextLoad | 'defer'
   readonly workflows: WorkflowsLoad | 'defer'
+  readonly resources: ResourcesLoad | 'defer'
   readonly startOutcome: StartTaskOutcome
-  /** When true, startTask waits until the test/preview resolves it. */
   readonly holdStart: boolean
 }
 
-function readyContext(
-  sidebar = populatedSidebar(),
-): ContextLoad {
+function readyContext(sidebar = populatedSidebar()): ContextLoad {
   return {
     kind: 'ready',
     composer: populatedComposer(),
@@ -58,13 +59,17 @@ const accepted = {
   taskId: asTaskId('task-mock-accepted'),
 }
 
+const resources = populatedResourcesLoad()
+const workflows = populatedWorkflowsLoad()
+
 export const SCENARIOS: readonly ScenarioDefinition[] = [
   {
     id: 'populated',
     label: 'Populated',
-    description: 'New-task + workflows list (design default fixtures).',
+    description: 'New-task, workflows, and resources fixtures.',
     context: readyContext(),
-    workflows: populatedWorkflowsLoad(),
+    workflows,
+    resources,
     startOutcome: accepted,
     holdStart: false,
   },
@@ -73,7 +78,8 @@ export const SCENARIOS: readonly ScenarioDefinition[] = [
     label: 'Empty sidebar',
     description: 'Composer ready; Running and Recent empty.',
     context: readyContext(emptySidebar()),
-    workflows: populatedWorkflowsLoad(),
+    workflows,
+    resources,
     startOutcome: accepted,
     holdStart: false,
   },
@@ -82,7 +88,8 @@ export const SCENARIOS: readonly ScenarioDefinition[] = [
     label: 'Context loading',
     description: 'Proposal status: loading — no approved specimen.',
     context: { kind: 'loading' },
-    workflows: populatedWorkflowsLoad(),
+    workflows,
+    resources,
     startOutcome: {
       kind: 'refused',
       code: 'unavailable',
@@ -98,7 +105,8 @@ export const SCENARIOS: readonly ScenarioDefinition[] = [
       kind: 'unavailable',
       message: 'Mock engine context is unavailable.',
     },
-    workflows: populatedWorkflowsLoad(),
+    workflows,
+    resources,
     startOutcome: {
       kind: 'refused',
       code: 'unavailable',
@@ -111,7 +119,8 @@ export const SCENARIOS: readonly ScenarioDefinition[] = [
     label: 'Partial sidebar',
     description: 'Incomplete coverage marked explicitly (proposal).',
     context: readyContext(partialSidebar()),
-    workflows: populatedWorkflowsLoad(),
+    workflows,
+    resources,
     startOutcome: accepted,
     holdStart: false,
   },
@@ -120,7 +129,8 @@ export const SCENARIOS: readonly ScenarioDefinition[] = [
     label: 'Submit accepted',
     description: 'Maps to ctl-launch-run-accepted.json semantics.',
     context: readyContext(),
-    workflows: populatedWorkflowsLoad(),
+    workflows,
+    resources,
     startOutcome: {
       kind: 'accepted',
       taskId: asTaskId('task-fixture'),
@@ -132,7 +142,8 @@ export const SCENARIOS: readonly ScenarioDefinition[] = [
     label: 'Submit refused',
     description: 'Maps to ctl-launch-run-refused.json semantics.',
     context: readyContext(),
-    workflows: populatedWorkflowsLoad(),
+    workflows,
+    resources,
     startOutcome: {
       kind: 'refused',
       code: 'invalid_params',
@@ -145,7 +156,8 @@ export const SCENARIOS: readonly ScenarioDefinition[] = [
     label: 'Submit unknown',
     description: 'Maps to ctl-launch-run-unknown.json; no automatic retry.',
     context: readyContext(),
-    workflows: populatedWorkflowsLoad(),
+    workflows,
+    resources,
     startOutcome: {
       kind: 'unknown',
       message: 'fixture: owner did not report; a task may exist',
@@ -158,7 +170,8 @@ export const SCENARIOS: readonly ScenarioDefinition[] = [
     description:
       'Holds start; resolve after remount/disposal so the late accept is ignored.',
     context: readyContext(),
-    workflows: populatedWorkflowsLoad(),
+    workflows,
+    resources,
     startOutcome: {
       kind: 'accepted',
       taskId: asTaskId('task-stale'),
@@ -170,7 +183,8 @@ export const SCENARIOS: readonly ScenarioDefinition[] = [
     label: 'Workflows list',
     description: 'Approved workflows/list specimen data.',
     context: readyContext(),
-    workflows: populatedWorkflowsLoad(),
+    workflows,
+    resources,
     startOutcome: accepted,
     holdStart: false,
   },
@@ -180,6 +194,17 @@ export const SCENARIOS: readonly ScenarioDefinition[] = [
     description: 'Approved workflows/empty specimen data.',
     context: readyContext(),
     workflows: emptyWorkflowsLoad(),
+    resources,
+    startOutcome: accepted,
+    holdStart: false,
+  },
+  {
+    id: 'resources-slots',
+    label: 'Resources slots',
+    description: 'Approved resources/slots specimen data.',
+    context: readyContext(),
+    workflows,
+    resources,
     startOutcome: accepted,
     holdStart: false,
   },

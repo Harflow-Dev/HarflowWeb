@@ -2,6 +2,7 @@ import { useSyncExternalStore } from 'react'
 import { MockBadge, Sidebar, StatusRegion } from '../components'
 import type { AppPresenter } from '../presentation'
 import { NewTaskMain } from './NewTaskMain'
+import { ResourcesMain } from './ResourcesMain'
 import { useEphemeralNote, usePresenter, usePresenterLifetime } from './usePresenter'
 import { WorkflowsMain } from './WorkflowsMain'
 
@@ -48,9 +49,14 @@ export function AppFeature({ presenter }: Props) {
         <main className="hd-main">
           {state.route === 'new-task' ? (
             <NewTaskMain presenter={presenter} state={newTask} />
-          ) : (
+          ) : state.route === 'workflows' ? (
             <WorkflowsMain
               state={state.workflows}
+              onUnavailable={(label) => ephemeral.show(label)}
+            />
+          ) : (
+            <ResourcesMain
+              state={state.resources}
               onUnavailable={(label) => ephemeral.show(label)}
             />
           )}

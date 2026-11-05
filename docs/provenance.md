@@ -9,6 +9,7 @@
   - `v2/docs/screen-inventory.md`
   - `v2/scripts/screens-new-task.js`
   - `v2/scripts/screens-workflows.js`
+  - `v2/scripts/screens-resources.js`
   - `v2/scripts/components.js`
   - `v2/styles/tokens.css`
   - `v2/styles/bundle.css` (vendored into `src/styles/`)
@@ -19,12 +20,16 @@
   - `workflows/list/light` and `/dark` (list chrome without product search; see
     coverage ledger deliberate removal of product search)
   - `workflows/empty/light` and `/dark`
+  - `resources/slots/light` and `/dark` (populated, full-with-waiters, zero-holder,
+    and not-installed cards; waiting list)
 - Visual inspection also used hosted `https://design.harflow.dev/v2` (cheaper than a
   local archive server). Hosted content may be newer than the pinned commit;
   implementation citations remain the immutable commit above.
 - `v2/docs/migration-coverage.md` is **absent** at the pinned commit (added in
   later commits such as `268b917`). Coverage ledger was not available for that
-  pin; approval + screen-inventory were used instead.
+  pin; approval + screen-inventory were used instead. Later accepted coverage
+  decisions (for example deliberate product-search removal) still override
+  obsolete specimen controls.
 
 ## Engine contract mapping (HarflowMCP 0.0.10)
 
@@ -39,6 +44,7 @@
 | Backend capability facts | `contracts/v1/ctl-backend-qualification.json` | Discovery/qualification shape; harness menus here are **fixture presentation data**, not a claim of installed binaries |
 | Task catalog / sidebar rows | Design specimen mock data | **Mock-only presentation** — not a public ctl list endpoint invented for the browser |
 | Workflow definition list | Design `workflows/list` + `workflows/empty` specimen copy | **Mock-only presentation** — not a public ctl workflow catalog; no run status |
+| Resources slot observation | Design `resources/slots` specimen copy | **Mock-only presentation** — not a public ctl resources catalog; no install/release/admin |
 | Repository options | Mock-only | Future server-hosted repos; not filesystem pickers; not ctl |
 
 The mock adapter is not an HTTP protocol design and does not prove backend

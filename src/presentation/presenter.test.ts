@@ -78,6 +78,20 @@ function createTestEngine(options?: {
         },
       }
     },
+    observeResources(onUpdate) {
+      queueMicrotask(() =>
+        onUpdate({
+          kind: 'unavailable',
+          message: 'unused in new-task tests',
+        }),
+      )
+      return {
+        id: asObservationId('test-res-obs'),
+        cancel() {
+          /* no-op */
+        },
+      }
+    },
     async startTask(request) {
       starts.push(request)
       if (options?.holdStart) {

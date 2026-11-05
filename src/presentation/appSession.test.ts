@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   createLoadContextUseCase,
+  createLoadResourcesUseCase,
   createLoadWorkflowsUseCase,
   createStartTaskUseCase,
   type EnginePort,
@@ -14,6 +15,7 @@ import {
   asWorkflowId,
   type ContextLoad,
   type ObservationHandle,
+  type ResourcesLoad,
   type StartTaskOutcome,
   type StartTaskRequest,
   type WorkflowSummary,
@@ -21,6 +23,7 @@ import {
 } from '../model'
 import { createControllablePromise } from '../adapters/mock/controllable'
 import { populatedComposer, populatedSidebar } from '../adapters/mock/fixtures'
+import { populatedResourcesLoad } from '../adapters/mock/resourceFixtures'
 import { POPULATED_WORKFLOWS } from '../adapters/mock/workflowFixtures'
 import { createAppPresenter } from './appPresenter'
 
@@ -50,6 +53,7 @@ function createTestEngine(options?: {
     kind: 'ready',
     workflows: POPULATED_WORKFLOWS,
   }
+  const initialResources: ResourcesLoad = populatedResourcesLoad()
 
   const port: EnginePort = {
     observeContext(onUpdate) {
@@ -73,6 +77,15 @@ function createTestEngine(options?: {
         },
       }
       return handle
+    },
+    observeResources(onUpdate) {
+      queueMicrotask(() => onUpdate(initialResources))
+      return {
+        id: asObservationId('app-res'),
+        cancel() {
+          /* no-op */
+        },
+      }
     },
     async startTask(request) {
       starts.push(request)
@@ -104,6 +117,7 @@ function createPresenter(engine: EnginePort) {
     loadContext: createLoadContextUseCase(engine),
     startTask: createStartTaskUseCase(engine),
     loadWorkflows: createLoadWorkflowsUseCase(engine),
+    loadResources: createLoadResourcesUseCase(engine),
   })
 }
 
@@ -245,6 +259,33 @@ describe('AppPresenter workflows slice', () => {
     presenter.navigate('workflows')
     expect(presenter.getState().workflows.load).toEqual(before)
     expect(starts).toHaveLength(0)
+    presenter.dispose()
+  })
+
+  it('navigates to resources and preserves held launch across all three pages', async () => {
+    const { port, starts, resolveStart } = createTestEngine({ holdStart: true })
+    const presenter = createPresenter(port)
+    presenter.start()
+    await flush()
+    presenter.setPrompt('across pages')
+    presenter.submit()
+    expect(presenter.getState().newTask.submission.kind).toBe('pending')
+
+    presenter.navigate('workflows')
+    presenter.navigate('resources')
+    expect(presenter.getState().route).toBe('resources')
+    expect(presenter.getState().resources.load.kind).toBe('ready')
+    expect(presenter.getState().newTask.submission.kind).toBe('pending')
+    expect(presenter.getState().newTask.prompt).toBe('across pages')
+
+    resolveStart({ kind: 'accepted', taskId: asTaskId('kept') })
+    await flush()
+    presenter.navigate('new-task')
+    expect(presenter.getState().newTask.submission).toEqual({
+      kind: 'accepted',
+      taskId: asTaskId('kept'),
+    })
+    expect(starts).toHaveLength(1)
     presenter.dispose()
   })
 })

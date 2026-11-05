@@ -16,6 +16,10 @@ export {
   type ScenarioId,
 } from './scenarios'
 export {
+  populatedResourcesLoad,
+  populatedResourcesObservation,
+} from './resourceFixtures'
+export {
   emptyWorkflowsLoad,
   POPULATED_WORKFLOWS,
   populatedWorkflowsLoad,

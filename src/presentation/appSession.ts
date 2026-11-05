@@ -1,5 +1,6 @@
 import type {
   LoadContextUseCase,
+  LoadResourcesUseCase,
   LoadWorkflowsUseCase,
   StartTaskUseCase,
 } from '../application'
@@ -12,6 +13,7 @@ import type {
 } from '../model'
 import type { AppRoute, AppScreenState } from './appState'
 import { PresenterSession } from './presenterSession'
+import { ResourcesSession } from './resourcesSession'
 import type { OpenMenu } from './screenState'
 import { WorkflowsSession } from './workflowsSession'
 
@@ -21,19 +23,20 @@ type Deps = {
   readonly loadContext: LoadContextUseCase
   readonly startTask: StartTaskUseCase
   readonly loadWorkflows: LoadWorkflowsUseCase
+  readonly loadResources: LoadResourcesUseCase
 }
 
 /**
- * App shell session: owns new-task + workflows lifetimes and route.
- * Navigating does not dispose either child session, so drafts and in-flight
- * launches survive and resume correctly on return.
+ * App shell session: owns new-task, workflows, and resources lifetimes + route.
+ * Navigating does not dispose child sessions, so drafts and in-flight launches
+ * survive and resume correctly on return.
  */
 export class AppSession {
   private route: AppRoute = 'new-task'
   private readonly newTask: PresenterSession
   private readonly workflows: WorkflowsSession
+  private readonly resources: ResourcesSession
   private readonly listeners = new Set<AppListener>()
-  /** Stable snapshot for useSyncExternalStore. */
   private snapshot: AppScreenState
 
   constructor(deps: Deps) {
@@ -42,9 +45,11 @@ export class AppSession {
       startTask: deps.startTask,
     })
     this.workflows = new WorkflowsSession(deps.loadWorkflows)
+    this.resources = new ResourcesSession(deps.loadResources)
     this.snapshot = this.buildSnapshot()
     this.newTask.subscribe(() => this.emit())
     this.workflows.subscribe(() => this.emit())
+    this.resources.subscribe(() => this.emit())
   }
 
   subscribe(listener: AppListener): () => void {
@@ -62,11 +67,13 @@ export class AppSession {
   start(): void {
     this.newTask.start()
     this.workflows.start()
+    this.resources.start()
   }
 
   dispose(): void {
     this.newTask.dispose()
     this.workflows.dispose()
+    this.resources.dispose()
   }
 
   navigate(route: AppRoute): void {
@@ -115,16 +122,12 @@ export class AppSession {
     this.newTask.submit()
   }
 
-  /** Test/helper access to the new-task child without re-subscribing. */
-  getNewTaskState() {
-    return this.newTask.getState()
-  }
-
   private buildSnapshot(): AppScreenState {
     return {
       route: this.route,
       newTask: this.newTask.getState(),
       workflows: this.workflows.getState(),
+      resources: this.resources.getState(),
     }
   }
 

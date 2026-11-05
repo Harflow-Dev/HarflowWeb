@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it } from 'vitest'
 import {
   createLoadContextUseCase,
+  createLoadResourcesUseCase,
   createLoadWorkflowsUseCase,
   createStartTaskUseCase,
   type EnginePort,
@@ -12,12 +13,14 @@ import {
   asTaskId,
   type ContextLoad,
   type ObservationHandle,
+  type ResourcesLoad,
   type StartTaskOutcome,
   type StartTaskRequest,
   type WorkflowsLoad,
 } from '../model'
 import { createControllablePromise } from '../adapters/mock/controllable'
 import { populatedComposer, populatedSidebar } from '../adapters/mock/fixtures'
+import { populatedResourcesLoad } from '../adapters/mock/resourceFixtures'
 import { POPULATED_WORKFLOWS } from '../adapters/mock/workflowFixtures'
 import { createAppPresenter } from '../presentation'
 import { AppFeature } from './AppFeature'
@@ -44,6 +47,7 @@ function createTestEngine(options?: {
     kind: 'ready',
     workflows: POPULATED_WORKFLOWS,
   }
+  const resources: ResourcesLoad = populatedResourcesLoad()
   const port: EnginePort = {
     observeContext(onUpdate) {
       queueMicrotask(() => onUpdate(readyContext()))
@@ -59,6 +63,15 @@ function createTestEngine(options?: {
       queueMicrotask(() => onUpdate(workflows))
       return {
         id: asObservationId('ui-wf'),
+        cancel() {
+          /* no-op */
+        },
+      }
+    },
+    observeResources(onUpdate) {
+      queueMicrotask(() => onUpdate(resources))
+      return {
+        id: asObservationId('ui-res'),
         cancel() {
           /* no-op */
         },
@@ -87,6 +100,7 @@ function renderApp(engine: EnginePort) {
     loadContext: createLoadContextUseCase(engine),
     startTask: createStartTaskUseCase(engine),
     loadWorkflows: createLoadWorkflowsUseCase(engine),
+    loadResources: createLoadResourcesUseCase(engine),
   })
   const view = render(<AppFeature presenter={presenter} />)
   return { presenter, ...view }
@@ -200,6 +214,37 @@ describe('AppFeature navigation', () => {
     expect(container.querySelector('.hd-app')?.getAttribute('data-theme')).toBe(
       'dark',
     )
+  })
+
+  it('opens Resources with slot cards and keeps Install/Open task inert', async () => {
+    const user = userEvent.setup()
+    const { port, starts } = createTestEngine()
+    renderApp(port)
+    await flush()
+
+    await user.click(screen.getByRole('button', { name: 'Resources' }))
+    expect(
+      await screen.findByRole('heading', { name: 'Resources' }),
+    ).toBeInTheDocument()
+    expect(screen.getByText('2 of 3 in use')).toBeInTheDocument()
+    expect(screen.getByText('0 of 2 in use')).toBeInTheDocument()
+    expect(screen.getByText('1 waiting')).toBeInTheDocument()
+    expect(screen.getByText('No tasks holding a slot.')).toBeInTheDocument()
+    expect(screen.getByText('Not installed')).toBeInTheDocument()
+    expect(screen.getByText('Waiting for a Codex slot')).toBeInTheDocument()
+
+    await user.click(
+      screen.getByRole('button', {
+        name: 'Install Antigravity (unavailable in this slice)',
+      }),
+    )
+    expect(starts).toHaveLength(0)
+    await user.click(
+      screen.getByRole('button', {
+        name: 'Open task Write contract fixtures for v1 tasks (unavailable in this slice)',
+      }),
+    )
+    expect(starts).toHaveLength(0)
   })
 
   it('returns to the accepted launch state after navigating during a held start', async () => {

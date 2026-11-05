@@ -5,10 +5,10 @@ recreate HarflowClient or HarflowDesktop.
 
 ## Current state
 
-This repository contains an **exploratory mock-backed new-task + workflows list
-slice** for review. It is not W01–W05 completion, production Web, authentication,
-or a real engine connection. Production roadmap remains native Mac + Rust first;
-Web later.
+This repository contains an **exploratory mock-backed new-task + workflows +
+resources observation slice** for review. It is not W01–W05 completion,
+production Web, authentication, or a real engine connection. Production roadmap
+remains native Mac + Rust first; Web later.
 
 ## Working rules
 

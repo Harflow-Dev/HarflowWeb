@@ -1,6 +1,7 @@
 import type {
   LoadContextUseCase,
   LoadResourcesUseCase,
+  LoadStatisticsUseCase,
   LoadWorkflowsUseCase,
   StartTaskUseCase,
 } from '../application'
@@ -10,6 +11,7 @@ import type {
   HarnessId,
   ModelId,
   RepositoryId,
+  StatisticsRangeId,
 } from '../model'
 import { AppSession, type AppListener } from './appSession'
 import type { AppRoute, AppScreenState } from './appState'
@@ -21,6 +23,7 @@ export type AppPresenter = {
   start(): void
   dispose(): void
   navigate(route: AppRoute): void
+  selectStatisticsRange(range: StatisticsRangeId): void
   setAppearance(appearance: Appearance): void
   cycleAppearance(): void
   setSidebarCollapsed(collapsed: boolean): void
@@ -38,6 +41,7 @@ type Deps = {
   readonly startTask: StartTaskUseCase
   readonly loadWorkflows: LoadWorkflowsUseCase
   readonly loadResources: LoadResourcesUseCase
+  readonly loadStatistics: LoadStatisticsUseCase
 }
 
 export function createAppPresenter(deps: Deps): AppPresenter {
@@ -48,6 +52,7 @@ export function createAppPresenter(deps: Deps): AppPresenter {
     start: () => session.start(),
     dispose: () => session.dispose(),
     navigate: (route) => session.navigate(route),
+    selectStatisticsRange: (range) => session.selectStatisticsRange(range),
     setAppearance: (appearance) => session.setAppearance(appearance),
     cycleAppearance: () => session.cycleAppearance(),
     setSidebarCollapsed: (collapsed) => session.setSidebarCollapsed(collapsed),

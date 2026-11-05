@@ -21,6 +21,15 @@ export {
 } from './resourcesState'
 export { ResourcesSession } from './resourcesSession'
 export {
+  initialStatisticsState,
+  type StatisticsScreenState,
+} from './statisticsState'
+export { StatisticsSession } from './statisticsSession'
+export {
+  sanitizeStatisticsLoad,
+  sanitizeStatisticsObservation,
+} from './sanitizeStatistics'
+export {
   initialWorkflowsState,
   type WorkflowsScreenState,
 } from './workflowsState'

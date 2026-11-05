@@ -3,6 +3,8 @@ import {
   type ContextLoad,
   type ResourcesLoad,
   type StartTaskOutcome,
+  type StatisticsLoad,
+  type StatisticsRangeId,
   type WorkflowsLoad,
 } from '../../model'
 import {
@@ -12,10 +14,16 @@ import {
   populatedSidebar,
 } from './fixtures'
 import { populatedResourcesLoad } from './resourceFixtures'
+import { statisticsLoadFor } from './statisticsFixtures'
 import {
   emptyWorkflowsLoad,
   populatedWorkflowsLoad,
 } from './workflowFixtures'
+
+export type StatisticsScenario =
+  | 'default'
+  | 'defer'
+  | ((range: StatisticsRangeId) => StatisticsLoad)
 
 /**
  * Deterministic preview scenarios for /preview.
@@ -34,6 +42,7 @@ export type ScenarioId =
   | 'workflows-populated'
   | 'workflows-empty'
   | 'resources-slots'
+  | 'statistics-overview'
 
 export type ScenarioDefinition = {
   readonly id: ScenarioId
@@ -42,6 +51,7 @@ export type ScenarioDefinition = {
   readonly context: ContextLoad | 'defer'
   readonly workflows: WorkflowsLoad | 'defer'
   readonly resources: ResourcesLoad | 'defer'
+  readonly statistics: StatisticsScenario
   readonly startOutcome: StartTaskOutcome
   readonly holdStart: boolean
 }
@@ -61,43 +71,52 @@ const accepted = {
 
 const resources = populatedResourcesLoad()
 const workflows = populatedWorkflowsLoad()
+const statistics: StatisticsScenario = 'default'
 
-export const SCENARIOS: readonly ScenarioDefinition[] = [
-  {
-    id: 'populated',
-    label: 'Populated',
-    description: 'New-task, workflows, and resources fixtures.',
-    context: readyContext(),
+function base(
+  partial: Omit<ScenarioDefinition, 'workflows' | 'resources' | 'statistics'> &
+    Partial<
+      Pick<ScenarioDefinition, 'workflows' | 'resources' | 'statistics'>
+    >,
+): ScenarioDefinition {
+  return {
     workflows,
     resources,
+    statistics,
+    ...partial,
+  }
+}
+
+export const SCENARIOS: readonly ScenarioDefinition[] = [
+  base({
+    id: 'populated',
+    label: 'Populated',
+    description: 'New-task, workflows, resources, and statistics fixtures.',
+    context: readyContext(),
     startOutcome: accepted,
     holdStart: false,
-  },
-  {
+  }),
+  base({
     id: 'empty-sidebar',
     label: 'Empty sidebar',
     description: 'Composer ready; Running and Recent empty.',
     context: readyContext(emptySidebar()),
-    workflows,
-    resources,
     startOutcome: accepted,
     holdStart: false,
-  },
-  {
+  }),
+  base({
     id: 'loading',
     label: 'Context loading',
     description: 'Proposal status: loading — no approved specimen.',
     context: { kind: 'loading' },
-    workflows,
-    resources,
     startOutcome: {
       kind: 'refused',
       code: 'unavailable',
       reason: 'Context is still loading.',
     },
     holdStart: false,
-  },
-  {
+  }),
+  base({
     id: 'unavailable',
     label: 'Context unavailable',
     description: 'Proposal status: unavailable — no approved specimen.',
@@ -105,109 +124,101 @@ export const SCENARIOS: readonly ScenarioDefinition[] = [
       kind: 'unavailable',
       message: 'Mock engine context is unavailable.',
     },
-    workflows,
-    resources,
     startOutcome: {
       kind: 'refused',
       code: 'unavailable',
       reason: 'Context unavailable.',
     },
     holdStart: false,
-  },
-  {
+  }),
+  base({
     id: 'partial-sidebar',
     label: 'Partial sidebar',
     description: 'Incomplete coverage marked explicitly (proposal).',
     context: readyContext(partialSidebar()),
-    workflows,
-    resources,
     startOutcome: accepted,
     holdStart: false,
-  },
-  {
+  }),
+  base({
     id: 'submit-accepted',
     label: 'Submit accepted',
     description: 'Maps to ctl-launch-run-accepted.json semantics.',
     context: readyContext(),
-    workflows,
-    resources,
     startOutcome: {
       kind: 'accepted',
       taskId: asTaskId('task-fixture'),
     },
     holdStart: false,
-  },
-  {
+  }),
+  base({
     id: 'submit-refused',
     label: 'Submit refused',
     description: 'Maps to ctl-launch-run-refused.json semantics.',
     context: readyContext(),
-    workflows,
-    resources,
     startOutcome: {
       kind: 'refused',
       code: 'invalid_params',
       reason: 'fixture refusal',
     },
     holdStart: false,
-  },
-  {
+  }),
+  base({
     id: 'submit-unknown',
     label: 'Submit unknown',
     description: 'Maps to ctl-launch-run-unknown.json; no automatic retry.',
     context: readyContext(),
-    workflows,
-    resources,
     startOutcome: {
       kind: 'unknown',
       message: 'fixture: owner did not report; a task may exist',
     },
     holdStart: false,
-  },
-  {
+  }),
+  base({
     id: 'stale-response',
     label: 'Stale response',
     description:
       'Holds start; resolve after remount/disposal so the late accept is ignored.',
     context: readyContext(),
-    workflows,
-    resources,
     startOutcome: {
       kind: 'accepted',
       taskId: asTaskId('task-stale'),
     },
     holdStart: true,
-  },
-  {
+  }),
+  base({
     id: 'workflows-populated',
     label: 'Workflows list',
     description: 'Approved workflows/list specimen data.',
     context: readyContext(),
-    workflows,
-    resources,
     startOutcome: accepted,
     holdStart: false,
-  },
-  {
+  }),
+  base({
     id: 'workflows-empty',
     label: 'Workflows empty',
     description: 'Approved workflows/empty specimen data.',
     context: readyContext(),
     workflows: emptyWorkflowsLoad(),
-    resources,
     startOutcome: accepted,
     holdStart: false,
-  },
-  {
+  }),
+  base({
     id: 'resources-slots',
     label: 'Resources slots',
     description: 'Approved resources/slots specimen data.',
     context: readyContext(),
-    workflows,
-    resources,
     startOutcome: accepted,
     holdStart: false,
-  },
+  }),
+  base({
+    id: 'statistics-overview',
+    label: 'Statistics overview',
+    description: 'Approved statistics/overview specimen ranges (7d + 30d).',
+    context: readyContext(),
+    statistics: (range) => statisticsLoadFor(range),
+    startOutcome: accepted,
+    holdStart: false,
+  }),
 ]
 
 export function scenarioById(id: ScenarioId): ScenarioDefinition {

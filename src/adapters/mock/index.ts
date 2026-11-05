@@ -20,6 +20,11 @@ export {
   populatedResourcesObservation,
 } from './resourceFixtures'
 export {
+  populatedStatisticsLoad,
+  statisticsLoadFor,
+  statisticsObservationFor,
+} from './statisticsFixtures'
+export {
   emptyWorkflowsLoad,
   POPULATED_WORKFLOWS,
   populatedWorkflowsLoad,

@@ -4,11 +4,13 @@ import type {
   ResourcesLoad,
   StartTaskOutcome,
   StartTaskRequest,
+  StatisticsLoad,
+  StatisticsRangeId,
   WorkflowsLoad,
 } from '../model'
 
 /**
- * Slice-sized EnginePort: new-task, workflows list, and resources observation.
+ * Slice-sized EnginePort: new-task, workflows, resources, and statistics.
  * Future production path: browser → authenticated Web server → harflow-ctl.
  * The browser never invokes ctl, MCP, or engine SQLite directly.
  */
@@ -35,6 +37,16 @@ export type EnginePort = {
    */
   observeResources(
     onUpdate: (load: ResourcesLoad) => void,
+  ): ObservationHandle
+
+  /**
+   * Read statistics for an explicit range. Range changes must start a new
+   * observation; late responses for other ranges must be ignored by the session.
+   * Mock-only presentation — not a public ctl statistics claim.
+   */
+  observeStatistics(
+    range: StatisticsRangeId,
+    onUpdate: (load: StatisticsLoad) => void,
   ): ObservationHandle
 
   /**

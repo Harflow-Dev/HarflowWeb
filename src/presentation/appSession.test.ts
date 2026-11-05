@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   createLoadContextUseCase,
   createLoadResourcesUseCase,
+  createLoadStatisticsUseCase,
   createLoadWorkflowsUseCase,
   createStartTaskUseCase,
   type EnginePort,
@@ -24,6 +25,7 @@ import {
 import { createControllablePromise } from '../adapters/mock/controllable'
 import { populatedComposer, populatedSidebar } from '../adapters/mock/fixtures'
 import { populatedResourcesLoad } from '../adapters/mock/resourceFixtures'
+import { statisticsLoadFor } from '../adapters/mock/statisticsFixtures'
 import { POPULATED_WORKFLOWS } from '../adapters/mock/workflowFixtures'
 import { createAppPresenter } from './appPresenter'
 
@@ -87,6 +89,15 @@ function createTestEngine(options?: {
         },
       }
     },
+    observeStatistics(range, onUpdate) {
+      queueMicrotask(() => onUpdate(statisticsLoadFor(range)))
+      return {
+        id: asObservationId('app-stats'),
+        cancel() {
+          /* no-op */
+        },
+      }
+    },
     async startTask(request) {
       starts.push(request)
       if (options?.holdStart) {
@@ -118,6 +129,7 @@ function createPresenter(engine: EnginePort) {
     startTask: createStartTaskUseCase(engine),
     loadWorkflows: createLoadWorkflowsUseCase(engine),
     loadResources: createLoadResourcesUseCase(engine),
+    loadStatistics: createLoadStatisticsUseCase(engine),
   })
 }
 
@@ -262,7 +274,7 @@ describe('AppPresenter workflows slice', () => {
     presenter.dispose()
   })
 
-  it('navigates to resources and preserves held launch across all three pages', async () => {
+  it('navigates across pages and preserves held launch plus statistics range', async () => {
     const { port, starts, resolveStart } = createTestEngine({ holdStart: true })
     const presenter = createPresenter(port)
     presenter.start()
@@ -273,10 +285,17 @@ describe('AppPresenter workflows slice', () => {
 
     presenter.navigate('workflows')
     presenter.navigate('resources')
-    expect(presenter.getState().route).toBe('resources')
-    expect(presenter.getState().resources.load.kind).toBe('ready')
+    presenter.navigate('statistics')
+    expect(presenter.getState().route).toBe('statistics')
+    expect(presenter.getState().statistics.load.kind).toBe('ready')
+    presenter.selectStatisticsRange('7d')
+    await flush()
+    expect(presenter.getState().statistics.selectedRange).toBe('7d')
     expect(presenter.getState().newTask.submission.kind).toBe('pending')
     expect(presenter.getState().newTask.prompt).toBe('across pages')
+
+    presenter.navigate('workflows')
+    expect(presenter.getState().statistics.selectedRange).toBe('7d')
 
     resolveStart({ kind: 'accepted', taskId: asTaskId('kept') })
     await flush()

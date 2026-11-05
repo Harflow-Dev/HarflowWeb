@@ -1,6 +1,7 @@
 import {
   createLoadContextUseCase,
   createLoadResourcesUseCase,
+  createLoadStatisticsUseCase,
   createLoadWorkflowsUseCase,
   createStartTaskUseCase,
 } from '../application'
@@ -26,11 +27,13 @@ export function createApp(scenario: ScenarioId = 'populated'): AppBundle {
   const startTask = createStartTaskUseCase(mock.engine)
   const loadWorkflows = createLoadWorkflowsUseCase(mock.engine)
   const loadResources = createLoadResourcesUseCase(mock.engine)
+  const loadStatistics = createLoadStatisticsUseCase(mock.engine)
   const presenter = createAppPresenter({
     loadContext,
     startTask,
     loadWorkflows,
     loadResources,
+    loadStatistics,
   })
   return { presenter, mock }
 }

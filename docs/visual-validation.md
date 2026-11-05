@@ -54,6 +54,40 @@ Same CDP clip + `sips` verification. Preview scenario panel hidden for compositi
 Right-edge sample: uniform background column; `document`/`hd-app` scrollWidth
 equals clientWidth (1280) — no horizontal overflow observed at this size.
 
+## Statistics — verified 1280×800 captures
+
+Directory:
+`~/.codex/workflows/screenshots/2026-11-05-harflowweb-statistics-slice/`
+
+Retaken from the main product route `/` (normal `AppFeature` composition; no
+preview scenario panel). CDP clip `{x:0,y:0,width:1280,height:800}` after
+`Emulation.setDeviceMetricsOverride` to 1280×800. Dimensions verified with
+`sips`. Main-pane pixel diversity checked (not only right-edge uniformity):
+each file has hundreds of distinct colors in the content region and shows
+heading, range selector, headline tiles, chart bars, and harness table chrome.
+
+| File | Scenario | Viewport / PNG | Appearance / chrome |
+| --- | --- | --- | --- |
+| `01-statistics-overview-light-expanded.png` | statistics/overview | 1280×800 | light, sidebar expanded |
+| `02-statistics-overview-dark-expanded.png` | statistics/overview | 1280×800 | dark, sidebar expanded |
+| `03-statistics-overview-dark-collapsed.png` | statistics/overview | 1280×800 | dark, sidebar collapsed |
+| `04-statistics-overview-light-collapsed.png` | statistics/overview | 1280×800 | light, sidebar collapsed |
+
+Default range in captures is the approved 30-day overview. Page content is
+taller than 800px; the first viewport shows head/tiles/chart with the harness
+table continuing in `.hd-scroll` (no document-level horizontal overflow).
+
+### Prior blank Statistics captures (invalid evidence)
+
+Earlier files with the same names under this directory were 1280×800 but showed
+an almost empty main pane. Cause: capture setup on `/preview` used
+`display:none` on `.hw-preview__panel` while `.hw-preview` kept
+`grid-template-columns: 280px 1fr`, so the app occupied only the first 280px
+track and the CDP full-viewport clip was mostly blank body background. That was
+incorrect capture setup, not an application Statistics rendering failure. Those
+artifacts were overwritten by the verified `/` captures above — do not treat
+edge-uniform blank PNGs as visual proof.
+
 Earlier new-task screenshots remain under
 `~/.codex/workflows/screenshots/2026-11-05-harflowweb-new-task-slice/`.
 
@@ -62,27 +96,35 @@ Earlier new-task screenshots remain under
 - HarflowDesign commit `3643d083700be4032c93237813b573d04bab6ab1`
 - Workflows: `v2/scripts/screens-workflows.js` (`workflows/list`, `workflows/empty`)
 - Resources: `v2/scripts/screens-resources.js` (`resources/slots` light/dark)
+- Statistics: `v2/scripts/screens-statistics.js` (`statistics/overview` light/dark)
 - Observed in the running Vite app (not substituted from hosted design)
 
 ## Checks performed
 
-- Keyboard: New task / Workflows / Resources are buttons; task destinations and
-  Install announce unavailable in accessible names.
-- Focus: theme and nav controls remain operable after route changes; Resources
-  nav can take `aria-current` focus.
-- Overflow: recent work scrolls in the sidebar; resources page fits 1280×800
-  without document-level horizontal overflow.
-- Product search omitted per accepted coverage ledger.
+- Keyboard: New task / Workflows / Resources / Statistics are buttons; task
+  destinations and Install announce unavailable in accessible names. Statistics
+  period segment is a keyboard-operable button group (`aria-pressed`).
+- Focus: theme, nav, and range controls remain operable after route changes.
+- Overflow: recent work scrolls in the sidebar; resources and statistics pages
+  fit 1280×800 without document-level horizontal overflow.
+- Product search omitted per accepted coverage ledger; statistics range retained.
 - Empty workflows specimen copy verified (`No workflows yet` + create CTAs).
 - Resources shows populated, full-with-waiters, zero-holder, and not-installed
   cards plus the waiting list from the approved specimen.
+- Statistics chart exposes `role="img"` summary text plus an `.hd-sr` daily data
+  table; harness table is visible.
 
 ## Limitations
 
 - Pixel fidelity to native materials is not claimed.
-- Workflows/resources loading and unavailable treatments are proposals, not
-  approved specimens.
+- Workflows/resources/statistics loading and unavailable treatments are
+  proposals, not approved specimens.
 - Empty workflows and resources screenshots used `/preview` with the scenario
-  panel hidden.
+  panel hidden. Statistics verification uses `/` to avoid the preview-grid
+  capture trap described above.
 - No approved specimen for over-limit, permission-denied, or unsupported harness
   semantics; those were not invented in UI or fixtures.
+- Statistics “All time” incomplete retained-history treatment is intentional and
+  not a claim of visual approval for an all-time populated specimen.
+- No public ctl statistics contract; success rate / median / cost are fixture
+  facts with explicit coverage gates.

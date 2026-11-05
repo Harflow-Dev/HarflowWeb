@@ -4,10 +4,16 @@ import {
   type ResourcesLoad,
   type StartTaskOutcome,
   type StartTaskRequest,
+  type StatisticsLoad,
+  type StatisticsRangeId,
   type WorkflowsLoad,
 } from '../../model'
-import { createControllablePromise, type ControllablePromise } from './controllable'
-import { createObservation } from './mockObservation'
+import {
+  buildMockEnginePort,
+  createHeldStartTracker,
+  createListenerSets,
+  resolveStatisticsLoad,
+} from './mockEngineCore'
 import { scenarioById, type ScenarioId } from './scenarios'
 
 export type MockEngineControls = {
@@ -16,6 +22,7 @@ export type MockEngineControls = {
   publishContext(load: ContextLoad): void
   publishWorkflows(load: WorkflowsLoad): void
   publishResources(load: ResourcesLoad): void
+  publishStatistics(range: StatisticsRangeId, load: StatisticsLoad): void
   resolveHeldStart(outcome?: StartTaskOutcome): void
   readonly startRequestCount: () => number
   readonly lastStartRequest: () => StartTaskRequest | null
@@ -27,75 +34,66 @@ export function createMockEngine(
   let scenario = scenarioById(initialScenario)
   let startCount = 0
   let lastStart: StartTaskRequest | null = null
-  let heldStart: ControllablePromise<StartTaskOutcome> | null = null
-  const contextListeners = new Set<(load: ContextLoad) => void>()
-  const workflowListeners = new Set<(load: WorkflowsLoad) => void>()
-  const resourceListeners = new Set<(load: ResourcesLoad) => void>()
+  const held = createHeldStartTracker()
+  const listeners = createListenerSets()
 
-  function currentContext(): ContextLoad {
-    if (scenario.context === 'defer') return { kind: 'loading' }
-    return scenario.context
-  }
-
-  function currentWorkflows(): WorkflowsLoad {
-    if (scenario.workflows === 'defer') return { kind: 'loading' }
-    return scenario.workflows
-  }
-
-  function currentResources(): ResourcesLoad {
-    if (scenario.resources === 'defer') return { kind: 'loading' }
-    return scenario.resources
-  }
-
-  const engine: EnginePort = {
-    observeContext(onUpdate) {
-      return createObservation(contextListeners, onUpdate, currentContext)
-    },
-    observeWorkflows(onUpdate) {
-      return createObservation(workflowListeners, onUpdate, currentWorkflows)
-    },
-    observeResources(onUpdate) {
-      return createObservation(resourceListeners, onUpdate, currentResources)
-    },
-    async startTask(request) {
+  const engine = buildMockEnginePort({
+    getScenario: () => scenario,
+    listeners,
+    async onStart(request) {
       startCount += 1
       lastStart = request
-      if (scenario.holdStart) {
-        heldStart = createControllablePromise<StartTaskOutcome>()
-        return heldStart.promise
-      }
+      if (scenario.holdStart) return held.begin().promise
       return scenario.startOutcome
     },
-  }
+  })
 
   return {
     engine,
     setScenario(id) {
       scenario = scenarioById(id)
-      heldStart = null
-      for (const listener of contextListeners) listener(currentContext())
-      for (const listener of workflowListeners) listener(currentWorkflows())
-      for (const listener of resourceListeners) listener(currentResources())
+      held.take()
+      for (const listener of listeners.context) {
+        listener(
+          scenario.context === 'defer' ? { kind: 'loading' } : scenario.context,
+        )
+      }
+      for (const listener of listeners.workflows) {
+        listener(
+          scenario.workflows === 'defer'
+            ? { kind: 'loading' }
+            : scenario.workflows,
+        )
+      }
+      for (const listener of listeners.resources) {
+        listener(
+          scenario.resources === 'defer'
+            ? { kind: 'loading' }
+            : scenario.resources,
+        )
+      }
+      for (const listener of listeners.statistics) {
+        listener.send(resolveStatisticsLoad(scenario, listener.range))
+      }
     },
     publishContext(load) {
-      for (const listener of contextListeners) listener(load)
+      for (const listener of listeners.context) listener(load)
     },
     publishWorkflows(load) {
-      for (const listener of workflowListeners) listener(load)
+      for (const listener of listeners.workflows) listener(load)
     },
     publishResources(load) {
-      for (const listener of resourceListeners) listener(load)
+      for (const listener of listeners.resources) listener(load)
+    },
+    publishStatistics(range, load) {
+      for (const listener of listeners.statistics) {
+        if (listener.range === range) listener.send(load)
+      }
     },
     resolveHeldStart(outcome) {
-      const target = heldStart
-      heldStart = null
-      target?.resolve(outcome ?? scenario.startOutcome)
+      held.take()?.resolve(outcome ?? scenario.startOutcome)
     },
-    startRequestCount() {
-      return startCount
-    },
-    lastStartRequest() {
-      return lastStart
-    },
+    startRequestCount: () => startCount,
+    lastStartRequest: () => lastStart,
   }
 }

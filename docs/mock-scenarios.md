@@ -12,7 +12,7 @@ populated fixture and shows a single “Mock engine” badge.
 
 | Scenario | What it shows |
 | --- | --- |
-| Populated | Design-aligned new-task + workflows list + resources slots fixtures |
+| Populated | Design-aligned new-task + workflows + resources + statistics fixtures |
 | Empty sidebar | Ready composer; empty Running/Recent |
 | Context loading | Proposal status (not design-approved) |
 | Context unavailable | Proposal status (not design-approved) |
@@ -24,17 +24,21 @@ populated fixture and shows a single “Mock engine” badge.
 | Workflows list | Approved `workflows/list` definition rows |
 | Workflows empty | Approved `workflows/empty` specimen |
 | Resources slots | Approved `resources/slots` harness cards + waiting list |
+| Statistics overview | Approved `statistics/overview` ranges (7d + 30d populated; All time incomplete) |
 
-Sidebar navigation between **New task**, **Workflows**, and **Resources** is live
-in the app and preview. Draft text, selections, and pending/held launch outcomes
-are preserved across all three pages; navigation never starts or repeats a task.
+Sidebar navigation between **New task**, **Workflows**, **Resources**, and
+**Statistics** is live in the app and preview. Draft text, selections, pending
+launch outcomes, and the selected statistics range are preserved across pages;
+navigation never starts or repeats a task. Changing the statistics range
+requests that range through `observeStatistics(range, …)` and cancels the prior
+observation — it does not relabel unchanged totals.
 
-Run, Edit, New workflow, “Describe one to an agent”, task destinations on the
-Resources page, and Install remain visible where the design shows them and report
-unavailable in this slice — no mutation, no admin, no engine calls.
+Run, Edit, New workflow, “Describe one to an agent”, Resources task links, and
+Install remain visible where the design shows them and report unavailable in
+this slice — no mutation, no admin, no engine calls.
 
-Valid zero slot usage / zero holders remain distinct from unavailable observation
-data. Unknown or unavailable facts are not coerced to zero capacity or usage.
+Valid zero task counts and observed zero cost remain distinct from unavailable
+observation data. Unknown or unavailable facts are not coerced to zero.
 
 Tests use controllable promises (`src/adapters/mock/controllable.ts`) rather than
 sleeps or randomness.

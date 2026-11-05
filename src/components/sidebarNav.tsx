@@ -3,7 +3,7 @@ import type { AppRoute } from '../presentation'
 import { Icon, type IconName } from './Icon'
 import { ThemeToggle } from './ThemeToggle'
 
-export type NavId = AppRoute | 'needs-you' | 'statistics'
+export type NavId = AppRoute | 'needs-you'
 
 export const NAV: readonly {
   id: NavId
@@ -19,7 +19,12 @@ export const NAV: readonly {
 ]
 
 export function isAppRoute(id: NavId): id is AppRoute {
-  return id === 'new-task' || id === 'workflows' || id === 'resources'
+  return (
+    id === 'new-task' ||
+    id === 'workflows' ||
+    id === 'resources' ||
+    id === 'statistics'
+  )
 }
 
 export function ExpandedNavItem({

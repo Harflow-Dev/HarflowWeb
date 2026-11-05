@@ -1,6 +1,7 @@
 import type {
   LoadContextUseCase,
   LoadResourcesUseCase,
+  LoadStatisticsUseCase,
   LoadWorkflowsUseCase,
   StartTaskUseCase,
 } from '../application'
@@ -10,11 +11,13 @@ import type {
   HarnessId,
   ModelId,
   RepositoryId,
+  StatisticsRangeId,
 } from '../model'
 import type { AppRoute, AppScreenState } from './appState'
 import { PresenterSession } from './presenterSession'
 import { ResourcesSession } from './resourcesSession'
 import type { OpenMenu } from './screenState'
+import { StatisticsSession } from './statisticsSession'
 import { WorkflowsSession } from './workflowsSession'
 
 export type AppListener = (state: AppScreenState) => void
@@ -24,18 +27,20 @@ type Deps = {
   readonly startTask: StartTaskUseCase
   readonly loadWorkflows: LoadWorkflowsUseCase
   readonly loadResources: LoadResourcesUseCase
+  readonly loadStatistics: LoadStatisticsUseCase
 }
 
 /**
- * App shell session: owns new-task, workflows, and resources lifetimes + route.
- * Navigating does not dispose child sessions, so drafts and in-flight launches
- * survive and resume correctly on return.
+ * App shell session: owns new-task, workflows, resources, and statistics
+ * lifetimes + route. Navigating does not dispose child sessions, so drafts,
+ * range selection, and in-flight launches survive and resume on return.
  */
 export class AppSession {
   private route: AppRoute = 'new-task'
   private readonly newTask: PresenterSession
   private readonly workflows: WorkflowsSession
   private readonly resources: ResourcesSession
+  private readonly statistics: StatisticsSession
   private readonly listeners = new Set<AppListener>()
   private snapshot: AppScreenState
 
@@ -46,10 +51,12 @@ export class AppSession {
     })
     this.workflows = new WorkflowsSession(deps.loadWorkflows)
     this.resources = new ResourcesSession(deps.loadResources)
+    this.statistics = new StatisticsSession(deps.loadStatistics)
     this.snapshot = this.buildSnapshot()
     this.newTask.subscribe(() => this.emit())
     this.workflows.subscribe(() => this.emit())
     this.resources.subscribe(() => this.emit())
+    this.statistics.subscribe(() => this.emit())
   }
 
   subscribe(listener: AppListener): () => void {
@@ -68,18 +75,24 @@ export class AppSession {
     this.newTask.start()
     this.workflows.start()
     this.resources.start()
+    this.statistics.start()
   }
 
   dispose(): void {
     this.newTask.dispose()
     this.workflows.dispose()
     this.resources.dispose()
+    this.statistics.dispose()
   }
 
   navigate(route: AppRoute): void {
     if (this.route === route) return
     this.route = route
     this.emit()
+  }
+
+  selectStatisticsRange(range: StatisticsRangeId): void {
+    this.statistics.selectRange(range)
   }
 
   setAppearance(appearance: Appearance): void {
@@ -128,6 +141,7 @@ export class AppSession {
       newTask: this.newTask.getState(),
       workflows: this.workflows.getState(),
       resources: this.resources.getState(),
+      statistics: this.statistics.getState(),
     }
   }
 

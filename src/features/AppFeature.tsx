@@ -3,6 +3,7 @@ import { MockBadge, Sidebar, StatusRegion } from '../components'
 import type { AppPresenter } from '../presentation'
 import { NewTaskMain } from './NewTaskMain'
 import { ResourcesMain } from './ResourcesMain'
+import { StatisticsMain } from './StatisticsMain'
 import { useEphemeralNote, usePresenter, usePresenterLifetime } from './usePresenter'
 import { WorkflowsMain } from './WorkflowsMain'
 
@@ -54,10 +55,15 @@ export function AppFeature({ presenter }: Props) {
               state={state.workflows}
               onUnavailable={(label) => ephemeral.show(label)}
             />
-          ) : (
+          ) : state.route === 'resources' ? (
             <ResourcesMain
               state={state.resources}
               onUnavailable={(label) => ephemeral.show(label)}
+            />
+          ) : (
+            <StatisticsMain
+              state={state.statistics}
+              onSelectRange={(range) => presenter.selectStatisticsRange(range)}
             />
           )}
         </main>

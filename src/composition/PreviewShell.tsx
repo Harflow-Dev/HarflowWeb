@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { SCENARIOS, type ScenarioId } from '../adapters/mock'
-import { NewTaskFeature } from '../features'
+import { AppFeature } from '../features'
 import { createApp } from './createApp'
 
 /** Composition-owned preview route with scenario controls. */
@@ -45,7 +45,7 @@ export function PreviewShell() {
         ) : null}
       </aside>
       <div className="hw-preview__app">
-        <NewTaskFeature key={scenario} presenter={app.presenter} />
+        <AppFeature key={scenario} presenter={app.presenter} />
       </div>
     </div>
   )

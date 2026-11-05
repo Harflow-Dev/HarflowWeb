@@ -4,6 +4,7 @@ export type RepositoryId = string & { readonly __brand: 'RepositoryId' }
 export type HarnessId = string & { readonly __brand: 'HarnessId' }
 export type ModelId = string & { readonly __brand: 'ModelId' }
 export type TaskId = string & { readonly __brand: 'TaskId' }
+export type WorkflowId = string & { readonly __brand: 'WorkflowId' }
 export type ObservationId = string & { readonly __brand: 'ObservationId' }
 
 export function asRepositoryId(value: string): RepositoryId {
@@ -20,6 +21,10 @@ export function asModelId(value: string): ModelId {
 
 export function asTaskId(value: string): TaskId {
   return value as TaskId
+}
+
+export function asWorkflowId(value: string): WorkflowId {
+  return value as WorkflowId
 }
 
 export function asObservationId(value: string): ObservationId {

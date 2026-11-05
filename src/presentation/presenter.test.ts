@@ -14,6 +14,7 @@ import {
   type ObservationHandle,
   type StartTaskOutcome,
   type StartTaskRequest,
+  type WorkflowsLoad,
 } from '../model'
 import { createControllablePromise } from '../adapters/mock/controllable'
 import {
@@ -65,6 +66,17 @@ function createTestEngine(options?: {
         },
       }
       return handle
+    },
+    observeWorkflows(onUpdate) {
+      queueMicrotask(() =>
+        onUpdate({ kind: 'ready', workflows: [] } satisfies WorkflowsLoad),
+      )
+      return {
+        id: asObservationId('test-wf-obs'),
+        cancel() {
+          /* no-op for new-task unit tests */
+        },
+      }
     },
     async startTask(request) {
       starts.push(request)

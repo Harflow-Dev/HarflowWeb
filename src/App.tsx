@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { createApp, PreviewShell } from './composition'
-import { NewTaskFeature } from './features'
+import { AppFeature } from './features'
 
 function isPreviewRoute(): boolean {
   const path = window.location.pathname.replace(/\/+$/, '') || '/'
@@ -9,7 +9,7 @@ function isPreviewRoute(): boolean {
 
 function MainApp() {
   const app = useMemo(() => createApp('populated'), [])
-  return <NewTaskFeature presenter={app.presenter} />
+  return <AppFeature presenter={app.presenter} />
 }
 
 export default function App() {

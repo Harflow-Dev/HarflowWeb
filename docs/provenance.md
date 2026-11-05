@@ -8,6 +8,7 @@
   - `v2/docs/approval.md`
   - `v2/docs/screen-inventory.md`
   - `v2/scripts/screens-new-task.js`
+  - `v2/scripts/screens-workflows.js`
   - `v2/scripts/components.js`
   - `v2/styles/tokens.css`
   - `v2/styles/bundle.css` (vendored into `src/styles/`)
@@ -15,6 +16,9 @@
   - `new-task/default/light` and `/dark`
   - `new-task/harness-menu/light` and `/dark`
   - `new-task/sidebar-collapsed/light` and `/dark`
+  - `workflows/list/light` and `/dark` (list chrome without product search; see
+    coverage ledger deliberate removal of product search)
+  - `workflows/empty/light` and `/dark`
 - Visual inspection also used hosted `https://design.harflow.dev/v2` (cheaper than a
   local archive server). Hosted content may be newer than the pinned commit;
   implementation citations remain the immutable commit above.
@@ -34,6 +38,7 @@
 | `startTask` → unknown | `contracts/v1/ctl-launch-run-unknown.json` | `unknown` envelope; no auto-retry |
 | Backend capability facts | `contracts/v1/ctl-backend-qualification.json` | Discovery/qualification shape; harness menus here are **fixture presentation data**, not a claim of installed binaries |
 | Task catalog / sidebar rows | Design specimen mock data | **Mock-only presentation** — not a public ctl list endpoint invented for the browser |
+| Workflow definition list | Design `workflows/list` + `workflows/empty` specimen copy | **Mock-only presentation** — not a public ctl workflow catalog; no run status |
 | Repository options | Mock-only | Future server-hosted repos; not filesystem pickers; not ctl |
 
 The mock adapter is not an HTTP protocol design and does not prove backend

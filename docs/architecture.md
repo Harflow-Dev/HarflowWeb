@@ -1,4 +1,4 @@
-# Architecture map — new-task mock slice
+# Architecture map — exploratory mock slices
 
 ## Layers
 
@@ -6,7 +6,7 @@
 | --- | --- | --- |
 | `src/model` | Pure values, ids, outcomes | nothing |
 | `src/application` | `EnginePort`, use cases | model |
-| `src/presentation` | Presenter + immutable screen state | application, model |
+| `src/presentation` | Presenters + immutable screen state | application, model |
 | `src/components` | Presentational React | model, presentation types |
 | `src/features` | React composition + presenter lifetime | presentation, components, application interfaces |
 | `src/adapters/mock` | Deterministic `EnginePort` | application interfaces, model |
@@ -19,13 +19,28 @@ imports outside composition, and I/O/React in pure layers. Size limits: target
 
 A green import check does **not** prove semantic architecture correctness.
 
+## App shell
+
+`AppPresenter` / `AppSession` owns:
+
+- route (`new-task` | `workflows`)
+- new-task child session (draft, selections, appearance, sidebar collapse, launch)
+- workflows child session (definition list observation)
+
+Navigating does **not** dispose either child. In-flight launches keep applying;
+returning to New task shows the current pending/accepted/refused/unknown state
+without resubmitting. Appearance and sidebar collapse live on the new-task
+session and remain shared chrome for both routes.
+
 ## EnginePort (slice-sized)
 
 - `observeContext(onUpdate) → ObservationHandle` — composer + sidebar load
+- `observeWorkflows(onUpdate) → ObservationHandle` — workflow definition summaries
 - `startTask(request) → Promise<StartTaskOutcome>` — accepted | refused | unknown
 - `ObservationHandle.cancel()` — dispose outstanding observations
 
-No shell commands, generic RPC, or “call operation” methods.
+No shell commands, generic RPC, or “call operation” methods. Workflows are
+definitions (title, description, node count) — not runs and not run status.
 
 ## Future production path (not implemented)
 

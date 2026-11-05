@@ -1,10 +1,19 @@
-import { asTaskId, type ContextLoad, type StartTaskOutcome } from '../../model'
+import {
+  asTaskId,
+  type ContextLoad,
+  type StartTaskOutcome,
+  type WorkflowsLoad,
+} from '../../model'
 import {
   emptySidebar,
   partialSidebar,
   populatedComposer,
   populatedSidebar,
 } from './fixtures'
+import {
+  emptyWorkflowsLoad,
+  populatedWorkflowsLoad,
+} from './workflowFixtures'
 
 /**
  * Deterministic preview scenarios for /preview.
@@ -20,46 +29,52 @@ export type ScenarioId =
   | 'submit-refused'
   | 'submit-unknown'
   | 'stale-response'
+  | 'workflows-populated'
+  | 'workflows-empty'
 
 export type ScenarioDefinition = {
   readonly id: ScenarioId
   readonly label: string
   readonly description: string
   readonly context: ContextLoad | 'defer'
+  readonly workflows: WorkflowsLoad | 'defer'
   readonly startOutcome: StartTaskOutcome
   /** When true, startTask waits until the test/preview resolves it. */
   readonly holdStart: boolean
+}
+
+function readyContext(
+  sidebar = populatedSidebar(),
+): ContextLoad {
+  return {
+    kind: 'ready',
+    composer: populatedComposer(),
+    sidebar,
+  }
+}
+
+const accepted = {
+  kind: 'accepted' as const,
+  taskId: asTaskId('task-mock-accepted'),
 }
 
 export const SCENARIOS: readonly ScenarioDefinition[] = [
   {
     id: 'populated',
     label: 'Populated',
-    description: 'Sidebar and composer context ready (design default fixture).',
-    context: {
-      kind: 'ready',
-      composer: populatedComposer(),
-      sidebar: populatedSidebar(),
-    },
-    startOutcome: {
-      kind: 'accepted',
-      taskId: asTaskId('task-mock-accepted'),
-    },
+    description: 'New-task + workflows list (design default fixtures).',
+    context: readyContext(),
+    workflows: populatedWorkflowsLoad(),
+    startOutcome: accepted,
     holdStart: false,
   },
   {
     id: 'empty-sidebar',
     label: 'Empty sidebar',
     description: 'Composer ready; Running and Recent empty.',
-    context: {
-      kind: 'ready',
-      composer: populatedComposer(),
-      sidebar: emptySidebar(),
-    },
-    startOutcome: {
-      kind: 'accepted',
-      taskId: asTaskId('task-mock-accepted'),
-    },
+    context: readyContext(emptySidebar()),
+    workflows: populatedWorkflowsLoad(),
+    startOutcome: accepted,
     holdStart: false,
   },
   {
@@ -67,6 +82,7 @@ export const SCENARIOS: readonly ScenarioDefinition[] = [
     label: 'Context loading',
     description: 'Proposal status: loading — no approved specimen.',
     context: { kind: 'loading' },
+    workflows: populatedWorkflowsLoad(),
     startOutcome: {
       kind: 'refused',
       code: 'unavailable',
@@ -82,6 +98,7 @@ export const SCENARIOS: readonly ScenarioDefinition[] = [
       kind: 'unavailable',
       message: 'Mock engine context is unavailable.',
     },
+    workflows: populatedWorkflowsLoad(),
     startOutcome: {
       kind: 'refused',
       code: 'unavailable',
@@ -93,26 +110,17 @@ export const SCENARIOS: readonly ScenarioDefinition[] = [
     id: 'partial-sidebar',
     label: 'Partial sidebar',
     description: 'Incomplete coverage marked explicitly (proposal).',
-    context: {
-      kind: 'ready',
-      composer: populatedComposer(),
-      sidebar: partialSidebar(),
-    },
-    startOutcome: {
-      kind: 'accepted',
-      taskId: asTaskId('task-mock-accepted'),
-    },
+    context: readyContext(partialSidebar()),
+    workflows: populatedWorkflowsLoad(),
+    startOutcome: accepted,
     holdStart: false,
   },
   {
     id: 'submit-accepted',
     label: 'Submit accepted',
     description: 'Maps to ctl-launch-run-accepted.json semantics.',
-    context: {
-      kind: 'ready',
-      composer: populatedComposer(),
-      sidebar: populatedSidebar(),
-    },
+    context: readyContext(),
+    workflows: populatedWorkflowsLoad(),
     startOutcome: {
       kind: 'accepted',
       taskId: asTaskId('task-fixture'),
@@ -123,11 +131,8 @@ export const SCENARIOS: readonly ScenarioDefinition[] = [
     id: 'submit-refused',
     label: 'Submit refused',
     description: 'Maps to ctl-launch-run-refused.json semantics.',
-    context: {
-      kind: 'ready',
-      composer: populatedComposer(),
-      sidebar: populatedSidebar(),
-    },
+    context: readyContext(),
+    workflows: populatedWorkflowsLoad(),
     startOutcome: {
       kind: 'refused',
       code: 'invalid_params',
@@ -139,11 +144,8 @@ export const SCENARIOS: readonly ScenarioDefinition[] = [
     id: 'submit-unknown',
     label: 'Submit unknown',
     description: 'Maps to ctl-launch-run-unknown.json; no automatic retry.',
-    context: {
-      kind: 'ready',
-      composer: populatedComposer(),
-      sidebar: populatedSidebar(),
-    },
+    context: readyContext(),
+    workflows: populatedWorkflowsLoad(),
     startOutcome: {
       kind: 'unknown',
       message: 'fixture: owner did not report; a task may exist',
@@ -155,16 +157,31 @@ export const SCENARIOS: readonly ScenarioDefinition[] = [
     label: 'Stale response',
     description:
       'Holds start; resolve after remount/disposal so the late accept is ignored.',
-    context: {
-      kind: 'ready',
-      composer: populatedComposer(),
-      sidebar: populatedSidebar(),
-    },
+    context: readyContext(),
+    workflows: populatedWorkflowsLoad(),
     startOutcome: {
       kind: 'accepted',
       taskId: asTaskId('task-stale'),
     },
     holdStart: true,
+  },
+  {
+    id: 'workflows-populated',
+    label: 'Workflows list',
+    description: 'Approved workflows/list specimen data.',
+    context: readyContext(),
+    workflows: populatedWorkflowsLoad(),
+    startOutcome: accepted,
+    holdStart: false,
+  },
+  {
+    id: 'workflows-empty',
+    label: 'Workflows empty',
+    description: 'Approved workflows/empty specimen data.',
+    context: readyContext(),
+    workflows: emptyWorkflowsLoad(),
+    startOutcome: accepted,
+    holdStart: false,
   },
 ]
 

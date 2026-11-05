@@ -1,5 +1,6 @@
 import {
   createLoadContextUseCase,
+  createLoadWorkflowsUseCase,
   createStartTaskUseCase,
 } from '../application'
 import {
@@ -7,10 +8,10 @@ import {
   type MockEngineControls,
   type ScenarioId,
 } from '../adapters/mock'
-import { createNewTaskPresenter, type NewTaskPresenter } from '../presentation'
+import { createAppPresenter, type AppPresenter } from '../presentation'
 
 export type AppBundle = {
-  readonly presenter: NewTaskPresenter
+  readonly presenter: AppPresenter
   readonly mock: MockEngineControls
 }
 
@@ -22,6 +23,7 @@ export function createApp(scenario: ScenarioId = 'populated'): AppBundle {
   const mock = createMockEngine(scenario)
   const loadContext = createLoadContextUseCase(mock.engine)
   const startTask = createStartTaskUseCase(mock.engine)
-  const presenter = createNewTaskPresenter({ loadContext, startTask })
+  const loadWorkflows = createLoadWorkflowsUseCase(mock.engine)
+  const presenter = createAppPresenter({ loadContext, startTask, loadWorkflows })
   return { presenter, mock }
 }

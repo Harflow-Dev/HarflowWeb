@@ -21,6 +21,7 @@ type IconName =
   | 'eye'
   | 'pencil'
   | 'external'
+  | 'play'
 
 type Props = {
   readonly name: IconName

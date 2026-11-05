@@ -1,8 +1,16 @@
 import { useEffect, useState, useSyncExternalStore } from 'react'
-import type { NewTaskPresenter } from '../presentation'
-import type { NewTaskScreenState } from '../presentation'
 
-export function usePresenter(presenter: NewTaskPresenter): NewTaskScreenState {
+type Subscribable<T> = {
+  subscribe(listener: (state: T) => void): () => void
+  getState(): T
+}
+
+type Lifetime = {
+  start(): void
+  dispose(): void
+}
+
+export function usePresenter<T>(presenter: Subscribable<T>): T {
   return useSyncExternalStore(
     (onStoreChange) => presenter.subscribe(onStoreChange),
     () => presenter.getState(),
@@ -10,7 +18,7 @@ export function usePresenter(presenter: NewTaskPresenter): NewTaskScreenState {
   )
 }
 
-export function usePresenterLifetime(presenter: NewTaskPresenter): void {
+export function usePresenterLifetime(presenter: Lifetime): void {
   useEffect(() => {
     presenter.start()
     return () => {

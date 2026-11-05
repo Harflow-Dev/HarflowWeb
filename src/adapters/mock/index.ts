@@ -15,3 +15,8 @@ export {
   type ScenarioDefinition,
   type ScenarioId,
 } from './scenarios'
+export {
+  emptyWorkflowsLoad,
+  POPULATED_WORKFLOWS,
+  populatedWorkflowsLoad,
+} from './workflowFixtures'

@@ -1,7 +1,8 @@
 # HarflowWeb
 
-Exploratory mock-backed **new-task** frontend slice for review. Not production
-Web, not a real engine connection, and not completion of migration gates W01–W05.
+Exploratory mock-backed **new-task + workflows list** frontend slice for review.
+Not production Web, not a real engine connection, and not completion of migration
+gates W01–W05.
 
 ## Requirements
 

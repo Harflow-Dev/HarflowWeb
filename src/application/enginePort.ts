@@ -3,10 +3,11 @@ import type {
   ObservationHandle,
   StartTaskOutcome,
   StartTaskRequest,
+  WorkflowsLoad,
 } from '../model'
 
 /**
- * Smallest domain EnginePort for this slice.
+ * Slice-sized EnginePort: new-task context/start plus read-only workflows.
  * Future production path: browser → authenticated Web server → harflow-ctl.
  * The browser never invokes ctl, MCP, or engine SQLite directly.
  */
@@ -17,6 +18,14 @@ export type EnginePort = {
    */
   observeContext(
     onUpdate: (load: ContextLoad) => void,
+  ): ObservationHandle
+
+  /**
+   * Read workflow definition summaries for the Workflows list.
+   * Mock-only presentation — not a public ctl catalog claim.
+   */
+  observeWorkflows(
+    onUpdate: (load: WorkflowsLoad) => void,
   ): ObservationHandle
 
   /**

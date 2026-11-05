@@ -1,33 +1,38 @@
-# Visual validation — exploratory new-task slice
+# Visual validation — exploratory slices
 
 Screenshots stored outside the repository:
 
-`~/.codex/workflows/screenshots/2026-11-05-harflowweb-new-task-slice/`
+`~/.codex/workflows/screenshots/2026-11-05-harflowweb-workflows-slice/`
 
 | File | Scenario | Size | Appearance |
 | --- | --- | --- | --- |
-| `01-default-light-1280x800.png` | new-task/default | 1280×800 | light |
-| `02-harness-menu-light-1280x800.png` | new-task/harness-menu | 1280×800 | light |
-| `03-sidebar-collapsed-light-1280x800.png` | new-task/sidebar-collapsed | 1280×800 | light |
-| `04-sidebar-collapsed-dark-1280x800.png` | collapsed rail | 1280×800 | dark (mid-grey) |
-| `05-default-dark-system-1280x800.png` | default (system→dark host) | ~1280×800 | dark |
-| `06-loading-preview.png` | Context loading (proposal) | preview route | host |
-| `07-unavailable-preview.png` | Context unavailable (proposal) | preview route | host |
-| `08-unknown-submission-preview.png` | Unknown submit; draft kept | preview route | host |
-| `09-narrow-390x800-proposal.png` | Narrow browser (proposal) | 390×800 | host |
-| `design-ref-default-light.png` | Hosted design reference | design.harflow.dev/v2 | light |
+| `01-workflows-list-light-1280x800.png` | workflows/list | 1280×800 | light |
+| `02-workflows-list-dark-1280x800.png` | workflows/list | 1280×800 | dark |
+| `03-workflows-empty-light-1280x800.png` | workflows/empty (preview scenario; panel hidden) | 1280×800 | light |
+| `04-workflows-empty-dark-1280x800.png` | workflows/empty (preview scenario; panel hidden) | 1280×800 | dark |
+
+Earlier new-task screenshots remain under
+`~/.codex/workflows/screenshots/2026-11-05-harflowweb-new-task-slice/`.
+
+## Design provenance for this inspection
+
+- HarflowDesign commit `3643d083700be4032c93237813b573d04bab6ab1`
+- `v2/scripts/screens-workflows.js` states `workflows/list` and `workflows/empty`
+- Observed in the running Vite app at 1280×800 (not substituted from hosted design)
 
 ## Checks performed
 
-- Keyboard: Enter submits when enabled; IME composition Enter is ignored; Shift+Enter is not treated as submit.
-- Focus: `:focus-visible` outline present in CSS; pill menus use `aria-expanded` / `role="menu"`.
-- Labels: collapse/expand, appearance, Start task, unavailable destinations labelled.
-- Reduced motion: spinning glyph animation gated in CSS; not exercised live beyond presence.
-- Overflow: recent work scrolls inside sidebar section; composer pills wrap.
-- Narrow width: required composer controls remain present; layout is a **proposal**, not an approved specimen. Preview scenario panel stacks above the app.
+- Keyboard: sidebar New task / Workflows are buttons; Run/Edit announce unavailable
+  in accessible names.
+- Focus: theme and nav controls remain operable after route changes.
+- Overflow: recent work scrolls in the sidebar; list rows keep Edit/Run.
+- Product search omitted per accepted coverage ledger (not restored from the older
+  `workflows/list` specimen control).
+- Empty specimen copy verified in DOM (`No workflows yet` + both create CTAs).
 
 ## Limitations
 
 - Pixel fidelity to native materials is not claimed.
-- Automation browser may prefer dark for `system`.
-- Harness menu keyboard arrow navigation is basic button focus order only (no full roving tabindex).
+- Workflows loading/unavailable are proposals, not approved specimens.
+- Empty screenshots were taken from `/preview` with the scenario panel hidden; list
+  screenshots used the main `/` route.

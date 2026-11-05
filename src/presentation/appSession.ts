@@ -2,6 +2,7 @@ import type {
   LoadContextUseCase,
   LoadResourcesUseCase,
   LoadStatisticsUseCase,
+  LoadTaskUseCase,
   LoadWorkflowsUseCase,
   StartTaskUseCase,
 } from '../application'
@@ -12,12 +13,14 @@ import type {
   ModelId,
   RepositoryId,
   StatisticsRangeId,
+  TaskId,
 } from '../model'
 import type { AppRoute, AppScreenState } from './appState'
 import { PresenterSession } from './presenterSession'
 import { ResourcesSession } from './resourcesSession'
 import type { OpenMenu } from './screenState'
 import { StatisticsSession } from './statisticsSession'
+import { TaskSession } from './taskSession'
 import { WorkflowsSession } from './workflowsSession'
 
 export type AppListener = (state: AppScreenState) => void
@@ -28,12 +31,13 @@ type Deps = {
   readonly loadWorkflows: LoadWorkflowsUseCase
   readonly loadResources: LoadResourcesUseCase
   readonly loadStatistics: LoadStatisticsUseCase
+  readonly loadTask: LoadTaskUseCase
 }
 
 /**
- * App shell session: owns new-task, workflows, resources, and statistics
- * lifetimes + route. Navigating does not dispose child sessions, so drafts,
- * range selection, and in-flight launches survive and resume on return.
+ * App shell session: owns new-task, workflows, resources, statistics, and
+ * running-task lifetimes + route. Navigating does not dispose child sessions,
+ * so drafts, range selection, task identity, and in-flight launches survive.
  */
 export class AppSession {
   private route: AppRoute = 'new-task'
@@ -41,6 +45,7 @@ export class AppSession {
   private readonly workflows: WorkflowsSession
   private readonly resources: ResourcesSession
   private readonly statistics: StatisticsSession
+  private readonly task: TaskSession
   private readonly listeners = new Set<AppListener>()
   private snapshot: AppScreenState
 
@@ -52,11 +57,13 @@ export class AppSession {
     this.workflows = new WorkflowsSession(deps.loadWorkflows)
     this.resources = new ResourcesSession(deps.loadResources)
     this.statistics = new StatisticsSession(deps.loadStatistics)
+    this.task = new TaskSession(deps.loadTask)
     this.snapshot = this.buildSnapshot()
     this.newTask.subscribe(() => this.emit())
     this.workflows.subscribe(() => this.emit())
     this.resources.subscribe(() => this.emit())
     this.statistics.subscribe(() => this.emit())
+    this.task.subscribe(() => this.emit())
   }
 
   subscribe(listener: AppListener): () => void {
@@ -76,6 +83,7 @@ export class AppSession {
     this.workflows.start()
     this.resources.start()
     this.statistics.start()
+    this.task.start()
   }
 
   dispose(): void {
@@ -83,11 +91,18 @@ export class AppSession {
     this.workflows.dispose()
     this.resources.dispose()
     this.statistics.dispose()
+    this.task.dispose()
   }
 
   navigate(route: AppRoute): void {
     if (this.route === route) return
     this.route = route
+    this.emit()
+  }
+
+  openTask(taskId: TaskId): void {
+    this.route = 'task'
+    this.task.openTask(taskId)
     this.emit()
   }
 
@@ -142,6 +157,7 @@ export class AppSession {
       workflows: this.workflows.getState(),
       resources: this.resources.getState(),
       statistics: this.statistics.getState(),
+      task: this.task.getState(),
     }
   }
 

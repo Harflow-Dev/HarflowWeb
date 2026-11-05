@@ -3,6 +3,7 @@ import {
   createLoadContextUseCase,
   createLoadResourcesUseCase,
   createLoadStatisticsUseCase,
+  createLoadTaskUseCase,
   createLoadWorkflowsUseCase,
   createStartTaskUseCase,
   type EnginePort,
@@ -26,6 +27,11 @@ import { createControllablePromise } from '../adapters/mock/controllable'
 import { populatedComposer, populatedSidebar } from '../adapters/mock/fixtures'
 import { populatedResourcesLoad } from '../adapters/mock/resourceFixtures'
 import { statisticsLoadFor } from '../adapters/mock/statisticsFixtures'
+import {
+  PRELOAD_TASK_ID,
+  SLOT_RELEASE_TASK_ID,
+  taskLoadFor,
+} from '../adapters/mock/taskFixtures'
 import { POPULATED_WORKFLOWS } from '../adapters/mock/workflowFixtures'
 import { createAppPresenter } from './appPresenter'
 
@@ -98,6 +104,15 @@ function createTestEngine(options?: {
         },
       }
     },
+    observeTask(taskId, onUpdate) {
+      queueMicrotask(() => onUpdate(taskLoadFor(taskId)))
+      return {
+        id: asObservationId('app-task'),
+        cancel() {
+          /* no-op */
+        },
+      }
+    },
     async startTask(request) {
       starts.push(request)
       if (options?.holdStart) {
@@ -130,6 +145,7 @@ function createPresenter(engine: EnginePort) {
     loadWorkflows: createLoadWorkflowsUseCase(engine),
     loadResources: createLoadResourcesUseCase(engine),
     loadStatistics: createLoadStatisticsUseCase(engine),
+    loadTask: createLoadTaskUseCase(engine),
   })
 }
 
@@ -303,6 +319,54 @@ describe('AppPresenter workflows slice', () => {
     expect(presenter.getState().newTask.submission).toEqual({
       kind: 'accepted',
       taskId: asTaskId('kept'),
+    })
+    expect(starts).toHaveLength(1)
+    presenter.dispose()
+  })
+
+  it('opens mapped tasks and preserves draft, range, and held launch', async () => {
+    const { port, starts, resolveStart } = createTestEngine({ holdStart: true })
+    const presenter = createPresenter(port)
+    presenter.start()
+    await flush()
+    presenter.setPrompt('keep while reading task')
+    presenter.setAppearance('dark')
+    presenter.selectStatisticsRange('7d')
+    await flush()
+    presenter.submit()
+    expect(presenter.getState().newTask.submission.kind).toBe('pending')
+
+    presenter.openTask(SLOT_RELEASE_TASK_ID)
+    await flush()
+    expect(presenter.getState().route).toBe('task')
+    expect(presenter.getState().task.selectedTaskId).toBe(SLOT_RELEASE_TASK_ID)
+    const slotLoad = presenter.getState().task.load
+    expect(slotLoad.kind).toBe('ready')
+    if (slotLoad.kind === 'ready') {
+      expect(slotLoad.observation.title).toBe('Fix flaky slot release test')
+    }
+    expect(presenter.getState().newTask.prompt).toBe('keep while reading task')
+    expect(presenter.getState().statistics.selectedRange).toBe('7d')
+    expect(presenter.getState().newTask.appearance).toBe('dark')
+    expect(starts).toHaveLength(1)
+
+    presenter.openTask(PRELOAD_TASK_ID)
+    await flush()
+    expect(presenter.getState().task.selectedTaskId).toBe(PRELOAD_TASK_ID)
+    const preloadLoad = presenter.getState().task.load
+    expect(preloadLoad.kind).toBe('ready')
+    if (preloadLoad.kind === 'ready') {
+      expect(preloadLoad.observation.title).toBe('Review preload bridge')
+    }
+
+    presenter.navigate('statistics')
+    expect(presenter.getState().statistics.selectedRange).toBe('7d')
+    resolveStart({ kind: 'accepted', taskId: asTaskId('held-ok') })
+    await flush()
+    presenter.navigate('new-task')
+    expect(presenter.getState().newTask.submission).toEqual({
+      kind: 'accepted',
+      taskId: asTaskId('held-ok'),
     })
     expect(starts).toHaveLength(1)
     presenter.dispose()

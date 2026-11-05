@@ -34,3 +34,8 @@ export {
   type WorkflowsScreenState,
 } from './workflowsState'
 export { WorkflowsSession } from './workflowsSession'
+export {
+  initialTaskState,
+  type TaskScreenState,
+} from './taskState'
+export { TaskSession } from './taskSession'

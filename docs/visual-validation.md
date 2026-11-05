@@ -88,6 +88,31 @@ incorrect capture setup, not an application Statistics rendering failure. Those
 artifacts were overwritten by the verified `/` captures above — do not treat
 edge-uniform blank PNGs as visual proof.
 
+## Running-task transcript — verified 1280×800 captures
+
+Directory:
+`~/.codex/workflows/screenshots/2026-11-05-harflowweb-task-running-slice/`
+
+Captured from `/` (normal `AppFeature` composition) after opening the mapped
+sidebar row “Fix flaky slot release test”. CDP clip
+`{x:0,y:0,width:1280,height:800}` after `Emulation.setDeviceMetricsOverride`
+to 1280×800. Dimensions verified with `sips`. Content-region color diversity
+is hundreds of distinct colors per file (not blank).
+
+| File | Scenario | Viewport / PNG | Appearance / chrome |
+| --- | --- | --- | --- |
+| `01-task-running-light-expanded.png` | task/running | 1280×800 | light, sidebar expanded |
+| `02-task-running-dark-expanded.png` | task/running | 1280×800 | dark, sidebar expanded |
+| `03-task-running-dark-collapsed.png` | task/running | 1280×800 | dark, sidebar collapsed |
+| `04-task-running-light-collapsed.png` | task/running | 1280×800 | light, sidebar collapsed |
+
+Observed in captures: slim topbar (title, running badge, meta), user message,
+agent copy with inline code, expandable pytest tool body (FAILED lines), edit
+row, “Running tests…” working row, follow-up composer with Stop unavailable and
+send disabled. Document/`hd-app` scrollWidth equals clientWidth (1280). Transcript
+scroll lives in `.hd-scroll` (column-reverse anchor per specimen; no JS auto-scroll).
+Tool disclosure toggles `aria-expanded` under pointer/keyboard.
+
 Earlier new-task screenshots remain under
 `~/.codex/workflows/screenshots/2026-11-05-harflowweb-new-task-slice/`.
 
@@ -97,34 +122,42 @@ Earlier new-task screenshots remain under
 - Workflows: `v2/scripts/screens-workflows.js` (`workflows/list`, `workflows/empty`)
 - Resources: `v2/scripts/screens-resources.js` (`resources/slots` light/dark)
 - Statistics: `v2/scripts/screens-statistics.js` (`statistics/overview` light/dark)
+- Task: `v2/scripts/screens-task.js` (`task/running` light/dark)
 - Observed in the running Vite app (not substituted from hosted design)
 
 ## Checks performed
 
-- Keyboard: New task / Workflows / Resources / Statistics are buttons; task
-  destinations and Install announce unavailable in accessible names. Statistics
-  period segment is a keyboard-operable button group (`aria-pressed`).
-- Focus: theme, nav, and range controls remain operable after route changes.
-- Overflow: recent work scrolls in the sidebar; resources and statistics pages
-  fit 1280×800 without document-level horizontal overflow.
-- Product search omitted per accepted coverage ledger; statistics range retained.
+- Keyboard: New task / Workflows / Resources / Statistics are buttons; unmapped
+  task destinations and Install announce unavailable in accessible names.
+  Statistics period segment is a keyboard-operable button group (`aria-pressed`).
+  Mapped running rows open the transcript; tool heads toggle with Enter/Space.
+- Focus: theme, nav, tool disclosures, and range controls remain operable after
+  route changes.
+- Overflow: recent work scrolls in the sidebar; resources, statistics, and task
+  pages fit 1280×800 without document-level horizontal overflow.
+- Product search omitted per accepted coverage ledger; statistics range retained;
+  task-level tabs / right pane omitted for this running-task slice.
 - Empty workflows specimen copy verified (`No workflows yet` + create CTAs).
 - Resources shows populated, full-with-waiters, zero-holder, and not-installed
   cards plus the waiting list from the approved specimen.
 - Statistics chart exposes `role="img"` summary text plus an `.hd-sr` daily data
   table; harness table is visible.
+- Running-task follow-up send stays disabled; Stop reports unavailable without
+  mutation.
 
 ## Limitations
 
 - Pixel fidelity to native materials is not claimed.
-- Workflows/resources/statistics loading and unavailable treatments are
+- Workflows/resources/statistics/task loading and unavailable treatments are
   proposals, not approved specimens.
 - Empty workflows and resources screenshots used `/preview` with the scenario
-  panel hidden. Statistics verification uses `/` to avoid the preview-grid
-  capture trap described above.
+  panel hidden. Statistics and running-task verification use `/` to avoid the
+  preview-grid capture trap described above.
 - No approved specimen for over-limit, permission-denied, or unsupported harness
   semantics; those were not invented in UI or fixtures.
 - Statistics “All time” incomplete retained-history treatment is intentional and
   not a claim of visual approval for an all-time populated specimen.
-- No public ctl statistics contract; success rate / median / cost are fixture
-  facts with explicit coverage gates.
+- No public ctl statistics or transcript contract; success rate / median / cost
+  and transcript blocks are fixture facts with explicit coverage gates.
+- Running-task captures omit specimen right-pane / more-actions chrome (out of
+  scope for this slice).

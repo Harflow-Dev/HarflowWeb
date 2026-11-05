@@ -1,26 +1,28 @@
-# Review notes — exploratory new-task + workflows + resources + statistics slice
+# Review notes — exploratory mock slices
 
 ## Intent
 
-Review checkpoint only. Stopped after the mock-backed Statistics overview slice.
-Does not complete W01–W05, authenticate, connect a real engine, run workflows,
-administer slots, bill, or ship editor/run destinations.
+Review checkpoint after the mock-backed running-task transcript slice (Statistics
+overview was committed first). Does not complete W01–W05, authenticate, connect
+a real engine, run workflows, administer slots, bill, submit follow-ups, or ship
+editor/run destinations.
 
 ## Known deviations
 
 - Loading / unavailable / partial-sidebar treatments are **proposals** requiring
   design review; they are not approved specimens.
-- Workflows/resources/statistics loading and unavailable copy are **proposals**,
-  not approved specimens.
+- Workflows/resources/statistics/task loading and unavailable copy are
+  **proposals**, not approved specimens.
 - Specimen copy “Choices are remembered per repository” is not implemented;
   selection is one global set for the mock session.
 - Narrow-width layout is a responsive proposal; desktop specimens are approved at
   1280×800.
-- Sidebar destinations outside New task, Workflows, Resources, and Statistics
-  stay unavailable.
-- Run, Edit, New workflow, “Describe one to an agent”, Resources task links, and
-  Install are visible per design and explicitly unavailable in this slice — no
-  run/editor/admin screens and no mutation from those controls.
+- Sidebar destinations outside New task, Workflows, Resources, Statistics, and
+  explicitly mapped running-task rows stay unavailable.
+- Run, Edit, New workflow, “Describe one to an agent”, Resources task links,
+  Install, follow-up send, and Stop are visible per design and explicitly
+  unavailable in this slice — no run/editor/admin/steering screens and no
+  mutation from those controls.
 - Workflows list shows definition title, description, and node count only — no
   invented run status (matches screen-inventory note).
 - Resources shows slot usage, holders, and waiters only — no over-limit,
@@ -31,8 +33,16 @@ administer slots, bill, or ship editor/run destinations.
   the UI. There is no public ctl statistics contract in this slice.
 - “All time” uses incomplete retained-history coverage rather than inventing
   all-time engine totals (retained history ≠ all-time).
+- Running-task view implements `task/running` only: slim header, transcript,
+  expandable tools, working indication, follow-up composer shell. No task-level
+  tabs, search, changes/diff pane, artifacts, approval cards, or
+  completed/failed/workflow-run destinations. Right-pane / more-actions chrome
+  from the specimen is omitted (those destinations are out of scope).
+- Only rows with `mappedTaskId` open a transcript. Synthetic launch-accepted ids
+  remain unmapped unless an explicit fixture exists.
 - Product search is deliberately omitted (coverage ledger: remove product search /
-  sidebar harness filter). Statistics range selection is retained.
+  sidebar harness filter). Statistics range selection is retained. Task-level
+  Summary/Prompt tabs remain removed (prompt is the first transcript message).
 - Accepted submission reports a synthetic task id in the status region only.
 - Hosted design site may include material newer than pinned commit `3643d083…`.
 - `migration-coverage.md` missing at the pinned design commit.
@@ -44,7 +54,8 @@ administer slots, bill, or ship editor/run destinations.
 ## Unresolved questions
 
 - Exact public ctl projection for repositories, workflow definitions,
-  resource/slot observation, and statistics aggregates on a future server.
+  resource/slot observation, statistics aggregates, and task transcripts on a
+  future server.
 - Whether harness fixture labels should track live backend qualification names or
   remain design specimen copy.
 - Adaptive browser states for loading/error need owner-approved v2 specimens
@@ -53,9 +64,11 @@ administer slots, bill, or ship editor/run destinations.
   an approved install flow before appearing in product Web.
 - Accepted engine semantics for success rate, median duration, and reported cost
   once a public statistics contract exists.
+- Whether a later slice should restore specimen right-pane toggles as unavailable
+  chrome or wait for an approved Changes/Artifacts design.
 
 ## What this does not claim
 
 Production readiness, authentication, real engine compatibility, workflow
-execution/editing, slot administration, billing accuracy, Linux runtime support,
-or migration-gate completion.
+execution/editing, slot administration, billing accuracy, follow-up execution,
+Linux runtime support, or migration-gate completion.

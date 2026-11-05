@@ -6,6 +6,8 @@ import {
   type StartTaskRequest,
   type StatisticsLoad,
   type StatisticsRangeId,
+  type TaskId,
+  type TaskLoad,
   type WorkflowsLoad,
 } from '../../model'
 import {
@@ -13,6 +15,7 @@ import {
   createHeldStartTracker,
   createListenerSets,
   resolveStatisticsLoad,
+  resolveTaskLoad,
 } from './mockEngineCore'
 import { scenarioById, type ScenarioId } from './scenarios'
 
@@ -23,6 +26,7 @@ export type MockEngineControls = {
   publishWorkflows(load: WorkflowsLoad): void
   publishResources(load: ResourcesLoad): void
   publishStatistics(range: StatisticsRangeId, load: StatisticsLoad): void
+  publishTask(taskId: TaskId, load: TaskLoad): void
   resolveHeldStart(outcome?: StartTaskOutcome): void
   readonly startRequestCount: () => number
   readonly lastStartRequest: () => StartTaskRequest | null
@@ -73,7 +77,10 @@ export function createMockEngine(
         )
       }
       for (const listener of listeners.statistics) {
-        listener.send(resolveStatisticsLoad(scenario, listener.range))
+        listener.send(resolveStatisticsLoad(scenario, listener.key))
+      }
+      for (const listener of listeners.tasks) {
+        listener.send(resolveTaskLoad(scenario, listener.key))
       }
     },
     publishContext(load) {
@@ -87,7 +94,12 @@ export function createMockEngine(
     },
     publishStatistics(range, load) {
       for (const listener of listeners.statistics) {
-        if (listener.range === range) listener.send(load)
+        if (listener.key === range) listener.send(load)
+      }
+    },
+    publishTask(taskId, load) {
+      for (const listener of listeners.tasks) {
+        if (listener.key === taskId) listener.send(load)
       }
     },
     resolveHeldStart(outcome) {

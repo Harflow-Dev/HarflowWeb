@@ -4,6 +4,7 @@ import type { AppPresenter } from '../presentation'
 import { NewTaskMain } from './NewTaskMain'
 import { ResourcesMain } from './ResourcesMain'
 import { StatisticsMain } from './StatisticsMain'
+import { TaskMain } from './TaskMain'
 import { useEphemeralNote, usePresenter, usePresenterLifetime } from './usePresenter'
 import { WorkflowsMain } from './WorkflowsMain'
 
@@ -41,10 +42,12 @@ export function AppFeature({ presenter }: Props) {
           collapsed={newTask.sidebarCollapsed}
           appearance={newTask.appearance}
           activeRoute={state.route}
+          activeTaskId={state.task.selectedTaskId}
           sidebar={ready?.sidebar ?? null}
           onCollapse={(collapsed) => presenter.setSidebarCollapsed(collapsed)}
           onAppearance={(appearance) => presenter.setAppearance(appearance)}
           onNavigate={(route) => presenter.navigate(route)}
+          onOpenTask={(taskId) => presenter.openTask(taskId)}
           onUnavailable={(label) => ephemeral.show(label)}
         />
         <main className="hd-main">
@@ -60,10 +63,16 @@ export function AppFeature({ presenter }: Props) {
               state={state.resources}
               onUnavailable={(label) => ephemeral.show(label)}
             />
-          ) : (
+          ) : state.route === 'statistics' ? (
             <StatisticsMain
               state={state.statistics}
               onSelectRange={(range) => presenter.selectStatisticsRange(range)}
+            />
+          ) : (
+            <TaskMain
+              state={state.task}
+              sidebar={ready?.sidebar ?? null}
+              onUnavailable={(label) => ephemeral.show(label)}
             />
           )}
         </main>

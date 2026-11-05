@@ -52,8 +52,11 @@ export type SidebarEntry = {
   readonly title: string
   readonly meta: string
   readonly glyph: SidebarGlyph
-  /** Outside this slice — UI must show unavailable, not navigate. */
-  readonly availableInSlice: false
+  /**
+   * Explicit fixture mapping to a running-task transcript.
+   * Null means the row stays unavailable — never invent a fallback task.
+   */
+  readonly mappedTaskId: import('./ids').TaskId | null
 }
 
 export type SidebarData = {

@@ -5,6 +5,8 @@ import {
   type StartTaskOutcome,
   type StatisticsLoad,
   type StatisticsRangeId,
+  type TaskId,
+  type TaskLoad,
   type WorkflowsLoad,
 } from '../../model'
 import {
@@ -15,6 +17,7 @@ import {
 } from './fixtures'
 import { populatedResourcesLoad } from './resourceFixtures'
 import { statisticsLoadFor } from './statisticsFixtures'
+import { taskLoadFor } from './taskFixtures'
 import {
   emptyWorkflowsLoad,
   populatedWorkflowsLoad,
@@ -24,6 +27,11 @@ export type StatisticsScenario =
   | 'default'
   | 'defer'
   | ((range: StatisticsRangeId) => StatisticsLoad)
+
+export type TasksScenario =
+  | 'default'
+  | 'defer'
+  | ((taskId: TaskId) => TaskLoad)
 
 /**
  * Deterministic preview scenarios for /preview.
@@ -43,6 +51,7 @@ export type ScenarioId =
   | 'workflows-empty'
   | 'resources-slots'
   | 'statistics-overview'
+  | 'task-running'
 
 export type ScenarioDefinition = {
   readonly id: ScenarioId
@@ -52,6 +61,7 @@ export type ScenarioDefinition = {
   readonly workflows: WorkflowsLoad | 'defer'
   readonly resources: ResourcesLoad | 'defer'
   readonly statistics: StatisticsScenario
+  readonly tasks: TasksScenario
   readonly startOutcome: StartTaskOutcome
   readonly holdStart: boolean
 }
@@ -72,17 +82,25 @@ const accepted = {
 const resources = populatedResourcesLoad()
 const workflows = populatedWorkflowsLoad()
 const statistics: StatisticsScenario = 'default'
+const tasks: TasksScenario = 'default'
 
 function base(
-  partial: Omit<ScenarioDefinition, 'workflows' | 'resources' | 'statistics'> &
+  partial: Omit<
+    ScenarioDefinition,
+    'workflows' | 'resources' | 'statistics' | 'tasks'
+  > &
     Partial<
-      Pick<ScenarioDefinition, 'workflows' | 'resources' | 'statistics'>
+      Pick<
+        ScenarioDefinition,
+        'workflows' | 'resources' | 'statistics' | 'tasks'
+      >
     >,
 ): ScenarioDefinition {
   return {
     workflows,
     resources,
     statistics,
+    tasks,
     ...partial,
   }
 }
@@ -216,6 +234,15 @@ export const SCENARIOS: readonly ScenarioDefinition[] = [
     description: 'Approved statistics/overview specimen ranges (7d + 30d).',
     context: readyContext(),
     statistics: (range) => statisticsLoadFor(range),
+    startOutcome: accepted,
+    holdStart: false,
+  }),
+  base({
+    id: 'task-running',
+    label: 'Task running',
+    description: 'Approved task/running transcript for mapped sidebar rows.',
+    context: readyContext(),
+    tasks: (taskId) => taskLoadFor(taskId),
     startOutcome: accepted,
     holdStart: false,
   }),

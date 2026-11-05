@@ -53,6 +53,9 @@ function createCapturingPort(
         },
       }
     },
+    observeTask() {
+      return noopHandle('task')
+    },
     async startTask(_request: StartTaskRequest) {
       return { kind: 'accepted', taskId: asTaskId('unused') }
     },
@@ -92,6 +95,9 @@ function createDeferredPort(): {
             if (active.get(range) === onUpdate) active.delete(range)
           },
         }
+      },
+      observeTask() {
+        return noopHandle('task')
       },
       async startTask() {
         return { kind: 'accepted', taskId: asTaskId('unused') }

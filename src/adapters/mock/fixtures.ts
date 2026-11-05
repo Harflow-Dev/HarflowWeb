@@ -144,7 +144,7 @@ export function partialSidebar(): SidebarData {
         title: 'Fix flaky slot release test',
         meta: '04:12',
         glyph: 'running',
-        availableInSlice: false,
+        mappedTaskId: null,
       },
     ],
     recent: [],

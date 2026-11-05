@@ -1,4 +1,4 @@
-import type { Appearance, SidebarData } from '../model'
+import type { Appearance, SidebarData, TaskId } from '../model'
 import type { AppRoute } from '../presentation'
 import { Icon } from './Icon'
 import { CollapsedRail, ExpandedNavItem, NAV } from './sidebarNav'
@@ -9,10 +9,12 @@ type Props = {
   readonly collapsed: boolean
   readonly appearance: Appearance
   readonly activeRoute: AppRoute
+  readonly activeTaskId: TaskId | null
   readonly sidebar: SidebarData | null
   readonly onCollapse: (collapsed: boolean) => void
   readonly onAppearance: (appearance: Appearance) => void
   readonly onNavigate: (route: AppRoute) => void
+  readonly onOpenTask: (taskId: TaskId) => void
   readonly onUnavailable: (label: string) => void
 }
 
@@ -20,14 +22,17 @@ export function Sidebar({
   collapsed,
   appearance,
   activeRoute,
+  activeTaskId,
   sidebar,
   onCollapse,
   onAppearance,
   onNavigate,
+  onOpenTask,
   onUnavailable,
 }: Props) {
   const runningCount = sidebar?.running.length ?? 0
   const needsYou = sidebar?.needsYouCount ?? 0
+  const taskActiveId = activeRoute === 'task' ? activeTaskId : null
 
   if (collapsed) {
     return (
@@ -76,6 +81,8 @@ export function Sidebar({
         label="Running"
         count={runningCount}
         rows={sidebar?.running ?? []}
+        activeTaskId={taskActiveId}
+        onOpenTask={onOpenTask}
         onUnavailable={onUnavailable}
       />
       <TaskSection
@@ -84,6 +91,8 @@ export function Sidebar({
         done
         coverageIncomplete={sidebar?.coverageIncomplete ?? false}
         fill
+        activeTaskId={taskActiveId}
+        onOpenTask={onOpenTask}
         onUnavailable={onUnavailable}
       />
       <div className="hd-sidebar__foot">

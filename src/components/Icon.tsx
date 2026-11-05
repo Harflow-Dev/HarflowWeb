@@ -13,6 +13,7 @@ type IconName =
   | 'harness'
   | 'shield'
   | 'chevron-down'
+  | 'chevron-right'
   | 'arrow-up'
   | 'check'
   | 'x'
@@ -20,6 +21,8 @@ type IconName =
   | 'parallel'
   | 'eye'
   | 'pencil'
+  | 'file'
+  | 'terminal'
   | 'external'
   | 'play'
 

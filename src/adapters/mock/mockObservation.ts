@@ -1,9 +1,4 @@
-import {
-  asObservationId,
-  type ObservationHandle,
-  type StatisticsLoad,
-  type StatisticsRangeId,
-} from '../../model'
+import { asObservationId, type ObservationHandle } from '../../model'
 
 let observationSeq = 0
 
@@ -30,28 +25,28 @@ export function createObservation<T>(
   }
 }
 
-export type RangedStatisticsListener = {
-  range: StatisticsRangeId
-  send: (load: StatisticsLoad) => void
+export type KeyedListener<K, T> = {
+  key: K
+  send: (load: T) => void
 }
 
-export function createRangedObservation(
-  listeners: Set<RangedStatisticsListener>,
-  range: StatisticsRangeId,
-  onUpdate: (load: StatisticsLoad) => void,
-  current: (range: StatisticsRangeId) => StatisticsLoad,
+export function createKeyedObservation<K, T>(
+  listeners: Set<KeyedListener<K, T>>,
+  key: K,
+  onUpdate: (load: T) => void,
+  current: (key: K) => T,
 ): ObservationHandle {
   const id = asObservationId(`obs-${++observationSeq}`)
   let active = true
-  const entry: RangedStatisticsListener = {
-    range,
+  const entry: KeyedListener<K, T> = {
+    key,
     send(load) {
       if (active) onUpdate(load)
     },
   }
   listeners.add(entry)
   queueMicrotask(() => {
-    if (active) onUpdate(current(range))
+    if (active) onUpdate(current(key))
   })
   return {
     id,

@@ -16,6 +16,10 @@ export {
   type LoadStatisticsUseCase,
 } from './loadStatistics'
 export {
+  createLoadTaskUseCase,
+  type LoadTaskUseCase,
+} from './loadTask'
+export {
   createStartTaskUseCase,
   type StartTaskUseCase,
 } from './startTask'

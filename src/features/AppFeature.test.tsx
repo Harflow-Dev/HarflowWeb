@@ -5,6 +5,7 @@ import {
   createLoadContextUseCase,
   createLoadResourcesUseCase,
   createLoadStatisticsUseCase,
+  createLoadTaskUseCase,
   createLoadWorkflowsUseCase,
   createStartTaskUseCase,
   type EnginePort,
@@ -19,12 +20,15 @@ import {
   type StartTaskRequest,
   type StatisticsLoad,
   type StatisticsRangeId,
+  type TaskId,
+  type TaskLoad,
   type WorkflowsLoad,
 } from '../model'
 import { createControllablePromise } from '../adapters/mock/controllable'
 import { populatedComposer, populatedSidebar } from '../adapters/mock/fixtures'
 import { populatedResourcesLoad } from '../adapters/mock/resourceFixtures'
 import { statisticsLoadFor } from '../adapters/mock/statisticsFixtures'
+import { PRELOAD_TASK_ID, taskLoadFor } from '../adapters/mock/taskFixtures'
 import { POPULATED_WORKFLOWS } from '../adapters/mock/workflowFixtures'
 import { createAppPresenter } from '../presentation'
 import { AppFeature } from './AppFeature'
@@ -41,11 +45,13 @@ function createTestEngine(options?: {
   holdStart?: boolean
   workflows?: WorkflowsLoad
   deferStatisticsRanges?: readonly StatisticsRangeId[]
+  deferTaskIds?: readonly TaskId[]
 }): {
   port: EnginePort
   starts: StartTaskRequest[]
   resolveStart: (outcome: StartTaskOutcome) => void
   publishStatistics: (range: StatisticsRangeId, load: StatisticsLoad) => void
+  publishTask: (taskId: TaskId, load: TaskLoad) => void
 } {
   const starts: StartTaskRequest[] = []
   let held = createControllablePromise<StartTaskOutcome>()
@@ -55,10 +61,12 @@ function createTestEngine(options?: {
   }
   const resources: ResourcesLoad = populatedResourcesLoad()
   const deferred = new Set(options?.deferStatisticsRanges ?? [])
+  const deferredTasks = new Set(options?.deferTaskIds ?? [])
   const statsListeners = new Map<
     StatisticsRangeId,
     (load: StatisticsLoad) => void
   >()
+  const taskListeners = new Map<TaskId, (load: TaskLoad) => void>()
   const port: EnginePort = {
     observeContext(onUpdate) {
       queueMicrotask(() => onUpdate(readyContext()))
@@ -102,6 +110,20 @@ function createTestEngine(options?: {
         },
       }
     },
+    observeTask(taskId, onUpdate) {
+      taskListeners.set(taskId, onUpdate)
+      if (!deferredTasks.has(taskId)) {
+        queueMicrotask(() => onUpdate(taskLoadFor(taskId)))
+      }
+      return {
+        id: asObservationId('ui-task'),
+        cancel() {
+          if (taskListeners.get(taskId) === onUpdate) {
+            taskListeners.delete(taskId)
+          }
+        },
+      }
+    },
     async startTask(request) {
       starts.push(request)
       if (options?.holdStart) {
@@ -120,6 +142,9 @@ function createTestEngine(options?: {
     publishStatistics(range, load) {
       statsListeners.get(range)?.(load)
     },
+    publishTask(taskId, load) {
+      taskListeners.get(taskId)?.(load)
+    },
   }
 }
 
@@ -130,6 +155,7 @@ function renderApp(engine: EnginePort) {
     loadWorkflows: createLoadWorkflowsUseCase(engine),
     loadResources: createLoadResourcesUseCase(engine),
     loadStatistics: createLoadStatisticsUseCase(engine),
+    loadTask: createLoadTaskUseCase(engine),
   })
   const view = render(<AppFeature presenter={presenter} />)
   return { presenter, ...view }
@@ -389,6 +415,178 @@ describe('AppFeature navigation', () => {
       screen.getByText(/Accepted mock task nav-ok/),
     ).toBeInTheDocument()
     expect(screen.getByLabelText('Task prompt')).toHaveValue('')
+    expect(starts).toHaveLength(1)
+  })
+
+  it('opens mapped running tasks with literal transcript content', async () => {
+    const user = userEvent.setup()
+    const { port, starts } = createTestEngine()
+    renderApp(port)
+    await flush()
+
+    await user.click(
+      screen.getByRole('button', { name: /Fix flaky slot release test/ }),
+    )
+    const main = screen.getByRole('main')
+    expect(
+      await within(main).findByText('Fix flaky slot release test'),
+    ).toBeInTheDocument()
+    expect(
+      within(main).getByText(
+        /The test_release_frees_slot test in tests\/test_slots.py/,
+      ),
+    ).toBeInTheDocument()
+    expect(within(main).getByText('Running tests…')).toBeInTheDocument()
+    const toolBody = main.querySelector('.hd-tool__body')
+    expect(toolBody?.textContent).toContain(
+      'FAILED tests/test_slots.py::test_release_frees_slot[7]',
+    )
+    expect(starts).toHaveLength(0)
+  })
+
+  it('keeps unmapped sidebar rows and follow-up actions from launching', async () => {
+    const user = userEvent.setup()
+    const { port, starts } = createTestEngine()
+    renderApp(port)
+    await flush()
+
+    await user.click(
+      screen.getByRole('button', {
+        name: 'Nightly dependency audit (unavailable in this slice)',
+      }),
+    )
+    expect(
+      screen.getByText(
+        /Nightly dependency audit is unavailable in this exploratory slice/,
+      ),
+    ).toBeInTheDocument()
+    expect(screen.getByLabelText('Task prompt')).toBeInTheDocument()
+    expect(starts).toHaveLength(0)
+
+    await user.click(
+      screen.getByRole('button', { name: /Fix flaky slot release test/ }),
+    )
+    expect(await screen.findByText('Running tests…')).toBeInTheDocument()
+
+    await user.click(
+      screen.getByRole('button', {
+        name: 'Stop (unavailable in this slice)',
+      }),
+    )
+    expect(
+      screen.getByText(/Stop is unavailable in this exploratory slice/),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('button', {
+        name: 'Send follow-up (unavailable in this slice)',
+      }),
+    ).toBeDisabled()
+    expect(starts).toHaveLength(0)
+  })
+
+  it('expands and collapses tool rows with pointer and keyboard', async () => {
+    const user = userEvent.setup()
+    const { port } = createTestEngine()
+    renderApp(port)
+    await flush()
+
+    await user.click(
+      screen.getByRole('button', { name: /Fix flaky slot release test/ }),
+    )
+    expect(await screen.findByText('Running tests…')).toBeInTheDocument()
+    const pytest = screen.getByRole('button', {
+      name: /release --count 20/,
+    })
+    expect(pytest).toHaveAttribute('aria-expanded', 'true')
+    expect(
+      screen.getByText(/2 failed, 18 passed in 38.52s/),
+    ).toBeInTheDocument()
+
+    await user.click(pytest)
+    expect(pytest).toHaveAttribute('aria-expanded', 'false')
+    expect(
+      screen.queryByText(/2 failed, 18 passed in 38.52s/),
+    ).not.toBeInTheDocument()
+
+    pytest.focus()
+    await user.keyboard('{Enter}')
+    expect(pytest).toHaveAttribute('aria-expanded', 'true')
+    expect(
+      screen.getByText(/2 failed, 18 passed in 38.52s/),
+    ).toBeInTheDocument()
+
+    await user.keyboard(' ')
+    expect(pytest).toHaveAttribute('aria-expanded', 'false')
+  })
+
+  it('does not show task A content under task B while B is loading', async () => {
+    const user = userEvent.setup()
+    const { port, publishTask } = createTestEngine({
+      deferTaskIds: [PRELOAD_TASK_ID],
+    })
+    renderApp(port)
+    await flush()
+
+    await user.click(
+      screen.getByRole('button', { name: /Fix flaky slot release test/ }),
+    )
+    expect(await screen.findByText('Running tests…')).toBeInTheDocument()
+
+    await user.click(
+      screen.getByRole('button', { name: /Review preload bridge/ }),
+    )
+    const main = screen.getByRole('main')
+    expect(
+      within(main).getByText('Review preload bridge'),
+    ).toBeInTheDocument()
+    expect(
+      within(main).getByText(/Loading task… \(proposal/),
+    ).toBeInTheDocument()
+    expect(within(main).queryByText('Running tests…')).not.toBeInTheDocument()
+    expect(
+      within(main).queryByText(/test_release_frees_slot/),
+    ).not.toBeInTheDocument()
+
+    publishTask(PRELOAD_TASK_ID, taskLoadFor(PRELOAD_TASK_ID))
+    expect(
+      await within(main).findByText(/Reading bridge contracts/),
+    ).toBeInTheDocument()
+    expect(
+      within(main).getByText(/Include notes on <script>alert\("x"\)<\/script>/),
+    ).toBeInTheDocument()
+    expect(within(main).queryByText('Running tests…')).not.toBeInTheDocument()
+  })
+
+  it('preserves draft, statistics range, and held launch across task navigation', async () => {
+    const user = userEvent.setup()
+    const engine = createTestEngine({ holdStart: true })
+    const { presenter } = renderApp(engine.port)
+    const { starts, resolveStart } = engine
+    await flush()
+
+    await user.type(screen.getByLabelText('Task prompt'), 'draft beside task')
+    await user.click(screen.getByRole('button', { name: 'Start task' }))
+    expect(starts).toHaveLength(1)
+
+    await user.click(screen.getByRole('button', { name: 'Statistics' }))
+    await user.click(screen.getByRole('button', { name: '7 days' }))
+    expect(presenter.getState().statistics.selectedRange).toBe('7d')
+
+    await user.click(
+      screen.getByRole('button', { name: /Fix flaky slot release test/ }),
+    )
+    expect(await screen.findByText('Running tests…')).toBeInTheDocument()
+    expect(presenter.getState().newTask.prompt).toBe('draft beside task')
+    expect(presenter.getState().statistics.selectedRange).toBe('7d')
+    expect(presenter.getState().newTask.submission.kind).toBe('pending')
+    expect(starts).toHaveLength(1)
+
+    resolveStart({ kind: 'accepted', taskId: asTaskId('kept-from-task') })
+    await flush()
+    await user.click(screen.getByRole('button', { name: /New task/ }))
+    expect(
+      screen.getByText(/Accepted mock task kept-from-task/),
+    ).toBeInTheDocument()
     expect(starts).toHaveLength(1)
   })
 })

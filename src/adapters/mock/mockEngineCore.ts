@@ -6,21 +6,26 @@ import type {
   StartTaskRequest,
   StatisticsLoad,
   StatisticsRangeId,
+  TaskId,
+  TaskLoad,
   WorkflowsLoad,
 } from '../../model'
 import { createControllablePromise, type ControllablePromise } from './controllable'
-import { createObservation, createRangedObservation } from './mockObservation'
+import {
+  createKeyedObservation,
+  createObservation,
+  type KeyedListener,
+} from './mockObservation'
 import type { ScenarioDefinition } from './scenarios'
 import { statisticsLoadFor } from './statisticsFixtures'
+import { taskLoadFor } from './taskFixtures'
 
 export type MockListenerSets = {
   readonly context: Set<(load: ContextLoad) => void>
   readonly workflows: Set<(load: WorkflowsLoad) => void>
   readonly resources: Set<(load: ResourcesLoad) => void>
-  readonly statistics: Set<{
-    range: StatisticsRangeId
-    send: (load: StatisticsLoad) => void
-  }>
+  readonly statistics: Set<KeyedListener<StatisticsRangeId, StatisticsLoad>>
+  readonly tasks: Set<KeyedListener<TaskId, TaskLoad>>
 }
 
 export function createListenerSets(): MockListenerSets {
@@ -29,6 +34,7 @@ export function createListenerSets(): MockListenerSets {
     workflows: new Set(),
     resources: new Set(),
     statistics: new Set(),
+    tasks: new Set(),
   }
 }
 
@@ -39,6 +45,15 @@ export function resolveStatisticsLoad(
   if (scenario.statistics === 'defer') return { kind: 'loading' }
   if (scenario.statistics === 'default') return statisticsLoadFor(range)
   return scenario.statistics(range)
+}
+
+export function resolveTaskLoad(
+  scenario: ScenarioDefinition,
+  taskId: TaskId,
+): TaskLoad {
+  if (scenario.tasks === 'defer') return { kind: 'loading' }
+  if (scenario.tasks === 'default') return taskLoadFor(taskId)
+  return scenario.tasks(taskId)
 }
 
 export function buildMockEnginePort(options: {
@@ -79,11 +94,19 @@ export function buildMockEnginePort(options: {
       })
     },
     observeStatistics(range, onUpdate) {
-      return createRangedObservation(
+      return createKeyedObservation(
         listeners.statistics,
         range,
         onUpdate,
         (r) => resolveStatisticsLoad(getScenario(), r),
+      )
+    },
+    observeTask(taskId, onUpdate) {
+      return createKeyedObservation(
+        listeners.tasks,
+        taskId,
+        onUpdate,
+        (id) => resolveTaskLoad(getScenario(), id),
       )
     },
     startTask(request) {

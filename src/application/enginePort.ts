@@ -6,11 +6,14 @@ import type {
   StartTaskRequest,
   StatisticsLoad,
   StatisticsRangeId,
+  TaskId,
+  TaskLoad,
   WorkflowsLoad,
 } from '../model'
 
 /**
- * Slice-sized EnginePort: new-task, workflows, resources, and statistics.
+ * Slice-sized EnginePort: new-task, workflows, resources, statistics, and
+ * running-task transcript observation.
  * Future production path: browser → authenticated Web server → harflow-ctl.
  * The browser never invokes ctl, MCP, or engine SQLite directly.
  */
@@ -47,6 +50,16 @@ export type EnginePort = {
   observeStatistics(
     range: StatisticsRangeId,
     onUpdate: (load: StatisticsLoad) => void,
+  ): ObservationHandle
+
+  /**
+   * Read a running-task transcript for an explicit task id.
+   * Unmapped ids must yield unavailable — never a fallback transcript.
+   * Mock-only presentation — not a public ctl transcript protocol.
+   */
+  observeTask(
+    taskId: TaskId,
+    onUpdate: (load: TaskLoad) => void,
   ): ObservationHandle
 
   /**

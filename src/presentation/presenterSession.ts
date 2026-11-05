@@ -12,6 +12,10 @@ import {
   type TaskId,
 } from '../model'
 import {
+  reconcileSelections,
+  selectionsAreSubmittable,
+} from './reconcileSelections'
+import {
   initialScreenState,
   type NewTaskScreenState,
   type OpenMenu,
@@ -26,7 +30,10 @@ type Deps = {
 
 export class PresenterSession {
   private state = initialScreenState()
-  private generation = 0
+  /** Lifetime of the active context observation; independent of submissions. */
+  private observationEpoch = 0
+  /** Identity of the in-flight start; independent of context observation. */
+  private submissionEpoch = 0
   private disposed = false
   private observation: ObservationHandle | null = null
   private readonly listeners = new Set<PresenterListener>()
@@ -50,20 +57,22 @@ export class PresenterSession {
 
   start(): void {
     // Re-arm after React StrictMode cleanup dispose(); late results still
-    // require matching generation.
+    // require matching epochs.
     this.disposed = false
-    this.generation += 1
-    const gen = this.generation
+    this.observationEpoch += 1
+    this.submissionEpoch += 1
+    const observationGen = this.observationEpoch
     this.observation?.cancel()
     this.publish(this.withCanSubmit({ context: { kind: 'loading' } }))
     this.observation = this.deps.loadContext.observe((load) =>
-      this.applyContext(load, gen),
+      this.applyContext(load, observationGen),
     )
   }
 
   dispose(): void {
     this.disposed = true
-    this.generation += 1
+    this.observationEpoch += 1
+    this.submissionEpoch += 1
     this.observation?.cancel()
     this.observation = null
     // Keep React subscribers; StrictMode remounts reuse the same presenter.
@@ -160,16 +169,16 @@ export class PresenterSession {
       modelId,
       access: this.state.selectedAccess,
     }
-    this.generation += 1
-    const gen = this.generation
+    this.submissionEpoch += 1
+    const submissionGen = this.submissionEpoch
     this.publish(this.withCanSubmit({ submission: { kind: 'pending' }, openMenu: null }))
     void this.deps.startTask.execute(request).then((outcome) => {
-      this.applySubmission(outcome, gen)
+      this.applySubmission(outcome, submissionGen)
     })
   }
 
   private applySubmission(outcome: StartTaskOutcome, gen: number): void {
-    if (this.disposed || gen !== this.generation) return
+    if (this.disposed || gen !== this.submissionEpoch) return
     if (outcome.kind === 'accepted') {
       const taskId: TaskId = outcome.taskId
       this.publish(
@@ -200,19 +209,21 @@ export class PresenterSession {
   }
 
   private applyContext(load: ContextLoad, gen: number): void {
-    if (this.disposed || gen !== this.generation) return
+    if (this.disposed || gen !== this.observationEpoch) return
     if (load.kind !== 'ready') {
       this.publish(this.withCanSubmit({ context: load }))
       return
     }
-    const c = load.composer
+    const selections = reconcileSelections(load.composer, {
+      selectedRepositoryId: this.state.selectedRepositoryId,
+      selectedHarnessId: this.state.selectedHarnessId,
+      selectedModelId: this.state.selectedModelId,
+      selectedAccess: this.state.selectedAccess,
+    })
     this.publish(
       this.withCanSubmit({
         context: load,
-        selectedRepositoryId: c.selectedRepositoryId,
-        selectedHarnessId: c.selectedHarnessId,
-        selectedModelId: c.selectedModelId,
-        selectedAccess: c.selectedAccess,
+        ...selections,
       }),
     )
   }
@@ -220,15 +231,22 @@ export class PresenterSession {
   private withCanSubmit(partial: Partial<NewTaskScreenState>): NewTaskScreenState {
     const merged = { ...this.state, ...partial }
     const pending = merged.submission.kind === 'pending'
+    const context = merged.context
+    const validSelections =
+      context.kind === 'ready' &&
+      selectionsAreSubmittable(context.composer, {
+        selectedRepositoryId: merged.selectedRepositoryId,
+        selectedHarnessId: merged.selectedHarnessId,
+        selectedModelId: merged.selectedModelId,
+        selectedAccess: merged.selectedAccess,
+      })
     return {
       ...merged,
       canSubmit:
         !pending &&
         isSubmittablePrompt(merged.prompt) &&
-        merged.context.kind === 'ready' &&
-        merged.selectedRepositoryId !== null &&
-        merged.selectedHarnessId !== null &&
-        merged.selectedModelId !== null,
+        context.kind === 'ready' &&
+        validSelections,
     }
   }
 

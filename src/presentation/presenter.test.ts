@@ -16,7 +16,15 @@ import {
   type StartTaskRequest,
 } from '../model'
 import { createControllablePromise } from '../adapters/mock/controllable'
-import { populatedComposer, populatedSidebar } from '../adapters/mock/fixtures'
+import {
+  emptySidebar,
+  MOCK_ACCESS,
+  MOCK_HARNESSES,
+  MOCK_REPOSITORIES,
+  populatedComposer,
+  populatedSidebar,
+} from '../adapters/mock/fixtures'
+import type { ComposerContext } from '../model'
 import { createNewTaskPresenter } from './presenter'
 
 function readyContext(): ContextLoad {
@@ -25,6 +33,13 @@ function readyContext(): ContextLoad {
     composer: populatedComposer(),
     sidebar: populatedSidebar(),
   }
+}
+
+function readyWith(
+  composer: ComposerContext,
+  sidebar = populatedSidebar(),
+): ContextLoad {
+  return { kind: 'ready', composer, sidebar }
 }
 
 function createTestEngine(options?: {
@@ -233,6 +248,166 @@ describe('NewTaskPresenter', () => {
     await flush()
     expect(starts[0]?.repositoryId).toBe(asRepositoryId('repo-mac'))
     expect(String(starts[0]?.repositoryId).includes('/')).toBe(false)
+    presenter.dispose()
+  })
+
+  it('keeps applying context updates after a resolved submission', async () => {
+    const { port, publish } = createTestEngine()
+    const presenter = createPresenter(port)
+    presenter.start()
+    await flush()
+    expect(presenter.getState().context.kind).toBe('ready')
+    presenter.setPrompt('ship it')
+    presenter.submit()
+    await flush()
+    expect(presenter.getState().submission.kind).toBe('accepted')
+
+    publish({
+      kind: 'unavailable',
+      message: 'Mock engine context is unavailable.',
+    })
+    expect(presenter.getState().context).toEqual({
+      kind: 'unavailable',
+      message: 'Mock engine context is unavailable.',
+    })
+    expect(presenter.getState().canSubmit).toBe(false)
+    presenter.dispose()
+  })
+
+  it('applies context updates while a submission is still pending', async () => {
+    const { port, publish, resolveStart } = createTestEngine({ holdStart: true })
+    const presenter = createPresenter(port)
+    presenter.start()
+    await flush()
+    presenter.setPrompt('held')
+    presenter.submit()
+    expect(presenter.getState().submission.kind).toBe('pending')
+
+    publish({
+      kind: 'unavailable',
+      message: 'Context dropped while starting.',
+    })
+    expect(presenter.getState().context.kind).toBe('unavailable')
+    expect(presenter.getState().canSubmit).toBe(false)
+    expect(presenter.getState().submission.kind).toBe('pending')
+
+    resolveStart({ kind: 'accepted', taskId: asTaskId('after-context') })
+    await flush()
+    expect(presenter.getState().submission).toEqual({
+      kind: 'accepted',
+      taskId: asTaskId('after-context'),
+    })
+    presenter.dispose()
+  })
+
+  it('preserves user selections across a sidebar-only ready refresh', async () => {
+    const { port, publish, starts } = createTestEngine()
+    const presenter = createPresenter(port)
+    presenter.start()
+    await flush()
+
+    presenter.selectRepository(asRepositoryId('repo-mac'))
+    presenter.selectHarness(asHarnessId('codex'))
+    presenter.selectModel(asModelId('gpt-6-astra'))
+    presenter.selectAccess('publish')
+    expect(presenter.getState().selectedRepositoryId).toBe(asRepositoryId('repo-mac'))
+    expect(presenter.getState().selectedHarnessId).toBe(asHarnessId('codex'))
+    expect(presenter.getState().selectedModelId).toBe(asModelId('gpt-6-astra'))
+    expect(presenter.getState().selectedAccess).toBe('publish')
+
+    const composer = populatedComposer()
+    publish(
+      readyWith(composer, {
+        ...emptySidebar(),
+        needsYouCount: 2,
+      }),
+    )
+
+    expect(presenter.getState().selectedRepositoryId).toBe(asRepositoryId('repo-mac'))
+    expect(presenter.getState().selectedHarnessId).toBe(asHarnessId('codex'))
+    expect(presenter.getState().selectedModelId).toBe(asModelId('gpt-6-astra'))
+    expect(presenter.getState().selectedAccess).toBe('publish')
+    const afterRefresh = presenter.getState().context
+    expect(afterRefresh.kind).toBe('ready')
+    if (afterRefresh.kind !== 'ready') {
+      throw new Error('expected ready context after sidebar refresh')
+    }
+    expect(afterRefresh.sidebar.needsYouCount).toBe(2)
+
+    presenter.setPrompt('use preserved targets')
+    presenter.submit()
+    await flush()
+    expect(starts).toHaveLength(1)
+    expect(starts[0]).toEqual({
+      prompt: 'use preserved targets',
+      repositoryId: asRepositoryId('repo-mac'),
+      harnessId: asHarnessId('codex'),
+      modelId: asModelId('gpt-6-astra'),
+      access: 'publish',
+    })
+    presenter.dispose()
+  })
+
+  it('reconciles removed or unavailable choices deterministically', async () => {
+    const { port, publish } = createTestEngine()
+    const presenter = createPresenter(port)
+    presenter.start()
+    await flush()
+
+    presenter.selectRepository(asRepositoryId('repo-design'))
+    presenter.selectHarness(asHarnessId('codex'))
+    presenter.selectAccess('publish')
+
+    const narrowed: ComposerContext = {
+      repositories: MOCK_REPOSITORIES.filter((r) => r.id !== asRepositoryId('repo-design')),
+      harnesses: MOCK_HARNESSES.map((h) =>
+        h.id === asHarnessId('codex')
+          ? { ...h, available: false, unavailableReason: 'Not installed' }
+          : h,
+      ),
+      accessOptions: MOCK_ACCESS,
+      selectedRepositoryId: asRepositoryId('repo-mcp'),
+      selectedHarnessId: asHarnessId('claude'),
+      selectedModelId: asModelId('opus-5.5'),
+      selectedAccess: 'edit_repo',
+    }
+    publish(readyWith(narrowed))
+
+    expect(presenter.getState().selectedRepositoryId).toBe(asRepositoryId('repo-mcp'))
+    expect(presenter.getState().selectedHarnessId).toBe(asHarnessId('claude'))
+    expect(presenter.getState().selectedModelId).toBe(asModelId('opus-5.5'))
+    // publish remains valid on the fallback Claude harness.
+    expect(presenter.getState().selectedAccess).toBe('publish')
+    presenter.dispose()
+  })
+
+  it('keeps model and access compatible when the harness list changes', async () => {
+    const { port, publish } = createTestEngine()
+    const presenter = createPresenter(port)
+    presenter.start()
+    await flush()
+
+    presenter.selectHarness(asHarnessId('claude'))
+    presenter.selectModel(asModelId('haiku-5'))
+    presenter.selectAccess('publish')
+
+    const opencodeOnly: ComposerContext = {
+      repositories: MOCK_REPOSITORIES,
+      harnesses: MOCK_HARNESSES.filter((h) => h.id === asHarnessId('opencode')),
+      accessOptions: MOCK_ACCESS,
+      selectedRepositoryId: asRepositoryId('repo-mcp'),
+      selectedHarnessId: asHarnessId('opencode'),
+      selectedModelId: asModelId('claude-sonnet-5'),
+      selectedAccess: 'edit_repo',
+    }
+    publish(readyWith(opencodeOnly))
+
+    expect(presenter.getState().selectedHarnessId).toBe(asHarnessId('opencode'))
+    expect(presenter.getState().selectedModelId).toBe(asModelId('claude-sonnet-5'))
+    // publish is not admitted by opencode; fall back to adapter default edit_repo.
+    expect(presenter.getState().selectedAccess).toBe('edit_repo')
+    presenter.setPrompt('compatible')
+    expect(presenter.getState().canSubmit).toBe(true)
     presenter.dispose()
   })
 })

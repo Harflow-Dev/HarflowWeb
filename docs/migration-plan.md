@@ -1,73 +1,42 @@
-# Deferred web host migration checklist
+# Later full Web application and server checklist
 
-Dispatchable work packages: [migration sessions](migration-sessions.md).
+Revised 2026-11-04. Governing [revision 3](../../HARFLOW_MIGRATION_PLAN_V3.md),
+[workspace gates](../../HARFLOW_MIGRATION_CHECKLIST.md) and [current sessions](migration-sessions.md).
 
-Status: planned, 2026-11-02. All work items remain unverified.
+HarflowWeb owns its entire browser frontend and server. There is no shared
+HarflowClient dependency and no Electron host. Work starts after stable Mac/Rust
+observation and a separately authorized Web phase; it does not block Mac cutover.
+Linux accesses Web, while its engine/server runtime needs independent qualification.
 
-This repository is reserved for a future self-hosted web application and
-server. It has no implementation today. The migration does not depend on Web;
-this document authorizes planning only, not login, triggers or server work.
+- [ ] W01 Decide frontend/server boundaries, authenticated HTTP/session/CSRF/origin
+  and responder authority, idempotent starts/unknown recovery, filesystem semantics,
+  engine/service deployment, triggers/schedules/deliveries/Incoming and Web scope.
+- [ ] W02 Qualify Linux Rust process/authority/runtime, service lifecycle, distribution
+  and recovery; browser-only checks do not establish engine support.
+- [ ] W03 Build all frontend models/ports/presentation/components here, approved
+  adaptive UI and authenticated server adapter using only public engine interface.
+- [ ] W04 Complete scoped features/security/browser/accessibility/performance and
+  deployment evidence; external deployment needs current authorization.
+- [ ] W05 Agree and complete stability observation; explicit owner acceptance
+  before opening any later native Windows app work.
 
-## Redesign target and intent
+Browser uses authenticated HTTP; the Web server invokes public harflow-ctl, not
+engine MCP as its product API. Missing ctl operations start in the current canonical
+owner: HarflowMCP before accepted O04 transfer, HarflowEngine afterward. Specify
+provenance/authority/bounds/unknown semantics, capabilities, fixtures and tests, then
+coordinate byte-identical consumer fixtures and adapters. Web after transfer has no
+dependency on retired Python. Browser cannot
+directly invoke ctl or inspect engine SQLite/private persistence.
+Engine APIs retain execution/authority semantics across browser and native clients.
+No production server, login, trigger or deployment is implemented by this plan.
 
-The approved baseline is [HarflowDesign v2 at commit `3643d083700be4032c93237813b573d04bab6ab1`](https://github.com/Harflow-Dev/HarflowDesign/tree/3643d083700be4032c93237813b573d04bab6ab1/v2), including the owner-approved Mac connector amendment. Consult the optional workspace [coverage and intent ledger](../../HarflowDesign/v2/docs/migration-coverage.md); it is not a build dependency. Web remains deferred; future work consumes the same shared v2 client and needs separately authorized server and authentication work. Missing required states need a v2 design and explicit owner approval with exact commit, path and state before dependent implementation. Approval of visuals does not authorize new authority, public contract changes, backends or deferred features. Core execution safety and observability remain required.
+## Boundaries and evidence
 
-## Dispatch and boundaries
-
-Work only on the assigned item. Read the workspace AGENTS.md, this repository's AGENTS.md if present, and
-applicable package instructions first; preserve concurrent edits and use primary checkouts.
-The orchestrator delegates unit tests under the current workflow. A checkbox is
-not authorization to start runtimes, mutate real roots, register clients, push,
-release, clean up, or expand scope. Use disposable roots and workspaces where
-needed. Report a blocker with concrete evidence; task status is not proof of
-completion. Repository builds and tests must not depend on sibling checkouts.
-
-The optional [workspace coordination index](../../HARFLOW_MIGRATION_CHECKLIST.md)
-uses B0 (baseline), C0 (contracts and design), E0 (client and Electron on
-Python), R0 (Rust parity), I0 (integrated stack), and O0 (owner cutover and
-publication). It is not a build dependency. Freeze and qualify the reproducible existing baseline without waiting for open
-feature tickets. Use the v2 intent ledger to decide retained and simplified scope;
-legacy UI parity and open tickets do not independently mandate inclusion. All boxes below are deliberately unchecked;
-scaffolds alone do not establish completion. Early-use gates and defaults remain
-subject to evidence and explicit authorization for root registration. Use fresh
-Rust state; archive historical task, run and event records rather than importing
-them. Import only definitions, configuration and preferences, with an explicit
-registration backup and handoff. No engine may share a writable root.
-
-Stage dependencies: B0 → C0 → E0 → R0 → I0 → O0 describe workspace
-coordination only; Web is deferred and does not gate those stages.
-
-## B0 / C0 — scope and boundaries
-
-- [ ] B0-WE-01 Record the empty repository baseline and the accepted deferred
-      status in the shared parity ledger.
-- [ ] C0-WE-01 Define future browser-host responsibilities around the same
-      shared client ports and public engine interface.
-- [ ] C0-WE-02 Document a future authenticated HTTP server adapter and authority
-      and idempotency decisions as prerequisites for any implementation.
-- [ ] C0-WE-03 Keep Electron APIs and private engine database access outside the
-      browser host and server contract.
-
-## E0 / later — optional evidence and future work
-
-- [ ] E0-WE-01 If assigned, demonstrate browser consumption of the shared
-      package with a static fake-port harness, without a production server.
-- [ ] O0-WE-01 Record separately authorized future server, login, webhook and
-      scheduling work; none blocks the Electron/Python or Rust gates.
-- [ ] O0-WE-02 Before future implementation, define independent packaging,
-      validation, deployment and security requirements and obtain scope approval.
-
-## Validation
-
-No implementation or test commands exist in this repository yet. Validate this
-plan's links and checklist structure. A future fake-port proof should report its
-commands and evidence without starting a production service.
-
-## Handoff evidence
-
-For every assigned item report: item ID and result; repository and dependency
-commit IDs; fixture manifest hash where applicable; commands, environment,
-results and evidence locations; local, committed, pushed, CI-passed, packaged
-and released state, stated separately; approved design commit, path and state where
-applicable; deviations, blockers and remaining work. Record unrun checks and
-why. Do not infer passing gates from a dispatched task's status.
+This plan authorizes no implementation by itself. Follow workspace/child/package
+AGENTS.md and the current session brief; preserve concurrent work in primary
+checkouts. Use isolated roots/fixtures. No implicit live-state, install, registration,
+paid-probe, signing, push, publication, retirement or deletion authority. Record exact
+commit/contract/design/runtime/profile identities, actual checks/reviews, missing
+coverage and owner decisions in the lead receipt. Delivery and acceptance differ.
+Builds/tests must not depend on sibling source checkouts. Documentation-only plan
+changes need link/consistency checks, not product test reruns.

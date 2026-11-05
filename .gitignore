@@ -1,0 +1,62 @@
+### macOS
+.DS_Store
+._*
+Icon
+
+### Windows
+Thumbs.db
+[Dd]esktop.ini
+$RECYCLE.BIN/
+*.lnk
+
+### Linux
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
+
+### VS Code
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.history/
+*.vsix
+
+### Node
+node_modules/
+*.log
+*.pid
+*.pid.lock
+coverage/
+*.lcov
+.nyc_output
+dist/
+dist-ssr
+build/Release
+*.tsbuildinfo
+.cache
+.parcel-cache
+.next
+out/
+.nuxt
+.env
+.env.local
+.env.*.local
+.npm
+*.tgz
+.yarn/cache
+.yarn/unplugged
+.yarn/install-state.gz
+.pnp.*
+
+### Editor
+.idea
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+*.local

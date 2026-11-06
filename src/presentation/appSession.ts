@@ -141,9 +141,9 @@ export class AppSession {
 
   navigate(route: AppRoute): void {
     const runOpen = this.workflowExecution.getState().runId !== null
-    const leavingRun = runOpen && this.route === 'workflows' && route !== 'workflows'
+    const leavingRun = runOpen && route !== 'workflows'
     const dismissingRun = runOpen && route === 'workflows'
-    if (leavingRun || dismissingRun) this.workflowExecution.close()
+    if (leavingRun || dismissingRun) this.closeWorkflowExecution()
     if (this.route === route && !leavingRun && !dismissingRun) return
     this.route = route
     this.emit()
@@ -200,6 +200,7 @@ export class AppSession {
   }
 
   openTask(taskId: TaskId): void {
+    this.closeWorkflowExecution()
     this.route = 'task'
     this.task.openTask(taskId)
     this.emit()
@@ -215,6 +216,12 @@ export class AppSession {
 
   selectStatisticsRange(range: StatisticsRangeId): void {
     this.statistics.selectRange(range)
+  }
+
+  /** Drop the run observation before any route that is not that run. */
+  private closeWorkflowExecution(): void {
+    if (this.workflowExecution.getState().runId === null) return
+    this.workflowExecution.close()
   }
 
   selectSettingsSection(section: SettingsSection): void {

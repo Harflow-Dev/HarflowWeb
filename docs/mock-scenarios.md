@@ -52,8 +52,8 @@ empty scenario, and no zero when the observation is loading or unavailable.
 Approve, reject, and Send stay disabled. The Nightly card’s Open run opens
 `observeWorkflowExecution(runId, …)` for `run-nightly-dependency-audit`.
 That id is not the workflow definition id. An unmapped run id shows
-unavailable and does not borrow the Nightly graph. Leaving that run cancels
-its observation, so a late callback cannot restore it, and the next Workflows
+unavailable and does not borrow the Nightly graph. Leaving that run, including by a mapped sidebar task, cancels its
+observation, so a late callback cannot restore it, and the next Workflows
 click shows the list. The Nightly publish card and the run detail share one
 snapshot: branch `deps/audit-2026-11-03`, Codex · gpt-6-astra, repository
 HarflowMCP, and the same push-and-open-a-pull-request action. The graph

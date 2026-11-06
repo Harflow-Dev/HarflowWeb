@@ -755,4 +755,44 @@ describe('AppPresenter workflows slice', () => {
     expect(presenter.getState().workflowEditor.selections).toEqual(editor.selections)
     presenter.dispose()
   })
+
+  it('cancels the run when a mapped task opens and ignores a late callback', async () => {
+    const engine = createTestEngine()
+    const presenter = createPresenter(engine.port)
+    presenter.start()
+    await flush()
+    presenter.openWorkflowRun(RELEASE_WORKFLOW_ID)
+    await flush()
+    presenter.setWorkflowRunTask('keep task')
+    presenter.setWorkflowRunGoal('keep goal')
+    presenter.openWorkflowEditor(RELEASE_WORKFLOW_ID)
+    await flush()
+    presenter.selectWorkflowNode(asWorkflowNodeId('release-review'))
+    const draft = {
+      ...presenter.getState().workflows.drafts[RELEASE_WORKFLOW_ID],
+    }
+    const selections = presenter.getState().workflowEditor.selections
+    presenter.openWorkflowExecution(NIGHTLY_AUDIT_RUN_ID)
+    await flush()
+    const callback = engine.captureWorkflowExecution(NIGHTLY_AUDIT_RUN_ID)
+    expect(presenter.getState().workflowExecution.runId).toBe(NIGHTLY_AUDIT_RUN_ID)
+    presenter.openTask(SLOT_RELEASE_TASK_ID)
+    expect(presenter.getState().route).toBe('task')
+    expect(presenter.getState().task.selectedTaskId).toBe(SLOT_RELEASE_TASK_ID)
+    expect(presenter.getState().workflowExecution.runId).toBeNull()
+    expect(engine.captureWorkflowExecution(NIGHTLY_AUDIT_RUN_ID)).toBeNull()
+    callback?.({
+      kind: 'ready',
+      run: { ...nightlyAuditRun(), title: 'Late replacement' },
+    })
+    expect(presenter.getState().workflowExecution.runId).toBeNull()
+    expect(presenter.getState().workflowExecution.load.kind).toBe('loading')
+    expect(presenter.getState().workflows.drafts[RELEASE_WORKFLOW_ID]).toEqual(draft)
+    expect(presenter.getState().workflowEditor.selections).toEqual(selections)
+    presenter.navigate('workflows')
+    expect(presenter.getState().route).toBe('workflows')
+    expect(presenter.getState().workflowExecution.runId).toBeNull()
+    expect(presenter.getState().workflowExecution.load.kind).toBe('loading')
+    presenter.dispose()
+  })
 })

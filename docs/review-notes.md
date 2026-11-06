@@ -59,7 +59,10 @@ grant approvals, answer questions, or touch the task store.
   Routes are orthogonal, with 10-point corners clamped to the segment, open
   chevrons, and no negative trunk. The canvas scrolls at 65% so End is
   reachable. The canvas and inspector use the 6px tertiary scrollbar.
-  The orchestrator is locked and has no connector. Selecting
+  The orchestrator is locked, disconnected, and has no delete control.
+  Selecting it shows the approved Agent, Instructions, and Limits sections
+  with fixture values and disabled controls. Release uses the specimen
+  values. Nightly uses a separate fixture. Selecting
   another node updates the inspector. A removed or unknown node stays
   unavailable and is not replaced by a similarly titled node. Unmapped
   definitions show unavailable and no borrowed graph. Save, Discard, Delete

@@ -1870,7 +1870,11 @@ describe('AppFeature navigation', () => {
     expect(canvas.className).toContain('hd-thin-scroll')
     expect(Number(canvas.dataset.contentWidth)).toBeGreaterThanOrEqual(1126)
     expect(within(canvas).queryByRole('button', { name: 'Orchestrator, locked' })).toBeNull()
-    expect(screen.getByRole('button', { name: 'Orchestrator, locked' })).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Orchestrator, locked' }))
+    expect(screen.getByRole('complementary', { name: 'Orchestrator settings' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'LIMITS' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Delete node' })).not.toBeInTheDocument()
+    await user.click(within(canvas).getByRole('button', { name: /^Review$/ }))
     expect(canvas.querySelectorAll('path[data-loop="true"]')).toHaveLength(0)
     expect(canvas.querySelectorAll('path[data-loop]')).toHaveLength(8)
 

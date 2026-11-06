@@ -216,6 +216,8 @@ function loopIntoStart(): WorkflowEditorDefinition {
         locked: false,
         frame: { x: 8, y: 40, width: 70, height: 38 },
         icon: 'play',
+        preface: null,
+        closing: null,
         sections: [],
       },
       {
@@ -228,6 +230,8 @@ function loopIntoStart(): WorkflowEditorDefinition {
         locked: false,
         frame: { x: 160, y: 20, width: 160, height: 82 },
         icon: null,
+        preface: null,
+        closing: null,
         sections: [],
       },
     ],

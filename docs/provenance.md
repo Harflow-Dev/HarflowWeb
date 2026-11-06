@@ -195,8 +195,16 @@
   Mac commit, with an 8pt gutter and hover reveal. The browser keeps a
   visible thin scrollbar and keyboard scrolling instead of hiding the
   overflow.
-- The orchestrator is locked, standalone, and has no edge. Loading, error, and
-  adaptive editor states have no approved specimen.
+- The orchestrator is locked, standalone, and has no edge. Selecting it opens
+  the read-only inspector from HarflowDesign
+  `3643d083700be4032c93237813b573d04bab6ab1`
+  `v2/scripts/screens-workflow-editor.js` state `workflow-editor/orchestrator`:
+  Agent, Instructions, and Limits. Release checklist uses that specimen’s
+  harness, instructions, fallback, and limits (3, 20, 5, 4, 100). Nightly
+  dependency audit uses the same section chrome with its own fixture
+  instructions and limits (2, 12, 1, 2, 40); the design state does not
+  specify a second orchestrator. There is no delete control. Loading, error,
+  and adaptive editor states have no approved specimen.
 
 The mock adapter is not an HTTP protocol design and does not prove backend
 compatibility.

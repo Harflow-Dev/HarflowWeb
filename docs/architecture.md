@@ -107,7 +107,8 @@ presentation router: it reads the current node frames and already routed
 edges, and it does not mutate the definition. An edge whose source has no
 output or whose target has no input is reported unavailable. The canvas and
 inspector scroll with the shared thin scrollbar; scrolling does not change
-selection.
+selection. The locked orchestrator inspector is read-only fixture data for
+that definition. It has no delete control and no edge.
 Resources are read-only slot observation (usage, holders, waiters) — not
 administration, install, release, repair, or configuration. Statistics are
 read-only overview observations for an explicit typed range — not billing,

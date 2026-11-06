@@ -2,8 +2,20 @@ import type { WorkflowId, WorkflowNodeId } from './ids'
 
 /** Read-only editor preview. Fields are fixture facts, not editable settings. */
 export type WorkflowEditorField =
-  | { readonly kind: 'text'; readonly id: string; readonly label: string; readonly value: string }
+  | {
+      readonly kind: 'text'
+      readonly id: string
+      readonly label: string
+      readonly value: string
+      readonly hideLabel?: boolean
+    }
   | { readonly kind: 'choice'; readonly id: string; readonly label: string; readonly value: string }
+  | {
+      readonly kind: 'fallbacks'
+      readonly id: string
+      readonly entries: readonly string[]
+      readonly hint: string
+    }
   | {
       readonly kind: 'switch'
       readonly id: string
@@ -46,6 +58,8 @@ export type WorkflowEditorNode = {
   readonly locked: boolean
   readonly frame: WorkflowNodeFrame | null
   readonly icon: WorkflowNodeIcon | null
+  readonly preface: string | null
+  readonly closing: string | null
   readonly sections: readonly WorkflowEditorSection[]
 }
 

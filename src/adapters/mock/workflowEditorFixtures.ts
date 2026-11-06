@@ -17,7 +17,8 @@ import {
 /**
  * Editor preview from HarflowDesign commit
  * 3643d083700be4032c93237813b573d04bab6ab1
- * v2/scripts/screens-workflow-editor.js workflow-editor/node-selected.
+ * v2/scripts/screens-workflow-editor.js workflow-editor/node-selected
+ * and workflow-editor/orchestrator.
  * Only explicitly mapped definitions exist. Titles are not a lookup key.
  */
 
@@ -37,6 +38,8 @@ type NodeInput = {
   readonly locked?: boolean
   readonly frame: WorkflowNodeFrame | null
   readonly icon: WorkflowNodeIcon | null
+  readonly preface?: string
+  readonly closing?: string
   readonly sections: readonly WorkflowEditorSection[]
 }
 
@@ -51,6 +54,8 @@ function node(input: NodeInput): WorkflowEditorNode {
     locked: input.locked === true,
     frame: input.frame,
     icon: input.icon,
+    preface: input.preface ?? null,
+    closing: input.closing ?? null,
     sections: input.sections,
   }
 }
@@ -61,6 +66,71 @@ function text(id: string, label: string, value: string): WorkflowEditorField {
 
 function choice(id: string, label: string, value: string): WorkflowEditorField {
   return { kind: 'choice', id, label, value }
+}
+
+const ORCHESTRATOR_PREFACE = "Every workflow has one. It can't be removed."
+const ORCHESTRATOR_CLOSING =
+  'Select a node or connection to edit its instructions and conditions.'
+const RELEASE_ORCHESTRATOR_INSTRUCTIONS =
+  'Choose the next node from the run so far. Prefer the review path when tests pass, and stop for the person if a release gate cannot be verified.'
+const NIGHTLY_ORCHESTRATOR_INSTRUCTIONS =
+  'Choose the next node from the lockfile audit. Repeat Audit lockfiles when a dependency is still unresolved, and stop for the person if the lockfile cannot be read.'
+
+type OrchestratorLimits = {
+  readonly prefix: string
+  readonly instructions: string
+  readonly decisionAttempts: string
+  readonly inspections: string
+  readonly onDemandCalls: string
+  readonly parallelAgents: string
+  readonly transitionLimit: string
+}
+
+function orchestratorSections(spec: OrchestratorLimits): readonly WorkflowEditorSection[] {
+  const id = (name: string) => `${spec.prefix}-${name}`
+  return [
+    {
+      id: 'agent',
+      label: 'AGENT',
+      fields: [
+        choice(id('harness'), 'Harness', 'Claude Code'),
+        choice(id('model'), 'Model', 'Opus 5.5'),
+        choice(id('effort'), 'Effort', 'High'),
+        text(id('turns'), 'Turn limit', ''),
+        { kind: 'switch', id: id('approvals'), label: 'Caller approvals', hint: null, checked: false },
+        {
+          kind: 'fallbacks',
+          id: id('fallbacks'),
+          entries: ['Codex · gpt-6-astra'],
+          hint: 'Tried in order for confirmed quota, model or availability failures.',
+        },
+      ],
+    },
+    {
+      id: 'instructions',
+      label: 'INSTRUCTIONS',
+      fields: [
+        {
+          kind: 'text',
+          id: id('instructions'),
+          label: 'Orchestrator instructions',
+          value: spec.instructions,
+          hideLabel: true,
+        },
+      ],
+    },
+    {
+      id: 'limits',
+      label: 'LIMITS',
+      fields: [
+        { kind: 'stepper', id: id('decisions'), label: 'Decision attempts', value: spec.decisionAttempts },
+        { kind: 'stepper', id: id('inspections'), label: 'Inspections', value: spec.inspections },
+        { kind: 'stepper', id: id('calls'), label: 'On-demand calls per decision', value: spec.onDemandCalls },
+        { kind: 'stepper', id: id('parallel'), label: 'Parallel agents', value: spec.parallelAgents },
+        { kind: 'stepper', id: id('transitions'), label: 'Transition limit', value: spec.transitionLimit },
+      ],
+    },
+  ]
 }
 
 function brief(title: string, role: string, harness: string | null): WorkflowEditorSection[] {
@@ -158,7 +228,28 @@ function releaseDefinition(): WorkflowEditorDefinition {
     node({ id: 'release-parallel-end', placement: 'path', visual: 'boundary', title: 'Checks', kindLabel: 'Parallel end', meta: null, frame: frame(714, 240, 112, 60), icon: 'parallel', sections: brief('Checks', 'Parallel end', null) }),
     node({ id: 'release-review', placement: 'path', visual: 'agent', title: 'Review', kindLabel: 'Review', meta: 'Claude Code', frame: frame(882, 229, 128, 82), icon: null, sections: reviewSections() }),
     node({ id: 'release-end', placement: 'path', visual: 'terminal', title: 'End', kindLabel: 'End', meta: null, frame: frame(1066, 251, 60, 38), icon: 'flag', sections: brief('End', 'End', null) }),
-    node({ id: 'release-orchestrator', placement: 'standalone', visual: 'orchestrator', title: 'Orchestrator', kindLabel: 'Always present', meta: 'Claude Code · Opus 5.5', locked: true, frame: null, icon: 'lock', sections: [{ id: 'orchestrator', label: 'ORCHESTRATOR', fields: [{ kind: 'note', id: 'locked', text: 'Locked. Always present and disconnected from the workflow path.' }, choice('harness', 'Harness', 'Claude Code · Opus 5.5')] }] }),
+    node({
+      id: 'release-orchestrator',
+      placement: 'standalone',
+      visual: 'orchestrator',
+      title: 'Orchestrator',
+      kindLabel: 'Always present',
+      meta: 'Claude Code · Opus 5.5',
+      locked: true,
+      frame: null,
+      icon: 'lock',
+      preface: ORCHESTRATOR_PREFACE,
+      closing: ORCHESTRATOR_CLOSING,
+      sections: orchestratorSections({
+        prefix: 'release-orchestrator',
+        instructions: RELEASE_ORCHESTRATOR_INSTRUCTIONS,
+        decisionAttempts: '3',
+        inspections: '20',
+        onDemandCalls: '5',
+        parallelAgents: '4',
+        transitionLimit: '100',
+      }),
+    }),
     node({ id: 'release-security', placement: 'standalone', visual: 'ondemand', title: 'Security reviewer', kindLabel: 'On demand', meta: 'Codex', frame: null, icon: 'zap', sections: brief('Security reviewer', 'On demand', 'Codex') }),
     node({ id: 'release-docs', placement: 'standalone', visual: 'ondemand', title: 'Docs checker', kindLabel: 'On demand', meta: 'Claude Code', frame: null, icon: 'zap', sections: brief('Docs checker', 'On demand', 'Claude Code') }),
   ]
@@ -207,7 +298,28 @@ function nightlyDefinition(): WorkflowEditorDefinition {
       node({ id: 'nightly-start', placement: 'path', visual: 'terminal', title: 'Start', kindLabel: 'Start', meta: null, frame: frame(8, 80, 70, 38), icon: 'play', sections: brief('Start', 'Start', null) }),
       node({ id: 'nightly-audit', placement: 'path', visual: 'agent', title: 'Audit lockfiles', kindLabel: 'Task', meta: 'Claude Code', frame: frame(134, 58, 160, 82), icon: null, sections: brief('Audit lockfiles', 'Task', 'Claude Code') }),
       node({ id: 'nightly-end', placement: 'path', visual: 'terminal', title: 'End', kindLabel: 'End', meta: null, frame: frame(360, 80, 60, 38), icon: 'flag', sections: brief('End', 'End', null) }),
-      node({ id: 'nightly-orchestrator', placement: 'standalone', visual: 'orchestrator', title: 'Orchestrator', kindLabel: 'Always present', meta: 'Claude Code · Opus 5.5', locked: true, frame: null, icon: 'lock', sections: [{ id: 'orchestrator', label: 'ORCHESTRATOR', fields: [{ kind: 'note', id: 'locked', text: 'Locked. Always present and disconnected from the workflow path.' }] }] }),
+      node({
+        id: 'nightly-orchestrator',
+        placement: 'standalone',
+        visual: 'orchestrator',
+        title: 'Orchestrator',
+        kindLabel: 'Always present',
+        meta: 'Claude Code · Opus 5.5',
+        locked: true,
+        frame: null,
+        icon: 'lock',
+        preface: ORCHESTRATOR_PREFACE,
+        closing: ORCHESTRATOR_CLOSING,
+        sections: orchestratorSections({
+          prefix: 'nightly-orchestrator',
+          instructions: NIGHTLY_ORCHESTRATOR_INSTRUCTIONS,
+          decisionAttempts: '2',
+          inspections: '12',
+          onDemandCalls: '1',
+          parallelAgents: '2',
+          transitionLimit: '40',
+        }),
+      }),
       node({ id: 'nightly-lockfile', placement: 'standalone', visual: 'ondemand', title: 'Lockfile checker', kindLabel: 'On demand', meta: 'Codex', frame: null, icon: 'zap', sections: brief('Lockfile checker', 'On demand', 'Codex') }),
     ],
     edges: [

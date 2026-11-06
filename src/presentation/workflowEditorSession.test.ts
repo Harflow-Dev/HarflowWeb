@@ -125,4 +125,31 @@ describe('WorkflowEditorSession', () => {
     session.select(asWorkflowNodeId('not-a-node'))
     expect(session.getState().selections[EDITOR_RELEASE_ID]).toBe(review)
   })
+
+  it('keeps the selected orchestrator when a stale Release payload arrives', async () => {
+    const { engine, saved } = port({ auto: false })
+    const session = sessionFor(engine)
+    session.open(EDITOR_NIGHTLY_ID)
+    saved[0]?.send(workflowEditorLoadFor(EDITOR_NIGHTLY_ID))
+    const orchestrator = asWorkflowNodeId('nightly-orchestrator')
+    session.select(orchestrator)
+    saved[0]?.send(workflowEditorLoadFor(EDITOR_RELEASE_ID))
+    expect(session.getState().selections[EDITOR_NIGHTLY_ID]).toBe(orchestrator)
+    const shown = session.getState().load
+    expect(shown.kind).toBe('ready')
+    if (shown.kind !== 'ready') return
+    expect(shown.definition.workflowId).toBe(EDITOR_NIGHTLY_ID)
+    const node = findWorkflowEditorNode(shown.definition, orchestrator)
+    expect(node?.locked).toBe(true)
+    expect(node?.sections.map((section) => section.label)).toEqual([
+      'AGENT',
+      'INSTRUCTIONS',
+      'LIMITS',
+    ])
+    const instructions = node?.sections.find((section) => section.id === 'instructions')?.fields[0]
+    expect(instructions && 'value' in instructions ? instructions.value : '').toContain('lockfile')
+    expect(
+      shown.definition.edges.some((edge) => edge.from === orchestrator || edge.to === orchestrator),
+    ).toBe(false)
+  })
 })

@@ -60,7 +60,9 @@ button opens that definition’s read-only editor through
 dependency audit have graphs. Another id shows unavailable and no borrowed
 graph. Selection is kept per definition while the node is still present.
 A removed node stays missing. Save, Discard, Delete, Run, Edit with agent,
-zoom, and inspector fields stay disabled. Opening the editor does not clear
+zoom, and inspector fields stay disabled. The locked orchestrator opens
+Agent, Instructions, and Limits from its own fixture and stays off the
+graph. Opening the editor does not clear
 run drafts.
 
 New workflow, “Describe one to an agent”, Resources task links,

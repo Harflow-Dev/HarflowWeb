@@ -297,6 +297,10 @@ selected. `sips` reports 1280×800. Appearance is the shared session theme.
 | `04-nightly-routed-light-loop.png` | Nightly dashed loop | 1280×800 | light, sidebar expanded |
 | `05-nightly-routed-dark-loop.png` | Nightly dashed loop | 1280×800 | dark, sidebar expanded |
 | `06-release-routed-dark-end.png` | Release scrolled to End | 1280×800 | dark, sidebar expanded |
+| `07-orchestrator-light-agent.png` | Orchestrator Agent and Instructions | 1280×800 | light, sidebar expanded |
+| `08-orchestrator-light-limits.png` | Orchestrator Limits scrolled into view | 1280×800 | light, sidebar expanded |
+| `09-orchestrator-dark-limits.png` | Orchestrator Limits scrolled into view | 1280×800 | dark, sidebar expanded |
+| `10-orchestrator-dark-agent.png` | Orchestrator Agent and Instructions | 1280×800 | dark, sidebar expanded |
 
 `01` and `02` remain as the captures from before the canvas scrollport. Use
 `03`–`06` for reachability.
@@ -324,6 +328,20 @@ The dashed loop under Audit lockfiles has `stroke-dasharray: 6, 4` and its
 path numbers stay non-negative (minimum 99). Selecting End moves the
 inspector to End and leaves focus on that node. The footer reads
 “3 path nodes · 1 on demand”.
+
+Observed on `07`–`10`: Release checklist with the locked Orchestrator
+selected. The inspector title is Orchestrator, with the preface “Every
+workflow has one. It can't be removed.” and no delete control. Agent shows
+Claude Code, Opus 5.5, High, an empty turn limit, caller approvals off, and
+the expanded fallback Codex · gpt-6-astra. Instructions match the specimen.
+At scroll position 0 the Limits heading is at the bottom of the inspector.
+Scrolling the inspector body to 255 of 255 brings Decision attempts 3,
+Inspections 20, On-demand calls per decision 5, Parallel agents 4,
+Transition limit 100, and the closing caption fully inside the body. The
+orchestrator stays on the standalone strip. The canvas still has eight
+connectors and no orchestrator node. The inspector scrollbar in dark is
+tertiary at 72% opacity. Edit with agent, Discard, Save, and Run stay
+disabled. The existing Mock engine badge overlaps Run.
 
 The canvas port accepts focus. A synthetic Left key from the browser tool
 did not move `scrollLeft`; that tool dispatches an untrusted DOM event, so
@@ -384,6 +402,9 @@ approved specimen and were not captured as specimens.
   states are proposals, not approved specimens. At 1280×800 the scaled
   Release checklist board is wider than the visible canvas. The inner
   scrollport reaches End; `01` and `02` still show the earlier clipped frame.
+  The Nightly orchestrator uses the same inspector sections with separate
+  fixture instructions and limits. Those values are not a second design
+  specimen.
 - Empty workflows and resources screenshots used `/preview` with the scenario
   panel hidden. Statistics and running-task verification use `/` to avoid the
   preview-grid capture trap described above.

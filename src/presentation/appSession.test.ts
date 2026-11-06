@@ -21,6 +21,7 @@ import {
   asRepositoryId,
   asTaskId,
   asWorkflowId,
+  asWorkflowNodeId,
   type ContextLoad,
   type ObservationHandle,
   type ResourcesLoad,
@@ -29,6 +30,8 @@ import {
   type WorkflowId,
   type WorkflowRunContext,
   type WorkflowRunContextLoad,
+  type WorkflowRunId,
+  type WorkflowRunLoad,
   type WorkflowSummary,
   type WorkflowsLoad,
   workflowPermissionFacts,
@@ -38,7 +41,11 @@ import { populatedComposer, populatedSidebar } from '../adapters/mock/fixtures'
 import { populatedHarnessesLoad } from '../adapters/mock/harnessFixtures'
 import { waitingNeedsYouLoad } from '../adapters/mock/needsYouFixtures'
 import { workflowEditorLoadFor } from '../adapters/mock/workflowEditorFixtures'
-import { workflowExecutionLoadFor } from '../adapters/mock/workflowExecutionFixtures'
+import {
+  NIGHTLY_AUDIT_RUN_ID,
+  nightlyAuditRun,
+  workflowExecutionLoadFor,
+} from '../adapters/mock/workflowExecutionFixtures'
 import {
   NIGHTLY_WORKFLOW_ID,
   RELEASE_WORKFLOW_ID,
@@ -77,6 +84,9 @@ function createTestEngine(options?: {
   captureWorkflowRun: (
     id: WorkflowId,
   ) => ((load: WorkflowRunContextLoad) => void) | null
+  captureWorkflowExecution: (
+    id: WorkflowRunId,
+  ) => ((load: WorkflowRunLoad) => void) | null
 } {
   const starts: StartTaskRequest[] = []
   const contextListeners = new Set<(load: ContextLoad) => void>()
@@ -84,6 +94,10 @@ function createTestEngine(options?: {
   const runListeners = new Map<
     WorkflowId,
     (load: WorkflowRunContextLoad) => void
+  >()
+  const executionListeners = new Map<
+    WorkflowRunId,
+    (load: WorkflowRunLoad) => void
   >()
   let held = createControllablePromise<StartTaskOutcome>()
   const initialWorkflows: WorkflowsLoad = options?.workflows ?? {
@@ -139,11 +153,14 @@ function createTestEngine(options?: {
       }
     },
     observeWorkflowExecution(runId, onUpdate) {
+      executionListeners.set(runId, onUpdate)
       queueMicrotask(() => onUpdate(workflowExecutionLoadFor(runId)))
       return {
         id: asObservationId('app-workflow-execution'),
         cancel() {
-          /* execution lifetime is covered in its session tests */
+          if (executionListeners.get(runId) === onUpdate) {
+            executionListeners.delete(runId)
+          }
         },
       }
     },
@@ -228,6 +245,9 @@ function createTestEngine(options?: {
     },
     captureWorkflowRun(id) {
       return runListeners.get(id) ?? null
+    },
+    captureWorkflowExecution(id) {
+      return executionListeners.get(id) ?? null
     },
   }
 }
@@ -659,6 +679,80 @@ describe('AppPresenter workflows slice', () => {
       ).toBeNull()
     }
     expect(engine.starts).toHaveLength(0)
+    presenter.dispose()
+  })
+
+  it('drops the run on Settings and shows the list on the next Workflows click', async () => {
+    const engine = createTestEngine()
+    const presenter = createPresenter(engine.port)
+    presenter.start()
+    await flush()
+    presenter.openWorkflowRun(RELEASE_WORKFLOW_ID)
+    await flush()
+    presenter.setWorkflowRunTask('keep task')
+    presenter.setWorkflowRunGoal('keep goal')
+    presenter.openWorkflowEditor(RELEASE_WORKFLOW_ID)
+    await flush()
+    presenter.selectWorkflowNode(asWorkflowNodeId('release-review'))
+    const draft = {
+      ...presenter.getState().workflows.drafts[RELEASE_WORKFLOW_ID],
+    }
+    const editor = presenter.getState().workflowEditor
+    presenter.closeWorkflowRun()
+    presenter.closeWorkflowEditor()
+    presenter.openWorkflowExecution(NIGHTLY_AUDIT_RUN_ID)
+    await flush()
+    const callback = engine.captureWorkflowExecution(NIGHTLY_AUDIT_RUN_ID)
+    expect(presenter.getState().workflowExecution.runId).toBe(NIGHTLY_AUDIT_RUN_ID)
+    presenter.navigate('settings')
+    expect(presenter.getState().route).toBe('settings')
+    expect(presenter.getState().workflowExecution.runId).toBeNull()
+    callback?.({
+      kind: 'ready',
+      run: { ...nightlyAuditRun(), title: 'Late replacement' },
+    })
+    expect(presenter.getState().workflowExecution.runId).toBeNull()
+    expect(presenter.getState().workflowExecution.load.kind).toBe('loading')
+    presenter.navigate('workflows')
+    expect(presenter.getState().route).toBe('workflows')
+    expect(presenter.getState().workflowExecution.runId).toBeNull()
+    expect(presenter.getState().workflows.runWorkflowId).toBeNull()
+    expect(presenter.getState().workflowEditor.workflowId).toBeNull()
+    expect(presenter.getState().workflows.drafts[RELEASE_WORKFLOW_ID]).toEqual(draft)
+    expect(presenter.getState().workflowEditor.selections).toEqual(editor.selections)
+    presenter.dispose()
+  })
+
+  it('keeps an open form and editor when the run observation is left', async () => {
+    const engine = createTestEngine()
+    const presenter = createPresenter(engine.port)
+    presenter.start()
+    await flush()
+    presenter.openWorkflowRun(RELEASE_WORKFLOW_ID)
+    await flush()
+    presenter.setWorkflowRunTask('keep task')
+    presenter.setWorkflowRunGoal('keep goal')
+    presenter.openWorkflowEditor(RELEASE_WORKFLOW_ID)
+    await flush()
+    presenter.selectWorkflowNode(asWorkflowNodeId('release-review'))
+    const draft = {
+      ...presenter.getState().workflows.drafts[RELEASE_WORKFLOW_ID],
+    }
+    const editor = {
+      workflowId: presenter.getState().workflowEditor.workflowId,
+      selections: presenter.getState().workflowEditor.selections,
+    }
+    presenter.openWorkflowExecution(NIGHTLY_AUDIT_RUN_ID)
+    await flush()
+    const callback = engine.captureWorkflowExecution(NIGHTLY_AUDIT_RUN_ID)
+    presenter.navigate('settings')
+    callback?.({ kind: 'ready', run: nightlyAuditRun() })
+    presenter.navigate('workflows')
+    expect(presenter.getState().workflowExecution.runId).toBeNull()
+    expect(presenter.getState().workflows.runWorkflowId).toBe(RELEASE_WORKFLOW_ID)
+    expect(presenter.getState().workflows.drafts[RELEASE_WORKFLOW_ID]).toEqual(draft)
+    expect(presenter.getState().workflowEditor.workflowId).toBe(editor.workflowId)
+    expect(presenter.getState().workflowEditor.selections).toEqual(editor.selections)
     presenter.dispose()
   })
 })

@@ -132,7 +132,13 @@ ready or empty claim, and a captured callback after replacement or disposal
 cannot restore it. Approve, reject, and answer stay disabled. Mapped Open
 task calls the existing `openTask` navigation and does not start a task.
 Unmapped Open task stays disabled. The Nightly Needs you item’s Open run
-opens that mapped run id and does not approve the publish.
+opens that mapped run id and does not approve the publish. The Needs you
+card and the run detail read one publish snapshot for the branch, requester
+and model, repository, and publish action. Leaving the workflows route, or
+choosing Workflows again, cancels that run observation and rejects a late
+callback. Editor and run-form drafts stay as they were. The graph exposes
+every node’s status and selected state in a list; the drawn canvas is
+presentational.
 
 Opening a workflow Run from the list sets `runWorkflowId` and observes that
 id. The previous context is cleared to loading before the next result arrives.

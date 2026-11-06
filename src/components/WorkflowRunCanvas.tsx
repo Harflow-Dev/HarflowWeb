@@ -1,4 +1,4 @@
-import type { WorkflowRunNode, WorkflowRunObservation } from '../model'
+import type { WorkflowRunNode, WorkflowRunNodeStatus, WorkflowRunObservation } from '../model'
 import { workflowRunScene } from '../presentation'
 import { Icon } from './Icon'
 
@@ -20,12 +20,12 @@ export function WorkflowRunCanvas({ run }: Props) {
     <div className="hd-canvas">
       <div
         className="hd-canvas__port hd-thin-scroll"
-        role="img"
-        aria-label={run.graphLabel}
+        role="region"
+        aria-label="Workflow graph"
         tabIndex={0}
         style={{ scrollbarGutter: 'auto' }}
       >
-        <div style={{ width: scene.width * SCALE, height: scene.height * SCALE }}>
+        <div aria-hidden="true" style={{ width: scene.width * SCALE, height: scene.height * SCALE }}>
           <div
             style={{
               width: scene.width,
@@ -61,8 +61,31 @@ export function WorkflowRunCanvas({ run }: Props) {
           </div>
         </div>
       </div>
+      <NodeList run={run} />
     </div>
   )
+}
+
+function NodeList({ run }: { readonly run: WorkflowRunObservation }) {
+  return (
+    <ul className="hd-sr" aria-label={run.graphLabel}>
+      {run.nodes.map((node) => {
+        const selected = node.id === run.selectedNodeId
+        return (
+          <li key={node.id} aria-current={selected ? 'true' : undefined}>
+            {`${node.title}, ${statusName(node.status)}, ${selected ? 'selected' : 'not selected'}`}
+          </li>
+        )
+      })}
+    </ul>
+  )
+}
+
+function statusName(status: WorkflowRunNodeStatus): string {
+  if (status === 'done') return 'Done'
+  if (status === 'needs-you') return 'Needs you'
+  if (status === 'pending') return 'Pending'
+  return 'Not called'
 }
 
 function EdgeLayer({

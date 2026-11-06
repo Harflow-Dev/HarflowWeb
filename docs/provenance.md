@@ -77,7 +77,7 @@
 | Workflow definition list | Design `workflows/list` + `workflows/empty` specimen copy | **Mock-only presentation** — not a public ctl workflow catalog; no run status |
 | Workflow run form | Design `workflows/run` Task, Goal, repository, saved orchestrator, and permissions preview | **Mock-only presentation** — session-local draft; final Run disabled; permission lines are fixture facts, not installed or qualified backends and not enforcement |
 | Workflow editor preview | Design `workflow-editor/node-selected` graph, standalone strip, and inspector | **Mock-only presentation** — read-only; two mapped definitions; editing, save, delete, connect, and run stay disabled |
-| Workflow run graph | Design `workflow-run/graph-needs-you` | **Mock-only presentation** — one mapped run id, distinct from the Nightly definition id; Pause, Cancel, Approve, Reject, and goal edits stay disabled; Parallel, recovery, and on-demand details are omitted |
+| Workflow run graph | Design `workflow-run/graph-needs-you`, with the publish request adapted to `needs-you/waiting` | **Mock-only presentation** — one mapped run id, distinct from the Nightly definition id; branch, requester, repository, and publish action come from the shared Nightly snapshot; Pause, Cancel, Approve, Reject, and goal edits stay disabled; Parallel, recovery, and on-demand details are omitted |
 | Resources slot observation | Design `resources/slots` specimen copy | **Mock-only presentation** — not a public ctl resources catalog; no install/release/admin |
 | Statistics overview | Design `statistics/overview` specimen copy + distinct 7-day mock range | **Mock-only presentation** — not a public ctl statistics/billing API; success rate and median are fixture facts only when coverage is complete |
 | Running-task transcript | Design `task/running` specimen copy | **Mock-only presentation** — not a public ctl transcript protocol; mapped fixture ids only |
@@ -86,7 +86,7 @@
 | Completed-task Changes | Design `task/done` Changes pane file list + selected diff | **Mock-only presentation** — recorded repository observations; not Git/fs; not authorship proof; independent of task success |
 | Settings general | Design `settings/general` specimen copy | **Mock-only presentation** — shared session appearance only; behaviour/runtime/store unavailable or static facts; not persisted |
 | Settings harnesses | Design `settings/harnesses` and `settings/mcp-approvals` | **Mock-only presentation** — independent fixture facts; the disclosure shows that harness’s list only; unknown or missing approvals stay unavailable; no PATH probe, install, registration change, or approval edit |
-| Needs you waiting | Design `needs-you/waiting` approvals and one question | **Mock-only presentation** — fixture requests, not this computer; exact-action labels; no approval authority |
+| Needs you waiting | Design `needs-you/waiting` approvals and one question | **Mock-only presentation** — fixture requests, not this computer; the Nightly publish card uses the same snapshot as the run detail; exact-action labels; no approval authority |
 | Needs you empty | Design `needs-you/empty` | **Mock-only presentation** — complete coverage and zero items only; unknown is not this state |
 | Repository options | Mock-only | Future server-hosted repos; not filesystem pickers; not ctl |
 

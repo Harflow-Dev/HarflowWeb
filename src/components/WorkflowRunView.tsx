@@ -129,6 +129,6 @@ function Standalone({ nodes }: { readonly nodes: readonly WorkflowRunNode[] }) {
 }
 
 function standaloneName(node: WorkflowRunNode): string {
-  if (node.status === 'idle') return `${node.title}, on demand node, not called`
-  return `${node.title}, on demand node, 2 calls`
+  const status = node.status === 'idle' ? 'not called' : 'done'
+  return `${node.title}, on demand node, ${status}, not selected`
 }

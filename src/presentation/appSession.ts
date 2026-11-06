@@ -140,12 +140,11 @@ export class AppSession {
   }
 
   navigate(route: AppRoute): void {
-    const closingRun =
-      route === 'workflows' &&
-      this.route === 'workflows' &&
-      this.workflowExecution.getState().runId !== null
-    if (closingRun) this.workflowExecution.close()
-    if (this.route === route && !closingRun) return
+    const runOpen = this.workflowExecution.getState().runId !== null
+    const leavingRun = runOpen && this.route === 'workflows' && route !== 'workflows'
+    const dismissingRun = runOpen && route === 'workflows'
+    if (leavingRun || dismissingRun) this.workflowExecution.close()
+    if (this.route === route && !leavingRun && !dismissingRun) return
     this.route = route
     this.emit()
   }

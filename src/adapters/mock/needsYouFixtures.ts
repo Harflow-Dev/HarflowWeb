@@ -1,4 +1,8 @@
 import type { NeedsYouLoad, NeedsYouObservation } from '../../model'
+import {
+  NIGHTLY_PUBLISH_SNAPSHOT,
+  NIGHTLY_REQUESTER_MODEL,
+} from './nightlyPublishSnapshot'
 import { NIGHTLY_AUDIT_RUN_ID } from './workflowExecutionFixtures'
 import { SLOT_RELEASE_TASK_ID } from './taskFixtures'
 
@@ -30,9 +34,8 @@ export function waitingNeedsYouObservation(): NeedsYouObservation {
         kind: 'approval',
         id: 'approve-nightly-publish',
         actionLabel: 'Wants to publish',
-        exactAction:
-          'Push branch deps/audit-2026-11-03 and open a pull request in HarflowMCP',
-        detail: 'Needs Can publish access · Codex · gpt-6-astra',
+        exactAction: NIGHTLY_PUBLISH_SNAPSHOT.publishAction,
+        detail: `${NIGHTLY_PUBLISH_SNAPSHOT.needsYouAccess} · ${NIGHTLY_REQUESTER_MODEL}`,
         approveLabel: 'Approve this publish',
         rejectLabel: 'Reject',
         context: {

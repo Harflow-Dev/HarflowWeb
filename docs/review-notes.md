@@ -36,7 +36,13 @@ grant approvals, answer questions, or touch the task store.
   publish action reads “Approve this publish” (exact action; specimen “Approve”
   is not used). Approve, Reject, Send, and reply stay disabled. The Nightly
   publish card’s Open run opens the mapped run screen and does not approve
-  it. Unmapped Open task stays disabled. Mapped Open task navigates to that
+  it. That card and the run detail share one snapshot: branch
+  `deps/audit-2026-11-03`, Codex · gpt-6-astra, HarflowMCP, and the same
+  publish action. The graph specimen’s branch, model, and “on HarflowMCP”
+  wording are adapted to that request. Leaving the run cancels its
+  observation. The next Workflows click shows the list. Editor and form
+  drafts stay. Every graph node’s status and selected state are in a list.
+  Unmapped Open task stays disabled. Mapped Open task navigates to that
   task and does not start one. The empty state is complete coverage with zero
   items.
   Loading and unavailable do not say nothing needs you and do not show a zero

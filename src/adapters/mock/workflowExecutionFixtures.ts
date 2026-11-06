@@ -7,6 +7,10 @@ import {
   type WorkflowRunLoad,
   type WorkflowRunObservation,
 } from '../../model'
+import {
+  NIGHTLY_PUBLISH_SNAPSHOT,
+  NIGHTLY_REQUESTER_MODEL,
+} from './nightlyPublishSnapshot'
 
 /**
  * workflow-run/graph-needs-you from HarflowDesign
@@ -22,6 +26,9 @@ const SCAN = asWorkflowNodeId('run-scan-lockfiles')
 const DRAFT = asWorkflowNodeId('run-draft-upgrade')
 const OPEN_PR = asWorkflowNodeId('run-open-pull-request')
 const NOTIFY = asWorkflowNodeId('run-notify')
+const PUBLISH = NIGHTLY_PUBLISH_SNAPSHOT
+const PUBLISH_COMMAND = `git push origin ${PUBLISH.branch}
+gh pr create --repo ${PUBLISH.remote} --title "${PUBLISH.pullRequestTitle}"`
 
 export function nightlyAuditRun(): WorkflowRunObservation {
   return {
@@ -68,13 +75,13 @@ export function nightlyAuditRun(): WorkflowRunObservation {
       statusLabel: 'Needs you',
       goal: 'Upgrade the three vulnerable dependencies with all tests passing, and open one pull request with the lockfile changes.',
       assessment: 'Assessment: in progress',
-      agent: 'Codex · gpt-6 · HarflowMCP',
+      agent: `${NIGHTLY_REQUESTER_MODEL} · ${PUBLISH.repository}`,
       message:
         'The upgrade plan changes 3 packages: httpx, pydantic and pytest. The lockfile is updated on the branch.',
       tools: [
         {
           id: 'run-tool-switch',
-          summary: 'git switch -c audit/2026-11-03',
+          summary: `git switch -c ${PUBLISH.branch}`,
           duration: '0:01',
           output: null,
         },
@@ -87,11 +94,10 @@ export function nightlyAuditRun(): WorkflowRunObservation {
       ],
       approval: {
         title: 'Publish changes',
-        source: 'Codex · Worker',
-        body: 'Push branch audit/2026-11-03 and open a pull request on HarflowMCP.',
-        command:
-          'git push origin audit/2026-11-03\ngh pr create --repo Harflow-Dev/HarflowMCP --title "Upgrade 3 dependencies"',
-        access: 'Requires the access level Can publish.',
+        source: NIGHTLY_REQUESTER_MODEL,
+        body: PUBLISH.publishAction,
+        command: PUBLISH_COMMAND,
+        access: PUBLISH.runAccess,
       },
     },
   }

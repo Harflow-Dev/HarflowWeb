@@ -322,15 +322,19 @@ Same CDP clip + `sips` verification.
 Observed: title “Nightly dependency audit”, Needs you badge, and
 “Step 2 of 4 · 06:31”. Graph is current. Parallel, Pause, Cancel run, More
 actions, Revise goal, and the standalone on-demand nodes stay disabled.
-The graph image names Scan lockfiles, Draft upgrade plan, Open pull request,
-and Notify. At 1280×800 the canvas port client width and scroll width are
-both 556; Notify’s box ends at 543 inside that port. The selected pane shows
-the goal, pytest output “812 passed in 71.40s”, Publish changes, and disabled
-Approve and Reject. The pane’s maximum scroll is 57px; after scrolling,
-Approve’s bottom is 792, inside the 800px viewport. Document scrollWidth
-equals clientWidth (1280). Light focus is the Light control. Dark focus is
-the Dark control. Parallel, recovery, and on-demand detail views were not
-captured.
+The drawn canvas is presentational. A list names every node with its status
+and selected state: Scan lockfiles Done, Draft upgrade plan Done, Open pull
+request Needs you and selected, Notify Pending, Security reviewer Done, and
+Docs checker Not called. At 1280×800 the canvas port client width and scroll
+width are both 556; Notify’s box ends at 543 inside that port. The selected
+pane shows the shared publish request: Codex · gpt-6-astra · HarflowMCP,
+branch deps/audit-2026-11-03, pytest output “812 passed in 71.40s”, Publish
+changes, and disabled Approve and Reject. The pane’s maximum scroll is 57px;
+after scrolling, Approve’s bottom is 792, inside the 800px viewport. Document
+scrollWidth equals clientWidth (1280). Light focus is the Light control. Dark
+focus is the Dark control. Parallel, recovery, and on-demand detail views
+were not captured. The graph specimen’s `audit/2026-11-03`, Codex · gpt-6,
+and “on HarflowMCP” are adapted to the Needs you request.
 
 ## Workflow editor — verified 1280×800 captures
 

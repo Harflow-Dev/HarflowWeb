@@ -1509,7 +1509,7 @@ describe('AppFeature navigation', () => {
     const step = screen.getByRole('complementary', { name: 'Selected step' })
     expect(step).toHaveTextContent('Open pull request')
     expect(step).toHaveTextContent('Publish changes')
-    expect(screen.getByRole('img', { name: /Scan lockfiles/ })).toBeInTheDocument()
+    expect(screen.getByRole('list', { name: /Scan lockfiles/ })).toBeInTheDocument()
     await user.click(within(nav).getByRole('button', { name: 'Workflows' }))
     expect(presenter.getState().workflowExecution.runId).toBeNull()
     await user.click(within(nav).getByRole('button', { name: /Needs you/ }))
@@ -1556,6 +1556,30 @@ describe('AppFeature navigation', () => {
     expect(presenter.getState().statistics.selectedRange).toBe('7d')
     expect(presenter.getState().newTask.prompt).toBe('draft beside needs you')
     expect(engine.starts).toHaveLength(1)
+  })
+
+  it('shows the workflow list on the first Workflows click after leaving the run', async () => {
+    const user = userEvent.setup()
+    const engine = createTestEngine()
+    const { presenter } = renderApp(engine.port)
+    await flush()
+    const nav = screen.getByRole('navigation', { name: 'Main' })
+    await user.click(within(nav).getByRole('button', { name: /Needs you/ }))
+    await user.click(
+      screen.getByRole('button', { name: 'Open run Nightly dependency audit' }),
+    )
+    expect(
+      await screen.findByRole('complementary', { name: 'Selected step' }),
+    ).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Settings' }))
+    expect(presenter.getState().workflowExecution.runId).toBeNull()
+    await user.click(within(nav).getByRole('button', { name: 'Workflows' }))
+    expect(screen.getByRole('heading', { name: 'Workflows' })).toBeInTheDocument()
+    expect(
+      screen.queryByRole('complementary', { name: 'Selected step' }),
+    ).not.toBeInTheDocument()
+    expect(presenter.getState().route).toBe('workflows')
+    expect(presenter.getState().workflowExecution.runId).toBeNull()
   })
 
   it('keeps workflow run drafts isolated and leaves final Run unavailable', async () => {

@@ -21,15 +21,38 @@ describe('WorkflowRunView', () => {
     render(<WorkflowRunView load={load} />)
     expect(screen.getByText('Nightly dependency audit')).toBeInTheDocument()
     expect(screen.getByText('Step 2 of 4 · 06:31')).toBeInTheDocument()
-    const graph = screen.getByRole('img', { name: /Scan lockfiles/ })
-    expect(graph).toHaveTextContent('Draft upgrade plan')
-    expect(graph).toHaveTextContent('Open pull request')
-    expect(graph).toHaveTextContent('Notify')
+    const graph = screen.getByRole('region', { name: 'Workflow graph' })
     expect(graph.querySelectorAll('path').length).toBeGreaterThan(0)
+    expect(screen.queryByRole('img', { name: /Scan lockfiles/ })).not.toBeInTheDocument()
+    const steps = screen.getByRole('list', { name: /Scan lockfiles/ })
+    const items = within(steps).getAllByRole('listitem')
+    expect(items.map((item) => item.textContent)).toEqual([
+      'Scan lockfiles, Done, not selected',
+      'Draft upgrade plan, Done, not selected',
+      'Open pull request, Needs you, selected',
+      'Notify, Pending, not selected',
+      'Security reviewer, Done, not selected',
+      'Docs checker, Not called, not selected',
+    ])
+    expect(items[2]).toHaveAttribute('aria-current', 'true')
+    for (const item of items.filter((_, index) => index !== 2)) {
+      expect(item).not.toHaveAttribute('aria-current')
+    }
+    expect(
+      screen.getByRole('button', {
+        name: 'Security reviewer, on demand node, done, not selected',
+      }),
+    ).toBeDisabled()
+    expect(
+      screen.getByRole('button', {
+        name: 'Docs checker, on demand node, not called, not selected',
+      }),
+    ).toBeDisabled()
     const step = screen.getByRole('complementary', { name: 'Selected step' })
     expect(within(step).getByText('Open pull request')).toBeInTheDocument()
     expect(step).toHaveTextContent('812 passed in 71.40s')
-    expect(step).toHaveTextContent('git push origin audit/2026-11-03')
+    expect(step).toHaveTextContent('git push origin deps/audit-2026-11-03')
+    expect(step).toHaveTextContent('Codex · gpt-6-astra · HarflowMCP')
     const approve = within(step).getByRole('button', { name: 'Approve' })
     const reject = within(step).getByRole('button', { name: 'Reject' })
     const pause = screen.getByRole('button', { name: 'Pause' })

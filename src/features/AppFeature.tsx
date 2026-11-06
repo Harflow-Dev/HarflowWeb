@@ -57,7 +57,10 @@ export function AppFeature({ presenter }: Props) {
         />
         <main className="hd-main">
           {state.workflowExecution.runId !== null && state.route === 'workflows' ? (
-            <WorkflowRunMain state={state.workflowExecution} />
+            <WorkflowRunMain
+              state={state.workflowExecution}
+              onSelectNode={(id) => presenter.selectWorkflowRunNode(id)}
+            />
           ) : state.route === 'new-task' ? (
             <NewTaskMain presenter={presenter} state={newTask} />
           ) : state.route === 'workflows' ? (

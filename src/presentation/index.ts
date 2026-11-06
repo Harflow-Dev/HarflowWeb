@@ -55,6 +55,10 @@ export {
 } from './workflowExecutionState'
 export { WorkflowExecutionSession } from './workflowExecutionSession'
 export { workflowRunScene } from './workflowRunScene'
+export {
+  resolveWorkflowRunSelection,
+  workflowRunOnDemandFor,
+} from './workflowRunSelection'
 export { workflowScene, type WorkflowScene } from './workflowGraphRoutes'
 export { roundedOrthogonalPath } from './workflowRoundedPath'
 export { routeConnection } from './workflowConnectionRouter'

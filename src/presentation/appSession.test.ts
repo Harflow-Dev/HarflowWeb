@@ -795,4 +795,76 @@ describe('AppPresenter workflows slice', () => {
     expect(presenter.getState().workflowExecution.load.kind).toBe('loading')
     presenter.dispose()
   })
+
+  it('keeps the inspector for a same-run update and resets it after leaving', async () => {
+    const engine = createTestEngine()
+    const presenter = createPresenter(engine.port)
+    presenter.start()
+    await flush()
+    presenter.openWorkflowRun(RELEASE_WORKFLOW_ID)
+    await flush()
+    presenter.setWorkflowRunTask('keep task')
+    presenter.setWorkflowRunGoal('keep goal')
+    presenter.openWorkflowEditor(RELEASE_WORKFLOW_ID)
+    await flush()
+    presenter.selectWorkflowNode(asWorkflowNodeId('release-review'))
+    const draft = {
+      ...presenter.getState().workflows.drafts[RELEASE_WORKFLOW_ID],
+    }
+    const selections = presenter.getState().workflowEditor.selections
+    presenter.openWorkflowExecution(NIGHTLY_AUDIT_RUN_ID)
+    await flush()
+    const callback = engine.captureWorkflowExecution(NIGHTLY_AUDIT_RUN_ID)
+    presenter.selectWorkflowRunNode(asWorkflowNodeId('run-security-reviewer'))
+    expect(presenter.getState().workflowExecution.selectedNodeId).toBe(
+      'run-security-reviewer',
+    )
+    const ready = presenter.getState().workflowExecution.load
+    expect(ready.kind).toBe('ready')
+    if (ready.kind === 'ready') {
+      expect(ready.run.selectedNodeId).toBe('run-open-pull-request')
+    }
+    callback?.({
+      kind: 'ready',
+      run: { ...nightlyAuditRun(), progressLabel: 'Step 2 of 4 · 07:05' },
+    })
+    expect(presenter.getState().workflowExecution.selectedNodeId).toBe(
+      'run-security-reviewer',
+    )
+    const updated = presenter.getState().workflowExecution.load
+    expect(updated.kind).toBe('ready')
+    if (updated.kind === 'ready') {
+      expect(updated.run.progressLabel).toBe('Step 2 of 4 · 07:05')
+      expect(updated.run.selectedNodeId).toBe('run-open-pull-request')
+      expect(updated.run.title).toBe('Nightly dependency audit')
+    }
+    presenter.navigate('settings')
+    callback?.({
+      kind: 'ready',
+      run: { ...nightlyAuditRun(), title: 'Late replacement' },
+    })
+    expect(presenter.getState().route).toBe('settings')
+    expect(presenter.getState().workflowExecution.runId).toBeNull()
+    expect(presenter.getState().workflowExecution.selectedNodeId).toBeNull()
+    expect(presenter.getState().workflowExecution.load.kind).toBe('loading')
+    expect(presenter.getState().workflows.drafts[RELEASE_WORKFLOW_ID]).toEqual(draft)
+    expect(presenter.getState().workflowEditor.selections).toEqual(selections)
+    presenter.openWorkflowExecution(NIGHTLY_AUDIT_RUN_ID)
+    await flush()
+    expect(presenter.getState().workflowExecution.selectedNodeId).toBeNull()
+    const reopened = presenter.getState().workflowExecution.load
+    expect(reopened.kind).toBe('ready')
+    if (reopened.kind === 'ready') {
+      expect(reopened.run.title).toBe('Nightly dependency audit')
+      expect(reopened.run.selectedNodeId).toBe('run-open-pull-request')
+    }
+    expect(presenter.getState().workflows.drafts[RELEASE_WORKFLOW_ID]).toEqual(draft)
+    expect(presenter.getState().workflowEditor.selections).toEqual(selections)
+    presenter.navigate('workflows')
+    expect(presenter.getState().workflowExecution.runId).toBeNull()
+    expect(presenter.getState().workflows.runWorkflowId).toBe(RELEASE_WORKFLOW_ID)
+    expect(presenter.getState().workflows.drafts[RELEASE_WORKFLOW_ID]).toEqual(draft)
+    expect(presenter.getState().workflowEditor.selections).toEqual(selections)
+    presenter.dispose()
+  })
 })

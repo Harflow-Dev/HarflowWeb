@@ -1,4 +1,5 @@
 import type { WorkflowId, WorkflowNodeId, WorkflowRunId } from './ids'
+import type { InlineRun } from './task'
 import type { WorkflowNodeFrame } from './workflowEditor'
 
 /**
@@ -51,6 +52,36 @@ export type WorkflowRunDetail = {
   readonly approval: WorkflowRunApproval
 }
 
+/** One recorded call label. Rows are not a selection control. */
+export type WorkflowRunCallRow = {
+  readonly id: string
+  readonly label: string
+  readonly highlighted: boolean
+}
+
+/** The one call body recorded for an on-demand node. */
+export type WorkflowRunOnDemandCall = {
+  readonly id: string
+  readonly caption: string
+  readonly userMessage: string
+  readonly agentRuns: readonly InlineRun[]
+  readonly tool: WorkflowRunTool
+  readonly result: string
+}
+
+/**
+ * Read-only call inspector for one standalone node on this run.
+ * nodeId must be that node's id. Another node's inspector is not a fallback.
+ */
+export type WorkflowRunOnDemand = {
+  readonly nodeId: WorkflowNodeId
+  readonly title: string
+  readonly caption: string
+  readonly introduction: string
+  readonly calls: readonly WorkflowRunCallRow[]
+  readonly call: WorkflowRunOnDemandCall
+}
+
 export type WorkflowRunObservation = {
   readonly runId: WorkflowRunId
   readonly definitionId: WorkflowId
@@ -64,6 +95,7 @@ export type WorkflowRunObservation = {
   readonly edges: readonly WorkflowRunEdge[]
   readonly selectedNodeId: WorkflowNodeId
   readonly detail: WorkflowRunDetail
+  readonly onDemand: readonly WorkflowRunOnDemand[]
 }
 
 export type WorkflowRunLoad =

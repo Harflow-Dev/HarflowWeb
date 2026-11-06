@@ -321,7 +321,9 @@ Same CDP clip + `sips` verification.
 
 Observed: title “Nightly dependency audit”, Needs you badge, and
 “Step 2 of 4 · 06:31”. Graph is current. Parallel, Pause, Cancel run, More
-actions, Revise goal, and the standalone on-demand nodes stay disabled.
+actions, and Revise goal stay disabled. In that capture the standalone
+on-demand nodes were disabled. Security reviewer is selectable in the
+on-demand capture below. Docs checker stays disabled.
 The drawn canvas is presentational. A list names every node with its status
 and selected state: Scan lockfiles Done, Draft upgrade plan Done, Open pull
 request Needs you and selected, Notify Pending, Security reviewer Done, and
@@ -332,9 +334,38 @@ branch deps/audit-2026-11-03, pytest output “812 passed in 71.40s”, Publish
 changes, and disabled Approve and Reject. The pane’s maximum scroll is 57px;
 after scrolling, Approve’s bottom is 792, inside the 800px viewport. Document
 scrollWidth equals clientWidth (1280). Light focus is the Light control. Dark
-focus is the Dark control. Parallel, recovery, and on-demand detail views
-were not captured. The graph specimen’s `audit/2026-11-03`, Codex · gpt-6,
+focus is the Dark control. Parallel and recovery detail views were not
+captured. The graph specimen’s `audit/2026-11-03`, Codex · gpt-6,
 and “on HarflowMCP” are adapted to the Needs you request.
+
+## Workflow run on-demand — verified 1280×800 captures
+
+Directory:
+`~/.codex/workflows/screenshots/2026-11-06-harflowweb-workflow-run-on-demand/`
+
+Captured from `/` after Needs you → Open run on Nightly dependency audit,
+then Security reviewer. `sips` reports 1280×800. Appearance is the shared
+session theme. CDP clip of the emulated viewport.
+
+| File | Scenario | Viewport / PNG | Appearance / chrome |
+| --- | --- | --- | --- |
+| `01-on-demand-light.png` | workflow-run/on-demand | 1280×800 | light, sidebar expanded |
+| `02-on-demand-dark.png` | workflow-run/on-demand | 1280×800 | dark, sidebar expanded |
+
+Observed: the graph stays visible. Security reviewer is selected in the
+strip (`2 calls · one at a time`). Open pull request is not the selected
+step. The pane is “Security reviewer”, caption “On demand”, with Close.
+The calls are Call 2 · Done · 01:12, highlighted, then Call 1 · Done · 00:48.
+The shown call is Call 2 · Codex · gpt-6-astra · HarflowMCP. The user and
+agent sentences, `uv.lock`, `httpx`, `pydantic`, and
+`pip-audit -r requirements.lock` with duration 0:41 are visible. The result
+is Done · no advisories · 01:12. The composer is visible and disabled.
+Document scrollWidth equals clientWidth (1280) and scrollHeight equals
+clientHeight (800). The pane’s scroll client height equals its scroll height
+(548), so the call text fits without scrolling. Close’s box is 1242–1268 by
+146–172, inside the viewport. No text in the pane extends past the pane’s
+right edge. Light focus is the Light control. Dark focus is the Dark control.
+Docs checker stays disabled. The locked Orchestrator card is not in the strip.
 
 ## Workflow editor — verified 1280×800 captures
 
@@ -419,7 +450,7 @@ approved specimen and were not captured as specimens.
   `needs-you/empty` light/dark)
 - Workflow run: `v2/scripts/screens-workflows.js` (`workflows/run` light/dark)
 - Workflow run graph: `v2/scripts/screens-workflow-run.js`
-  (`workflow-run/graph-needs-you` light/dark)
+  (`workflow-run/graph-needs-you` and `workflow-run/on-demand` light/dark)
 - Workflow editor: `v2/scripts/screens-workflow-editor.js`
   (`workflow-editor/node-selected` light/dark)
 - Observed in the running Vite app (not substituted from hosted design)
@@ -458,7 +489,9 @@ approved specimen and were not captured as specimens.
   not approved specimens. Workflow editor loading, error, and adaptive
   states are proposals, not approved specimens. MCP approvals Add and
   Remove stay disabled, so the expanded list is a read-only fixture view.
-  Parallel, recovery, and on-demand run details are outside this slice.
+  Parallel and recovery run details are outside this slice. The on-demand
+  inspector is the Security reviewer state above. The locked Orchestrator
+  strip card is a later design commit and is not on this screen.
   At 1280×800 the scaled
   Release checklist board is wider than the visible canvas. The inner
   scrollport reaches End; `01` and `02` still show the earlier clipped frame.

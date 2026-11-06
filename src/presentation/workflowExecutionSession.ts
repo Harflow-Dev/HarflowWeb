@@ -1,5 +1,10 @@
 import type { LoadWorkflowExecutionUseCase } from '../application'
-import type { ObservationHandle, WorkflowRunId, WorkflowRunLoad } from '../model'
+import type {
+  ObservationHandle,
+  WorkflowNodeId,
+  WorkflowRunId,
+  WorkflowRunLoad,
+} from '../model'
 import {
   initialWorkflowExecutionState,
   type WorkflowExecutionScreenState,
@@ -53,7 +58,7 @@ export class WorkflowExecutionSession {
     this.epoch += 1
     const gen = this.epoch
     this.observation?.cancel()
-    this.publish({ runId: id, load: { kind: 'loading' } })
+    this.publish({ runId: id, load: { kind: 'loading' }, selectedNodeId: null })
     this.watch(id, gen)
   }
 
@@ -61,7 +66,15 @@ export class WorkflowExecutionSession {
     this.epoch += 1
     this.observation?.cancel()
     this.observation = null
-    this.publish({ runId: null, load: { kind: 'loading' } })
+    this.publish({ runId: null, load: { kind: 'loading' }, selectedNodeId: null })
+  }
+
+  /** Remember a node choice. Does not write the observation's selected node. */
+  selectNode(nodeId: WorkflowNodeId | null): void {
+    const current = this.state
+    if (current.runId === null || current.load.kind !== 'ready') return
+    if (current.load.run.runId !== current.runId) return
+    this.publish({ ...current, selectedNodeId: nodeId })
   }
 
   private begin(id: WorkflowRunId): void {
@@ -79,7 +92,11 @@ export class WorkflowExecutionSession {
   private apply(id: WorkflowRunId, gen: number, load: WorkflowRunLoad): void {
     if (this.disposed || gen !== this.epoch || this.state.runId !== id) return
     if (load.kind === 'ready' && load.run.runId !== id) return
-    this.publish({ runId: id, load })
+    this.publish({
+      runId: id,
+      load,
+      selectedNodeId: this.state.selectedNodeId,
+    })
   }
 
   private publish(next: WorkflowExecutionScreenState): void {

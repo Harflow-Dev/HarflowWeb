@@ -58,7 +58,14 @@ click shows the list. The Nightly publish card and the run detail share one
 snapshot: branch `deps/audit-2026-11-03`, Codex · gpt-6-astra, repository
 HarflowMCP, and the same push-and-open-a-pull-request action. The graph
 specimen’s `audit/2026-11-03`, Codex · gpt-6, and “on HarflowMCP” are adapted
-to that request. Graph node roles stay the graph specimen. Mapped Open task only
+to that request. Graph node roles stay the graph specimen. Security reviewer
+opens a read-only call inspector for that node. The choice is presentation
+state: a later observation for the same run keeps it, and closing or opening
+the run returns to Open pull request. An unknown or mismatched node id shows
+that default detail and does not use another node's calls. The strip keeps
+“2 calls · one at a time”; the on-demand specimen's “2 calls” is recorded in
+`docs/provenance.md`. Docs checker, call rows, Open task, and the node
+composer stay unavailable. Parallel and recovery stay unavailable. Mapped Open task only
 navigates. A workflow-list Run button opens that definition’s run form through
 `observeWorkflowRun(workflowId, …)`. The draft is session-local and kept per
 definition id. Switching definitions clears the previous permissions into

@@ -46,6 +46,7 @@ export type AppPresenter = {
   openWorkflowEditor(id: WorkflowId): void
   closeWorkflowEditor(): void
   selectWorkflowNode(id: WorkflowNodeId): void
+  selectWorkflowRunNode(id: WorkflowNodeId | null): void
   openTask(taskId: TaskId): void
   setTaskChangesPaneOpen(open: boolean): void
   selectTaskChangedFile(path: string): void
@@ -97,6 +98,7 @@ export function createAppPresenter(deps: Deps): AppPresenter {
     openWorkflowEditor: (id) => session.openWorkflowEditor(id),
     closeWorkflowEditor: () => session.closeWorkflowEditor(),
     selectWorkflowNode: (id) => session.selectWorkflowNode(id),
+    selectWorkflowRunNode: (id) => session.selectWorkflowRunNode(id),
     openTask: (taskId) => session.openTask(taskId),
     setTaskChangesPaneOpen: (open) => session.setTaskChangesPaneOpen(open),
     selectTaskChangedFile: (path) => session.selectTaskChangedFile(path),

@@ -1558,6 +1558,44 @@ describe('AppFeature navigation', () => {
     expect(engine.starts).toHaveLength(1)
   })
 
+  it('opens the security reviewer inspector from the run strip and closes it', async () => {
+    const user = userEvent.setup()
+    const engine = createTestEngine()
+    const { presenter } = renderApp(engine.port)
+    await flush()
+    const nav = screen.getByRole('navigation', { name: 'Main' })
+    await user.click(within(nav).getByRole('button', { name: /Needs you/ }))
+    await user.click(
+      screen.getByRole('button', { name: 'Open run Nightly dependency audit' }),
+    )
+    await user.click(
+      await screen.findByRole('button', {
+        name: 'Security reviewer, on demand node, done, not selected',
+      }),
+    )
+    expect(
+      screen.getByRole('complementary', { name: 'Selected on-demand node' }),
+    ).toHaveTextContent('Done · no advisories · 01:12')
+    expect(presenter.getState().workflowExecution.selectedNodeId).toBe(
+      'run-security-reviewer',
+    )
+    const ready = presenter.getState().workflowExecution.load
+    expect(ready.kind).toBe('ready')
+    if (ready.kind === 'ready') {
+      expect(ready.run.selectedNodeId).toBe('run-open-pull-request')
+    }
+    await user.click(screen.getByRole('button', { name: 'Close' }))
+    expect(screen.getByRole('complementary', { name: 'Selected step' })).toHaveTextContent(
+      'Publish changes',
+    )
+    expect(presenter.getState().workflowExecution.selectedNodeId).toBeNull()
+    expect(
+      screen.getByRole('button', {
+        name: 'Docs checker, on demand node, not called, not selected',
+      }),
+    ).toBeDisabled()
+  })
+
   it('shows the workflow list on the first Workflows click after leaving the run', async () => {
     const user = userEvent.setup()
     const engine = createTestEngine()

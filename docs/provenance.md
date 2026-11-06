@@ -13,6 +13,7 @@
   - `v2/scripts/screens-statistics.js`
   - `v2/scripts/screens-settings.js`
   - `v2/scripts/screens-task.js`
+  - `v2/scripts/screens-workflow-run.js`
   - `v2/scripts/components.js`
   - `v2/styles/tokens.css`
   - `v2/styles/bundle.css` (vendored into `src/styles/`)
@@ -77,7 +78,7 @@
 | Workflow definition list | Design `workflows/list` + `workflows/empty` specimen copy | **Mock-only presentation** — not a public ctl workflow catalog; no run status |
 | Workflow run form | Design `workflows/run` Task, Goal, repository, saved orchestrator, and permissions preview | **Mock-only presentation** — session-local draft; final Run disabled; permission lines are fixture facts, not installed or qualified backends and not enforcement |
 | Workflow editor preview | Design `workflow-editor/node-selected` graph, standalone strip, and inspector | **Mock-only presentation** — read-only; two mapped definitions; editing, save, delete, connect, and run stay disabled |
-| Workflow run graph | Design `workflow-run/graph-needs-you`, with the publish request adapted to `needs-you/waiting` | **Mock-only presentation** — one mapped run id, distinct from the Nightly definition id; branch, requester, repository, and publish action come from the shared Nightly snapshot; Pause, Cancel, Approve, Reject, and goal edits stay disabled; Parallel, recovery, and on-demand details are omitted |
+| Workflow run graph | Design `workflow-run/graph-needs-you` and `workflow-run/on-demand`, with the publish request and Call 2 model adapted to `needs-you/waiting` | **Mock-only presentation** — one mapped run id, distinct from the Nightly definition id; branch, requester, repository, and publish action come from the shared Nightly snapshot; Security reviewer selection is presentation state and does not change the observation's selected node; Close returns to the Open pull request detail; a missing or mismatched node id shows that default detail; Pause, Cancel, Approve, Reject, goal edits, the node composer, and Open task stay disabled; Parallel, recovery, and the later locked Orchestrator strip card are omitted |
 | Resources slot observation | Design `resources/slots` specimen copy | **Mock-only presentation** — not a public ctl resources catalog; no install/release/admin |
 | Statistics overview | Design `statistics/overview` specimen copy + distinct 7-day mock range | **Mock-only presentation** — not a public ctl statistics/billing API; success rate and median are fixture facts only when coverage is complete |
 | Running-task transcript | Design `task/running` specimen copy | **Mock-only presentation** — not a public ctl transcript protocol; mapped fixture ids only |
@@ -145,6 +146,41 @@
 - Mapped Open task navigates to that task. The Nightly publish card’s Open
   run navigates to the mapped run graph and does not approve it. Unmapped
   Open task stays unavailable. The reply control is not a submitting form.
+
+### Workflow run on-demand inspector (explicit)
+
+- HarflowDesign `3643d083700be4032c93237813b573d04bab6ab1`
+  `v2/scripts/screens-workflow-run.js` state `workflow-run/on-demand`.
+  Hosted `https://design.harflow.dev/v2` was inspected for this state and is
+  newer than the pin; the locked Orchestrator card visible there is from
+  `acd63f9` and is not part of this screen.
+- The inspector is fixture copy for `run-security-reviewer` on
+  `run-nightly-dependency-audit` only. Selecting it keeps the graph visible.
+  Close returns to the observation's Open pull request detail, including the
+  approval card. The observation's `selectedNodeId` stays that path node.
+- A same-run observation update keeps the presentation selection. Closing the
+  run, or opening it again, clears that selection back to the observation
+  default. A requested id with no matching standalone inspector on this run
+  shows the observation's own detail. Call text stored under another node id
+  is not shown. Call 1 has a row and no body. Only the highlighted Call 2
+  body is rendered, and the rows are not controls.
+- The on-demand specimen's Security reviewer meta is `2 calls`. This strip
+  keeps the existing graph-needs-you fixture meta, `2 calls · one at a time`,
+  so the shared label stays as it already is. The specimen's selected
+  accessible name is `Security reviewer, on demand node, 2 calls, selected`.
+  This screen keeps the existing name shape: `done, selected` when pressed
+  and `done, not selected` otherwise, with `aria-pressed`.
+- The specimen caption is `Call 2 · Codex · gpt-6 · HarflowMCP`. This screen
+  uses the same model adaptation as the Open pull request detail:
+  `Call 2 · Codex · gpt-6-astra · HarflowMCP`.
+- Open task is a disabled button with the specimen link class. It has no
+  `href`, so it cannot open the design's `#task/done` fixture. The composer
+  textarea and send button are both disabled. The specimen disables send and
+  leaves the textarea writable. The pip-audit row shows the command and
+  `0:41` and has no output body.
+- Docs checker stays disabled. No inspector state is approved for it.
+  Parallel, recovery, Pause, Cancel run, Approve, Reject, Revise goal, and
+  More actions stay disabled.
 
 ### Workflow run form semantic gaps (explicit)
 

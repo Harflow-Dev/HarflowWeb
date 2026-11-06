@@ -195,9 +195,9 @@ export class AppSession {
     this.workflowEditor.close()
   }
 
-  selectWorkflowNode(id: WorkflowNodeId): void {
-    this.workflowEditor.select(id)
-  }
+  selectWorkflowNode(id: WorkflowNodeId): void { this.workflowEditor.select(id) }
+
+  selectWorkflowRunNode(id: WorkflowNodeId | null): void { this.workflowExecution.selectNode(id) }
 
   openTask(taskId: TaskId): void {
     this.closeWorkflowExecution()

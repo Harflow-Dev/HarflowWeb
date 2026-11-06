@@ -6,6 +6,8 @@ import {
   type WorkflowRunId,
   type WorkflowRunLoad,
   type WorkflowRunObservation,
+  type WorkflowRunOnDemand,
+  type WorkflowRunOnDemandCall,
 } from '../../model'
 import {
   NIGHTLY_PUBLISH_SNAPSHOT,
@@ -26,6 +28,9 @@ const SCAN = asWorkflowNodeId('run-scan-lockfiles')
 const DRAFT = asWorkflowNodeId('run-draft-upgrade')
 const OPEN_PR = asWorkflowNodeId('run-open-pull-request')
 const NOTIFY = asWorkflowNodeId('run-notify')
+export const SECURITY_REVIEWER_NODE_ID = asWorkflowNodeId('run-security-reviewer')
+const CALL_2 = 'run-security-call-2'
+const CALL_1 = 'run-security-call-1'
 const PUBLISH = NIGHTLY_PUBLISH_SNAPSHOT
 const PUBLISH_COMMAND = `git push origin ${PUBLISH.branch}
 gh pr create --repo ${PUBLISH.remote} --title "${PUBLISH.pullRequestTitle}"`
@@ -47,7 +52,7 @@ export function nightlyAuditRun(): WorkflowRunObservation {
       path(OPEN_PR, 'Open pull request', 'Codex · Worker', 'Needs you 01:41', 'needs-you', 406),
       path(NOTIFY, 'Notify', 'Codex · Worker', 'Pending', 'pending', 602),
       {
-        id: asWorkflowNodeId('run-security-reviewer'),
+        id: SECURITY_REVIEWER_NODE_ID,
         placement: 'standalone',
         title: 'Security reviewer',
         kindLabel: 'On demand',
@@ -100,6 +105,7 @@ export function nightlyAuditRun(): WorkflowRunObservation {
         access: PUBLISH.runAccess,
       },
     },
+    onDemand: [securityReviewerOnDemand()],
   }
 }
 
@@ -113,6 +119,44 @@ export function workflowExecutionLoadFor(id: WorkflowRunId): WorkflowRunLoad {
     return { kind: 'unavailable', message: WORKFLOW_RUN_UNAVAILABLE }
   }
   return { kind: 'ready', run: found }
+}
+
+function securityReviewerOnDemand(): WorkflowRunOnDemand {
+  return {
+    nodeId: SECURITY_REVIEWER_NODE_ID,
+    title: 'Security reviewer',
+    caption: 'On demand',
+    introduction: 'Runs only when the orchestrator calls it, one call at a time.',
+    calls: [
+      { id: CALL_2, label: 'Call 2 · Done · 01:12', highlighted: true },
+      { id: CALL_1, label: 'Call 1 · Done · 00:48', highlighted: false },
+    ],
+    call: securityReviewerCall(),
+  }
+}
+
+function securityReviewerCall(): WorkflowRunOnDemandCall {
+  return {
+    id: CALL_2,
+    caption: `Call 2 · ${NIGHTLY_REQUESTER_MODEL} · ${PUBLISH.repository}`,
+    userMessage: 'Check the lockfile diff for packages with known advisories.',
+    agentRuns: [
+      { kind: 'text', value: 'Compared ' },
+      { kind: 'code', value: 'uv.lock' },
+      { kind: 'text', value: ' against the previous commit. Two packages changed: ' },
+      { kind: 'code', value: 'httpx' },
+      { kind: 'text', value: ' and ' },
+      { kind: 'code', value: 'pydantic' },
+      { kind: 'text', value: '. Neither has an open advisory.' },
+    ],
+    tool: {
+      id: 'run-security-pip-audit',
+      summary: 'pip-audit -r requirements.lock',
+      duration: '0:41',
+      output: null,
+    },
+    result: 'Done · no advisories · 01:12',
+  }
 }
 
 function path(

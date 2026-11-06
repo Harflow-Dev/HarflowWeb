@@ -1,4 +1,9 @@
-import type { WorkflowRunNode, WorkflowRunNodeStatus, WorkflowRunObservation } from '../model'
+import type {
+  WorkflowNodeId,
+  WorkflowRunNode,
+  WorkflowRunNodeStatus,
+  WorkflowRunObservation,
+} from '../model'
 import { workflowRunScene } from '../presentation'
 import { Icon } from './Icon'
 
@@ -6,10 +11,11 @@ const SCALE = 0.7
 
 type Props = {
   readonly run: WorkflowRunObservation
+  readonly selectedNodeId: WorkflowNodeId
 }
 
 /** Read-only run graph. Scale stays at the specimen 70%; overflow scrolls. */
-export function WorkflowRunCanvas({ run }: Props) {
+export function WorkflowRunCanvas({ run, selectedNodeId }: Props) {
   const scene = workflowRunScene(run)
   const markerId = `run-edge-${run.runId}`
   const active = new Set(run.edges.filter((edge) => edge.active).map((edge) => edge.id))
@@ -55,22 +61,28 @@ export function WorkflowRunCanvas({ run }: Props) {
                 <PathNode
                   key={node.id}
                   node={node}
-                  selected={node.id === run.selectedNodeId}
+                  selected={node.id === selectedNodeId}
                 />
               ))}
           </div>
         </div>
       </div>
-      <NodeList run={run} />
+      <NodeList run={run} selectedNodeId={selectedNodeId} />
     </div>
   )
 }
 
-function NodeList({ run }: { readonly run: WorkflowRunObservation }) {
+function NodeList({
+  run,
+  selectedNodeId,
+}: {
+  readonly run: WorkflowRunObservation
+  readonly selectedNodeId: WorkflowNodeId
+}) {
   return (
     <ul className="hd-sr" aria-label={run.graphLabel}>
       {run.nodes.map((node) => {
-        const selected = node.id === run.selectedNodeId
+        const selected = node.id === selectedNodeId
         return (
           <li key={node.id} aria-current={selected ? 'true' : undefined}>
             {`${node.title}, ${statusName(node.status)}, ${selected ? 'selected' : 'not selected'}`}

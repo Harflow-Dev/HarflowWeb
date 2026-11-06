@@ -73,6 +73,7 @@
 | Backend capability facts | `contracts/v1/ctl-backend-qualification.json` | Discovery/qualification shape; harness menus here are **fixture presentation data**, not a claim of installed binaries |
 | Task catalog / sidebar rows | Design specimen mock data | **Mock-only presentation** — not a public ctl list endpoint invented for the browser |
 | Workflow definition list | Design `workflows/list` + `workflows/empty` specimen copy | **Mock-only presentation** — not a public ctl workflow catalog; no run status |
+| Workflow run form | Design `workflows/run` Task, Goal, repository, saved orchestrator, and permissions preview | **Mock-only presentation** — session-local draft; final Run disabled; permission lines are fixture facts, not installed or qualified backends and not enforcement |
 | Resources slot observation | Design `resources/slots` specimen copy | **Mock-only presentation** — not a public ctl resources catalog; no install/release/admin |
 | Statistics overview | Design `statistics/overview` specimen copy + distinct 7-day mock range | **Mock-only presentation** — not a public ctl statistics/billing API; success rate and median are fixture facts only when coverage is complete |
 | Running-task transcript | Design `task/running` specimen copy | **Mock-only presentation** — not a public ctl transcript protocol; mapped fixture ids only |
@@ -139,6 +140,23 @@
   specimens. Partial coverage shows the known items plus an incomplete mark.
 - Mapped Open task navigates to that task. Open run and unmapped Open task
   stay unavailable. The reply control is not a submitting form.
+
+### Workflow run form semantic gaps (explicit)
+
+- There is no workflow execution in this slice. The list Run control only
+  opens the form for that definition id. The form’s Run control stays
+  disabled and does not call `startTask`.
+- An id with no fixture context is unavailable. The form does not borrow
+  another definition’s title, task, goal, repository, or permissions.
+- Task and Goal text are stored exactly as entered. “Task is required.” uses
+  a trim check and is a proposal; the approved specimen is prefilled.
+- “Sandboxed” is specimen wording on one fixture line. The visible caption
+  says these labels are not installed or qualified backends and do not claim
+  enforcement.
+- Custom orchestrator stays unavailable. Loading, error, validation, and
+  adaptive states have no approved specimen.
+- Edit, New workflow, and Describe one to an agent stay unavailable. There
+  is no editor, save, or delete.
 
 The mock adapter is not an HTTP protocol design and does not prove backend
 compatibility.

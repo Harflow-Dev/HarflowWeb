@@ -12,6 +12,8 @@ import type {
   TaskChangesQuery,
   TaskId,
   TaskLoad,
+  WorkflowId,
+  WorkflowRunContextLoad,
   WorkflowsLoad,
 } from '../model'
 
@@ -36,6 +38,16 @@ export type EnginePort = {
    */
   observeWorkflows(
     onUpdate: (load: WorkflowsLoad) => void,
+  ): ObservationHandle
+
+  /**
+   * Read run-form context for one workflow definition.
+   * Unmapped ids are unavailable — never a fallback definition.
+   * Mock-only — not workflow execution.
+   */
+  observeWorkflowRun(
+    workflowId: WorkflowId,
+    onUpdate: (load: WorkflowRunContextLoad) => void,
   ): ObservationHandle
 
   /**

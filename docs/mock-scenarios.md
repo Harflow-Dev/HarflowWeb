@@ -48,9 +48,15 @@ re-observe. Needs you observes `observeNeedsYou(…)`. The sidebar count is that
 observation: three waiting items on the populated fixture, no count on the
 empty scenario, and no zero when the observation is loading or unavailable.
 Approve, reject, Send, and Open run stay disabled. Mapped Open task only
-navigates.
+navigates. A workflow-list Run button opens that definition’s run form through
+`observeWorkflowRun(workflowId, …)`. The draft is session-local and kept per
+definition id. Switching definitions clears the previous permissions into
+loading and does not reuse the other draft. An unmapped id shows unavailable
+and no form. The form’s Run control stays disabled. Goal collapse keeps the
+goal text. Custom orchestrator stays unavailable. Permission lines are fixture
+facts with an explicit non-enforcement caption.
 
-Run, Edit, New workflow, “Describe one to an agent”, Resources task links,
+Edit, New workflow, “Describe one to an agent”, Resources task links,
 Install, unmapped sidebar rows, follow-up send, Stop (running only), Retry,
 Copy resume command, Artifacts, Events, Check for updates, Inspect task store,
 and Show backup in Finder remain visible where the design shows them and report

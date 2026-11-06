@@ -27,6 +27,9 @@ function createCapturingPort(initial: ResourcesLoad = populatedResourcesLoad()):
     observeWorkflows() {
       return noopHandle('wf')
     },
+    observeWorkflowRun() {
+      return noopHandle('workflow-run')
+    },
     observeResources(onUpdate) {
       latest = onUpdate
       queueMicrotask(() => onUpdate(initial))

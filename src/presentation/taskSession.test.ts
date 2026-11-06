@@ -65,6 +65,9 @@ function createCapturingPort(
     observeWorkflows() {
       return noopHandle('wf')
     },
+    observeWorkflowRun() {
+      return noopHandle('workflow-run')
+    },
     observeResources() {
       return noopHandle('res')
     },
@@ -132,6 +135,9 @@ function createDeferredPort(): {
       },
       observeWorkflows() {
         return noopHandle('wf')
+      },
+      observeWorkflowRun() {
+        return noopHandle('workflow-run')
       },
       observeResources() {
         return noopHandle('res')

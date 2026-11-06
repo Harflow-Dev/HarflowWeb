@@ -8,6 +8,10 @@ export {
   type LoadWorkflowsUseCase,
 } from './loadWorkflows'
 export {
+  createLoadWorkflowRunUseCase,
+  type LoadWorkflowRunUseCase,
+} from './loadWorkflowRun'
+export {
   createLoadResourcesUseCase,
   type LoadResourcesUseCase,
 } from './loadResources'

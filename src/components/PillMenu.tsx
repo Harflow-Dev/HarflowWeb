@@ -4,7 +4,8 @@ import { Icon, type IconName } from './Icon'
 type Props = {
   readonly open: boolean
   readonly label: string
-  readonly icon: Extract<IconName, 'folder' | 'harness' | 'shield'>
+  readonly icon: Extract<IconName, 'folder' | 'harness' | 'shield' | 'workflow'>
+  readonly accent?: boolean
   readonly menuLabel: string
   readonly onToggle: () => void
   readonly children: ReactNode
@@ -14,15 +15,17 @@ export function PillMenu({
   open,
   label,
   icon,
+  accent = false,
   menuLabel,
   onToggle,
   children,
 }: Props) {
+  const tone = accent ? ' hd-pill--accent' : ''
   return (
     <span style={{ position: 'relative', display: 'inline-flex' }}>
       <button
         type="button"
-        className={`hd-pill${open ? ' is-open' : ''}`}
+        className={`hd-pill${tone}${open ? ' is-open' : ''}`}
         aria-haspopup="menu"
         aria-expanded={open}
         onClick={onToggle}

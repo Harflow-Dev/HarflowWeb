@@ -3,6 +3,7 @@ import type {
   LoadHarnessesUseCase,
   LoadNeedsYouUseCase,
   LoadResourcesUseCase,
+  LoadWorkflowRunUseCase,
   LoadStatisticsUseCase,
   LoadTaskChangesUseCase,
   LoadTaskUseCase,
@@ -17,6 +18,8 @@ import type {
   RepositoryId,
   StatisticsRangeId,
   TaskId,
+  WorkflowId,
+  WorkflowOverrideId,
 } from '../model'
 import type { AppRoute, AppScreenState, SettingsSection } from './appState'
 import { HarnessesSession } from './harnessesSession'
@@ -40,6 +43,7 @@ type Deps = {
   readonly loadTaskChanges: LoadTaskChangesUseCase
   readonly loadHarnesses: LoadHarnessesUseCase
   readonly loadNeedsYou: LoadNeedsYouUseCase
+  readonly loadWorkflowRun: LoadWorkflowRunUseCase
 }
 
 /**
@@ -66,7 +70,10 @@ export class AppSession {
       loadContext: deps.loadContext,
       startTask: deps.startTask,
     })
-    this.workflows = new WorkflowsSession(deps.loadWorkflows)
+    this.workflows = new WorkflowsSession(
+      deps.loadWorkflows,
+      deps.loadWorkflowRun,
+    )
     this.resources = new ResourcesSession(deps.loadResources)
     this.statistics = new StatisticsSession(deps.loadStatistics)
     this.task = new TaskSession(deps.loadTask, deps.loadTaskChanges)
@@ -118,6 +125,36 @@ export class AppSession {
     if (this.route === route) return
     this.route = route
     this.emit()
+  }
+
+  openWorkflowRun(id: WorkflowId): void {
+    this.route = 'workflows'
+    this.workflows.openRun(id)
+    this.emit()
+  }
+
+  closeWorkflowRun(): void {
+    this.workflows.closeRun()
+  }
+
+  setWorkflowRunTask(task: string): void {
+    this.workflows.setTask(task)
+  }
+
+  setWorkflowRunGoal(goal: string): void {
+    this.workflows.setGoal(goal)
+  }
+
+  setWorkflowRunGoalOpen(open: boolean): void {
+    this.workflows.setGoalOpen(open)
+  }
+
+  selectWorkflowRunRepository(id: RepositoryId): void {
+    this.workflows.selectRepository(id)
+  }
+
+  selectWorkflowRunOverride(id: WorkflowOverrideId): void {
+    this.workflows.selectOverride(id)
   }
 
   openTask(taskId: TaskId): void {

@@ -60,6 +60,13 @@ export function AppFeature({ presenter }: Props) {
           ) : state.route === 'workflows' ? (
             <WorkflowsMain
               state={state.workflows}
+              onOpenRun={(id) => presenter.openWorkflowRun(id)}
+              onCloseRun={() => presenter.closeWorkflowRun()}
+              onTask={(task) => presenter.setWorkflowRunTask(task)}
+              onGoal={(goal) => presenter.setWorkflowRunGoal(goal)}
+              onGoalOpen={(open) => presenter.setWorkflowRunGoalOpen(open)}
+              onRepository={(id) => presenter.selectWorkflowRunRepository(id)}
+              onOverride={(id) => presenter.selectWorkflowRunOverride(id)}
               onUnavailable={(label) => ephemeral.show(label)}
             />
           ) : state.route === 'resources' ? (

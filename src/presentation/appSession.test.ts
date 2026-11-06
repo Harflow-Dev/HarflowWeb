@@ -7,6 +7,7 @@ import {
   createLoadStatisticsUseCase,
   createLoadTaskChangesUseCase,
   createLoadTaskUseCase,
+  createLoadWorkflowRunUseCase,
   createLoadWorkflowsUseCase,
   createStartTaskUseCase,
   type EnginePort,
@@ -23,13 +24,22 @@ import {
   type ResourcesLoad,
   type StartTaskOutcome,
   type StartTaskRequest,
+  type WorkflowId,
+  type WorkflowRunContext,
+  type WorkflowRunContextLoad,
   type WorkflowSummary,
   type WorkflowsLoad,
+  workflowPermissionFacts,
 } from '../model'
 import { createControllablePromise } from '../adapters/mock/controllable'
 import { populatedComposer, populatedSidebar } from '../adapters/mock/fixtures'
 import { populatedHarnessesLoad } from '../adapters/mock/harnessFixtures'
 import { waitingNeedsYouLoad } from '../adapters/mock/needsYouFixtures'
+import {
+  NIGHTLY_WORKFLOW_ID,
+  RELEASE_WORKFLOW_ID,
+  workflowRunLoadFor,
+} from '../adapters/mock/workflowRunFixtures'
 import { populatedResourcesLoad } from '../adapters/mock/resourceFixtures'
 import { statisticsLoadFor } from '../adapters/mock/statisticsFixtures'
 import { taskChangesLoadFor } from '../adapters/mock/taskChangesFixtures'
@@ -52,16 +62,25 @@ function readyContext(): ContextLoad {
 function createTestEngine(options?: {
   holdStart?: boolean
   workflows?: WorkflowsLoad
+  deferWorkflowRun?: boolean
 }): {
   port: EnginePort
   starts: StartTaskRequest[]
   resolveStart: (outcome: StartTaskOutcome) => void
   publishWorkflows: (load: WorkflowsLoad) => void
   workflowListenerCount: () => number
+  deliverWorkflowRun: (id: WorkflowId, load: WorkflowRunContextLoad) => void
+  captureWorkflowRun: (
+    id: WorkflowId,
+  ) => ((load: WorkflowRunContextLoad) => void) | null
 } {
   const starts: StartTaskRequest[] = []
   const contextListeners = new Set<(load: ContextLoad) => void>()
   const workflowListeners = new Set<(load: WorkflowsLoad) => void>()
+  const runListeners = new Map<
+    WorkflowId,
+    (load: WorkflowRunContextLoad) => void
+  >()
   let held = createControllablePromise<StartTaskOutcome>()
   const initialWorkflows: WorkflowsLoad = options?.workflows ?? {
     kind: 'ready',
@@ -91,6 +110,20 @@ function createTestEngine(options?: {
         },
       }
       return handle
+    },
+    observeWorkflowRun(workflowId, onUpdate) {
+      runListeners.set(workflowId, onUpdate)
+      if (!options?.deferWorkflowRun) {
+        queueMicrotask(() => onUpdate(workflowRunLoadFor(workflowId)))
+      }
+      return {
+        id: asObservationId('app-workflow-run'),
+        cancel() {
+          if (runListeners.get(workflowId) === onUpdate) {
+            runListeners.delete(workflowId)
+          }
+        },
+      }
     },
     observeResources(onUpdate) {
       queueMicrotask(() => onUpdate(initialResources))
@@ -168,6 +201,12 @@ function createTestEngine(options?: {
     workflowListenerCount() {
       return workflowListeners.size
     },
+    deliverWorkflowRun(id, load) {
+      runListeners.get(id)?.(load)
+    },
+    captureWorkflowRun(id) {
+      return runListeners.get(id) ?? null
+    },
   }
 }
 
@@ -182,6 +221,7 @@ function createPresenter(engine: EnginePort) {
     loadTaskChanges: createLoadTaskChangesUseCase(engine),
     loadHarnesses: createLoadHarnessesUseCase(engine),
     loadNeedsYou: createLoadNeedsYouUseCase(engine),
+    loadWorkflowRun: createLoadWorkflowRunUseCase(engine),
   })
 }
 
@@ -316,12 +356,16 @@ describe('AppPresenter workflows slice', () => {
     const presenter = createPresenter(port)
     presenter.start()
     await flush()
-    const before = presenter.getState().workflows.load
-    // UI calls onUnavailable only; presenter has no run/edit/create methods.
-    expect(presenter.getState().workflows).toEqual({ load: before })
+    const before = presenter.getState().workflows
+    expect(presenter.getState().workflows).toEqual({
+      load: before.load,
+      runWorkflowId: null,
+      drafts: {},
+      runContext: { kind: 'loading' },
+    })
     expect(starts).toHaveLength(0)
     presenter.navigate('workflows')
-    expect(presenter.getState().workflows.load).toEqual(before)
+    expect(presenter.getState().workflows.load).toEqual(before.load)
     expect(starts).toHaveLength(0)
     presenter.dispose()
   })
@@ -405,6 +449,192 @@ describe('AppPresenter workflows slice', () => {
       taskId: asTaskId('held-ok'),
     })
     expect(starts).toHaveLength(1)
+    presenter.dispose()
+  })
+
+  it('keeps both run drafts when the current callback receives another definition', async () => {
+    const engine = createTestEngine()
+    const presenter = createPresenter(engine.port)
+    presenter.start()
+    await flush()
+    presenter.openWorkflowRun(RELEASE_WORKFLOW_ID)
+    await flush()
+    presenter.setWorkflowRunTask('  alpha  ')
+    presenter.setWorkflowRunGoal('keep goal')
+    presenter.selectWorkflowRunRepository(asRepositoryId('repo-mac'))
+    presenter.openWorkflowRun(NIGHTLY_WORKFLOW_ID)
+    await flush()
+    presenter.setWorkflowRunTask('beta')
+    presenter.setWorkflowRunGoal('nightly goal')
+    const releaseDraft = {
+      ...presenter.getState().workflows.drafts[RELEASE_WORKFLOW_ID],
+    }
+    const nightlyDraft = {
+      ...presenter.getState().workflows.drafts[NIGHTLY_WORKFLOW_ID],
+    }
+    const context = presenter.getState().workflows.runContext
+    engine.deliverWorkflowRun(
+      NIGHTLY_WORKFLOW_ID,
+      workflowRunLoadFor(RELEASE_WORKFLOW_ID),
+    )
+    expect(presenter.getState().workflows.drafts[RELEASE_WORKFLOW_ID]).toEqual(
+      releaseDraft,
+    )
+    expect(presenter.getState().workflows.drafts[NIGHTLY_WORKFLOW_ID]).toEqual(
+      nightlyDraft,
+    )
+    expect(presenter.getState().workflows.runContext).toEqual(context)
+    expect(presenter.getState().workflows.runWorkflowId).toBe(NIGHTLY_WORKFLOW_ID)
+    expect(engine.starts).toHaveLength(0)
+    presenter.dispose()
+  })
+
+  it('reloads a ready run after restart without the disposed callback', async () => {
+    const engine = createTestEngine({ deferWorkflowRun: true })
+    const presenter = createPresenter(engine.port)
+    presenter.start()
+    await flush()
+    presenter.openWorkflowRun(RELEASE_WORKFLOW_ID)
+    engine.deliverWorkflowRun(
+      RELEASE_WORKFLOW_ID,
+      workflowRunLoadFor(RELEASE_WORKFLOW_ID),
+    )
+    presenter.setWorkflowRunTask('  alpha  ')
+    presenter.setWorkflowRunGoal('keep goal')
+    const draft = {
+      ...presenter.getState().workflows.drafts[RELEASE_WORKFLOW_ID],
+    }
+    const stale = engine.captureWorkflowRun(RELEASE_WORKFLOW_ID)
+    presenter.dispose()
+    stale?.(workflowRunLoadFor(NIGHTLY_WORKFLOW_ID))
+    expect(presenter.getState().workflows.drafts[RELEASE_WORKFLOW_ID]).toEqual(draft)
+    presenter.start()
+    expect(presenter.getState().workflows.runContext.kind).toBe('loading')
+    expect(presenter.getState().workflows.drafts[RELEASE_WORKFLOW_ID]).toEqual(draft)
+    stale?.(workflowRunLoadFor(RELEASE_WORKFLOW_ID))
+    expect(presenter.getState().workflows.runContext.kind).toBe('loading')
+    expect(presenter.getState().workflows.drafts[RELEASE_WORKFLOW_ID]).toEqual(draft)
+    engine.deliverWorkflowRun(
+      RELEASE_WORKFLOW_ID,
+      workflowRunLoadFor(RELEASE_WORKFLOW_ID),
+    )
+    expect(presenter.getState().workflows.runContext.kind).toBe('ready')
+    expect(presenter.getState().workflows.drafts[RELEASE_WORKFLOW_ID]).toEqual(draft)
+    expect(engine.starts).toHaveLength(0)
+    presenter.dispose()
+  })
+
+  it('reloads a pending run after restart without the disposed callback', async () => {
+    const engine = createTestEngine({ deferWorkflowRun: true })
+    const presenter = createPresenter(engine.port)
+    presenter.start()
+    await flush()
+    presenter.openWorkflowRun(RELEASE_WORKFLOW_ID)
+    presenter.setWorkflowRunTask('  alpha  ')
+    presenter.setWorkflowRunGoal('keep goal')
+    const draft = {
+      ...presenter.getState().workflows.drafts[RELEASE_WORKFLOW_ID],
+    }
+    expect(presenter.getState().workflows.runContext.kind).toBe('loading')
+    const stale = engine.captureWorkflowRun(RELEASE_WORKFLOW_ID)
+    presenter.dispose()
+    presenter.start()
+    expect(presenter.getState().workflows.runContext.kind).toBe('loading')
+    expect(presenter.getState().workflows.drafts[RELEASE_WORKFLOW_ID]).toEqual(draft)
+    stale?.(workflowRunLoadFor(RELEASE_WORKFLOW_ID))
+    expect(presenter.getState().workflows.runContext.kind).toBe('loading')
+    engine.deliverWorkflowRun(
+      RELEASE_WORKFLOW_ID,
+      workflowRunLoadFor(NIGHTLY_WORKFLOW_ID),
+    )
+    expect(presenter.getState().workflows.runContext.kind).toBe('loading')
+    expect(presenter.getState().workflows.drafts[RELEASE_WORKFLOW_ID]).toEqual(draft)
+    engine.deliverWorkflowRun(
+      RELEASE_WORKFLOW_ID,
+      workflowRunLoadFor(RELEASE_WORKFLOW_ID),
+    )
+    expect(presenter.getState().workflows.runContext.kind).toBe('ready')
+    expect(presenter.getState().workflows.drafts[RELEASE_WORKFLOW_ID]).toEqual({
+      ...draft,
+      seeded: true,
+    })
+    expect(engine.starts).toHaveLength(0)
+    presenter.dispose()
+  })
+
+  it('keeps an invalid repository or override and hides its permission facts', async () => {
+    const engine = createTestEngine()
+    const presenter = createPresenter(engine.port)
+    presenter.start()
+    await flush()
+    presenter.openWorkflowRun(RELEASE_WORKFLOW_ID)
+    await flush()
+    presenter.setWorkflowRunTask('  alpha  ')
+    presenter.setWorkflowRunGoal('keep goal')
+    presenter.selectWorkflowRunRepository(asRepositoryId('repo-mac'))
+    const ready = workflowRunLoadFor(RELEASE_WORKFLOW_ID)
+    if (ready.kind !== 'ready') throw new Error('release fixture')
+    const mac = asRepositoryId('repo-mac')
+    engine.deliverWorkflowRun(RELEASE_WORKFLOW_ID, {
+      kind: 'ready',
+      context: {
+        ...ready.context,
+        repositories: ready.context.repositories.filter((item) => item.id !== mac),
+      },
+    })
+    const removed = presenter.getState().workflows.drafts[RELEASE_WORKFLOW_ID]
+    const removedContext = presenter.getState().workflows.runContext
+    expect(removed?.task).toBe('  alpha  ')
+    expect(removed?.goal).toBe('keep goal')
+    expect(removed?.repositoryId).toBe(mac)
+    expect(removed?.overrideId).toBe('saved')
+    expect(removedContext.kind).toBe('ready')
+    if (removedContext.kind === 'ready' && removed) {
+      expect(
+        removedContext.context.permissions.some(
+          (item) => item.repositoryId === mac && item.overrideId === 'saved',
+        ),
+      ).toBe(true)
+      expect(
+        workflowPermissionFacts(
+          removedContext.context,
+          removed.repositoryId,
+          removed.overrideId,
+        ),
+      ).toBeNull()
+    }
+    const disabled: WorkflowRunContext = {
+      ...ready.context,
+      overrides: ready.context.overrides.map((item) =>
+        item.id === 'saved' ? { ...item, available: false } : item,
+      ),
+    }
+    engine.deliverWorkflowRun(RELEASE_WORKFLOW_ID, {
+      kind: 'ready',
+      context: disabled,
+    })
+    const next = presenter.getState().workflows.drafts[RELEASE_WORKFLOW_ID]
+    const nextContext = presenter.getState().workflows.runContext
+    expect(next?.task).toBe('  alpha  ')
+    expect(next?.goal).toBe('keep goal')
+    expect(next?.repositoryId).toBe(mac)
+    expect(next?.overrideId).toBe('saved')
+    expect(nextContext.kind).toBe('ready')
+    if (nextContext.kind === 'ready' && next) {
+      expect(
+        nextContext.context.permissions.some(
+          (item) => item.repositoryId === mac && item.overrideId === 'saved',
+        ),
+      ).toBe(true)
+      expect(
+        workflowPermissionFacts(
+          nextContext.context,
+          next.repositoryId,
+          next.overrideId,
+        ),
+      ).toBeNull()
+    }
+    expect(engine.starts).toHaveLength(0)
     presenter.dispose()
   })
 })

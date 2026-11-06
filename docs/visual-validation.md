@@ -255,6 +255,32 @@ approved sentence. No “3 waiting”. Document scrollWidth equals clientWidth
 activated theme control. Loading, unavailable, and partial states have no
 approved specimen and were not captured as specimens.
 
+## Workflow run — verified 1280×800 captures
+
+Directory:
+`~/.codex/workflows/screenshots/2026-11-06-harflowweb-workflow-run/`
+
+Captures are from `/` after Workflows → Run on Release checklist. `sips`
+reports 1280×800. Appearance is the shared session theme. Menus are closed
+and Goal is expanded, matching `workflows/run`.
+
+| File | Scenario | Viewport / PNG | Appearance / chrome |
+| --- | --- | --- | --- |
+| `01-workflows-run-light-expanded.png` | workflows/run | 1280×800 | light, sidebar expanded |
+| `02-workflows-run-dark-expanded.png` | workflows/run | 1280×800 | dark, sidebar expanded |
+
+Observed: heading “Run Release checklist”, the specimen Task and Goal text,
+repository HarflowMCP, “Orchestrator: saved”, and the two permission lines
+plus the fixture caption. Document scrollWidth equals clientWidth (1280).
+The page scroller is 1016×756 and equals its client size (no overflow).
+Goal collapse removed the textarea and reopening restored the same text;
+focus stayed on Goal (optional). The saved orchestrator menu item accepted
+focus. Custom orchestrator was disabled. The HarflowMac repository menu item
+accepted focus; the menu was closed without changing the selection. Dark
+capture focus is the Dark control. The Run control stays disabled. Loading,
+validation, error, and adaptive states have no approved specimen and were
+not captured as specimens.
+
 ## Design provenance for this inspection
 
 - HarflowDesign commit `3643d083700be4032c93237813b573d04bab6ab1`
@@ -267,6 +293,7 @@ approved specimen and were not captured as specimens.
   `settings/harnesses` light/dark)
 - Needs you: `v2/scripts/screens-needs-you.js` (`needs-you/waiting` and
   `needs-you/empty` light/dark)
+- Workflow run: `v2/scripts/screens-workflows.js` (`workflows/run` light/dark)
 - Observed in the running Vite app (not substituted from hosted design)
 
 ## Checks performed
@@ -298,7 +325,9 @@ approved specimen and were not captured as specimens.
 
 - Pixel fidelity to native materials is not claimed.
 - Workflows/resources/statistics/task/Needs you loading, unavailable, and
-  partial treatments are proposals, not approved specimens.
+  partial treatments are proposals, not approved specimens. Workflow run
+  loading, validation, error, and adaptive states are the same: proposals,
+  not approved specimens.
 - Empty workflows and resources screenshots used `/preview` with the scenario
   panel hidden. Statistics and running-task verification use `/` to avoid the
   preview-grid capture trap described above.

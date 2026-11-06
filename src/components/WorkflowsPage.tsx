@@ -1,12 +1,13 @@
-import type { WorkflowSummary } from '../model'
+import type { WorkflowId, WorkflowSummary } from '../model'
 import { Icon } from './Icon'
 
 type Props = {
   readonly workflows: readonly WorkflowSummary[]
+  readonly onRun: (id: WorkflowId) => void
   readonly onUnavailable: (label: string) => void
 }
 
-export function WorkflowsPage({ workflows, onUnavailable }: Props) {
+export function WorkflowsPage({ workflows, onRun, onUnavailable }: Props) {
   if (workflows.length === 0) {
     return <WorkflowsEmpty onUnavailable={onUnavailable} />
   }
@@ -27,7 +28,7 @@ export function WorkflowsPage({ workflows, onUnavailable }: Props) {
       </div>
       <div className="hd-list" role="list">
         {workflows.map((row) => (
-          <WorkflowRow key={row.id} row={row} onUnavailable={onUnavailable} />
+          <WorkflowRow key={row.id} row={row} onRun={onRun} onUnavailable={onUnavailable} />
         ))}
       </div>
     </div>
@@ -84,9 +85,11 @@ function WorkflowsEmpty({
 
 function WorkflowRow({
   row,
+  onRun,
   onUnavailable,
 }: {
   row: WorkflowSummary
+  onRun: (id: WorkflowId) => void
   onUnavailable: (label: string) => void
 }) {
   return (
@@ -117,9 +120,8 @@ function WorkflowRow({
         <button
           type="button"
           className="hd-btn hd-btn--secondary"
-          aria-label={`Run ${row.title} (unavailable in this slice)`}
-          title="Run — unavailable in this slice"
-          onClick={() => onUnavailable(`Run ${row.title}`)}
+          aria-label={`Run ${row.title}`}
+          onClick={() => onRun(row.id)}
         >
           <Icon name="play" size="sm" />
           Run

@@ -9,13 +9,16 @@ import {
   createLoadStatisticsUseCase,
   createLoadTaskChangesUseCase,
   createLoadTaskUseCase,
+  createLoadWorkflowRunUseCase,
   createLoadWorkflowsUseCase,
   createStartTaskUseCase,
   type EnginePort,
 } from '../application'
 import {
   asObservationId,
+  asRepositoryId,
   asTaskId,
+  asWorkflowId,
   type ContextLoad,
   type ObservationHandle,
   type ResourcesLoad,
@@ -28,6 +31,8 @@ import {
   type NeedsYouLoad,
   type TaskId,
   type TaskLoad,
+  type WorkflowId,
+  type WorkflowRunContextLoad,
   type WorkflowsLoad,
 } from '../model'
 import { createControllablePromise } from '../adapters/mock/controllable'
@@ -40,6 +45,11 @@ import {
   waitingNeedsYouLoad,
 } from '../adapters/mock/needsYouFixtures'
 import { SLOT_RELEASE_TASK_ID } from '../adapters/mock/taskFixtures'
+import {
+  NIGHTLY_WORKFLOW_ID,
+  RELEASE_WORKFLOW_ID,
+  workflowRunLoadFor,
+} from '../adapters/mock/workflowRunFixtures'
 import { populatedResourcesLoad } from '../adapters/mock/resourceFixtures'
 import { statisticsLoadFor } from '../adapters/mock/statisticsFixtures'
 import {
@@ -71,6 +81,7 @@ function createTestEngine(options?: {
   deferStatisticsRanges?: readonly StatisticsRangeId[]
   deferTaskIds?: readonly TaskId[]
   deferChanges?: boolean
+  deferWorkflowRun?: boolean
 }): {
   port: EnginePort
   starts: StartTaskRequest[]
@@ -80,6 +91,10 @@ function createTestEngine(options?: {
   publishTaskChanges: (query: TaskChangesQuery, load: TaskChangesLoad) => void
   publishNeedsYou: (load: NeedsYouLoad) => void
   captureChangesCallback: () => ((load: TaskChangesLoad) => void) | null
+  publishWorkflowRun: (id: WorkflowId, load: WorkflowRunContextLoad) => void
+  captureWorkflowRun: (
+    id: WorkflowId,
+  ) => ((load: WorkflowRunContextLoad) => void) | null
 } {
   const starts: StartTaskRequest[] = []
   let held = createControllablePromise<StartTaskOutcome>()
@@ -100,6 +115,10 @@ function createTestEngine(options?: {
     (load: TaskChangesLoad) => void
   >()
   const needsListeners = new Set<(load: NeedsYouLoad) => void>()
+  const runListeners = new Map<
+    WorkflowId,
+    (load: WorkflowRunContextLoad) => void
+  >()
   let lastChangesCallback: ((load: TaskChangesLoad) => void) | null = null
   const port: EnginePort = {
     observeContext(onUpdate) {
@@ -118,6 +137,20 @@ function createTestEngine(options?: {
         id: asObservationId('ui-wf'),
         cancel() {
           /* no-op */
+        },
+      }
+    },
+    observeWorkflowRun(workflowId, onUpdate) {
+      runListeners.set(workflowId, onUpdate)
+      if (!options?.deferWorkflowRun) {
+        queueMicrotask(() => onUpdate(workflowRunLoadFor(workflowId)))
+      }
+      return {
+        id: asObservationId('ui-workflow-run'),
+        cancel() {
+          if (runListeners.get(workflowId) === onUpdate) {
+            runListeners.delete(workflowId)
+          }
         },
       }
     },
@@ -222,6 +255,12 @@ function createTestEngine(options?: {
       for (const listener of needsListeners) listener(load)
     },
     captureChangesCallback: () => lastChangesCallback,
+    publishWorkflowRun(id, load) {
+      runListeners.get(id)?.(load)
+    },
+    captureWorkflowRun(id) {
+      return runListeners.get(id) ?? null
+    },
   }
 }
 
@@ -236,6 +275,7 @@ function renderApp(engine: EnginePort) {
     loadTaskChanges: createLoadTaskChangesUseCase(engine),
     loadHarnesses: createLoadHarnessesUseCase(engine),
     loadNeedsYou: createLoadNeedsYouUseCase(engine),
+    loadWorkflowRun: createLoadWorkflowRunUseCase(engine),
   })
   const view = render(<AppFeature presenter={presenter} />)
   return { presenter, ...view }
@@ -305,7 +345,7 @@ describe('AppFeature navigation', () => {
     expect(starts).toHaveLength(0)
   })
 
-  it('keeps Run and Edit unavailable without launching', async () => {
+  it('opens a workflow run form and keeps Edit from launching', async () => {
     const user = userEvent.setup()
     const { port, starts } = createTestEngine()
     renderApp(port)
@@ -317,17 +357,20 @@ describe('AppFeature navigation', () => {
     expect(listItem).not.toBeNull()
     await user.click(
       within(listItem as HTMLElement).getByRole('button', {
-        name: 'Run Release checklist (unavailable in this slice)',
-      }),
-    )
-    expect(starts).toHaveLength(0)
-    await user.click(
-      within(listItem as HTMLElement).getByRole('button', {
         name: 'Edit Release checklist (unavailable in this slice)',
       }),
     )
     expect(starts).toHaveLength(0)
     expect(screen.getByText('5 nodes')).toBeInTheDocument()
+    await user.click(
+      within(listItem as HTMLElement).getByRole('button', {
+        name: 'Run Release checklist',
+      }),
+    )
+    expect(
+      await screen.findByRole('heading', { name: 'Run Release checklist' }),
+    ).toBeInTheDocument()
+    expect(starts).toHaveLength(0)
   })
 
   it('preserves appearance while switching pages', async () => {
@@ -1459,5 +1502,321 @@ describe('AppFeature navigation', () => {
     expect(presenter.getState().statistics.selectedRange).toBe('7d')
     expect(presenter.getState().newTask.prompt).toBe('draft beside needs you')
     expect(engine.starts).toHaveLength(1)
+  })
+
+  it('keeps workflow run drafts isolated and leaves final Run unavailable', async () => {
+    const user = userEvent.setup()
+    const engine = createTestEngine({ holdStart: true })
+    const { presenter } = renderApp(engine.port)
+    await flush()
+
+    await user.type(
+      screen.getByLabelText('Task prompt'),
+      'draft beside workflow run',
+    )
+    await user.click(screen.getByRole('button', { name: 'Start task' }))
+    await user.click(screen.getByRole('button', { name: 'Statistics' }))
+    await user.click(screen.getByRole('button', { name: '7 days' }))
+    await user.click(
+      screen.getByRole('button', { name: /Fix flaky slot release test/ }),
+    )
+    const selectedTask = presenter.getState().task.selectedTaskId
+    expect(await screen.findByText('Running tests…')).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Settings' }))
+    await user.click(screen.getByRole('tab', { name: 'Harnesses' }))
+    const sidebar = screen.getByRole('complementary', { name: 'Sidebar' })
+    await user.click(within(sidebar).getByRole('button', { name: 'Dark' }))
+
+    const nav = screen.getByRole('navigation', { name: 'Main' })
+    await user.click(within(nav).getByRole('button', { name: 'Workflows' }))
+    const releaseRow = (await screen.findByText('Release checklist')).closest(
+      '[role="listitem"]',
+    )
+    expect(releaseRow).not.toBeNull()
+    const runRelease = within(releaseRow as HTMLElement).getByRole('button', {
+      name: 'Run Release checklist',
+    })
+    runRelease.focus()
+    expect(runRelease).toHaveFocus()
+    await user.keyboard('{Enter}')
+    expect(
+      await screen.findByRole('heading', { name: 'Run Release checklist' }),
+    ).toBeInTheDocument()
+
+    const task = screen.getByLabelText(/Task/)
+    expect((task as HTMLTextAreaElement).value).toContain('0.4.3')
+    fireEvent.change(task, { target: { value: '  alpha  ' } })
+    expect(
+      presenter.getState().workflows.drafts['wf-release-checklist']?.task,
+    ).toBe('  alpha  ')
+
+    const goalToggle = screen.getByRole('button', { name: 'Goal (optional)' })
+    expect(goalToggle).toHaveAttribute('aria-expanded', 'true')
+    fireEvent.change(screen.getByLabelText('Goal'), {
+      target: { value: 'keep goal' },
+    })
+    goalToggle.focus()
+    await user.keyboard('{Enter}')
+    expect(goalToggle).toHaveAttribute('aria-expanded', 'false')
+    expect(screen.queryByLabelText('Goal')).not.toBeInTheDocument()
+    await user.keyboard('{Enter}')
+    expect(screen.getByLabelText('Goal')).toHaveValue('keep goal')
+
+    await user.click(screen.getByRole('button', { name: 'HarflowMCP' }))
+    const mac = screen.getByRole('menuitem', { name: /HarflowMac/ })
+    mac.focus()
+    expect(mac).toHaveFocus()
+    await user.keyboard('{Enter}')
+    expect(
+      screen.getByText('Codex · Read-only · Network: not controlled'),
+    ).toBeInTheDocument()
+    expect(screen.queryByText(/Can edit this repo/)).not.toBeInTheDocument()
+    expect(screen.getByText(/do not claim enforcement/)).toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: 'Orchestrator: saved' }))
+    const custom = screen.getByRole('menuitem', { name: /Custom orchestrator/ })
+    expect(custom).toBeDisabled()
+    expect(custom).toHaveAccessibleDescription(
+      /does not replace the saved orchestrator/,
+    )
+    await user.click(custom)
+    expect(
+      presenter.getState().workflows.drafts['wf-release-checklist']?.overrideId,
+    ).toBe('saved')
+
+    const submit = screen.getByRole('button', { name: 'Run workflow' })
+    expect(submit).toBeDisabled()
+    expect(submit).toHaveAccessibleDescription(/does not run, save, delete/)
+    await user.click(submit)
+    fireEvent.keyDown(submit, { key: 'Enter' })
+    expect(engine.starts).toHaveLength(1)
+
+    const main = screen.getByRole('main')
+    await user.click(within(main).getByRole('button', { name: 'Workflows' }))
+    const list = within(main).getByRole('list')
+    const nightlyRow = within(list)
+      .getByText('Nightly dependency audit')
+      .closest('[role="listitem"]')
+    expect(nightlyRow).not.toBeNull()
+    await user.click(
+      within(nightlyRow as HTMLElement).getByRole('button', {
+        name: 'Run Nightly dependency audit',
+      }),
+    )
+    expect(
+      await screen.findByRole('heading', { name: 'Run Nightly dependency audit' }),
+    ).toBeInTheDocument()
+    expect((screen.getByLabelText(/Task/) as HTMLTextAreaElement).value).toContain(
+      "tonight's",
+    )
+    expect(screen.queryByDisplayValue('  alpha  ')).not.toBeInTheDocument()
+    expect(screen.queryByDisplayValue('keep goal')).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'HarflowMCP' })).toBeInTheDocument()
+    expect(
+      screen.getByText('Opencode · Read-only · Network: not controlled'),
+    ).toBeInTheDocument()
+
+    await user.click(within(main).getByRole('button', { name: 'Workflows' }))
+    const releaseList = within(main).getByRole('list')
+    const releaseAgain = within(releaseList)
+      .getByText('Release checklist')
+      .closest('[role="listitem"]')
+    expect(releaseAgain).not.toBeNull()
+    await user.click(
+      within(releaseAgain as HTMLElement).getByRole('button', {
+        name: 'Run Release checklist',
+      }),
+    )
+    expect(await screen.findByLabelText(/Task/)).toHaveValue('  alpha  ')
+    expect(screen.getByLabelText('Goal')).toHaveValue('keep goal')
+    expect(screen.getByRole('button', { name: 'HarflowMac' })).toBeInTheDocument()
+    fireEvent.change(screen.getByLabelText(/Task/), { target: { value: '   ' } })
+    expect(screen.getByLabelText(/Task/)).toHaveValue('   ')
+    expect(screen.getByRole('alert')).toHaveTextContent('Task is required.')
+    expect(
+      presenter.getState().workflows.drafts['wf-release-checklist']?.task,
+    ).toBe('   ')
+
+    expect(presenter.getState().newTask.prompt).toBe('draft beside workflow run')
+    expect(presenter.getState().newTask.submission.kind).toBe('pending')
+    expect(presenter.getState().statistics.selectedRange).toBe('7d')
+    expect(presenter.getState().task.selectedTaskId).toBe(selectedTask)
+    expect(presenter.getState().settingsSection).toBe('harnesses')
+    expect(presenter.getState().newTask.appearance).toBe('dark')
+    expect(engine.starts).toHaveLength(1)
+  })
+
+  it('shows an unmapped workflow as unavailable without a fallback form', async () => {
+    const { port, starts } = createTestEngine()
+    const { presenter } = renderApp(port)
+    await flush()
+    act(() => {
+      presenter.openWorkflowRun(asWorkflowId('wf-missing'))
+    })
+    expect(
+      await screen.findByText('This workflow is unavailable.'),
+    ).toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: /Run / })).not.toBeInTheDocument()
+    expect(screen.queryByLabelText(/Task/)).not.toBeInTheDocument()
+    expect(starts).toHaveLength(0)
+  })
+
+  it('keeps run identity, reloads the draft, and hides invalid permissions', async () => {
+    const user = userEvent.setup()
+    const engine = createTestEngine({ deferWorkflowRun: true })
+    const { presenter } = renderApp(engine.port)
+    await flush()
+    const nav = screen.getByRole('navigation', { name: 'Main' })
+    await user.click(within(nav).getByRole('button', { name: 'Workflows' }))
+    const main = screen.getByRole('main')
+    const releaseRow = within(main)
+      .getByText('Release checklist')
+      .closest('[role="listitem"]')
+    expect(releaseRow).not.toBeNull()
+    await user.click(
+      within(releaseRow as HTMLElement).getByRole('button', {
+        name: 'Run Release checklist',
+      }),
+    )
+    expect(screen.getByText(/Loading run context/)).toBeInTheDocument()
+    const release = workflowRunLoadFor(RELEASE_WORKFLOW_ID)
+    if (release.kind !== 'ready') throw new Error('release fixture')
+    act(() => {
+      engine.publishWorkflowRun(RELEASE_WORKFLOW_ID, release)
+    })
+    expect(
+      screen.getByRole('heading', { name: 'Run Release checklist' }),
+    ).toBeInTheDocument()
+    fireEvent.change(screen.getByLabelText(/Task/), { target: { value: '  alpha  ' } })
+    fireEvent.change(screen.getByLabelText('Goal'), { target: { value: 'keep goal' } })
+    await user.click(screen.getByRole('button', { name: 'HarflowMCP' }))
+    await user.click(screen.getByRole('menuitem', { name: /HarflowMac/ }))
+    expect(
+      screen.getByText('Codex · Read-only · Network: not controlled'),
+    ).toBeInTheDocument()
+
+    await user.click(within(main).getByRole('button', { name: 'Workflows' }))
+    const nightlyRow = within(main)
+      .getByText('Nightly dependency audit')
+      .closest('[role="listitem"]')
+    expect(nightlyRow).not.toBeNull()
+    await user.click(
+      within(nightlyRow as HTMLElement).getByRole('button', {
+        name: 'Run Nightly dependency audit',
+      }),
+    )
+    expect(screen.getByText(/Loading run context/)).toBeInTheDocument()
+    expect(screen.queryByText(/Can edit this repo/)).not.toBeInTheDocument()
+    act(() => {
+      engine.publishWorkflowRun(
+        NIGHTLY_WORKFLOW_ID,
+        workflowRunLoadFor(NIGHTLY_WORKFLOW_ID),
+      )
+    })
+    fireEvent.change(screen.getByLabelText(/Task/), { target: { value: 'beta' } })
+    act(() => {
+      engine.publishWorkflowRun(
+        NIGHTLY_WORKFLOW_ID,
+        workflowRunLoadFor(RELEASE_WORKFLOW_ID),
+      )
+    })
+    expect(
+      screen.getByRole('heading', { name: 'Run Nightly dependency audit' }),
+    ).toBeInTheDocument()
+    expect(screen.getByLabelText(/Task/)).toHaveValue('beta')
+    expect(screen.queryByDisplayValue('  alpha  ')).not.toBeInTheDocument()
+    expect(presenter.getState().workflows.drafts[RELEASE_WORKFLOW_ID]?.task).toBe(
+      '  alpha  ',
+    )
+    expect(presenter.getState().workflows.drafts[RELEASE_WORKFLOW_ID]?.goal).toBe(
+      'keep goal',
+    )
+    expect(
+      presenter.getState().workflows.drafts[RELEASE_WORKFLOW_ID]?.repositoryId,
+    ).toBe(asRepositoryId('repo-mac'))
+    expect(presenter.getState().workflows.drafts[NIGHTLY_WORKFLOW_ID]?.task).toBe(
+      'beta',
+    )
+    expect(engine.starts).toHaveLength(0)
+
+    await user.click(within(main).getByRole('button', { name: 'Workflows' }))
+    const pendingRow = within(main)
+      .getByText('Release checklist')
+      .closest('[role="listitem"]')
+    expect(pendingRow).not.toBeNull()
+    await user.click(
+      within(pendingRow as HTMLElement).getByRole('button', {
+        name: 'Run Release checklist',
+      }),
+    )
+    expect(screen.getByText(/Loading run context/)).toBeInTheDocument()
+    const stale = engine.captureWorkflowRun(RELEASE_WORKFLOW_ID)
+    act(() => {
+      presenter.dispose()
+      presenter.start()
+    })
+    expect(screen.getByText(/Loading run context/)).toBeInTheDocument()
+    expect(presenter.getState().workflows.drafts[RELEASE_WORKFLOW_ID]?.task).toBe(
+      '  alpha  ',
+    )
+    act(() => {
+      stale?.(release)
+    })
+    expect(screen.getByText(/Loading run context/)).toBeInTheDocument()
+    expect(
+      screen.queryByRole('heading', { name: 'Run Release checklist' }),
+    ).not.toBeInTheDocument()
+    act(() => {
+      engine.publishWorkflowRun(RELEASE_WORKFLOW_ID, release)
+    })
+    expect(screen.getByLabelText(/Task/)).toHaveValue('  alpha  ')
+    expect(screen.getByLabelText('Goal')).toHaveValue('keep goal')
+    expect(screen.getByRole('button', { name: 'HarflowMac' })).toBeInTheDocument()
+
+    const mac = asRepositoryId('repo-mac')
+    act(() => {
+      engine.publishWorkflowRun(RELEASE_WORKFLOW_ID, {
+        kind: 'ready',
+        context: {
+          ...release.context,
+          repositories: release.context.repositories.filter((item) => item.id !== mac),
+        },
+      })
+    })
+    expect(screen.getByLabelText(/Task/)).toHaveValue('  alpha  ')
+    expect(screen.getByLabelText('Goal')).toHaveValue('keep goal')
+    expect(screen.getByRole('button', { name: 'Repository' })).toBeInTheDocument()
+    expect(
+      screen.getByText('Permissions for this choice are unavailable.'),
+    ).toBeInTheDocument()
+    expect(screen.queryByText(/Network: not controlled/)).not.toBeInTheDocument()
+    expect(presenter.getState().workflows.drafts[RELEASE_WORKFLOW_ID]?.repositoryId).toBe(
+      mac,
+    )
+    act(() => {
+      engine.publishWorkflowRun(RELEASE_WORKFLOW_ID, {
+        kind: 'ready',
+        context: {
+          ...release.context,
+          overrides: release.context.overrides.map((item) =>
+            item.id === 'saved' ? { ...item, available: false } : item,
+          ),
+        },
+      })
+    })
+    expect(screen.getByLabelText(/Task/)).toHaveValue('  alpha  ')
+    expect(screen.getByLabelText('Goal')).toHaveValue('keep goal')
+    expect(screen.getByRole('button', { name: 'HarflowMac' })).toBeInTheDocument()
+    expect(
+      screen.getByRole('button', { name: 'Orchestrator: saved' }),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByText('Permissions for this choice are unavailable.'),
+    ).toBeInTheDocument()
+    expect(presenter.getState().workflows.drafts[RELEASE_WORKFLOW_ID]?.overrideId).toBe(
+      'saved',
+    )
+    expect(screen.getByRole('button', { name: 'Run workflow' })).toBeDisabled()
+    expect(engine.starts).toHaveLength(0)
   })
 })

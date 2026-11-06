@@ -2,8 +2,8 @@
 
 ## Intent
 
-Review checkpoint after the mock-backed Needs you waiting and empty states
-(Harnesses Settings committed first). Does not complete W01–W05, authenticate,
+Review checkpoint after the mock-backed workflow run form (Needs you committed
+first). Does not complete W01–W05, authenticate,
 connect a real engine, run workflows, administer slots, bill, submit
 follow-ups, retry, apply patches, install a runtime, register MCP servers,
 grant approvals, answer questions, or touch the task store.
@@ -41,10 +41,21 @@ grant approvals, answer questions, or touch the task store.
   submission, clipboard, provider, filesystem, or engine access.
 - Sidebar destinations outside New task, Workflows, Resources, Statistics,
   Settings, Needs you, and explicitly mapped running-task rows stay unavailable.
-- Run, Edit, New workflow, “Describe one to an agent”, Resources task links,
+- Workflow list Run opens the selected definition’s run form. The form shows
+  that definition’s title, a required Task, an optional Goal disclosure,
+  repository selection, the saved orchestrator, and a permissions preview.
+  Drafts are session-local and isolated per definition. Final Run stays
+  disabled and explained. Unmapped ids show unavailable and no borrowed form.
+  Custom orchestrator stays unavailable. Permission lines are fixture facts;
+  a visible caption says they are not installed or qualified backends and do
+  not claim enforcement. “Sandboxed” remains the specimen limit label.
+  “Task is required.” is a proposal shown only for a seeded blank task.
+  Loading and error copy are proposals. No execution, save, delete, editor,
+  provider, engine, or filesystem action.
+- Edit, New workflow, “Describe one to an agent”, Resources task links,
   Install, follow-up send, Stop (running only), Retry, and Copy resume command
   are visible per design and explicitly unavailable in this slice — no
-  run/editor/admin/steering screens, no generated shell commands, and no
+  editor, admin, or steering screens, no generated shell commands, and no
   mutation from those controls.
 - Workflows list shows definition title, description, and node count only — no
   invented run status (matches screen-inventory note).
@@ -73,8 +84,9 @@ grant approvals, answer questions, or touch the task store.
 - Summary, tool outcomes, and Changes diffs are fixture-reported / recorded
   observations only; they do not claim independently verified authorship or
   working-tree proof. Change evidence is independent of task success.
-- No task-level Summary/Prompt tabs, product search, artifact browser, or
-  workflow-run destinations. Needs you shows approval and question cards only.
+- No task-level Summary/Prompt tabs, product search, or artifact browser.
+  Needs you shows approval and question cards only. The workflow run form is
+  a mock draft screen; its Run control does not start a run.
   More-actions chrome remains omitted.
 - Only rows with `mappedTaskId` open a transcript. Synthetic launch-accepted ids
   remain unmapped unless an explicit fixture exists.

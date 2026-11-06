@@ -3,6 +3,7 @@ import type {
   LoadHarnessesUseCase,
   LoadNeedsYouUseCase,
   LoadResourcesUseCase,
+  LoadWorkflowRunUseCase,
   LoadStatisticsUseCase,
   LoadTaskChangesUseCase,
   LoadTaskUseCase,
@@ -17,6 +18,8 @@ import type {
   RepositoryId,
   StatisticsRangeId,
   TaskId,
+  WorkflowId,
+  WorkflowOverrideId,
 } from '../model'
 import { AppSession, type AppListener } from './appSession'
 import type { AppRoute, AppScreenState, SettingsSection } from './appState'
@@ -28,6 +31,13 @@ export type AppPresenter = {
   start(): void
   dispose(): void
   navigate(route: AppRoute): void
+  openWorkflowRun(id: WorkflowId): void
+  closeWorkflowRun(): void
+  setWorkflowRunTask(task: string): void
+  setWorkflowRunGoal(goal: string): void
+  setWorkflowRunGoalOpen(open: boolean): void
+  selectWorkflowRunRepository(id: RepositoryId): void
+  selectWorkflowRunOverride(id: WorkflowOverrideId): void
   openTask(taskId: TaskId): void
   setTaskChangesPaneOpen(open: boolean): void
   selectTaskChangedFile(path: string): void
@@ -55,6 +65,7 @@ type Deps = {
   readonly loadTaskChanges: LoadTaskChangesUseCase
   readonly loadHarnesses: LoadHarnessesUseCase
   readonly loadNeedsYou: LoadNeedsYouUseCase
+  readonly loadWorkflowRun: LoadWorkflowRunUseCase
 }
 
 export function createAppPresenter(deps: Deps): AppPresenter {
@@ -65,6 +76,13 @@ export function createAppPresenter(deps: Deps): AppPresenter {
     start: () => session.start(),
     dispose: () => session.dispose(),
     navigate: (route) => session.navigate(route),
+    openWorkflowRun: (id) => session.openWorkflowRun(id),
+    closeWorkflowRun: () => session.closeWorkflowRun(),
+    setWorkflowRunTask: (task) => session.setWorkflowRunTask(task),
+    setWorkflowRunGoal: (goal) => session.setWorkflowRunGoal(goal),
+    setWorkflowRunGoalOpen: (open) => session.setWorkflowRunGoalOpen(open),
+    selectWorkflowRunRepository: (id) => session.selectWorkflowRunRepository(id),
+    selectWorkflowRunOverride: (id) => session.selectWorkflowRunOverride(id),
     openTask: (taskId) => session.openTask(taskId),
     setTaskChangesPaneOpen: (open) => session.setTaskChangesPaneOpen(open),
     selectTaskChangedFile: (path) => session.selectTaskChangedFile(path),

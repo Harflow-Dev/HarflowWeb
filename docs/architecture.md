@@ -23,9 +23,9 @@ A green import check does **not** prove semantic architecture correctness.
 
 `AppPresenter` / `AppSession` owns:
 
-- route (`new-task` | `workflows` | `resources` | `statistics` | `task` | `settings`)
+- route (`new-task` | `workflows` | `resources` | `statistics` | `task` | `needs-you` | `settings`)
 - new-task child session (draft, selections, appearance, sidebar collapse, launch)
-- workflows child session (definition list observation)
+- workflows child session (definition list, plus a session-local run draft per definition and a read-only run-context observation)
 - resources child session (slot observation)
 - statistics child session (selected range + range-scoped observation)
 - task child session (selected task id + transcript observation + optional
@@ -69,6 +69,9 @@ onto one file. Task UI is split across `TaskMain`, `TaskPage`, `TaskTranscript`,
 
 - `observeContext(onUpdate) → ObservationHandle` — composer + sidebar load
 - `observeWorkflows(onUpdate) → ObservationHandle` — workflow definition summaries
+- `observeWorkflowRun(workflowId, onUpdate) → ObservationHandle` — read-only
+  run-form context for that definition. An unmapped id is unavailable and is
+  never filled with another definition. Permission lines are fixture facts.
 - `observeResources(onUpdate) → ObservationHandle` — harness slot usage observation
 - `observeStatistics(range, onUpdate) → ObservationHandle` — range-scoped overview
 - `observeTask(taskId, onUpdate) → ObservationHandle` — running-task transcript
@@ -84,8 +87,10 @@ onto one file. Task UI is split across `TaskMain`, `TaskPage`, `TaskTranscript`,
 - `startTask(request) → Promise<StartTaskOutcome>` — accepted | refused | unknown
 - `ObservationHandle.cancel()` — dispose outstanding observations
 
-No shell commands, generic RPC, or “call operation” methods. Workflows are
-definitions (title, description, node count) — not runs and not run status.
+No shell commands, generic RPC, or “call operation” methods. The workflow list
+is definitions (title, description, node count) — not run status. The run form
+edits a session-local draft for one definition id. It does not execute, save,
+delete, or edit the definition. Final Run stays disabled.
 Resources are read-only slot observation (usage, holders, waiters) — not
 administration, install, release, repair, or configuration. Statistics are
 read-only overview observations for an explicit typed range — not billing,
@@ -99,9 +104,24 @@ MCP approval management. A loading or unavailable harness observation replaces
 the previous ready facts. Replacing or disposing the observation rejects a
 captured callback. Needs you is the same shape: loading replaces a previous
 ready or empty claim, and a captured callback after replacement or disposal
-cannot restore it. Approve, reject, answer, and workflow-run controls stay
+cannot restore it. Approve, reject, answer, and Needs you Open run stay
 disabled. Mapped Open task calls the existing `openTask` navigation and does
 not start a task. Unmapped Open task stays disabled.
+
+Opening a workflow Run from the list sets `runWorkflowId` and observes that
+id. The previous context is cleared to loading before the next result arrives.
+A callback is applied only when it matches that definition id and observation
+generation. A ready payload is also rejected when `context.workflowId` is a
+different definition, before any draft is seeded. Disposal rejects a captured
+callback. Restarting the session reobserves the retained run, clears that
+context to loading, and keeps the draft text and choices. Drafts stay keyed by
+definition id, so switching definitions does not copy task, goal, repository,
+or override. Collapsing Goal keeps its text. Task validation checks trimmed
+length and does not write the trimmed string back. An unsupported override
+is ignored. Permission facts are returned only when the selected repository
+is still in the context and the selected override is currently available.
+A removed repository, a disabled override, or a missing permission tuple shows
+unavailable permissions and does not replace the draft's choice.
 
 Each page observation uses an independent epoch so disposed or replaced
 callbacks cannot mutate presentation state after cancel/replace. Changing the

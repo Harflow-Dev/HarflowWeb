@@ -58,6 +58,12 @@ export {
 } from './harnessFixtures'
 export { UNMAPPED_LAUNCH_TASK_ID } from './sidebarFixtures'
 export {
+  NIGHTLY_WORKFLOW_ID,
+  RELEASE_WORKFLOW_ID,
+  WORKFLOW_RUN_UNAVAILABLE,
+  workflowRunLoadFor,
+} from './workflowRunFixtures'
+export {
   emptyWorkflowsLoad,
   POPULATED_WORKFLOWS,
   populatedWorkflowsLoad,

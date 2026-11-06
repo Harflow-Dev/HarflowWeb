@@ -15,6 +15,7 @@ type IconName =
   | 'chevron-down'
   | 'chevron-right'
   | 'arrow-up'
+  | 'arrow-left'
   | 'check'
   | 'x'
   | 'stop'

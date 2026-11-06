@@ -6,6 +6,12 @@ import type {
 
 const SPECIMEN_SERVER = '~/.harflow/bin/harflow-mcp'
 
+/** settings/mcp-approvals specimen. These entries belong only to Claude Code. */
+const CLAUDE_APPROVALS = {
+  kind: 'listed' as const,
+  entries: ['harflow/*', 'github/create_pull_request', 'linear/get_issue'],
+}
+
 /**
  * Approved settings/harnesses specimen.
  * Each row sets install, registration, and qualification explicitly.
@@ -23,6 +29,7 @@ export function populatedHarnessesObservation(): HarnessesObservation {
         install: { kind: 'installed' },
         registration: { kind: 'registered' },
         qualification: { kind: 'ready', label: 'Ready' },
+        approvals: CLAUDE_APPROVALS,
         actions: ['mcp-approvals', 'remove'],
       }),
       fact({
@@ -35,6 +42,7 @@ export function populatedHarnessesObservation(): HarnessesObservation {
           kind: 'attention',
           label: 'Codex needs sign-in: run codex login, then refresh.',
         },
+        approvals: null,
         actions: ['update'],
       }),
       fact({
@@ -44,6 +52,7 @@ export function populatedHarnessesObservation(): HarnessesObservation {
         install: { kind: 'installed' },
         registration: { kind: 'registered' },
         qualification: { kind: 'ready', label: 'Ready' },
+        approvals: null,
         actions: ['remove'],
       }),
       fact({
@@ -53,6 +62,7 @@ export function populatedHarnessesObservation(): HarnessesObservation {
         install: { kind: 'installed' },
         registration: { kind: 'registered' },
         qualification: { kind: 'ready', label: 'Ready' },
+        approvals: null,
         actions: ['remove'],
       }),
       fact({
@@ -66,6 +76,7 @@ export function populatedHarnessesObservation(): HarnessesObservation {
           label:
             'Antigravity was not found on PATH. Install it, then refresh.',
         },
+        approvals: null,
         actions: [],
       }),
     ],
@@ -88,7 +99,8 @@ export function divergentHarnessesObservation(): HarnessesObservation {
         install: { kind: 'installed' },
         registration: { kind: 'not-registered' },
         qualification: { kind: 'unknown' },
-        actions: [],
+        approvals: { kind: 'unknown' },
+        actions: ['mcp-approvals'],
       }),
       fact({
         id: 'registered-qualified',
@@ -97,7 +109,8 @@ export function divergentHarnessesObservation(): HarnessesObservation {
         install: { kind: 'unknown' },
         registration: { kind: 'registered' },
         qualification: { kind: 'ready', label: 'Ready' },
-        actions: [],
+        approvals: { kind: 'listed', entries: ['fixture/only-this-harness'] },
+        actions: ['mcp-approvals'],
       }),
     ],
   }

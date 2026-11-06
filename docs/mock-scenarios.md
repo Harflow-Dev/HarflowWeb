@@ -42,9 +42,11 @@ Opening the Changes pane on the completed fixture observes
 `observeTaskChanges({ taskId, selectedPath }, …)`; selecting a file re-keys that
 observation and clears the prior diff immediately. Settings → Harnesses observes
 `observeHarnesses(…)`. Install, MCP registration, and qualification are separate
-fixture fields. A later loading or unavailable result drops the previous ready
-rows. Refresh, update, remove, and MCP approvals are disabled and do not
-re-observe. Needs you observes `observeNeedsYou(…)`. The sidebar count is that
+fixture fields. Approval entries belong to that harness id. A later loading
+or unavailable result drops the previous ready rows. Refresh, update, remove,
+Add approval, and Remove approval stay disabled and do not re-observe or edit
+the list. The MCP approvals control only expands the selected harness.
+Needs you observes `observeNeedsYou(…)`. The sidebar count is that
 observation: three waiting items on the populated fixture, no count on the
 empty scenario, and no zero when the observation is loading or unavailable.
 Approve, reject, Send, and Open run stay disabled. Mapped Open task only
@@ -70,10 +72,12 @@ Install, unmapped sidebar rows, follow-up send, Stop (running only), Retry,
 Copy resume command, Artifacts, Events, Check for updates, Inspect task store,
 and Show backup in Finder remain visible where the design shows them and report
 unavailable in this slice — no mutation, no admin, no engine calls, and no
-generated shell commands. Settings behaviour switches and harness actions stay
-disabled specimen controls with an accessible explanation. Settings appearance
-is the shared session theme only. General and Harnesses share that theme. Tool-row expand/collapse and Changes
-file selection are local UI only (selection re-observes fixture content).
+generated shell commands. Settings behaviour switches and harness mutation
+controls stay disabled specimen controls with an accessible explanation.
+MCP approvals only expands the selected harness’s fixture list. Settings
+appearance is the shared session theme only. General and Harnesses share that
+theme. Tool-row expand/collapse, MCP approvals, and Changes file selection
+are local UI only (selection re-observes fixture content).
 
 Valid zero task counts and observed zero cost remain distinct from unavailable
 observation data. Unknown or unavailable facts are not coerced to zero.

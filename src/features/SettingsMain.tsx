@@ -25,7 +25,7 @@ export function SettingsMain({
       <div className="hd-topbar">
         <span className="hd-topbar__spacer" />
       </div>
-      <div className="hd-scroll">
+      <div className="hd-scroll hd-thin-scroll">
         <SettingsPage
           section={section}
           onSection={onSection}

@@ -23,6 +23,15 @@ export type HarnessQualificationFact =
 
 export type HarnessUnavailableAction = 'mcp-approvals' | 'remove' | 'update'
 
+/**
+ * Tool approvals recorded for one harness.
+ * `unknown` is missing data. It is not an empty approved list.
+ * `null` on the harness means this row has no approval observation.
+ */
+export type HarnessApprovalsFact =
+  | { readonly kind: 'listed'; readonly entries: readonly string[] }
+  | { readonly kind: 'unknown' }
+
 export type SettingsHarnessFact = {
   readonly id: string
   readonly label: string
@@ -30,6 +39,7 @@ export type SettingsHarnessFact = {
   readonly install: HarnessInstallFact
   readonly registration: HarnessRegistrationFact
   readonly qualification: HarnessQualificationFact
+  readonly approvals: HarnessApprovalsFact | null
   readonly actions: readonly HarnessUnavailableAction[]
 }
 

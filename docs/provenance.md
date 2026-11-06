@@ -46,9 +46,11 @@
     unavailable or read-only specimen facts.
   - `settings/harnesses/light` and `/dark` (registration, install badges, and
     qualification). Installation, MCP registration, and qualification are
-    independent fixture facts. Refresh, update, remove, and MCP approvals stay
-    disabled. The approvals editor is omitted. Paths and readiness sentences
-    are specimen copy, not this computer.
+    independent fixture facts. Refresh, update, and remove stay disabled.
+    MCP approvals expands that harness’s explicit fixture list from
+    `settings/mcp-approvals`. Add and Remove stay disabled. Unknown or missing
+    approvals stay unavailable and are not an empty list. Paths and readiness
+    sentences are specimen copy, not this computer.
 - Visual inspection also used hosted `https://design.harflow.dev/v2` (cheaper than a
   local archive server). Hosted content may be newer than the pinned commit;
   implementation citations remain the immutable commit above.
@@ -82,7 +84,7 @@
 | Completed-task transcript | Design `task/done` transcript+summary copy | **Mock-only presentation** — fixture evidence only; tool success ≠ verified authorship |
 | Completed-task Changes | Design `task/done` Changes pane file list + selected diff | **Mock-only presentation** — recorded repository observations; not Git/fs; not authorship proof; independent of task success |
 | Settings general | Design `settings/general` specimen copy | **Mock-only presentation** — shared session appearance only; behaviour/runtime/store unavailable or static facts; not persisted |
-| Settings harnesses | Design `settings/harnesses` registration, install, and qualification copy | **Mock-only presentation** — independent fixture facts; unknown stays unknown; no PATH probe, install, registration change, or MCP approval management |
+| Settings harnesses | Design `settings/harnesses` and `settings/mcp-approvals` | **Mock-only presentation** — independent fixture facts; the disclosure shows that harness’s list only; unknown or missing approvals stay unavailable; no PATH probe, install, registration change, or approval edit |
 | Needs you waiting | Design `needs-you/waiting` approvals and one question | **Mock-only presentation** — fixture requests, not this computer; exact-action labels; no approval authority |
 | Needs you empty | Design `needs-you/empty` | **Mock-only presentation** — complete coverage and zero items only; unknown is not this state |
 | Repository options | Mock-only | Future server-hosted repos; not filesystem pickers; not ctl |

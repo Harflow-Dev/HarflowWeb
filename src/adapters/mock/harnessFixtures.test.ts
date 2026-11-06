@@ -32,6 +32,12 @@ describe('harness fixtures', () => {
     expect(harnessInstallLabel({ kind: 'unknown' })).toBe('Unknown')
     expect(harnessQualificationLabel({ kind: 'unknown' })).toBe('Unknown')
     expect(harnessQualificationLabel({ kind: 'unknown' })).not.toBe('Ready')
+    expect(claude?.approvals).toEqual({
+      kind: 'listed',
+      entries: ['harflow/*', 'github/create_pull_request', 'linear/get_issue'],
+    })
+    expect(rows.find((row) => row.id === 'codex')?.approvals).toBeNull()
+    expect(antigravity?.approvals).toBeNull()
   })
 
   it('includes installed-unregistered and unknown-install qualified rows', () => {
@@ -48,5 +54,10 @@ describe('harness fixtures', () => {
       label: 'Ready',
     })
     expect(divergentHarnessesObservation().server.kind).toBe('unknown')
+    expect(installedOnly?.approvals).toEqual({ kind: 'unknown' })
+    expect(qualified?.approvals).toEqual({
+      kind: 'listed',
+      entries: ['fixture/only-this-harness'],
+    })
   })
 })

@@ -218,9 +218,32 @@ Observed: Harnesses tab selected, fixture server path with the “not this
 computer” caption, five harness rows, and the qualification section. Document
 and the settings scroller have equal scroll and client sizes (no overflow).
 Light capture focus is the Harnesses tab. Dark capture focus is the sidebar
-Dark control; the Harnesses tab stays selected. Refresh, MCP approvals, Update,
-and Remove are disabled. The MCP approvals editor is not shown. Loading and
+Dark control; the Harnesses tab stays selected. Those captures show the
+collapsed harness list. Refresh, Update, and Remove are disabled. Loading and
 unavailable harness copy have no approved specimen.
+
+## Settings MCP approvals — verified 1280×800 captures
+
+Directory:
+`~/.codex/workflows/screenshots/2026-11-06-harflowweb-mcp-approvals/`
+
+Captured from `/` after Settings → Harnesses, then activating MCP approvals
+for Claude Code. Same CDP clip + `sips` verification.
+
+| File | Scenario | Viewport / PNG | Appearance / chrome |
+| --- | --- | --- | --- |
+| `01-mcp-approvals-light.png` | settings/mcp-approvals | 1280×800 | light, sidebar expanded |
+| `02-mcp-approvals-dark.png` | settings/mcp-approvals | 1280×800 | dark, sidebar expanded |
+
+Observed: Harnesses stays selected and General remains. Claude Code expands
+to the specimen copy and `harflow/*`, `github/create_pull_request`, and
+`linear/get_issue`. Codex does not show those entries. Add approval, Remove,
+Refresh, and Update stay disabled. Focus remains on the disclosure after the
+click. The settings scroller is `.hd-scroll.hd-thin-scroll` (`overflow: auto`,
+`scrollbar-width: thin`). At 1280×800 its content is 944px in a 756px port;
+scrolling to 188 of 188 brings Harness qualification into view. Document
+scroll width equals client width (1280). The browser tool’s untrusted Enter
+does not activate the disclosure; the component test covers Enter and Space.
 
 Earlier new-task screenshots remain under
 `~/.codex/workflows/screenshots/2026-11-05-harflowweb-new-task-slice/`.
@@ -358,8 +381,8 @@ approved specimen and were not captured as specimens.
 - Statistics: `v2/scripts/screens-statistics.js` (`statistics/overview` light/dark)
 - Task: `v2/scripts/screens-task.js` (`task/running`, `task/failed`, and
   `task/done` transcript+summary+Changes light/dark)
-- Settings: `v2/scripts/screens-settings.js` (`settings/general` and
-  `settings/harnesses` light/dark)
+- Settings: `v2/scripts/screens-settings.js` (`settings/general`,
+  `settings/harnesses`, and `settings/mcp-approvals` light/dark)
 - Needs you: `v2/scripts/screens-needs-you.js` (`needs-you/waiting` and
   `needs-you/empty` light/dark)
 - Workflow run: `v2/scripts/screens-workflows.js` (`workflows/run` light/dark)
@@ -399,7 +422,9 @@ approved specimen and were not captured as specimens.
   partial treatments are proposals, not approved specimens. Workflow run
   loading, validation, error, and adaptive states are the same: proposals,
   not approved specimens. Workflow editor loading, error, and adaptive
-  states are proposals, not approved specimens. At 1280×800 the scaled
+  states are proposals, not approved specimens. MCP approvals Add and
+  Remove stay disabled, so the expanded list is a read-only fixture view.
+  At 1280×800 the scaled
   Release checklist board is wider than the visible canvas. The inner
   scrollport reaches End; `01` and `02` still show the earlier clipped frame.
   The Nightly orchestrator uses the same inspector sections with separate

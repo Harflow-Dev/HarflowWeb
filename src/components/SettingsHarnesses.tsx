@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import type {
   HarnessQualificationFact,
   HarnessUnavailableAction,
@@ -11,6 +12,7 @@ import {
   harnessRegistrationLabel,
 } from '../model'
 import { Icon, type IconName } from './Icon'
+import { McpApprovalsPanel, McpApprovalsToggle } from './SettingsMcpApprovals'
 
 const UNAVAILABLE_ID = 'settings-harness-actions-unavailable'
 export const HARNESS_ACTION_EXPLANATION =
@@ -20,8 +22,9 @@ type Props = {
   readonly load: HarnessesLoad
 }
 
-/** Approved settings/harnesses composition. Actions are disabled specimen controls. */
+/** Approved settings/harnesses composition. Mutations stay disabled. */
 export function SettingsHarnesses({ load }: Props) {
+  const [openId, setOpenId] = useState<string | null>(null)
   if (load.kind === 'loading') {
     return <p role="status">Loading harness registration…</p>
   }
@@ -42,7 +45,16 @@ export function SettingsHarnesses({ load }: Props) {
         {harnesses.map((row) => (
           <li key={row.id}>
             <HarnessRule />
-            <HarnessRow row={row} />
+            <HarnessRow
+              row={row}
+              expanded={openId === row.id}
+              onToggle={() =>
+                setOpenId((current) => (current === row.id ? null : row.id))
+              }
+            />
+            {openId === row.id && row.actions.includes('mcp-approvals') ? (
+              <McpApprovalsPanel row={row} unavailableId={UNAVAILABLE_ID} />
+            ) : null}
           </li>
         ))}
       </ul>
@@ -92,7 +104,15 @@ function ServerCopy({ server }: { readonly server: McpServerFact }) {
   )
 }
 
-function HarnessRow({ row }: { readonly row: SettingsHarnessFact }) {
+function HarnessRow({
+  row,
+  expanded,
+  onToggle,
+}: {
+  readonly row: SettingsHarnessFact
+  readonly expanded: boolean
+  readonly onToggle: () => void
+}) {
   return (
     <div className="hd-form-row" style={{ minHeight: 44 }}>
       <span className="hd-list-row__icon" style={{ flex: 'none' }}>
@@ -115,13 +135,23 @@ function HarnessRow({ row }: { readonly row: SettingsHarnessFact }) {
           flex: 'none',
         }}
       >
-        {row.actions.map((action) => (
-          <UnavailableTextButton
-            key={action}
-            action={action}
-            harnessLabel={row.label}
-          />
-        ))}
+        {row.actions.map((action) =>
+          action === 'mcp-approvals' ? (
+            <McpApprovalsToggle
+              key={action}
+              harnessId={row.id}
+              harnessLabel={row.label}
+              expanded={expanded}
+              onToggle={onToggle}
+            />
+          ) : (
+            <UnavailableTextButton
+              key={action}
+              action={action}
+              harnessLabel={row.label}
+            />
+          ),
+        )}
       </span>
     </div>
   )
@@ -283,7 +313,6 @@ function UnavailableTextButton({
       disabled
       style={{ opacity: 0.45, cursor: 'default' }}
     >
-      {action === 'mcp-approvals' ? <Icon name="chevron-down" size="sm" /> : null}
       {visible}
     </button>
   )

@@ -33,21 +33,151 @@ describe('SettingsHarnesses', () => {
 
     const refresh = screen.getByRole('button', { name: 'Refresh' })
     const update = screen.getByRole('button', { name: 'Update Codex' })
+    const remove = screen.getByRole('button', { name: 'Remove Claude Code' })
     const approvals = screen.getByRole('button', {
       name: 'MCP approvals for Claude Code',
     })
-    for (const control of [refresh, update, approvals]) {
+    for (const control of [refresh, update, remove]) {
       expect(control).toBeDisabled()
       expect(control).toHaveAttribute('aria-disabled', 'true')
       expect(control).toHaveAccessibleDescription(HARNESS_ACTION_EXPLANATION)
       expect(control).not.toHaveAttribute('title')
     }
+    expect(approvals).toBeEnabled()
+    expect(approvals).toHaveAttribute('aria-expanded', 'false')
+    expect(screen.queryByRole('button', { name: 'MCP approvals for Codex' })).not.toBeInTheDocument()
     expect(screen.queryByRole('textbox', { name: 'Tool approval' })).not.toBeInTheDocument()
     await user.click(refresh)
     fireEvent.click(update)
-    fireEvent.keyDown(approvals, { key: ' ', code: 'Space' })
+    fireEvent.click(remove)
+    expect(approvals).toHaveAttribute('aria-expanded', 'false')
     expect(screen.getByText('Server: ~/.harflow/bin/harflow-mcp')).toBeInTheDocument()
     expect(within(list).getByText('Update available')).toBeInTheDocument()
+  })
+
+  it('expands and collapses one harness list without changing approvals', async () => {
+    const user = userEvent.setup()
+    render(<SettingsHarnesses load={populatedHarnessesLoad()} />)
+    const approvals = screen.getByRole('button', {
+      name: 'MCP approvals for Claude Code',
+    })
+    approvals.focus()
+    await user.keyboard('{Enter}')
+    expect(approvals).toHaveFocus()
+    expect(approvals).toHaveAttribute('aria-expanded', 'true')
+    const region = screen.getByRole('region', {
+      name: 'MCP approvals for Claude Code',
+    })
+    expect(region).toHaveTextContent(
+      'Global tool approvals apply across projects and future tasks.',
+    )
+    expect(within(region).getByText('harflow/*')).toBeInTheDocument()
+    expect(within(region).getByText('github/create_pull_request')).toBeInTheDocument()
+    expect(within(region).getByText('linear/get_issue')).toBeInTheDocument()
+    const list = screen.getByRole('list', { name: 'Harness registration' })
+    const codex = within(list).getByText('Codex').closest('li')
+    expect(codex).not.toHaveTextContent('harflow/*')
+    const remove = within(region).getByRole('button', {
+      name: 'Remove approval harflow/*',
+    })
+    const add = within(region).getByRole('button', { name: 'Add approval' })
+    const field = within(region).getByRole('textbox', { name: 'Tool approval' })
+    expect(remove).toBeDisabled()
+    expect(remove).toHaveAccessibleDescription(HARNESS_ACTION_EXPLANATION)
+    expect(add).toBeDisabled()
+    expect(add).toHaveAccessibleDescription(HARNESS_ACTION_EXPLANATION)
+    expect(field).toBeDisabled()
+    expect(field).toHaveAttribute('placeholder', 'server/tool')
+    expect(region).toHaveTextContent(
+      'Use server/* to approve every tool on one server.',
+    )
+    fireEvent.click(remove)
+    fireEvent.click(add)
+    const form = field.closest('form')
+    expect(form).not.toBeNull()
+    fireEvent.submit(form as HTMLFormElement)
+    expect(within(region).getAllByRole('button', { name: /Remove approval / })).toHaveLength(3)
+    await user.keyboard(' ')
+    expect(approvals).toHaveFocus()
+    expect(approvals).toHaveAttribute('aria-expanded', 'false')
+    expect(screen.queryByText('harflow/*')).not.toBeInTheDocument()
+  })
+
+  it('does not show another harness list or an empty list for unknown approvals', async () => {
+    const user = userEvent.setup()
+    render(
+      <SettingsHarnesses
+        load={{ kind: 'ready', observation: divergentHarnessesObservation() }}
+      />,
+    )
+    const installed = screen.getByRole('button', {
+      name: 'MCP approvals for Installed only',
+    })
+    const qualified = screen.getByRole('button', {
+      name: 'MCP approvals for Registered and qualified',
+    })
+    await user.click(installed)
+    const missing = screen.getByRole('region', {
+      name: 'MCP approvals for Installed only',
+    })
+    expect(missing).toHaveTextContent(
+      'MCP approvals for this harness are unavailable.',
+    )
+    expect(missing).not.toHaveTextContent('Global tool approvals')
+    expect(within(missing).queryByRole('button', { name: /Remove approval/ })).not.toBeInTheDocument()
+    expect(screen.queryByText('fixture/only-this-harness')).not.toBeInTheDocument()
+    await user.click(qualified)
+    expect(
+      screen.queryByRole('region', { name: 'MCP approvals for Installed only' }),
+    ).not.toBeInTheDocument()
+    const owned = screen.getByRole('region', {
+      name: 'MCP approvals for Registered and qualified',
+    })
+    expect(within(owned).getByText('fixture/only-this-harness')).toBeInTheDocument()
+    expect(owned).not.toHaveTextContent('harflow/*')
+    expect(
+      screen.queryByText('MCP approvals for this harness are unavailable.'),
+    ).not.toBeInTheDocument()
+    expect(installed).toHaveAttribute('aria-expanded', 'false')
+    expect(qualified).toHaveAttribute('aria-expanded', 'true')
+  })
+
+  it('does not present missing approvals as an empty approved list', async () => {
+    const user = userEvent.setup()
+    render(
+      <SettingsHarnesses
+        load={{
+          kind: 'ready',
+          observation: {
+            server: { kind: 'unknown' },
+            harnesses: [
+              {
+                id: 'missing',
+                label: 'Missing approvals',
+                hint: null,
+                install: { kind: 'installed' },
+                registration: { kind: 'registered' },
+                qualification: { kind: 'unknown' },
+                approvals: null,
+                actions: ['mcp-approvals'],
+              },
+            ],
+          },
+        }}
+      />,
+    )
+    await user.click(
+      screen.getByRole('button', { name: 'MCP approvals for Missing approvals' }),
+    )
+    const region = screen.getByRole('region', {
+      name: 'MCP approvals for Missing approvals',
+    })
+    expect(region).toHaveTextContent(
+      'MCP approvals for this harness are unavailable.',
+    )
+    expect(region).not.toHaveTextContent('Global tool approvals')
+    expect(within(region).queryByRole('textbox')).not.toBeInTheDocument()
+    expect(within(region).queryByText('server/tool')).not.toBeInTheDocument()
   })
 
   it('renders divergent and unknown facts without collapsing them', () => {

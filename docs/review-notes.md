@@ -26,9 +26,11 @@ grant approvals, answer questions, or touch the task store.
   updates, Inspect task store, and Show backup in Finder stay unavailable.
   Settings → Harnesses shows fixture install, MCP registration, and
   qualification independently. Unknown does not become “not installed”,
-  “not registered”, or “Ready”. Refresh, Update, Remove, and MCP approvals are
-  disabled and explained in the accessibility tree. The MCP approvals editor
-  is omitted. Specimen paths and readiness sentences are not this computer.
+  “not registered”, or “Ready”. Refresh, Update, and Remove stay disabled.
+  MCP approvals expands and collapses that harness’s explicit fixture list.
+  Add and per-entry Remove stay disabled and explained. Unknown or missing
+  approvals do not render as an empty approved list. Specimen paths and
+  readiness sentences are not this computer.
   No install, store, notification, credential, PATH, or OS settings.
 - Needs you waiting shows the three fixture approvals and the question. The
   publish action reads “Approve this publish” (exact action; specimen “Approve”

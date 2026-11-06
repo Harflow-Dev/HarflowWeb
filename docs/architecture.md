@@ -83,8 +83,9 @@ onto one file. Task UI is split across `TaskMain`, `TaskPage`, `TaskTranscript`,
 - `observeTaskChanges(query, onUpdate) → ObservationHandle` — recorded changes
   for an explicit task + selected path
 - `observeHarnesses(onUpdate) → ObservationHandle` — fixture installation,
-  MCP registration, and qualification. None is derived from another. Unknown
-  stays unknown.
+  MCP registration, qualification, and per-harness approval facts. None is
+  derived from another. Unknown stays unknown. Missing approvals are not an
+  empty list.
 - `observeNeedsYou(onUpdate) → ObservationHandle` — approvals and questions
   only. Complete coverage with zero items is the empty state. Unknown or
   unavailable coverage is not zero and is not “nothing needs you.” Partial
@@ -118,7 +119,9 @@ not follow-up / cancel / retry / copy-resume / approval / steering commands.
 Task changes are mock recorded-repository observations — not Git, patch apply,
 downloads, or a public ctl diff protocol. Harness settings are mock fixture
 facts — not a host PATH/filesystem probe, not install/register/remove, and not
-MCP approval management. A loading or unavailable harness observation replaces
+approval edits. MCP approvals only expands the selected harness’s explicit
+fixture list. Unknown or missing approvals stay unavailable. A loading or
+unavailable harness observation replaces
 the previous ready facts. Replacing or disposing the observation rejects a
 captured callback. Needs you is the same shape: loading replaces a previous
 ready or empty claim, and a captured callback after replacement or disposal

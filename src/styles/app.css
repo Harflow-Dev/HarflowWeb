@@ -267,6 +267,24 @@ body,
   outline-offset: 2px;
 }
 
+/* Standalone orchestrator card from HarflowDesign 3643d083 bundle.css.
+   The kind line is a left-aligned row, the same treatment as on-demand nodes. */
+.hd-node--orchestrator {
+  position: relative;
+  width: 200px;
+  padding: 8px 10px;
+  gap: 4px;
+  cursor: pointer;
+  text-align: left;
+}
+
+.hd-node--orchestrator .hd-node__kind {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 4px;
+}
+
 /* Approved slim scrollbar: HarflowDesign 5b37a3d, tertiary at 72%. */
 .hd-canvas {
   display: flex;

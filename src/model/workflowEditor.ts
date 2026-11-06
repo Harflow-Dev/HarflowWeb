@@ -8,6 +8,8 @@ export type WorkflowEditorField =
       readonly label: string
       readonly value: string
       readonly hideLabel?: boolean
+      /** Horizontal row. Omitted fields keep their existing stack or instructions layout. */
+      readonly layout?: 'row'
     }
   | { readonly kind: 'choice'; readonly id: string; readonly label: string; readonly value: string }
   | {

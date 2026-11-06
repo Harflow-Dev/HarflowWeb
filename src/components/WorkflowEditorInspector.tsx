@@ -160,11 +160,16 @@ function ValueField({
 }: {
   readonly field: Extract<WorkflowEditorField, { kind: 'text' | 'choice' }>
 }) {
+  const row = field.kind === 'text' && field.layout === 'row'
   const hidden = field.kind === 'text' && field.hideLabel === true
-  const long = field.kind === 'text' && (field.label === 'Instructions' || hidden)
+  const long = !row && field.kind === 'text' && (field.label === 'Instructions' || hidden)
+  const stack = !row && (hidden || (field.kind === 'text' && !long))
+  const labelClass = row
+    ? 'hd-form-row__label'
+    : `${long || field.kind === 'text' ? 'hd-field__label' : 'hd-form-row__label'}${hidden ? ' hd-sr' : ''}`
   return (
-    <div className={hidden || (field.kind === 'text' && !long) ? 'hd-field' : 'hd-form-row'}>
-      <label className={`${long || field.kind === 'text' ? 'hd-field__label' : 'hd-form-row__label'}${hidden ? ' hd-sr' : ''}`} htmlFor={field.id}>
+    <div className={stack ? 'hd-field' : 'hd-form-row'}>
+      <label className={labelClass} htmlFor={field.id}>
         {field.label}
       </label>
       {long ? (

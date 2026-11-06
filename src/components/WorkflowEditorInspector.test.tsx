@@ -15,6 +15,12 @@ const RELEASE_INSTRUCTIONS =
 const NIGHTLY_INSTRUCTIONS =
   'Choose the next node from the lockfile audit. Repeat Audit lockfiles when a dependency is still unresolved, and stop for the person if the lockfile cannot be read.'
 
+function fieldShell(control: HTMLElement): HTMLElement {
+  const shell = control.parentElement
+  if (!shell) throw new Error('missing field shell')
+  return shell
+}
+
 function definitionFor(id: WorkflowId): WorkflowEditorDefinition {
   const load = workflowEditorLoadFor(id)
   if (load.kind !== 'ready') throw new Error('fixture')
@@ -56,7 +62,13 @@ describe('Orchestrator inspector', () => {
     expect(within(inspector).getByRole('button', { name: 'Harness' })).toHaveTextContent('Claude Code')
     expect(within(inspector).getByRole('button', { name: 'Model' })).toHaveTextContent('Opus 5.5')
     expect(within(inspector).getByRole('button', { name: 'Effort' })).toHaveTextContent('High')
-    expect(within(inspector).getByRole('textbox', { name: 'Turn limit' })).toHaveValue('')
+    const turn = within(inspector).getByRole('textbox', { name: 'Turn limit' })
+    expect(turn).toHaveValue('')
+    expect(turn).toHaveAttribute('readonly')
+    expect(fieldShell(turn).className).toBe('hd-form-row')
+    expect(fieldShell(turn).querySelector('label')?.className).toBe('hd-form-row__label')
+    const instructions = within(inspector).getByRole('textbox', { name: 'Orchestrator instructions' })
+    expect(fieldShell(instructions).className).toBe('hd-field')
     expect(within(inspector).getByRole('switch', { name: 'Caller approvals' })).not.toBeChecked()
     expect(within(inspector).getByText('Codex · gpt-6-astra')).toBeInTheDocument()
     expect(within(inspector).getByRole('textbox', { name: 'Orchestrator instructions' })).toHaveValue(RELEASE_INSTRUCTIONS)
@@ -72,6 +84,15 @@ describe('Orchestrator inspector', () => {
     }
     expect(within(inspector).getByRole('switch', { name: 'Caller approvals' })).toBeDisabled()
     expect(canvas.querySelectorAll('path[data-loop]')).toHaveLength(8)
+
+    await user.click(within(canvas).getByRole('button', { name: /^Review$/ }))
+    const name = screen.getByRole('textbox', { name: 'Node name' })
+    expect(fieldShell(name).className).toBe('hd-field')
+    expect(fieldShell(screen.getByRole('textbox', { name: 'Instructions' })).className).toBe('hd-form-row')
+    expect(fieldShell(screen.getByRole('textbox', { name: 'Turn limit' })).className).toBe('hd-field')
+    const card = screen.getByRole('button', { name: 'Orchestrator, locked' })
+    expect(card.className).toContain('hd-node--orchestrator')
+    expect(card.querySelector('.hd-node__kind')?.textContent).toContain('Always present')
   })
 
   it('keeps Nightly orchestrator values separate from Release', async () => {

@@ -96,7 +96,7 @@ function orchestratorSections(spec: OrchestratorLimits): readonly WorkflowEditor
         choice(id('harness'), 'Harness', 'Claude Code'),
         choice(id('model'), 'Model', 'Opus 5.5'),
         choice(id('effort'), 'Effort', 'High'),
-        text(id('turns'), 'Turn limit', ''),
+        { kind: 'text', id: id('turns'), label: 'Turn limit', value: '', layout: 'row' },
         { kind: 'switch', id: id('approvals'), label: 'Caller approvals', hint: null, checked: false },
         {
           kind: 'fallbacks',

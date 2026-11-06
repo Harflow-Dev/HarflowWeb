@@ -1,5 +1,6 @@
 import type {
   LoadContextUseCase,
+  LoadHarnessesUseCase,
   LoadResourcesUseCase,
   LoadStatisticsUseCase,
   LoadTaskChangesUseCase,
@@ -17,7 +18,7 @@ import type {
   TaskId,
 } from '../model'
 import { AppSession, type AppListener } from './appSession'
-import type { AppRoute, AppScreenState } from './appState'
+import type { AppRoute, AppScreenState, SettingsSection } from './appState'
 import type { OpenMenu } from './screenState'
 
 export type AppPresenter = {
@@ -30,6 +31,7 @@ export type AppPresenter = {
   setTaskChangesPaneOpen(open: boolean): void
   selectTaskChangedFile(path: string): void
   selectStatisticsRange(range: StatisticsRangeId): void
+  selectSettingsSection(section: SettingsSection): void
   setAppearance(appearance: Appearance): void
   cycleAppearance(): void
   setSidebarCollapsed(collapsed: boolean): void
@@ -50,6 +52,7 @@ type Deps = {
   readonly loadStatistics: LoadStatisticsUseCase
   readonly loadTask: LoadTaskUseCase
   readonly loadTaskChanges: LoadTaskChangesUseCase
+  readonly loadHarnesses: LoadHarnessesUseCase
 }
 
 export function createAppPresenter(deps: Deps): AppPresenter {
@@ -64,6 +67,7 @@ export function createAppPresenter(deps: Deps): AppPresenter {
     setTaskChangesPaneOpen: (open) => session.setTaskChangesPaneOpen(open),
     selectTaskChangedFile: (path) => session.selectTaskChangedFile(path),
     selectStatisticsRange: (range) => session.selectStatisticsRange(range),
+    selectSettingsSection: (section) => session.selectSettingsSection(section),
     setAppearance: (appearance) => session.setAppearance(appearance),
     cycleAppearance: () => session.cycleAppearance(),
     setSidebarCollapsed: (collapsed) => session.setSidebarCollapsed(collapsed),

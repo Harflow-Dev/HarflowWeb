@@ -1,5 +1,6 @@
 import {
   createLoadContextUseCase,
+  createLoadHarnessesUseCase,
   createLoadResourcesUseCase,
   createLoadStatisticsUseCase,
   createLoadTaskChangesUseCase,
@@ -32,6 +33,7 @@ export function createApp(scenario: ScenarioId = 'populated'): AppBundle {
   const loadStatistics = createLoadStatisticsUseCase(mock.engine)
   const loadTask = createLoadTaskUseCase(mock.engine)
   const loadTaskChanges = createLoadTaskChangesUseCase(mock.engine)
+  const loadHarnesses = createLoadHarnessesUseCase(mock.engine)
   const presenter = createAppPresenter({
     loadContext,
     startTask,
@@ -40,6 +42,7 @@ export function createApp(scenario: ScenarioId = 'populated'): AppBundle {
     loadStatistics,
     loadTask,
     loadTaskChanges,
+    loadHarnesses,
   })
   return { presenter, mock }
 }

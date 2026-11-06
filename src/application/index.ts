@@ -24,6 +24,10 @@ export {
   type LoadTaskChangesUseCase,
 } from './loadTaskChanges'
 export {
+  createLoadHarnessesUseCase,
+  type LoadHarnessesUseCase,
+} from './loadHarnesses'
+export {
   createStartTaskUseCase,
   type StartTaskUseCase,
 } from './startTask'

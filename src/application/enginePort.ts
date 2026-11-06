@@ -1,5 +1,6 @@
 import type {
   ContextLoad,
+  HarnessesLoad,
   ObservationHandle,
   ResourcesLoad,
   StartTaskOutcome,
@@ -72,6 +73,15 @@ export type EnginePort = {
   observeTaskChanges(
     query: TaskChangesQuery,
     onUpdate: (load: TaskChangesLoad) => void,
+  ): ObservationHandle
+
+  /**
+   * Read harness installation, MCP registration, and qualification.
+   * The three facts stay independent. Mock-only — not a host probe,
+   * not MCP approval management, and not a public ctl claim.
+   */
+  observeHarnesses(
+    onUpdate: (load: HarnessesLoad) => void,
   ): ObservationHandle
 
   /**

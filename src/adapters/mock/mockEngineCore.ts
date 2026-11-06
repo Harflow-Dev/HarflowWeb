@@ -1,6 +1,7 @@
 import type { EnginePort } from '../../application'
 import type {
   ContextLoad,
+  HarnessesLoad,
   ResourcesLoad,
   StartTaskOutcome,
   StartTaskRequest,
@@ -36,6 +37,7 @@ export type MockListenerSets = {
   readonly statistics: Set<KeyedListener<StatisticsRangeId, StatisticsLoad>>
   readonly tasks: Set<KeyedListener<TaskId, TaskLoad>>
   readonly taskChanges: Set<KeyedListener<TaskChangesKey, TaskChangesLoad>>
+  readonly harnesses: Set<(load: HarnessesLoad) => void>
 }
 
 export function createListenerSets(): MockListenerSets {
@@ -46,6 +48,7 @@ export function createListenerSets(): MockListenerSets {
     statistics: new Set(),
     tasks: new Set(),
     taskChanges: new Set(),
+    harnesses: new Set(),
   }
 }
 
@@ -136,6 +139,16 @@ export function buildMockEnginePort(options: {
         onUpdate,
         () => resolveTaskChangesLoad(getScenario(), query),
       )
+    },
+    observeHarnesses(onUpdate) {
+      return createObservation(listeners.harnesses, onUpdate, () => {
+        const scenario = getScenario()
+        const load: HarnessesLoad =
+          scenario.harnesses === 'defer'
+            ? { kind: 'loading' }
+            : scenario.harnesses
+        return load
+      })
     },
     startTask(request) {
       return onStart(request)

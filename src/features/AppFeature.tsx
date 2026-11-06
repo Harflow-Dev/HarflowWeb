@@ -71,9 +71,12 @@ export function AppFeature({ presenter }: Props) {
             />
           ) : state.route === 'settings' ? (
             <SettingsMain
+              section={state.settingsSection}
+              onSection={(section) => presenter.selectSettingsSection(section)}
               appearance={newTask.appearance}
               onAppearance={(appearance) => presenter.setAppearance(appearance)}
               onUnavailable={(label) => ephemeral.show(label)}
+              harnesses={state.harnesses.load}
             />
           ) : (
             <TaskMain

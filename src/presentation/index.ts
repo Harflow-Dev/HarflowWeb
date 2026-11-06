@@ -3,7 +3,12 @@ export {
   type AppPresenter,
 } from './appPresenter'
 export type { AppListener } from './appSession'
-export type { AppRoute, AppScreenState } from './appState'
+export type { AppRoute, AppScreenState, SettingsSection } from './appState'
+export {
+  initialHarnessesState,
+  type HarnessesScreenState,
+} from './harnessesState'
+export { HarnessesSession } from './harnessesSession'
 export {
   createNewTaskPresenter,
   type NewTaskPresenter,

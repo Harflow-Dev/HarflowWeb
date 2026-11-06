@@ -1,6 +1,7 @@
 import {
   asTaskId,
   type ContextLoad,
+  type HarnessesLoad,
   type ResourcesLoad,
   type StartTaskOutcome,
   type StatisticsLoad,
@@ -17,6 +18,7 @@ import {
   populatedComposer,
   populatedSidebar,
 } from './fixtures'
+import { populatedHarnessesLoad } from './harnessFixtures'
 import { populatedResourcesLoad } from './resourceFixtures'
 import { statisticsLoadFor } from './statisticsFixtures'
 import { taskLoadFor } from './taskFixtures'
@@ -72,6 +74,7 @@ export type ScenarioDefinition = {
   readonly statistics: StatisticsScenario
   readonly tasks: TasksScenario
   readonly taskChanges: TaskChangesScenario
+  readonly harnesses: HarnessesLoad | 'defer'
   readonly startOutcome: StartTaskOutcome
   readonly holdStart: boolean
 }
@@ -94,11 +97,17 @@ const workflows = populatedWorkflowsLoad()
 const statistics: StatisticsScenario = 'default'
 const tasks: TasksScenario = 'default'
 const taskChanges: TaskChangesScenario = 'default'
+const harnesses = populatedHarnessesLoad()
 
 function base(
   partial: Omit<
     ScenarioDefinition,
-    'workflows' | 'resources' | 'statistics' | 'tasks' | 'taskChanges'
+    | 'workflows'
+    | 'resources'
+    | 'statistics'
+    | 'tasks'
+    | 'taskChanges'
+    | 'harnesses'
   > &
     Partial<
       Pick<
@@ -108,6 +117,7 @@ function base(
         | 'statistics'
         | 'tasks'
         | 'taskChanges'
+        | 'harnesses'
       >
     >,
 ): ScenarioDefinition {
@@ -117,6 +127,7 @@ function base(
     statistics,
     tasks,
     taskChanges,
+    harnesses,
     ...partial,
   }
 }

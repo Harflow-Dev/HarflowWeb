@@ -2,16 +2,17 @@
 
 ## Intent
 
-Review checkpoint after the mock-backed Settings general page (Changes pane
-committed first). Does not complete W01–W05, authenticate, connect a real
-engine, run workflows, administer slots, bill, submit follow-ups, retry, apply
-patches, install a runtime, touch the task store, or ship editor/run destinations.
+Review checkpoint after the mock-backed Settings harnesses page (General
+Settings committed first). Does not complete W01–W05, authenticate, connect a
+real engine, run workflows, administer slots, bill, submit follow-ups, retry,
+apply patches, install a runtime, register MCP servers, manage approvals, or
+touch the task store.
 
 ## Known deviations
 
 - Loading / unavailable / partial-sidebar treatments are **proposals** requiring
   design review; they are not approved specimens.
-- Workflows/resources/statistics/task loading and unavailable copy are
+- Workflows/resources/statistics/task/harnesses loading and unavailable copy are
   **proposals**, not approved specimens.
 - Specimen copy “Choices are remembered per repository” is not implemented;
   selection is one global set for the mock session.
@@ -22,9 +23,13 @@ patches, install a runtime, touch the task store, or ship editor/run destination
   switches are disabled specimen values with an accessible explanation; they
   are not saved preferences or notification settings. Runtime “0.9.3 is
   ready” and “Task store is compatible” are read-only specimen facts. Check for
-  updates, Inspect task store, Show backup in Finder, Harnesses, and MCP
-  approvals stay unavailable — no install, store, notification, credential, or
-  OS settings.
+  updates, Inspect task store, and Show backup in Finder stay unavailable.
+  Settings → Harnesses shows fixture install, MCP registration, and
+  qualification independently. Unknown does not become “not installed”,
+  “not registered”, or “Ready”. Refresh, Update, Remove, and MCP approvals are
+  disabled and explained in the accessibility tree. The MCP approvals editor
+  is omitted. Specimen paths and readiness sentences are not this computer.
+  No install, store, notification, credential, PATH, or OS settings.
 - Sidebar destinations outside New task, Workflows, Resources, Statistics,
   Settings, and explicitly mapped running-task rows stay unavailable.
 - Run, Edit, New workflow, “Describe one to an agent”, Resources task links,

@@ -41,6 +41,12 @@ export {
   taskChangesLoadFor,
   unavailableDiffChangesLoad,
 } from './taskChangesFixtures'
+export {
+  divergentHarnessesObservation,
+  populatedHarnessesLoad,
+  populatedHarnessesObservation,
+  unavailableHarnessesLoad,
+} from './harnessFixtures'
 export { UNMAPPED_LAUNCH_TASK_ID } from './sidebarFixtures'
 export {
   emptyWorkflowsLoad,

@@ -42,8 +42,13 @@
     implemented.
   - `settings/general/light` and `/dark` (General page composition). Appearance
     uses the shared session System/Light/Dark state and is not persisted.
-    Behaviour switches, runtime update checks, task-store actions, Harnesses,
-    and MCP approvals stay unavailable or read-only specimen facts.
+    Behaviour switches, runtime update checks, and task-store actions stay
+    unavailable or read-only specimen facts.
+  - `settings/harnesses/light` and `/dark` (registration, install badges, and
+    qualification). Installation, MCP registration, and qualification are
+    independent fixture facts. Refresh, update, remove, and MCP approvals stay
+    disabled. The approvals editor is omitted. Paths and readiness sentences
+    are specimen copy, not this computer.
 - Visual inspection also used hosted `https://design.harflow.dev/v2` (cheaper than a
   local archive server). Hosted content may be newer than the pinned commit;
   implementation citations remain the immutable commit above.
@@ -74,7 +79,8 @@
 | Failed-task transcript | Design `task/failed` specimen copy | **Mock-only presentation** — explicit failed status; no running chrome; Retry/Copy resume unavailable |
 | Completed-task transcript | Design `task/done` transcript+summary copy | **Mock-only presentation** — fixture evidence only; tool success ≠ verified authorship |
 | Completed-task Changes | Design `task/done` Changes pane file list + selected diff | **Mock-only presentation** — recorded repository observations; not Git/fs; not authorship proof; independent of task success |
-| Settings general | Design `settings/general` specimen copy | **Mock-only presentation** — shared session appearance only; behaviour/runtime/store/harnesses/MCP approvals unavailable or static facts; not persisted |
+| Settings general | Design `settings/general` specimen copy | **Mock-only presentation** — shared session appearance only; behaviour/runtime/store unavailable or static facts; not persisted |
+| Settings harnesses | Design `settings/harnesses` registration, install, and qualification copy | **Mock-only presentation** — independent fixture facts; unknown stays unknown; no PATH probe, install, registration change, or MCP approval management |
 | Repository options | Mock-only | Future server-hosted repos; not filesystem pickers; not ctl |
 
 ### Statistics semantic gaps (explicit)

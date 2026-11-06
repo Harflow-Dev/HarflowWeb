@@ -1,8 +1,9 @@
-import { act, cleanup, render, screen, within } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it } from 'vitest'
 import {
   createLoadContextUseCase,
+  createLoadHarnessesUseCase,
   createLoadResourcesUseCase,
   createLoadStatisticsUseCase,
   createLoadTaskChangesUseCase,
@@ -29,6 +30,7 @@ import {
 } from '../model'
 import { createControllablePromise } from '../adapters/mock/controllable'
 import { populatedComposer, populatedSidebar } from '../adapters/mock/fixtures'
+import { populatedHarnessesLoad } from '../adapters/mock/harnessFixtures'
 import { populatedResourcesLoad } from '../adapters/mock/resourceFixtures'
 import { statisticsLoadFor } from '../adapters/mock/statisticsFixtures'
 import {
@@ -161,6 +163,15 @@ function createTestEngine(options?: {
         },
       }
     },
+    observeHarnesses(onUpdate) {
+      queueMicrotask(() => onUpdate(populatedHarnessesLoad()))
+      return {
+        id: asObservationId('ui-harnesses'),
+        cancel() {
+          /* no-op */
+        },
+      }
+    },
     async startTask(request) {
       starts.push(request)
       if (options?.holdStart) {
@@ -199,6 +210,7 @@ function renderApp(engine: EnginePort) {
     loadStatistics: createLoadStatisticsUseCase(engine),
     loadTask: createLoadTaskUseCase(engine),
     loadTaskChanges: createLoadTaskChangesUseCase(engine),
+    loadHarnesses: createLoadHarnessesUseCase(engine),
   })
   const view = render(<AppFeature presenter={presenter} />)
   return { presenter, ...view }
@@ -1139,12 +1151,41 @@ describe('AppFeature navigation', () => {
     await user.click(
       within(main).getByRole('button', { name: 'Show backup in Finder' }),
     )
-    await user.click(within(main).getByRole('tab', { name: 'Harnesses' }))
+    const harnesses = within(main).getByRole('tab', { name: 'Harnesses' })
+    harnesses.focus()
+    expect(harnesses).toHaveFocus()
+    await user.keyboard('{Enter}')
+    expect(harnesses).toHaveAttribute('aria-selected', 'true')
+    expect(
+      (await within(main).findAllByText('Claude Code')).length,
+    ).toBeGreaterThan(0)
+    expect(within(main).getByText('Server: ~/.harflow/bin/harflow-mcp')).toBeInTheDocument()
+    expect(
+      within(main).getByText('Fixture label. Not a path on this computer.'),
+    ).toBeInTheDocument()
+    const refresh = within(main).getByRole('button', { name: 'Refresh' })
+    expect(refresh).toBeDisabled()
+    expect(refresh).toHaveAccessibleDescription(/does not install, register, refresh/)
+    const remove = within(main).getByRole('button', { name: 'Remove Claude Code' })
+    expect(remove).toBeDisabled()
+    fireEvent.click(remove)
+    fireEvent.click(refresh)
     expect(presenter.getState().newTask.appearance).toBe('system')
     expect(starts).toHaveLength(0)
+    expect(screen.queryByText(/Harnesses is unavailable/)).not.toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: 'Dark' }))
+    expect(presenter.getState().newTask.appearance).toBe('dark')
+    expect(container.querySelector('.hd-app')?.getAttribute('data-theme')).toBe(
+      'dark',
+    )
+    await user.click(within(main).getByRole('tab', { name: 'General' }))
     expect(
-      within(main).getByRole('tab', { name: 'General' }),
-    ).toHaveAttribute('aria-selected', 'true')
+      within(within(main).getByRole('group', { name: 'Theme' })).getByRole(
+        'button',
+        { name: 'Dark' },
+      ),
+    ).toHaveAttribute('aria-pressed', 'true')
   })
 
   it('preserves draft, task, statistics range, and a held launch across Settings', async () => {
@@ -1168,6 +1209,8 @@ describe('AppFeature navigation', () => {
     expect(
       await screen.findByRole('heading', { name: 'Settings' }),
     ).toBeInTheDocument()
+    await user.click(screen.getByRole('tab', { name: 'Harnesses' }))
+    expect((await screen.findAllByText('Claude Code')).length).toBeGreaterThan(0)
     expect(presenter.getState().newTask.prompt).toBe('draft beside settings')
     expect(presenter.getState().statistics.selectedRange).toBe('7d')
     expect(presenter.getState().task.selectedTaskId).toBeTruthy()

@@ -39,16 +39,20 @@ observation — it does not relabel unchanged totals. Opening another mapped tas
 requests `observeTask(taskId, …)` and cancels the prior task observation.
 Opening the Changes pane on the completed fixture observes
 `observeTaskChanges({ taskId, selectedPath }, …)`; selecting a file re-keys that
-observation and clears the prior diff immediately.
+observation and clears the prior diff immediately. Settings → Harnesses observes
+`observeHarnesses(…)`. Install, MCP registration, and qualification are separate
+fixture fields. A later loading or unavailable result drops the previous ready
+rows. Refresh, update, remove, and MCP approvals are disabled and do not
+re-observe.
 
 Run, Edit, New workflow, “Describe one to an agent”, Resources task links,
 Install, unmapped sidebar rows, follow-up send, Stop (running only), Retry,
 Copy resume command, Artifacts, Events, Check for updates, Inspect task store,
-Show backup in Finder, and Harnesses remain visible where the design shows them
-and report unavailable in this slice — no mutation, no admin, no engine calls,
-and no generated shell commands. Settings behaviour switches stay disabled
-specimen values with an accessible explanation; they are not saved preferences.
-Settings appearance is the shared session theme only. Tool-row expand/collapse and Changes
+and Show backup in Finder remain visible where the design shows them and report
+unavailable in this slice — no mutation, no admin, no engine calls, and no
+generated shell commands. Settings behaviour switches and harness actions stay
+disabled specimen controls with an accessible explanation. Settings appearance
+is the shared session theme only. General and Harnesses share that theme. Tool-row expand/collapse and Changes
 file selection are local UI only (selection re-observes fixture content).
 
 Valid zero task counts and observed zero cost remain distinct from unavailable

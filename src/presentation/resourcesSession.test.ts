@@ -47,6 +47,9 @@ function createCapturingPort(initial: ResourcesLoad = populatedResourcesLoad()):
     observeTaskChanges() {
       return noopHandle('changes')
     },
+    observeHarnesses() {
+      return noopHandle('harnesses')
+    },
     async startTask(_request: StartTaskRequest) {
       return { kind: 'accepted', taskId: asTaskId('unused') }
     },

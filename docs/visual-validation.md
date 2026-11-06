@@ -201,6 +201,27 @@ theme control, behaviour rows, runtime “0.9.3 is ready”, and task-store fact
 Document scrollWidth equals clientWidth (1280). Focus stays on the activated
 theme control. Behaviour, update, and store controls do not change saved state.
 
+## Settings harnesses — verified 1280×800 captures
+
+Directory:
+`~/.codex/workflows/screenshots/2026-11-06-harflowweb-settings-harnesses/`
+
+Captured from `/` after Settings → Harnesses. Same CDP clip + `sips`
+verification. Appearance is the shared session theme.
+
+| File | Scenario | Viewport / PNG | Appearance / chrome |
+| --- | --- | --- | --- |
+| `01-settings-harnesses-light-expanded.png` | settings/harnesses | 1280×800 | light, sidebar expanded |
+| `02-settings-harnesses-dark-expanded.png` | settings/harnesses | 1280×800 | dark, sidebar expanded |
+
+Observed: Harnesses tab selected, fixture server path with the “not this
+computer” caption, five harness rows, and the qualification section. Document
+and the settings scroller have equal scroll and client sizes (no overflow).
+Light capture focus is the Harnesses tab. Dark capture focus is the sidebar
+Dark control; the Harnesses tab stays selected. Refresh, MCP approvals, Update,
+and Remove are disabled. The MCP approvals editor is not shown. Loading and
+unavailable harness copy have no approved specimen.
+
 Earlier new-task screenshots remain under
 `~/.codex/workflows/screenshots/2026-11-05-harflowweb-new-task-slice/`.
 
@@ -212,7 +233,8 @@ Earlier new-task screenshots remain under
 - Statistics: `v2/scripts/screens-statistics.js` (`statistics/overview` light/dark)
 - Task: `v2/scripts/screens-task.js` (`task/running`, `task/failed`, and
   `task/done` transcript+summary+Changes light/dark)
-- Settings: `v2/scripts/screens-settings.js` (`settings/general` light/dark)
+- Settings: `v2/scripts/screens-settings.js` (`settings/general` and
+  `settings/harnesses` light/dark)
 - Observed in the running Vite app (not substituted from hosted design)
 
 ## Checks performed

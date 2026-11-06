@@ -2,6 +2,7 @@ import type { EnginePort } from '../../application'
 import {
   asTaskId,
   type ContextLoad,
+  type HarnessesLoad,
   type ResourcesLoad,
   type StartTaskOutcome,
   type StartTaskRequest,
@@ -34,6 +35,7 @@ export type MockEngineControls = {
   publishStatistics(range: StatisticsRangeId, load: StatisticsLoad): void
   publishTask(taskId: TaskId, load: TaskLoad): void
   publishTaskChanges(query: TaskChangesQuery, load: TaskChangesLoad): void
+  publishHarnesses(load: HarnessesLoad): void
   resolveHeldStart(outcome?: StartTaskOutcome): void
   readonly startRequestCount: () => number
   readonly lastStartRequest: () => StartTaskRequest | null
@@ -79,6 +81,13 @@ function republishScenario(
   for (const listener of listeners.taskChanges) {
     listener.send(
       resolveTaskChangesLoad(scenario, queryFromChangesKey(listener.key)),
+    )
+  }
+  for (const listener of listeners.harnesses) {
+    listener(
+      scenario.harnesses === 'defer'
+        ? { kind: 'loading' }
+        : scenario.harnesses,
     )
   }
 }
@@ -128,6 +137,9 @@ export function createMockEngine(
       for (const listener of listeners.tasks) {
         if (listener.key === taskId) listener.send(load)
       }
+    },
+    publishHarnesses(load) {
+      for (const listener of listeners.harnesses) listener(load)
     },
     publishTaskChanges(query, load) {
       const key = taskChangesKey(query)

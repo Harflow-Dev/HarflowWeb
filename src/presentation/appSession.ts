@@ -1,5 +1,6 @@
 import type {
   LoadContextUseCase,
+  LoadHarnessesUseCase,
   LoadResourcesUseCase,
   LoadStatisticsUseCase,
   LoadTaskChangesUseCase,
@@ -16,7 +17,8 @@ import type {
   StatisticsRangeId,
   TaskId,
 } from '../model'
-import type { AppRoute, AppScreenState } from './appState'
+import type { AppRoute, AppScreenState, SettingsSection } from './appState'
+import { HarnessesSession } from './harnessesSession'
 import { PresenterSession } from './presenterSession'
 import { ResourcesSession } from './resourcesSession'
 import type { OpenMenu } from './screenState'
@@ -34,6 +36,7 @@ type Deps = {
   readonly loadStatistics: LoadStatisticsUseCase
   readonly loadTask: LoadTaskUseCase
   readonly loadTaskChanges: LoadTaskChangesUseCase
+  readonly loadHarnesses: LoadHarnessesUseCase
 }
 
 /**
@@ -48,6 +51,8 @@ export class AppSession {
   private readonly resources: ResourcesSession
   private readonly statistics: StatisticsSession
   private readonly task: TaskSession
+  private readonly harnesses: HarnessesSession
+  private settingsSection: SettingsSection = 'general'
   private readonly listeners = new Set<AppListener>()
   private snapshot: AppScreenState
 
@@ -60,12 +65,14 @@ export class AppSession {
     this.resources = new ResourcesSession(deps.loadResources)
     this.statistics = new StatisticsSession(deps.loadStatistics)
     this.task = new TaskSession(deps.loadTask, deps.loadTaskChanges)
+    this.harnesses = new HarnessesSession(deps.loadHarnesses)
     this.snapshot = this.buildSnapshot()
     this.newTask.subscribe(() => this.emit())
     this.workflows.subscribe(() => this.emit())
     this.resources.subscribe(() => this.emit())
     this.statistics.subscribe(() => this.emit())
     this.task.subscribe(() => this.emit())
+    this.harnesses.subscribe(() => this.emit())
   }
 
   subscribe(listener: AppListener): () => void {
@@ -86,6 +93,7 @@ export class AppSession {
     this.resources.start()
     this.statistics.start()
     this.task.start()
+    this.harnesses.start()
   }
 
   dispose(): void {
@@ -94,6 +102,7 @@ export class AppSession {
     this.resources.dispose()
     this.statistics.dispose()
     this.task.dispose()
+    this.harnesses.dispose()
   }
 
   navigate(route: AppRoute): void {
@@ -118,6 +127,12 @@ export class AppSession {
 
   selectStatisticsRange(range: StatisticsRangeId): void {
     this.statistics.selectRange(range)
+  }
+
+  selectSettingsSection(section: SettingsSection): void {
+    if (this.settingsSection === section) return
+    this.settingsSection = section
+    this.emit()
   }
 
   setAppearance(appearance: Appearance): void {
@@ -168,6 +183,8 @@ export class AppSession {
       resources: this.resources.getState(),
       statistics: this.statistics.getState(),
       task: this.task.getState(),
+      settingsSection: this.settingsSection,
+      harnesses: this.harnesses.getState(),
     }
   }
 

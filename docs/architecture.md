@@ -30,6 +30,8 @@ A green import check does **not** prove semantic architecture correctness.
 - statistics child session (selected range + range-scoped observation)
 - task child session (selected task id + transcript observation + optional
   Changes-pane observation keyed by task and selected file path)
+- settings section (`general` | `harnesses`) plus a read-only harness
+  observation (install, MCP registration, and qualification stay independent)
 
 Navigating does **not** dispose any child. In-flight launches keep applying;
 returning to New task shows the current pending/accepted/refused/unknown state
@@ -67,6 +69,9 @@ onto one file. Task UI is split across `TaskMain`, `TaskPage`, `TaskTranscript`,
 - `observeTask(taskId, onUpdate) → ObservationHandle` — running-task transcript
 - `observeTaskChanges(query, onUpdate) → ObservationHandle` — recorded changes
   for an explicit task + selected path
+- `observeHarnesses(onUpdate) → ObservationHandle` — fixture installation,
+  MCP registration, and qualification. None is derived from another. Unknown
+  stays unknown.
 - `startTask(request) → Promise<StartTaskOutcome>` — accepted | refused | unknown
 - `ObservationHandle.cancel()` — dispose outstanding observations
 
@@ -79,7 +84,11 @@ filesystem, or invented engine metrics. Task transcripts are mock presentation
 evidence for an explicit task id — not a public ctl transcript protocol, and
 not follow-up / cancel / retry / copy-resume / approval / steering commands.
 Task changes are mock recorded-repository observations — not Git, patch apply,
-downloads, or a public ctl diff protocol.
+downloads, or a public ctl diff protocol. Harness settings are mock fixture
+facts — not a host PATH/filesystem probe, not install/register/remove, and not
+MCP approval management. A loading or unavailable harness observation replaces
+the previous ready facts. Replacing or disposing the observation rejects a
+captured callback.
 
 Each page observation uses an independent epoch so disposed or replaced
 callbacks cannot mutate presentation state after cancel/replace. Changing the

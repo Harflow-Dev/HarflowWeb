@@ -281,6 +281,57 @@ capture focus is the Dark control. The Run control stays disabled. Loading,
 validation, error, and adaptive states have no approved specimen and were
 not captured as specimens.
 
+## Workflow editor — verified 1280×800 captures
+
+Directory:
+`~/.codex/workflows/screenshots/2026-11-06-harflowweb-workflow-editor/`
+
+Captures are from `/` after Workflows → Edit on Release checklist, with Review
+selected. `sips` reports 1280×800. Appearance is the shared session theme.
+
+| File | Scenario | Viewport / PNG | Appearance / chrome |
+| --- | --- | --- | --- |
+| `01-workflow-editor-light-expanded.png` | earlier capture, End clipped | 1280×800 | light, sidebar expanded |
+| `02-workflow-editor-dark-expanded.png` | earlier capture, End clipped | 1280×800 | dark, sidebar expanded |
+| `03-release-routed-light-end.png` | Release scrolled to End | 1280×800 | light, sidebar expanded |
+| `04-nightly-routed-light-loop.png` | Nightly dashed loop | 1280×800 | light, sidebar expanded |
+| `05-nightly-routed-dark-loop.png` | Nightly dashed loop | 1280×800 | dark, sidebar expanded |
+| `06-release-routed-dark-end.png` | Release scrolled to End | 1280×800 | dark, sidebar expanded |
+
+`01` and `02` remain as the captures from before the canvas scrollport. Use
+`03`–`06` for reachability.
+
+Observed on `03` and `06`: title “Release checklist”, meta “Revision 7”,
+standalone Orchestrator (locked), Security reviewer, and Docs checker. The
+canvas is scrolled so End, Review, both Checks nodes, Implement changelog,
+and Run tests are visible, with open chevrons. Start is off the left of the
+scrollport in these End captures and comes back into view at scroll position
+0. Release has no dashed loop. The inspector shows Review after the scroll,
+including the instructions sentence, Claude Code, Opus 5.5, High, and a
+disabled Optional switch. The footer reads “8 path nodes · 2 on demand”.
+Document scrollWidth equals clientWidth (1280) and scrollHeight equals
+clientHeight (800). The scrollport is 665×626, `overflow: auto`,
+`scrollbar-width: thin`. At the end of the range, `scrollLeft` is 73 of 84.
+End’s box is inside the port (right edge about 923, port right 940). The
+computed scrollbar color is tertiary at 72% opacity: light
+`color(srgb 0.373 0.376 0.396 / 0.72)`, dark
+`color(srgb 0.678 0.678 0.702 / 0.72)`. The inspector body uses the same
+class, `overflow: auto`, and the same color. Review stays selected.
+
+Observed on `04` and `05`: Nightly dependency audit, Revision 2. Start, Audit
+lockfiles, and End are all inside the port (content size equals the port).
+The dashed loop under Audit lockfiles has `stroke-dasharray: 6, 4` and its
+path numbers stay non-negative (minimum 99). Selecting End moves the
+inspector to End and leaves focus on that node. The footer reads
+“3 path nodes · 1 on demand”.
+
+The canvas port accepts focus. A synthetic Left key from the browser tool
+did not move `scrollLeft`; that tool dispatches an untrusted DOM event, so
+it does not exercise the browser’s native arrow-key scrolling. The port
+does not intercept keys. The existing Mock engine badge overlaps the
+disabled Run control. Loading, error, and adaptive editor states have no
+approved specimen and were not captured as specimens.
+
 ## Design provenance for this inspection
 
 - HarflowDesign commit `3643d083700be4032c93237813b573d04bab6ab1`
@@ -294,6 +345,8 @@ not captured as specimens.
 - Needs you: `v2/scripts/screens-needs-you.js` (`needs-you/waiting` and
   `needs-you/empty` light/dark)
 - Workflow run: `v2/scripts/screens-workflows.js` (`workflows/run` light/dark)
+- Workflow editor: `v2/scripts/screens-workflow-editor.js`
+  (`workflow-editor/node-selected` light/dark)
 - Observed in the running Vite app (not substituted from hosted design)
 
 ## Checks performed
@@ -327,7 +380,10 @@ not captured as specimens.
 - Workflows/resources/statistics/task/Needs you loading, unavailable, and
   partial treatments are proposals, not approved specimens. Workflow run
   loading, validation, error, and adaptive states are the same: proposals,
-  not approved specimens.
+  not approved specimens. Workflow editor loading, error, and adaptive
+  states are proposals, not approved specimens. At 1280×800 the scaled
+  Release checklist board is wider than the visible canvas. The inner
+  scrollport reaches End; `01` and `02` still show the earlier clipped frame.
 - Empty workflows and resources screenshots used `/preview` with the scenario
   panel hidden. Statistics and running-task verification use `/` to avoid the
   preview-grid capture trap described above.

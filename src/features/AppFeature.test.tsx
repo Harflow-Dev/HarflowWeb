@@ -9,6 +9,7 @@ import {
   createLoadStatisticsUseCase,
   createLoadTaskChangesUseCase,
   createLoadTaskUseCase,
+  createLoadWorkflowEditorUseCase,
   createLoadWorkflowRunUseCase,
   createLoadWorkflowsUseCase,
   createStartTaskUseCase,
@@ -19,6 +20,7 @@ import {
   asRepositoryId,
   asTaskId,
   asWorkflowId,
+  asWorkflowNodeId,
   type ContextLoad,
   type ObservationHandle,
   type ResourcesLoad,
@@ -31,6 +33,7 @@ import {
   type NeedsYouLoad,
   type TaskId,
   type TaskLoad,
+  type WorkflowEditorLoad,
   type WorkflowId,
   type WorkflowRunContextLoad,
   type WorkflowsLoad,
@@ -45,6 +48,9 @@ import {
   waitingNeedsYouLoad,
 } from '../adapters/mock/needsYouFixtures'
 import { SLOT_RELEASE_TASK_ID } from '../adapters/mock/taskFixtures'
+import {
+  workflowEditorLoadFor,
+} from '../adapters/mock/workflowEditorFixtures'
 import {
   NIGHTLY_WORKFLOW_ID,
   RELEASE_WORKFLOW_ID,
@@ -95,6 +101,10 @@ function createTestEngine(options?: {
   captureWorkflowRun: (
     id: WorkflowId,
   ) => ((load: WorkflowRunContextLoad) => void) | null
+  publishWorkflowEditor: (id: WorkflowId, load: WorkflowEditorLoad) => void
+  captureWorkflowEditor: (
+    id: WorkflowId,
+  ) => ((load: WorkflowEditorLoad) => void) | null
 } {
   const starts: StartTaskRequest[] = []
   let held = createControllablePromise<StartTaskOutcome>()
@@ -118,6 +128,10 @@ function createTestEngine(options?: {
   const runListeners = new Map<
     WorkflowId,
     (load: WorkflowRunContextLoad) => void
+  >()
+  const editorListeners = new Map<
+    WorkflowId,
+    (load: WorkflowEditorLoad) => void
   >()
   let lastChangesCallback: ((load: TaskChangesLoad) => void) | null = null
   const port: EnginePort = {
@@ -150,6 +164,18 @@ function createTestEngine(options?: {
         cancel() {
           if (runListeners.get(workflowId) === onUpdate) {
             runListeners.delete(workflowId)
+          }
+        },
+      }
+    },
+    observeWorkflowEditor(workflowId, onUpdate) {
+      editorListeners.set(workflowId, onUpdate)
+      queueMicrotask(() => onUpdate(workflowEditorLoadFor(workflowId)))
+      return {
+        id: asObservationId('ui-workflow-editor'),
+        cancel() {
+          if (editorListeners.get(workflowId) === onUpdate) {
+            editorListeners.delete(workflowId)
           }
         },
       }
@@ -261,6 +287,12 @@ function createTestEngine(options?: {
     captureWorkflowRun(id) {
       return runListeners.get(id) ?? null
     },
+    publishWorkflowEditor(id, load) {
+      editorListeners.get(id)?.(load)
+    },
+    captureWorkflowEditor(id) {
+      return editorListeners.get(id) ?? null
+    },
   }
 }
 
@@ -276,6 +308,7 @@ function renderApp(engine: EnginePort) {
     loadHarnesses: createLoadHarnessesUseCase(engine),
     loadNeedsYou: createLoadNeedsYouUseCase(engine),
     loadWorkflowRun: createLoadWorkflowRunUseCase(engine),
+    loadWorkflowEditor: createLoadWorkflowEditorUseCase(engine),
   })
   const view = render(<AppFeature presenter={presenter} />)
   return { presenter, ...view }
@@ -355,12 +388,6 @@ describe('AppFeature navigation', () => {
     const row = await screen.findByText('Release checklist')
     const listItem = row.closest('[role="listitem"]')
     expect(listItem).not.toBeNull()
-    await user.click(
-      within(listItem as HTMLElement).getByRole('button', {
-        name: 'Edit Release checklist (unavailable in this slice)',
-      }),
-    )
-    expect(starts).toHaveLength(0)
     expect(screen.getByText('5 nodes')).toBeInTheDocument()
     await user.click(
       within(listItem as HTMLElement).getByRole('button', {
@@ -1817,6 +1844,124 @@ describe('AppFeature navigation', () => {
       'saved',
     )
     expect(screen.getByRole('button', { name: 'Run workflow' })).toBeDisabled()
+    expect(engine.starts).toHaveLength(0)
+  })
+
+  it('inspects mapped workflow graphs without editing, launching, or stealing focus', async () => {
+    const user = userEvent.setup()
+    const engine = createTestEngine()
+    const { presenter } = renderApp(engine.port)
+    await flush()
+    await user.type(screen.getByLabelText('Task prompt'), 'draft beside editor')
+    const nav = screen.getByRole('navigation', { name: 'Main' })
+    await user.click(within(nav).getByRole('button', { name: 'Workflows' }))
+    const main = screen.getByRole('main')
+    const releaseRow = within(main)
+      .getByText('Release checklist')
+      .closest('[role="listitem"]')
+    expect(releaseRow).not.toBeNull()
+    await user.click(
+      within(releaseRow as HTMLElement).getByRole('button', { name: 'Edit Release checklist' }),
+    )
+    expect(await screen.findByText('Revision 7')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { level: 3, name: 'NODE' })).toBeInTheDocument()
+    expect(screen.getByRole('textbox', { name: 'Node name' })).toHaveValue('Review')
+    const canvas = screen.getByLabelText('Workflow canvas')
+    expect(canvas.className).toContain('hd-thin-scroll')
+    expect(Number(canvas.dataset.contentWidth)).toBeGreaterThanOrEqual(1126)
+    expect(within(canvas).queryByRole('button', { name: 'Orchestrator, locked' })).toBeNull()
+    expect(screen.getByRole('button', { name: 'Orchestrator, locked' })).toBeInTheDocument()
+    expect(canvas.querySelectorAll('path[data-loop="true"]')).toHaveLength(0)
+    expect(canvas.querySelectorAll('path[data-loop]')).toHaveLength(8)
+
+    const plan = screen.getByRole('button', { name: /^Plan$/ })
+    plan.focus()
+    await user.keyboard('{Enter}')
+    expect(plan).toHaveFocus()
+    expect(screen.getByRole('textbox', { name: 'Node name' })).toHaveValue('Plan')
+    canvas.scrollLeft = 48
+    expect(plan).toHaveFocus()
+    expect(canvas.scrollLeft).toBe(48)
+    expect(screen.getByRole('textbox', { name: 'Node name' })).toHaveValue('Plan')
+    const releaseCallback = engine.captureWorkflowEditor(
+      asWorkflowId('wf-release-checklist'),
+    )
+    act(() => {
+      engine.publishWorkflowEditor(
+        asWorkflowId('wf-release-checklist'),
+        workflowEditorLoadFor(asWorkflowId('wf-release-checklist')),
+      )
+    })
+    expect(plan).toHaveFocus()
+    expect(screen.getByRole('textbox', { name: 'Node name' })).toHaveValue('Plan')
+
+    const ready = workflowEditorLoadFor(asWorkflowId('wf-release-checklist'))
+    if (ready.kind !== 'ready') throw new Error('release fixture')
+    const review = asWorkflowNodeId('release-review')
+    act(() => {
+      presenter.selectWorkflowNode(review)
+    })
+    expect(screen.getByRole('textbox', { name: 'Node name' })).toHaveValue('Review')
+    act(() => {
+      engine.publishWorkflowEditor(asWorkflowId('wf-release-checklist'), {
+        kind: 'ready',
+        definition: {
+          ...ready.definition,
+          nodes: ready.definition.nodes.filter((node) => node.id !== review),
+          edges: ready.definition.edges.filter(
+            (edge) => edge.from !== review && edge.to !== review,
+          ),
+        },
+      })
+    })
+    expect(screen.getByText('This node is unavailable.')).toBeInTheDocument()
+    expect(screen.queryByDisplayValue('Plan')).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /^Plan$/ })).toHaveAttribute(
+      'aria-pressed',
+      'false',
+    )
+
+    await user.click(within(main).getByRole('button', { name: 'Workflows' }))
+    const nightlyRow = within(main)
+      .getByText('Nightly dependency audit')
+      .closest('[role="listitem"]')
+    expect(nightlyRow).not.toBeNull()
+    await user.click(
+      within(nightlyRow as HTMLElement).getByRole('button', {
+        name: 'Edit Nightly dependency audit',
+      }),
+    )
+    expect(await screen.findByText('Revision 2')).toBeInTheDocument()
+    expect(screen.getByRole('textbox', { name: 'Node name' })).toHaveValue('Audit lockfiles')
+    const nightlyCanvas = screen.getByLabelText('Workflow canvas')
+    const loop = nightlyCanvas.querySelector('path[data-loop="true"]')
+    expect(loop).not.toBeNull()
+    expect(loop?.getAttribute('d') ?? '').not.toMatch(/-/)
+    expect(nightlyCanvas.className).toContain('hd-thin-scroll')
+    act(() => {
+      releaseCallback?.(workflowEditorLoadFor(asWorkflowId('wf-release-checklist')))
+    })
+    expect(screen.getByRole('textbox', { name: 'Node name' })).toHaveValue('Audit lockfiles')
+    expect(screen.queryByDisplayValue('Review')).not.toBeInTheDocument()
+
+    const save = screen.getByRole('button', { name: 'Save' })
+    expect(save).toBeDisabled()
+    expect(save).toHaveAccessibleDescription(/does not edit, save, delete, connect, or run/)
+    await user.click(save)
+    await user.click(screen.getByRole('button', { name: /^Run$/ }))
+    await user.click(screen.getByRole('button', { name: 'Edit with agent' }))
+    expect(engine.starts).toHaveLength(0)
+    expect(presenter.getState().newTask.prompt).toBe('draft beside editor')
+
+    await user.click(within(main).getByRole('button', { name: 'Workflows' }))
+    const docsRow = within(main).getByText('Docs link check').closest('[role="listitem"]')
+    expect(docsRow).not.toBeNull()
+    await user.click(
+      within(docsRow as HTMLElement).getByRole('button', { name: 'Edit Docs link check' }),
+    )
+    expect(await screen.findByText('This workflow is unavailable.')).toBeInTheDocument()
+    expect(within(main).queryByLabelText('Workflow canvas')).not.toBeInTheDocument()
+    expect(within(main).queryByText('Release checklist')).not.toBeInTheDocument()
     expect(engine.starts).toHaveLength(0)
   })
 })

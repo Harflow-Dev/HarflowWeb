@@ -12,6 +12,10 @@ export {
   type LoadWorkflowRunUseCase,
 } from './loadWorkflowRun'
 export {
+  createLoadWorkflowEditorUseCase,
+  type LoadWorkflowEditorUseCase,
+} from './loadWorkflowEditor'
+export {
   createLoadResourcesUseCase,
   type LoadResourcesUseCase,
 } from './loadResources'

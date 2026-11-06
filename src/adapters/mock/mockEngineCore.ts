@@ -12,6 +12,7 @@ import type {
   TaskChangesQuery,
   TaskId,
   TaskLoad,
+  WorkflowEditorLoad,
   WorkflowId,
   WorkflowRunContextLoad,
   WorkflowsLoad,
@@ -26,6 +27,7 @@ import type { ScenarioDefinition } from './scenarios'
 import { statisticsLoadFor } from './statisticsFixtures'
 import { taskChangesLoadFor } from './taskChangesFixtures'
 import { taskLoadFor } from './taskFixtures'
+import { workflowEditorLoadFor } from './workflowEditorFixtures'
 import { workflowRunLoadFor } from './workflowRunFixtures'
 
 export type TaskChangesKey = string
@@ -44,6 +46,7 @@ export type MockListenerSets = {
   readonly harnesses: Set<(load: HarnessesLoad) => void>
   readonly needsYou: Set<(load: NeedsYouLoad) => void>
   readonly workflowRuns: Set<KeyedListener<WorkflowId, WorkflowRunContextLoad>>
+  readonly workflowEditors: Set<KeyedListener<WorkflowId, WorkflowEditorLoad>>
 }
 
 export function createListenerSets(): MockListenerSets {
@@ -57,6 +60,7 @@ export function createListenerSets(): MockListenerSets {
     harnesses: new Set(),
     needsYou: new Set(),
     workflowRuns: new Set(),
+    workflowEditors: new Set(),
   }
 }
 
@@ -154,6 +158,14 @@ export function buildMockEnginePort(options: {
         workflowId,
         onUpdate,
         (id) => workflowRunLoadFor(id),
+      )
+    },
+    observeWorkflowEditor(workflowId, onUpdate) {
+      return createKeyedObservation(
+        listeners.workflowEditors,
+        workflowId,
+        onUpdate,
+        (id) => workflowEditorLoadFor(id),
       )
     },
     observeHarnesses(onUpdate) {

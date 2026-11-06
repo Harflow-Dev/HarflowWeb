@@ -68,6 +68,10 @@ export function AppFeature({ presenter }: Props) {
               onRepository={(id) => presenter.selectWorkflowRunRepository(id)}
               onOverride={(id) => presenter.selectWorkflowRunOverride(id)}
               onUnavailable={(label) => ephemeral.show(label)}
+              editor={state.workflowEditor}
+              onEdit={(id) => presenter.openWorkflowEditor(id)}
+              onCloseEditor={() => presenter.closeWorkflowEditor()}
+              onSelectNode={(id) => presenter.selectWorkflowNode(id)}
             />
           ) : state.route === 'resources' ? (
             <ResourcesMain

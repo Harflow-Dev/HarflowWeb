@@ -4,10 +4,11 @@ import { Icon } from './Icon'
 type Props = {
   readonly workflows: readonly WorkflowSummary[]
   readonly onRun: (id: WorkflowId) => void
+  readonly onEdit: (id: WorkflowId) => void
   readonly onUnavailable: (label: string) => void
 }
 
-export function WorkflowsPage({ workflows, onRun, onUnavailable }: Props) {
+export function WorkflowsPage({ workflows, onRun, onEdit, onUnavailable }: Props) {
   if (workflows.length === 0) {
     return <WorkflowsEmpty onUnavailable={onUnavailable} />
   }
@@ -28,7 +29,12 @@ export function WorkflowsPage({ workflows, onRun, onUnavailable }: Props) {
       </div>
       <div className="hd-list" role="list">
         {workflows.map((row) => (
-          <WorkflowRow key={row.id} row={row} onRun={onRun} onUnavailable={onUnavailable} />
+          <WorkflowRow
+            key={row.id}
+            row={row}
+            onRun={onRun}
+            onEdit={onEdit}
+          />
         ))}
       </div>
     </div>
@@ -86,11 +92,11 @@ function WorkflowsEmpty({
 function WorkflowRow({
   row,
   onRun,
-  onUnavailable,
+  onEdit,
 }: {
   row: WorkflowSummary
   onRun: (id: WorkflowId) => void
-  onUnavailable: (label: string) => void
+  onEdit: (id: WorkflowId) => void
 }) {
   return (
     <div className="hd-list-row" role="listitem">
@@ -110,9 +116,8 @@ function WorkflowRow({
         <button
           type="button"
           className="hd-btn hd-btn--ghost"
-          aria-label={`Edit ${row.title} (unavailable in this slice)`}
-          title="Edit — unavailable in this slice"
-          onClick={() => onUnavailable(`Edit ${row.title}`)}
+          aria-label={`Edit ${row.title}`}
+          onClick={() => onEdit(row.id)}
         >
           <Icon name="pencil" size="sm" />
           Edit

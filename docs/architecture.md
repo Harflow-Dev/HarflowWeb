@@ -26,6 +26,7 @@ A green import check does **not** prove semantic architecture correctness.
 - route (`new-task` | `workflows` | `resources` | `statistics` | `task` | `needs-you` | `settings`)
 - new-task child session (draft, selections, appearance, sidebar collapse, launch)
 - workflows child session (definition list, plus a session-local run draft per definition and a read-only run-context observation)
+- workflow-editor child session (read-only definition graph and a selection remembered per definition id)
 - resources child session (slot observation)
 - statistics child session (selected range + range-scoped observation)
 - task child session (selected task id + transcript observation + optional
@@ -72,6 +73,10 @@ onto one file. Task UI is split across `TaskMain`, `TaskPage`, `TaskTranscript`,
 - `observeWorkflowRun(workflowId, onUpdate) → ObservationHandle` — read-only
   run-form context for that definition. An unmapped id is unavailable and is
   never filled with another definition. Permission lines are fixture facts.
+- `observeWorkflowEditor(workflowId, onUpdate) → ObservationHandle` — read-only
+  graph for that definition. An unmapped id is unavailable and is never filled
+  with another definition. Node selection is presentation state and is kept
+  only while that node remains in the current definition.
 - `observeResources(onUpdate) → ObservationHandle` — harness slot usage observation
 - `observeStatistics(range, onUpdate) → ObservationHandle` — range-scoped overview
 - `observeTask(taskId, onUpdate) → ObservationHandle` — running-task transcript
@@ -90,7 +95,19 @@ onto one file. Task UI is split across `TaskMain`, `TaskPage`, `TaskTranscript`,
 No shell commands, generic RPC, or “call operation” methods. The workflow list
 is definitions (title, description, node count) — not run status. The run form
 edits a session-local draft for one definition id. It does not execute, save,
-delete, or edit the definition. Final Run stays disabled.
+delete, or edit the definition. Final Run stays disabled. The editor
+preview renders one mapped definition’s nodes and edges. It does not save,
+delete, connect, drag, add, or run. Opening it does not clear run drafts.
+A loading observation clears the previous graph. A ready payload whose
+definition id does not match the requested id is rejected before publish.
+A selected node that disappears stays selected as missing; another node is
+not substituted. Replacing or disposing the observation rejects a captured
+callback. Editing controls stay disabled. Connector geometry is a pure
+presentation router: it reads the current node frames and already routed
+edges, and it does not mutate the definition. An edge whose source has no
+output or whose target has no input is reported unavailable. The canvas and
+inspector scroll with the shared thin scrollbar; scrolling does not change
+selection.
 Resources are read-only slot observation (usage, holders, waiters) — not
 administration, install, release, repair, or configuration. Statistics are
 read-only overview observations for an explicit typed range — not billing,

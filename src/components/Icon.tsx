@@ -31,6 +31,13 @@ type IconName =
   | 'play'
   | 'panel-right'
   | 'more'
+  | 'flag'
+  | 'lock'
+  | 'zap'
+  | 'sparkle'
+  | 'target'
+  | 'task'
+  | 'minus'
 
 type Props = {
   readonly name: IconName

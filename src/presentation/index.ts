@@ -45,6 +45,15 @@ export {
 } from './workflowsState'
 export { WorkflowsSession } from './workflowsSession'
 export {
+  initialWorkflowEditorState,
+  type WorkflowEditorScreenState,
+} from './workflowEditorState'
+export { WorkflowEditorSession } from './workflowEditorSession'
+export { workflowScene, type WorkflowScene } from './workflowGraphRoutes'
+export { roundedOrthogonalPath } from './workflowRoundedPath'
+export { routeConnection } from './workflowConnectionRouter'
+export { occupancyCost } from './workflowRouteOccupancy'
+export {
   initialTaskState,
   type TaskScreenState,
 } from './taskState'

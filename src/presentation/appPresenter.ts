@@ -3,6 +3,7 @@ import type {
   LoadHarnessesUseCase,
   LoadNeedsYouUseCase,
   LoadResourcesUseCase,
+  LoadWorkflowEditorUseCase,
   LoadWorkflowRunUseCase,
   LoadStatisticsUseCase,
   LoadTaskChangesUseCase,
@@ -19,6 +20,7 @@ import type {
   StatisticsRangeId,
   TaskId,
   WorkflowId,
+  WorkflowNodeId,
   WorkflowOverrideId,
 } from '../model'
 import { AppSession, type AppListener } from './appSession'
@@ -38,6 +40,9 @@ export type AppPresenter = {
   setWorkflowRunGoalOpen(open: boolean): void
   selectWorkflowRunRepository(id: RepositoryId): void
   selectWorkflowRunOverride(id: WorkflowOverrideId): void
+  openWorkflowEditor(id: WorkflowId): void
+  closeWorkflowEditor(): void
+  selectWorkflowNode(id: WorkflowNodeId): void
   openTask(taskId: TaskId): void
   setTaskChangesPaneOpen(open: boolean): void
   selectTaskChangedFile(path: string): void
@@ -66,6 +71,7 @@ type Deps = {
   readonly loadHarnesses: LoadHarnessesUseCase
   readonly loadNeedsYou: LoadNeedsYouUseCase
   readonly loadWorkflowRun: LoadWorkflowRunUseCase
+  readonly loadWorkflowEditor: LoadWorkflowEditorUseCase
 }
 
 export function createAppPresenter(deps: Deps): AppPresenter {
@@ -83,6 +89,9 @@ export function createAppPresenter(deps: Deps): AppPresenter {
     setWorkflowRunGoalOpen: (open) => session.setWorkflowRunGoalOpen(open),
     selectWorkflowRunRepository: (id) => session.selectWorkflowRunRepository(id),
     selectWorkflowRunOverride: (id) => session.selectWorkflowRunOverride(id),
+    openWorkflowEditor: (id) => session.openWorkflowEditor(id),
+    closeWorkflowEditor: () => session.closeWorkflowEditor(),
+    selectWorkflowNode: (id) => session.selectWorkflowNode(id),
     openTask: (taskId) => session.openTask(taskId),
     setTaskChangesPaneOpen: (open) => session.setTaskChangesPaneOpen(open),
     selectTaskChangedFile: (path) => session.selectTaskChangedFile(path),

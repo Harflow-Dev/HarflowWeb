@@ -2,8 +2,8 @@
 
 ## Intent
 
-Review checkpoint after the mock-backed workflow run form (Needs you committed
-first). Does not complete W01–W05, authenticate,
+Review checkpoint after the read-only workflow editor preview (workflow run
+form committed first). Does not complete W01–W05, authenticate,
 connect a real engine, run workflows, administer slots, bill, submit
 follow-ups, retry, apply patches, install a runtime, register MCP servers,
 grant approvals, answer questions, or touch the task store.
@@ -50,12 +50,28 @@ grant approvals, answer questions, or touch the task store.
   a visible caption says they are not installed or qualified backends and do
   not claim enforcement. “Sandboxed” remains the specimen limit label.
   “Task is required.” is a proposal shown only for a seeded blank task.
-  Loading and error copy are proposals. No execution, save, delete, editor,
+  Loading and error copy are proposals. No execution, save, delete,
   provider, engine, or filesystem action.
-- Edit, New workflow, “Describe one to an agent”, Resources task links,
+- Workflow list Edit opens the mapped definition’s read-only graph,
+  standalone strip, and inspector. Release checklist selects Review.
+  Nightly dependency audit selects Audit lockfiles. Its dashed loop returns
+  to Audit lockfiles; Start has no input, so the loop is not attached there.
+  Routes are orthogonal, with 10-point corners clamped to the segment, open
+  chevrons, and no negative trunk. The canvas scrolls at 65% so End is
+  reachable. The canvas and inspector use the 6px tertiary scrollbar.
+  The orchestrator is locked and has no connector. Selecting
+  another node updates the inspector. A removed or unknown node stays
+  unavailable and is not replaced by a similarly titled node. Unmapped
+  definitions show unavailable and no borrowed graph. Save, Discard, Delete
+  node, Run, Edit with agent, More actions, zoom, add-node, and inspector
+  fields stay disabled and explained. The specimen phrases “Unsaved changes”
+  and “Ready to save” are omitted. The footer counts path nodes and on-demand
+  nodes. Opening the editor does not clear run drafts or other session state.
+  Loading, error, and adaptive editor states are proposals.
+- New workflow, “Describe one to an agent”, Resources task links,
   Install, follow-up send, Stop (running only), Retry, and Copy resume command
   are visible per design and explicitly unavailable in this slice — no
-  editor, admin, or steering screens, no generated shell commands, and no
+  admin or steering screens, no generated shell commands, and no
   mutation from those controls.
 - Workflows list shows definition title, description, and node count only — no
   invented run status (matches screen-inventory note).

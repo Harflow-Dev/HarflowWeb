@@ -12,6 +12,7 @@ import type {
   TaskChangesQuery,
   TaskId,
   TaskLoad,
+  WorkflowEditorLoad,
   WorkflowId,
   WorkflowRunContextLoad,
   WorkflowsLoad,
@@ -48,6 +49,16 @@ export type EnginePort = {
   observeWorkflowRun(
     workflowId: WorkflowId,
     onUpdate: (load: WorkflowRunContextLoad) => void,
+  ): ObservationHandle
+
+  /**
+   * Read one workflow definition for the read-only editor preview.
+   * Unmapped ids are unavailable — never a similarly titled definition.
+   * Mock-only — not definition editing or execution.
+   */
+  observeWorkflowEditor(
+    workflowId: WorkflowId,
+    onUpdate: (load: WorkflowEditorLoad) => void,
   ): ObservationHandle
 
   /**

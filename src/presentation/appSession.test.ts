@@ -7,6 +7,7 @@ import {
   createLoadStatisticsUseCase,
   createLoadTaskChangesUseCase,
   createLoadTaskUseCase,
+  createLoadWorkflowEditorUseCase,
   createLoadWorkflowRunUseCase,
   createLoadWorkflowsUseCase,
   createStartTaskUseCase,
@@ -35,6 +36,7 @@ import { createControllablePromise } from '../adapters/mock/controllable'
 import { populatedComposer, populatedSidebar } from '../adapters/mock/fixtures'
 import { populatedHarnessesLoad } from '../adapters/mock/harnessFixtures'
 import { waitingNeedsYouLoad } from '../adapters/mock/needsYouFixtures'
+import { workflowEditorLoadFor } from '../adapters/mock/workflowEditorFixtures'
 import {
   NIGHTLY_WORKFLOW_ID,
   RELEASE_WORKFLOW_ID,
@@ -122,6 +124,15 @@ function createTestEngine(options?: {
           if (runListeners.get(workflowId) === onUpdate) {
             runListeners.delete(workflowId)
           }
+        },
+      }
+    },
+    observeWorkflowEditor(workflowId, onUpdate) {
+      queueMicrotask(() => onUpdate(workflowEditorLoadFor(workflowId)))
+      return {
+        id: asObservationId('app-workflow-editor'),
+        cancel() {
+          /* editor lifetime is covered in its session tests */
         },
       }
     },
@@ -222,6 +233,7 @@ function createPresenter(engine: EnginePort) {
     loadHarnesses: createLoadHarnessesUseCase(engine),
     loadNeedsYou: createLoadNeedsYouUseCase(engine),
     loadWorkflowRun: createLoadWorkflowRunUseCase(engine),
+    loadWorkflowEditor: createLoadWorkflowEditorUseCase(engine),
   })
 }
 

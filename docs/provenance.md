@@ -74,6 +74,7 @@
 | Task catalog / sidebar rows | Design specimen mock data | **Mock-only presentation** — not a public ctl list endpoint invented for the browser |
 | Workflow definition list | Design `workflows/list` + `workflows/empty` specimen copy | **Mock-only presentation** — not a public ctl workflow catalog; no run status |
 | Workflow run form | Design `workflows/run` Task, Goal, repository, saved orchestrator, and permissions preview | **Mock-only presentation** — session-local draft; final Run disabled; permission lines are fixture facts, not installed or qualified backends and not enforcement |
+| Workflow editor preview | Design `workflow-editor/node-selected` graph, standalone strip, and inspector | **Mock-only presentation** — read-only; two mapped definitions; editing, save, delete, connect, and run stay disabled |
 | Resources slot observation | Design `resources/slots` specimen copy | **Mock-only presentation** — not a public ctl resources catalog; no install/release/admin |
 | Statistics overview | Design `statistics/overview` specimen copy + distinct 7-day mock range | **Mock-only presentation** — not a public ctl statistics/billing API; success rate and median are fixture facts only when coverage is complete |
 | Running-task transcript | Design `task/running` specimen copy | **Mock-only presentation** — not a public ctl transcript protocol; mapped fixture ids only |
@@ -155,8 +156,47 @@
   enforcement.
 - Custom orchestrator stays unavailable. Loading, error, validation, and
   adaptive states have no approved specimen.
-- Edit, New workflow, and Describe one to an agent stay unavailable. There
-  is no editor, save, or delete.
+- New workflow and Describe one to an agent stay unavailable. List Edit opens
+  the read-only editor preview described below. The run form still does not
+  save or delete.
+
+### Workflow editor semantic gaps (explicit)
+
+- There is no definition mutation or workflow execution. Save, Discard, Delete
+  node, Run, Edit with agent, More actions, zoom, add-node, and inspector
+  fields stay disabled.
+- Only Release checklist and Nightly dependency audit have editor fixtures.
+  Another id, including one with a similar title, is unavailable and does not
+  borrow a graph.
+- The Release checklist specimen footer says “6 nodes · 1 on demand · Ready to
+  save” and the top meta says “Unsaved changes · Revision 7”. This preview
+  shows the counted path and on-demand nodes and “Revision 7” only. It does
+  not claim unsaved changes or readiness to save.
+- Zoom controls stay at the specimen 65%. The canvas scrolls, at the approved
+  6px tertiary scrollbar, so the fixed scale does not clip End. More actions
+  does not open a delete confirmation. Release checklist has no loop-back.
+  The Nightly dashed loop returns to Audit lockfiles. Start has no input port,
+  so the loop is not attached there.
+- Routing follows HarflowMac `705ceb7befcbf7a7e8fc013b95e7269bac5cf39b`.
+  `WorkflowConnectionRouter.swift`, `WorkflowCanvasGeometry.swift`,
+  `WorkflowSharedDestinationRoutes.swift`, `WorkflowRouteCache.swift`, and
+  `WorkflowConnectionRouterTests.swift` are byte-identical to
+  `ff3763762073d99e3caa51748baf51290d0319e7` and have no uncommitted diff.
+  Their last content commit is
+  `b36bfae04aefec1afc9685f4891282a2d0f74ce7`. Snap spacing is 10, clearance
+  is 10, the search stops at 5000 expansions, and the port radius is 5.25.
+  Web clamps an approach that would leave the non-negative canvas.
+  Scrollbar color and 6px thickness come from HarflowDesign
+  `5b37a3d4d4d06b3d96c517cd384892e1ac6883cf` `v2/styles/m04-proposal.css`
+  (tertiary at 72%). Mac overlay scrollers (`WorkflowScrollRow.swift`,
+  last content `a2fa4465e1b9ce199bef2ea978898384168c35c3`, and
+  `ScrollHoverReveal.swift`, last content
+  `2ced66194878445bde152f1d50777cd0633bb868`) are the same bytes at this
+  Mac commit, with an 8pt gutter and hover reveal. The browser keeps a
+  visible thin scrollbar and keyboard scrolling instead of hiding the
+  overflow.
+- The orchestrator is locked, standalone, and has no edge. Loading, error, and
+  adaptive editor states have no approved specimen.
 
 The mock adapter is not an HTTP protocol design and does not prove backend
 compatibility.

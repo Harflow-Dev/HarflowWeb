@@ -13,6 +13,7 @@ import {
   type TaskChangesQuery,
   type TaskId,
   type TaskLoad,
+  type WorkflowEditorLoad,
   type WorkflowId,
   type WorkflowRunContextLoad,
   type WorkflowsLoad,
@@ -28,6 +29,7 @@ import {
   type MockListenerSets,
 } from './mockEngineCore'
 import { scenarioById, type ScenarioDefinition, type ScenarioId } from './scenarios'
+import { workflowEditorLoadFor } from './workflowEditorFixtures'
 import { workflowRunLoadFor } from './workflowRunFixtures'
 
 export type MockEngineControls = {
@@ -42,6 +44,7 @@ export type MockEngineControls = {
   publishHarnesses(load: HarnessesLoad): void
   publishNeedsYou(load: NeedsYouLoad): void
   publishWorkflowRun(workflowId: WorkflowId, load: WorkflowRunContextLoad): void
+  publishWorkflowEditor(workflowId: WorkflowId, load: WorkflowEditorLoad): void
   resolveHeldStart(outcome?: StartTaskOutcome): void
   readonly startRequestCount: () => number
   readonly lastStartRequest: () => StartTaskRequest | null
@@ -104,6 +107,9 @@ function republishScenario(
   for (const listener of listeners.workflowRuns) {
     listener.send(workflowRunLoadFor(listener.key))
   }
+  for (const listener of listeners.workflowEditors) {
+    listener.send(workflowEditorLoadFor(listener.key))
+  }
 }
 
 export function createMockEngine(
@@ -160,6 +166,11 @@ export function createMockEngine(
     },
     publishWorkflowRun(workflowId, load) {
       for (const listener of listeners.workflowRuns) {
+        if (listener.key === workflowId) listener.send(load)
+      }
+    },
+    publishWorkflowEditor(workflowId, load) {
+      for (const listener of listeners.workflowEditors) {
         if (listener.key === workflowId) listener.send(load)
       }
     },

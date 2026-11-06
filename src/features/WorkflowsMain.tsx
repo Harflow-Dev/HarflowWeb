@@ -1,10 +1,11 @@
-import { Icon, WorkflowRunForm, WorkflowsPage } from '../components'
+import { Icon, WorkflowEditorView, WorkflowRunForm, WorkflowsPage } from '../components'
 import type {
   RepositoryId,
   WorkflowId,
+  WorkflowNodeId,
   WorkflowOverrideId,
 } from '../model'
-import type { WorkflowsScreenState } from '../presentation'
+import type { WorkflowEditorScreenState, WorkflowsScreenState } from '../presentation'
 
 type Props = {
   readonly state: WorkflowsScreenState
@@ -16,6 +17,10 @@ type Props = {
   readonly onRepository: (id: RepositoryId) => void
   readonly onOverride: (id: WorkflowOverrideId) => void
   readonly onUnavailable: (label: string) => void
+  readonly editor: WorkflowEditorScreenState
+  readonly onEdit: (id: WorkflowId) => void
+  readonly onCloseEditor: () => void
+  readonly onSelectNode: (id: WorkflowNodeId) => void
 }
 
 /** Workflow list, or the run form for one selected definition. */
@@ -29,7 +34,20 @@ export function WorkflowsMain({
   onRepository,
   onOverride,
   onUnavailable,
+  editor,
+  onEdit,
+  onCloseEditor,
+  onSelectNode,
 }: Props) {
+  if (editor.workflowId !== null) {
+    return (
+      <EditorBody
+        editor={editor}
+        onClose={onCloseEditor}
+        onSelect={onSelectNode}
+      />
+    )
+  }
   const running = state.runWorkflowId !== null
   return (
     <>
@@ -68,6 +86,7 @@ export function WorkflowsMain({
           onRepository={onRepository}
           onOverride={onOverride}
           onUnavailable={onUnavailable}
+          onEdit={onEdit}
         />
       </div>
     </>
@@ -83,12 +102,14 @@ function WorkflowBody({
   onRepository,
   onOverride,
   onUnavailable,
-}: Omit<Props, 'onCloseRun'>) {
+  onEdit,
+}: Omit<Props, 'onCloseRun' | 'editor' | 'onCloseEditor' | 'onSelectNode'>) {
   if (state.runWorkflowId === null) {
     return state.load.kind === 'ready' ? (
       <WorkflowsPage
         workflows={state.load.workflows}
         onRun={onOpenRun}
+        onEdit={onEdit}
         onUnavailable={onUnavailable}
       />
     ) : (
@@ -118,6 +139,43 @@ function WorkflowBody({
       onGoalOpen={onGoalOpen}
       onRepository={onRepository}
       onOverride={onOverride}
+    />
+  )
+}
+
+function EditorBody({
+  editor,
+  onClose,
+  onSelect,
+}: {
+  readonly editor: WorkflowEditorScreenState
+  readonly onClose: () => void
+  readonly onSelect: (id: WorkflowNodeId) => void
+}) {
+  if (editor.load.kind !== 'ready') {
+    return (
+      <>
+        <div className="hd-topbar">
+          <button type="button" className="hd-btn hd-btn--ghost hd-btn--sm" onClick={onClose}>
+            <Icon name="arrow-left" size="sm" />
+            Workflows
+          </button>
+        </div>
+        <p className="caption hd-faint" role="status">
+          {editor.load.kind === 'loading'
+            ? 'Loading workflow… (proposal — not a design-approved specimen)'
+            : editor.load.message}
+        </p>
+      </>
+    )
+  }
+  const selected = editor.selections[editor.load.definition.workflowId] ?? null
+  return (
+    <WorkflowEditorView
+      definition={editor.load.definition}
+      selectedId={selected}
+      onClose={onClose}
+      onSelect={onSelect}
     />
   )
 }

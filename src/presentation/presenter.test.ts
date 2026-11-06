@@ -92,6 +92,20 @@ function createTestEngine(options?: {
         },
       }
     },
+    observeWorkflowEditor(_workflowId, onUpdate) {
+      queueMicrotask(() =>
+        onUpdate({
+          kind: 'unavailable',
+          message: 'unused in new-task tests',
+        }),
+      )
+      return {
+        id: asObservationId('test-workflow-editor-obs'),
+        cancel() {
+          /* no-op */
+        },
+      }
+    },
     observeResources(onUpdate) {
       queueMicrotask(() =>
         onUpdate({

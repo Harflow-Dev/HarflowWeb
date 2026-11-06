@@ -54,9 +54,16 @@ definition id. Switching definitions clears the previous permissions into
 loading and does not reuse the other draft. An unmapped id shows unavailable
 and no form. The form’s Run control stays disabled. Goal collapse keeps the
 goal text. Custom orchestrator stays unavailable. Permission lines are fixture
-facts with an explicit non-enforcement caption.
+facts with an explicit non-enforcement caption. A workflow-list Edit
+button opens that definition’s read-only editor through
+`observeWorkflowEditor(workflowId, …)`. Release checklist and Nightly
+dependency audit have graphs. Another id shows unavailable and no borrowed
+graph. Selection is kept per definition while the node is still present.
+A removed node stays missing. Save, Discard, Delete, Run, Edit with agent,
+zoom, and inspector fields stay disabled. Opening the editor does not clear
+run drafts.
 
-Edit, New workflow, “Describe one to an agent”, Resources task links,
+New workflow, “Describe one to an agent”, Resources task links,
 Install, unmapped sidebar rows, follow-up send, Stop (running only), Retry,
 Copy resume command, Artifacts, Events, Check for updates, Inspect task store,
 and Show backup in Finder remain visible where the design shows them and report

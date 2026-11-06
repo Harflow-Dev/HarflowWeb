@@ -4,6 +4,7 @@ import type { NewTaskScreenState } from './screenState'
 import type { ResourcesScreenState } from './resourcesState'
 import type { StatisticsScreenState } from './statisticsState'
 import type { TaskScreenState } from './taskState'
+import type { WorkflowEditorScreenState } from './workflowEditorState'
 import type { WorkflowsScreenState } from './workflowsState'
 
 export type SettingsSection = 'general' | 'harnesses'
@@ -28,4 +29,5 @@ export type AppScreenState = {
   readonly settingsSection: SettingsSection
   readonly harnesses: HarnessesScreenState
   readonly needsYou: NeedsYouScreenState
+  readonly workflowEditor: WorkflowEditorScreenState
 }

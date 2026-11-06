@@ -23,7 +23,9 @@ export function isAppRoute(id: NavId): id is AppRoute {
     id === 'new-task' ||
     id === 'workflows' ||
     id === 'resources' ||
-    id === 'statistics'
+    id === 'statistics' ||
+    id === 'settings' ||
+    id === 'task'
   )
 }
 
@@ -165,10 +167,13 @@ export function CollapsedRail({
       <ThemeToggle appearance={appearance} onChange={onAppearance} compact />
       <button
         type="button"
-        className="hd-rail-item"
-        aria-label="Settings (unavailable in this slice)"
-        title="Settings — unavailable in this slice"
-        onClick={() => onUnavailable('Settings')}
+        className={
+          activeRoute === 'settings' ? 'hd-rail-item is-active' : 'hd-rail-item'
+        }
+        aria-label="Settings"
+        aria-current={activeRoute === 'settings' ? 'page' : undefined}
+        title="Settings"
+        onClick={() => onNavigate('settings')}
       >
         <Icon name="settings" />
       </button>

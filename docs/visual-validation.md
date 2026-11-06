@@ -183,6 +183,24 @@ File selection keeps the file list mounted (focus retained) while clearing the
 prior diff; navigating to a running task closes the pane (no toggle, no pane)
 so running/failed never leave an unclosable Changes surface.
 
+## Settings general — verified 1280×800 captures
+
+Directory:
+`~/.codex/workflows/screenshots/2026-11-06-harflowweb-settings-general/`
+
+Captured from `/` after opening Settings from the sidebar footer. Same CDP clip
++ `sips` verification. Appearance is the shared session theme (not persisted).
+
+| File | Scenario | Viewport / PNG | Appearance / chrome |
+| --- | --- | --- | --- |
+| `01-settings-general-light-expanded.png` | settings/general | 1280×800 | light, sidebar expanded |
+| `02-settings-general-dark-expanded.png` | settings/general | 1280×800 | dark, sidebar expanded |
+
+Observed: Settings heading, General selected and Harnesses present, Appearance
+theme control, behaviour rows, runtime “0.9.3 is ready”, and task-store facts.
+Document scrollWidth equals clientWidth (1280). Focus stays on the activated
+theme control. Behaviour, update, and store controls do not change saved state.
+
 Earlier new-task screenshots remain under
 `~/.codex/workflows/screenshots/2026-11-05-harflowweb-new-task-slice/`.
 
@@ -194,12 +212,13 @@ Earlier new-task screenshots remain under
 - Statistics: `v2/scripts/screens-statistics.js` (`statistics/overview` light/dark)
 - Task: `v2/scripts/screens-task.js` (`task/running`, `task/failed`, and
   `task/done` transcript+summary+Changes light/dark)
+- Settings: `v2/scripts/screens-settings.js` (`settings/general` light/dark)
 - Observed in the running Vite app (not substituted from hosted design)
 
 ## Checks performed
 
-- Keyboard: New task / Workflows / Resources / Statistics are buttons; unmapped
-  task destinations and Install announce unavailable in accessible names.
+- Keyboard: New task / Workflows / Resources / Statistics / Settings are buttons;
+  unmapped task destinations and Install announce unavailable in accessible names.
   Statistics period segment is a keyboard-operable button group (`aria-pressed`).
   Mapped running rows open the transcript; tool heads toggle with Enter/Space.
 - Focus: theme, nav, tool disclosures, and range controls remain operable after

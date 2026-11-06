@@ -29,8 +29,8 @@ populated fixture and shows a single “Mock engine” badge.
 | Task failed | Approved `task/failed` transcript for the mapped recent-work row |
 | Task done | Approved `task/done` transcript+summary + read-only Changes pane |
 
-Sidebar navigation between **New task**, **Workflows**, **Resources**, and
-**Statistics** is live, and explicitly mapped Running / Recent rows open the
+Sidebar navigation between **New task**, **Workflows**, **Resources**,
+**Statistics**, and **Settings** is live, and explicitly mapped Running / Recent rows open the
 matching task transcript. Draft text, selections, pending launch outcomes, the
 selected statistics range, theme, and sidebar collapse are preserved across
 pages; navigation never starts or repeats a task. Changing the statistics range
@@ -43,9 +43,12 @@ observation and clears the prior diff immediately.
 
 Run, Edit, New workflow, “Describe one to an agent”, Resources task links,
 Install, unmapped sidebar rows, follow-up send, Stop (running only), Retry,
-Copy resume command, Artifacts, and Events remain visible where the design shows
-them and report unavailable in this slice — no mutation, no admin, no engine
-calls, and no generated shell commands. Tool-row expand/collapse and Changes
+Copy resume command, Artifacts, Events, Check for updates, Inspect task store,
+Show backup in Finder, and Harnesses remain visible where the design shows them
+and report unavailable in this slice — no mutation, no admin, no engine calls,
+and no generated shell commands. Settings behaviour switches stay disabled
+specimen values with an accessible explanation; they are not saved preferences.
+Settings appearance is the shared session theme only. Tool-row expand/collapse and Changes
 file selection are local UI only (selection re-observes fixture content).
 
 Valid zero task counts and observed zero cost remain distinct from unavailable

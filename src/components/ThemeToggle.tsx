@@ -5,9 +5,46 @@ type Props = {
   readonly appearance: Appearance
   readonly onChange: (appearance: Appearance) => void
   readonly compact?: boolean
+  /** Text labels for the Settings theme row. Same appearance state as the sidebar. */
+  readonly labeled?: boolean
 }
 
-export function ThemeToggle({ appearance, onChange, compact = false }: Props) {
+const LABELS: readonly { id: Appearance; label: string }[] = [
+  { id: 'system', label: 'System' },
+  { id: 'light', label: 'Light' },
+  { id: 'dark', label: 'Dark' },
+]
+
+export function ThemeToggle({
+  appearance,
+  onChange,
+  compact = false,
+  labeled = false,
+}: Props) {
+  if (labeled) {
+    return (
+      <div className="hd-theme" role="group" aria-label="Theme">
+        {LABELS.map((item) => (
+          <button
+            key={item.id}
+            type="button"
+            className="hd-theme__item"
+            aria-pressed={appearance === item.id}
+            onClick={() => onChange(item.id)}
+            style={{
+              width: 'auto',
+              padding: '0 var(--space-3)',
+              fontSize: 12,
+              fontWeight: 500,
+            }}
+          >
+            {item.label}
+          </button>
+        ))}
+      </div>
+    )
+  }
+
   if (compact) {
     const nextLabel =
       appearance === 'system'

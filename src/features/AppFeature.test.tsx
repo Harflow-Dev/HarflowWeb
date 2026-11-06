@@ -1,4 +1,4 @@
-import { cleanup, render, screen, within } from '@testing-library/react'
+import { act, cleanup, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it } from 'vitest'
 import {
@@ -1059,5 +1059,195 @@ describe('AppFeature navigation', () => {
       }),
     ).toBeDisabled()
     expect(starts).toHaveLength(0)
+  })
+
+  it('opens Settings and keeps appearance in agreement with the sidebar', async () => {
+    const user = userEvent.setup()
+    const { port, starts } = createTestEngine()
+    const { container, presenter } = renderApp(port)
+    await flush()
+
+    await user.click(screen.getByRole('button', { name: 'Settings' }))
+    const main = screen.getByRole('main')
+    expect(
+      await within(main).findByRole('heading', { name: 'Settings' }),
+    ).toBeInTheDocument()
+    expect(
+      within(main).getByRole('tab', { name: 'General' }),
+    ).toHaveAttribute('aria-selected', 'true')
+    expect(screen.getByRole('button', { name: 'Settings' })).toHaveAttribute(
+      'aria-current',
+      'page',
+    )
+
+    const theme = within(main).getByRole('group', { name: 'Theme' })
+    const light = within(theme).getByRole('button', { name: 'Light' })
+    light.focus()
+    expect(light).toHaveFocus()
+    await user.keyboard('{Enter}')
+    expect(presenter.getState().newTask.appearance).toBe('light')
+    expect(light).toHaveAttribute('aria-pressed', 'true')
+    expect(
+      within(screen.getByRole('group', { name: 'Appearance' })).getByRole(
+        'button',
+        { name: 'Light' },
+      ),
+    ).toHaveAttribute('aria-pressed', 'true')
+    expect(container.querySelector('.hd-app')?.getAttribute('data-theme')).toBe(
+      'light',
+    )
+
+    await user.click(within(theme).getByRole('button', { name: 'Dark' }))
+    expect(presenter.getState().newTask.appearance).toBe('dark')
+    expect(container.querySelector('.hd-app')?.getAttribute('data-theme')).toBe(
+      'dark',
+    )
+
+    await user.click(screen.getByRole('button', { name: 'Collapse sidebar' }))
+    expect(
+      screen.getByRole('button', { name: 'Appearance: Dark. Switch to System' }),
+    ).toBeInTheDocument()
+    await user.click(
+      screen.getByRole('button', { name: 'Appearance: Dark. Switch to System' }),
+    )
+    expect(presenter.getState().newTask.appearance).toBe('system')
+    expect(container.querySelector('.hd-app')?.getAttribute('data-theme')).toBe(
+      'light',
+    )
+
+    await user.click(screen.getByRole('button', { name: 'Expand sidebar' }))
+    await user.click(screen.getByRole('button', { name: 'Settings' }))
+    const openNotify = within(main).getByRole('switch', {
+      name: 'Open the window when a task starts',
+    })
+    expect(openNotify).toBeDisabled()
+    expect(openNotify).toHaveAccessibleDescription(
+      /not saved preferences or active notification settings/,
+    )
+    expect(openNotify).toHaveAttribute('aria-checked', 'false')
+    expect(
+      screen.queryByText(
+        /Open the window when a task starts is unavailable in this exploratory slice/,
+      ),
+    ).not.toBeInTheDocument()
+    await user.click(
+      within(main).getByRole('button', { name: 'Check for updates' }),
+    )
+    await user.click(
+      within(main).getByRole('button', { name: 'Inspect task store' }),
+    )
+    await user.click(
+      within(main).getByRole('button', { name: 'Show backup in Finder' }),
+    )
+    await user.click(within(main).getByRole('tab', { name: 'Harnesses' }))
+    expect(presenter.getState().newTask.appearance).toBe('system')
+    expect(starts).toHaveLength(0)
+    expect(
+      within(main).getByRole('tab', { name: 'General' }),
+    ).toHaveAttribute('aria-selected', 'true')
+  })
+
+  it('preserves draft, task, statistics range, and a held launch across Settings', async () => {
+    const user = userEvent.setup()
+    const engine = createTestEngine({ holdStart: true })
+    const { presenter } = renderApp(engine.port)
+    await flush()
+
+    await user.type(screen.getByLabelText('Task prompt'), 'draft beside settings')
+    await user.click(screen.getByRole('button', { name: 'Start task' }))
+    expect(engine.starts).toHaveLength(1)
+
+    await user.click(screen.getByRole('button', { name: 'Statistics' }))
+    await user.click(screen.getByRole('button', { name: '7 days' }))
+    await user.click(
+      screen.getByRole('button', { name: /Fix flaky slot release test/ }),
+    )
+    expect(await screen.findByText('Running tests…')).toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: 'Settings' }))
+    expect(
+      await screen.findByRole('heading', { name: 'Settings' }),
+    ).toBeInTheDocument()
+    expect(presenter.getState().newTask.prompt).toBe('draft beside settings')
+    expect(presenter.getState().statistics.selectedRange).toBe('7d')
+    expect(presenter.getState().task.selectedTaskId).toBeTruthy()
+    expect(presenter.getState().newTask.submission.kind).toBe('pending')
+    expect(engine.starts).toHaveLength(1)
+
+    await user.click(
+      screen.getByRole('button', { name: /Fix flaky slot release test/ }),
+    )
+    expect(await screen.findByText('Running tests…')).toBeInTheDocument()
+    engine.resolveStart({ kind: 'accepted', taskId: asTaskId('kept-settings') })
+    await flush()
+    await user.click(screen.getByRole('button', { name: /New task/ }))
+    expect(
+      screen.getByText(/Accepted mock task kept-settings/),
+    ).toBeInTheDocument()
+    expect(screen.getByLabelText('Task prompt')).toHaveValue('')
+    expect(engine.starts).toHaveLength(1)
+    expect(presenter.getState().statistics.selectedRange).toBe('7d')
+  })
+
+  it('resolves System appearance from the Settings theme control', async () => {
+    const user = userEvent.setup()
+    let matches = false
+    const listeners = new Set<() => void>()
+    const original = window.matchMedia.bind(window)
+    window.matchMedia = (() =>
+      ({
+        get matches() {
+          return matches
+        },
+        media: '(prefers-color-scheme: dark)',
+        onchange: null,
+        addEventListener(_type: string, listener: EventListener) {
+          listeners.add(listener as () => void)
+        },
+        removeEventListener(_type: string, listener: EventListener) {
+          listeners.delete(listener as () => void)
+        },
+        addListener() {
+          /* no-op */
+        },
+        removeListener() {
+          /* no-op */
+        },
+        dispatchEvent() {
+          return false
+        },
+      }) as MediaQueryList) as typeof window.matchMedia
+    try {
+      const { port } = createTestEngine()
+      const { container } = renderApp(port)
+      await flush()
+      await user.click(screen.getByRole('button', { name: 'Settings' }))
+      const theme = within(screen.getByRole('main')).getByRole('group', {
+        name: 'Theme',
+      })
+      const system = within(theme).getByRole('button', { name: 'System' })
+      system.focus()
+      expect(system).toHaveFocus()
+      await user.keyboard(' ')
+      expect(system).toHaveAttribute('aria-pressed', 'true')
+      expect(
+        container.querySelector('.hd-app')?.getAttribute('data-theme'),
+      ).toBe('light')
+      matches = true
+      await act(async () => {
+        for (const listener of listeners) listener()
+      })
+      expect(
+        container.querySelector('.hd-app')?.getAttribute('data-theme'),
+      ).toBe('dark')
+      expect(
+        within(screen.getByRole('group', { name: 'Appearance' })).getByRole(
+          'button',
+          { name: 'System' },
+        ),
+      ).toHaveAttribute('aria-pressed', 'true')
+    } finally {
+      window.matchMedia = original
+    }
   })
 })

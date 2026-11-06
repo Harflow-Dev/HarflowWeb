@@ -11,6 +11,7 @@ export type AppRoute =
   | 'resources'
   | 'statistics'
   | 'task'
+  | 'settings'
 
 export type AppScreenState = {
   readonly route: AppRoute

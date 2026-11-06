@@ -2,10 +2,10 @@
 
 ## Intent
 
-Review checkpoint after the mock-backed completed-task Changes pane
-(completed-task transcript/summary committed first). Does not complete W01–W05,
-authenticate, connect a real engine, run workflows, administer slots, bill,
-submit follow-ups, retry, apply patches, or ship editor/run destinations.
+Review checkpoint after the mock-backed Settings general page (Changes pane
+committed first). Does not complete W01–W05, authenticate, connect a real
+engine, run workflows, administer slots, bill, submit follow-ups, retry, apply
+patches, install a runtime, touch the task store, or ship editor/run destinations.
 
 ## Known deviations
 
@@ -17,8 +17,16 @@ submit follow-ups, retry, apply patches, or ship editor/run destinations.
   selection is one global set for the mock session.
 - Narrow-width layout is a responsive proposal; desktop specimens are approved at
   1280×800.
-- Sidebar destinations outside New task, Workflows, Resources, Statistics, and
-  explicitly mapped running-task rows stay unavailable.
+- Settings General is live. Appearance is the same session System/Light/Dark
+  value as the sidebar and collapsed rail; it is not persisted. Behaviour
+  switches are disabled specimen values with an accessible explanation; they
+  are not saved preferences or notification settings. Runtime “0.9.3 is
+  ready” and “Task store is compatible” are read-only specimen facts. Check for
+  updates, Inspect task store, Show backup in Finder, Harnesses, and MCP
+  approvals stay unavailable — no install, store, notification, credential, or
+  OS settings.
+- Sidebar destinations outside New task, Workflows, Resources, Statistics,
+  Settings, and explicitly mapped running-task rows stay unavailable.
 - Run, Edit, New workflow, “Describe one to an agent”, Resources task links,
   Install, follow-up send, Stop (running only), Retry, and Copy resume command
   are visible per design and explicitly unavailable in this slice — no
@@ -81,6 +89,8 @@ submit follow-ups, retry, apply patches, or ship editor/run destinations.
   once a public statistics contract exists.
 - Whether a later slice should restore specimen right-pane toggles as unavailable
   chrome or wait for an approved Changes/Artifacts design.
+- Settings persistence, behaviour preferences, runtime updates, and task-store
+  actions remain out of this slice.
 
 ## What this does not claim
 

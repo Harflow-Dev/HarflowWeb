@@ -98,16 +98,17 @@ export function Sidebar({
       <div className="hd-sidebar__foot">
         <button
           type="button"
-          className="hd-nav-item"
+          className={
+            activeRoute === 'settings'
+              ? 'hd-nav-item is-active'
+              : 'hd-nav-item'
+          }
           style={{ flex: 1 }}
-          aria-label="Settings (unavailable in this slice)"
-          title="Settings — unavailable in this slice"
-          onClick={() => onUnavailable('Settings')}
+          aria-current={activeRoute === 'settings' ? 'page' : undefined}
+          onClick={() => onNavigate('settings')}
         >
           <Icon name="settings" />
-          <span className="hd-nav-item__label" aria-hidden="true">
-            Settings
-          </span>
+          <span className="hd-nav-item__label">Settings</span>
         </button>
         <ThemeToggle appearance={appearance} onChange={onAppearance} />
       </div>

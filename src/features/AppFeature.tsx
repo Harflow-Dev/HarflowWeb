@@ -3,6 +3,7 @@ import { MockBadge, Sidebar, StatusRegion } from '../components'
 import type { AppPresenter } from '../presentation'
 import { NewTaskMain } from './NewTaskMain'
 import { ResourcesMain } from './ResourcesMain'
+import { SettingsMain } from './SettingsMain'
 import { StatisticsMain } from './StatisticsMain'
 import { TaskMain } from './TaskMain'
 import { useEphemeralNote, usePresenter, usePresenterLifetime } from './usePresenter'
@@ -67,6 +68,12 @@ export function AppFeature({ presenter }: Props) {
             <StatisticsMain
               state={state.statistics}
               onSelectRange={(range) => presenter.selectStatisticsRange(range)}
+            />
+          ) : state.route === 'settings' ? (
+            <SettingsMain
+              appearance={newTask.appearance}
+              onAppearance={(appearance) => presenter.setAppearance(appearance)}
+              onUnavailable={(label) => ephemeral.show(label)}
             />
           ) : (
             <TaskMain

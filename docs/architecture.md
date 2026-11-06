@@ -23,7 +23,7 @@ A green import check does **not** prove semantic architecture correctness.
 
 `AppPresenter` / `AppSession` owns:
 
-- route (`new-task` | `workflows` | `resources` | `statistics` | `task`)
+- route (`new-task` | `workflows` | `resources` | `statistics` | `task` | `settings`)
 - new-task child session (draft, selections, appearance, sidebar collapse, launch)
 - workflows child session (definition list observation)
 - resources child session (slot observation)
@@ -35,7 +35,8 @@ Navigating does **not** dispose any child. In-flight launches keep applying;
 returning to New task shows the current pending/accepted/refused/unknown state
 without resubmitting. Statistics range selection and the selected running-task
 identity survive navigation. Appearance and sidebar collapse live on the
-new-task session and remain shared chrome for all routes.
+new-task session and remain shared chrome for all routes, including the
+Settings theme control. There is one appearance value.
 
 Only sidebar rows with an explicit `mappedTaskId` call `openTask`. Unmapped rows
 (and synthetic launch-accepted ids without a fixture) stay unavailable and never

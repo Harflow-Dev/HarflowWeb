@@ -42,6 +42,15 @@ export {
   unavailableDiffChangesLoad,
 } from './taskChangesFixtures'
 export {
+  emptyNeedsYouLoad,
+  emptyNeedsYouObservation,
+  literalNeedsYouObservation,
+  partialNeedsYouObservation,
+  unavailableNeedsYouLoad,
+  waitingNeedsYouLoad,
+  waitingNeedsYouObservation,
+} from './needsYouFixtures'
+export {
   divergentHarnessesObservation,
   populatedHarnessesLoad,
   populatedHarnessesObservation,

@@ -1,4 +1,5 @@
 export { AppFeature } from './AppFeature'
+export { NeedsYouMain } from './NeedsYouMain'
 export { NewTaskFeature } from './NewTaskFeature'
 export { NewTaskMain } from './NewTaskMain'
 export { ResourcesMain } from './ResourcesMain'

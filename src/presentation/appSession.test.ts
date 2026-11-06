@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   createLoadContextUseCase,
   createLoadHarnessesUseCase,
+  createLoadNeedsYouUseCase,
   createLoadResourcesUseCase,
   createLoadStatisticsUseCase,
   createLoadTaskChangesUseCase,
@@ -28,6 +29,7 @@ import {
 import { createControllablePromise } from '../adapters/mock/controllable'
 import { populatedComposer, populatedSidebar } from '../adapters/mock/fixtures'
 import { populatedHarnessesLoad } from '../adapters/mock/harnessFixtures'
+import { waitingNeedsYouLoad } from '../adapters/mock/needsYouFixtures'
 import { populatedResourcesLoad } from '../adapters/mock/resourceFixtures'
 import { statisticsLoadFor } from '../adapters/mock/statisticsFixtures'
 import { taskChangesLoadFor } from '../adapters/mock/taskChangesFixtures'
@@ -135,6 +137,15 @@ function createTestEngine(options?: {
         },
       }
     },
+    observeNeedsYou(onUpdate) {
+      queueMicrotask(() => onUpdate(waitingNeedsYouLoad()))
+      return {
+        id: asObservationId('app-needs'),
+        cancel() {
+          /* no-op */
+        },
+      }
+    },
     async startTask(request) {
       starts.push(request)
       if (options?.holdStart) {
@@ -170,6 +181,7 @@ function createPresenter(engine: EnginePort) {
     loadTask: createLoadTaskUseCase(engine),
     loadTaskChanges: createLoadTaskChangesUseCase(engine),
     loadHarnesses: createLoadHarnessesUseCase(engine),
+    loadNeedsYou: createLoadNeedsYouUseCase(engine),
   })
 }
 

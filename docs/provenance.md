@@ -81,6 +81,8 @@
 | Completed-task Changes | Design `task/done` Changes pane file list + selected diff | **Mock-only presentation** — recorded repository observations; not Git/fs; not authorship proof; independent of task success |
 | Settings general | Design `settings/general` specimen copy | **Mock-only presentation** — shared session appearance only; behaviour/runtime/store unavailable or static facts; not persisted |
 | Settings harnesses | Design `settings/harnesses` registration, install, and qualification copy | **Mock-only presentation** — independent fixture facts; unknown stays unknown; no PATH probe, install, registration change, or MCP approval management |
+| Needs you waiting | Design `needs-you/waiting` approvals and one question | **Mock-only presentation** — fixture requests, not this computer; exact-action labels; no approval authority |
+| Needs you empty | Design `needs-you/empty` | **Mock-only presentation** — complete coverage and zero items only; unknown is not this state |
 | Repository options | Mock-only | Future server-hosted repos; not filesystem pickers; not ctl |
 
 ### Statistics semantic gaps (explicit)
@@ -120,6 +122,23 @@
 - Loading / unavailable treatments are proposals, not approved specimens, and
   must not show task A’s content under task B’s title when switching
   running ↔ failed ↔ completed, nor a prior file’s diff under a new selection.
+
+### Needs you semantic gaps (explicit)
+
+- There is no approval authority in this slice. Approve, reject, and Send do
+  not grant permission and do not submit an answer.
+- Approval labels name one action. “Approve once” is the command card.
+  “Approve this publish” replaces the specimen’s bare “Approve” so the label
+  does not read as task-wide permission (coverage decision G-APPROVAL-WORDING).
+- Questions are a separate item kind. The Nightly dependency audit running-row
+  attention glyph is a general notice. It is not a Needs you item and it is
+  not added to the badge.
+- Commands, paths, and prompts are fixture copy. They are rendered as text.
+- Complete coverage with zero items is the only “Nothing needs you” state.
+  Loading, unavailable, and partial coverage are proposals without approved
+  specimens. Partial coverage shows the known items plus an incomplete mark.
+- Mapped Open task navigates to that task. Open run and unmapped Open task
+  stay unavailable. The reply control is not a submitting form.
 
 The mock adapter is not an HTTP protocol design and does not prove backend
 compatibility.

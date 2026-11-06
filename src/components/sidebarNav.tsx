@@ -1,4 +1,4 @@
-import type { Appearance } from '../model'
+import type { Appearance, NeedsYouBadge } from '../model'
 import type { AppRoute } from '../presentation'
 import { Icon, type IconName } from './Icon'
 import { ThemeToggle } from './ThemeToggle'
@@ -21,6 +21,7 @@ export const NAV: readonly {
 export function isAppRoute(id: NavId): id is AppRoute {
   return (
     id === 'new-task' ||
+    id === 'needs-you' ||
     id === 'workflows' ||
     id === 'resources' ||
     id === 'statistics' ||
@@ -29,62 +30,69 @@ export function isAppRoute(id: NavId): id is AppRoute {
   )
 }
 
+function needsYouVisible(
+  badge: NeedsYouBadge,
+): badge is Extract<NeedsYouBadge, { kind: 'count' | 'partial' }> {
+  return badge.kind === 'count' || badge.kind === 'partial'
+}
+
+function needsYouRailName(badge: NeedsYouBadge): string {
+  if (badge.kind === 'count') return `Needs you, ${badge.count} waiting`
+  if (badge.kind === 'partial') {
+    return `Needs you, ${badge.knownCount} known, coverage incomplete`
+  }
+  return 'Needs you'
+}
+
+function NeedsYouMarks({ badge }: { readonly badge: NeedsYouBadge }) {
+  if (!needsYouVisible(badge)) return null
+  const label = badge.kind === 'count' ? String(badge.count) : `${badge.knownCount}+`
+  return (
+    <>
+      <span className="hd-dot" aria-hidden="true" />
+      <span className="hd-nav-item__count">{label}</span>
+      {badge.kind === 'partial' ? (
+        <span className="hd-sr">coverage incomplete</span>
+      ) : null}
+    </>
+  )
+}
+
 export function ExpandedNavItem({
   item,
   activeRoute,
   needsYou,
   onNavigate,
-  onUnavailable,
 }: {
   item: (typeof NAV)[number]
   activeRoute: AppRoute
-  needsYou: number
+  needsYou: NeedsYouBadge
   onNavigate: (route: AppRoute) => void
-  onUnavailable: (label: string) => void
 }) {
   const active = isAppRoute(item.id) && item.id === activeRoute
+  const body = (
+    <>
+      <Icon name={item.icon} />
+      <span className="hd-nav-item__label">{item.label}</span>
+      {item.id === 'needs-you' ? <NeedsYouMarks badge={needsYou} /> : null}
+      {item.kbd ? <span className="hd-kbd">{item.kbd}</span> : null}
+    </>
+  )
   if (active) {
     return (
       <button type="button" className="hd-nav-item is-active" aria-current="page">
-        <Icon name={item.icon} />
-        <span className="hd-nav-item__label">{item.label}</span>
-        {item.kbd ? <span className="hd-kbd">{item.kbd}</span> : null}
+        {body}
       </button>
     )
   }
-  if (isAppRoute(item.id)) {
-    return (
-      <button
-        type="button"
-        className="hd-nav-item"
-        onClick={() => onNavigate(item.id as AppRoute)}
-      >
-        <Icon name={item.icon} />
-        <span className="hd-nav-item__label">{item.label}</span>
-        {item.kbd ? <span className="hd-kbd">{item.kbd}</span> : null}
-      </button>
-    )
-  }
+  if (!isAppRoute(item.id)) return null
   return (
     <button
       type="button"
       className="hd-nav-item"
-      aria-label={`${item.label} (unavailable in this slice)`}
-      title={`${item.label} — unavailable in this slice`}
-      onClick={() => onUnavailable(item.label)}
+      onClick={() => onNavigate(item.id)}
     >
-      <Icon name={item.icon} />
-      {item.id === 'needs-you' && needsYou > 0 ? (
-        <span className="hd-dot" aria-hidden="true" />
-      ) : null}
-      <span className="hd-nav-item__label" aria-hidden="true">
-        {item.label}
-      </span>
-      {item.id === 'needs-you' && needsYou > 0 ? (
-        <span className="hd-nav-item__count" aria-hidden="true">
-          {needsYou}
-        </span>
-      ) : null}
+      {body}
     </button>
   )
 }
@@ -97,16 +105,14 @@ export function CollapsedRail({
   onCollapse,
   onAppearance,
   onNavigate,
-  onUnavailable,
 }: {
   appearance: Appearance
   activeRoute: AppRoute
   runningCount: number
-  needsYou: number
+  needsYou: NeedsYouBadge
   onCollapse: (collapsed: boolean) => void
   onAppearance: (appearance: Appearance) => void
   onNavigate: (route: AppRoute) => void
-  onUnavailable: (label: string) => void
 }) {
   return (
     <aside className="hd-rail" aria-label="Sidebar">
@@ -122,42 +128,30 @@ export function CollapsedRail({
         </button>
       </div>
       {NAV.map((item) => {
-        if (isAppRoute(item.id)) {
-          const route = item.id
-          const active = route === activeRoute
-          return (
-            <button
-              key={item.id}
-              type="button"
-              className={active ? 'hd-rail-item is-active' : 'hd-rail-item'}
-              aria-label={item.label}
-              aria-current={active ? 'page' : undefined}
-              title={item.label}
-              onClick={() => onNavigate(route)}
-            >
-              <Icon name={item.icon} />
-              {item.id === 'new-task' && runningCount > 0 ? (
-                <span
-                  className="hd-rail-item__badge"
-                  aria-label={`${runningCount} running`}
-                >
-                  {runningCount}
-                </span>
-              ) : null}
-            </button>
-          )
-        }
+        if (!isAppRoute(item.id)) return null
+        const route = item.id
+        const active = route === activeRoute
+        const name = item.id === 'needs-you' ? needsYouRailName(needsYou) : item.label
         return (
           <button
             key={item.id}
             type="button"
-            className="hd-rail-item"
-            aria-label={`${item.label} (unavailable in this slice)`}
-            title={`${item.label} — unavailable in this slice`}
-            onClick={() => onUnavailable(item.label)}
+            className={active ? 'hd-rail-item is-active' : 'hd-rail-item'}
+            aria-label={name}
+            aria-current={active ? 'page' : undefined}
+            title={name}
+            onClick={() => onNavigate(route)}
           >
             <Icon name={item.icon} />
-            {item.id === 'needs-you' && needsYou > 0 ? (
+            {item.id === 'new-task' && runningCount > 0 ? (
+              <span
+                className="hd-rail-item__badge"
+                aria-label={`${runningCount} running`}
+              >
+                {runningCount}
+              </span>
+            ) : null}
+            {item.id === 'needs-you' && needsYouVisible(needsYou) ? (
               <span className="hd-dot" aria-hidden="true" />
             ) : null}
           </button>

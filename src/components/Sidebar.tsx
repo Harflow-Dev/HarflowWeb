@@ -1,4 +1,4 @@
-import type { Appearance, SidebarData, TaskId } from '../model'
+import type { Appearance, NeedsYouBadge, SidebarData, TaskId } from '../model'
 import type { AppRoute } from '../presentation'
 import { Icon } from './Icon'
 import { CollapsedRail, ExpandedNavItem, NAV } from './sidebarNav'
@@ -11,6 +11,7 @@ type Props = {
   readonly activeRoute: AppRoute
   readonly activeTaskId: TaskId | null
   readonly sidebar: SidebarData | null
+  readonly needsYou: NeedsYouBadge
   readonly onCollapse: (collapsed: boolean) => void
   readonly onAppearance: (appearance: Appearance) => void
   readonly onNavigate: (route: AppRoute) => void
@@ -24,6 +25,7 @@ export function Sidebar({
   activeRoute,
   activeTaskId,
   sidebar,
+  needsYou,
   onCollapse,
   onAppearance,
   onNavigate,
@@ -31,7 +33,6 @@ export function Sidebar({
   onUnavailable,
 }: Props) {
   const runningCount = sidebar?.running.length ?? 0
-  const needsYou = sidebar?.needsYouCount ?? 0
   const taskActiveId = activeRoute === 'task' ? activeTaskId : null
 
   if (collapsed) {
@@ -44,7 +45,6 @@ export function Sidebar({
         onCollapse={onCollapse}
         onAppearance={onAppearance}
         onNavigate={onNavigate}
-        onUnavailable={onUnavailable}
       />
     )
   }
@@ -73,7 +73,6 @@ export function Sidebar({
             activeRoute={activeRoute}
             needsYou={needsYou}
             onNavigate={onNavigate}
-            onUnavailable={onUnavailable}
           />
         ))}
       </nav>

@@ -1,4 +1,5 @@
 import type { HarnessesScreenState } from './harnessesState'
+import type { NeedsYouScreenState } from './needsYouState'
 import type { NewTaskScreenState } from './screenState'
 import type { ResourcesScreenState } from './resourcesState'
 import type { StatisticsScreenState } from './statisticsState'
@@ -14,6 +15,7 @@ export type AppRoute =
   | 'resources'
   | 'statistics'
   | 'task'
+  | 'needs-you'
   | 'settings'
 
 export type AppScreenState = {
@@ -25,4 +27,5 @@ export type AppScreenState = {
   readonly task: TaskScreenState
   readonly settingsSection: SettingsSection
   readonly harnesses: HarnessesScreenState
+  readonly needsYou: NeedsYouScreenState
 }

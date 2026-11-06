@@ -1,6 +1,8 @@
 import { useSyncExternalStore } from 'react'
 import { MockBadge, Sidebar, StatusRegion } from '../components'
+import { needsYouBadge } from '../model'
 import type { AppPresenter } from '../presentation'
+import { NeedsYouMain } from './NeedsYouMain'
 import { NewTaskMain } from './NewTaskMain'
 import { ResourcesMain } from './ResourcesMain'
 import { SettingsMain } from './SettingsMain'
@@ -45,6 +47,7 @@ export function AppFeature({ presenter }: Props) {
           activeRoute={state.route}
           activeTaskId={state.task.selectedTaskId}
           sidebar={ready?.sidebar ?? null}
+          needsYou={needsYouBadge(state.needsYou.load)}
           onCollapse={(collapsed) => presenter.setSidebarCollapsed(collapsed)}
           onAppearance={(appearance) => presenter.setAppearance(appearance)}
           onNavigate={(route) => presenter.navigate(route)}
@@ -77,6 +80,11 @@ export function AppFeature({ presenter }: Props) {
               onAppearance={(appearance) => presenter.setAppearance(appearance)}
               onUnavailable={(label) => ephemeral.show(label)}
               harnesses={state.harnesses.load}
+            />
+          ) : state.route === 'needs-you' ? (
+            <NeedsYouMain
+              state={state.needsYou}
+              onOpenTask={(taskId) => presenter.openTask(taskId)}
             />
           ) : (
             <TaskMain

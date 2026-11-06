@@ -225,6 +225,36 @@ unavailable harness copy have no approved specimen.
 Earlier new-task screenshots remain under
 `~/.codex/workflows/screenshots/2026-11-05-harflowweb-new-task-slice/`.
 
+## Needs you — verified 1280×800 captures
+
+Directory:
+`~/.codex/workflows/screenshots/2026-11-06-harflowweb-needs-you/`
+
+Waiting captures are from `/` after Needs you. Empty captures are the app
+column of `/preview` scenario `needs-you-empty` (viewport 1560×800, clip
+x=280 so the PNG is the 1280×800 app and omits the scenario panel). `sips`
+reports 1280×800 for every file. Appearance is the shared session theme.
+
+| File | Scenario | Viewport / PNG | Appearance / chrome |
+| --- | --- | --- | --- |
+| `01-needs-you-waiting-light-expanded.png` | needs-you/waiting | 1280×800 | light, sidebar expanded |
+| `02-needs-you-waiting-dark-expanded.png` | needs-you/waiting | 1280×800 | dark, sidebar expanded |
+| `03-needs-you-empty-light-expanded.png` | needs-you/empty | 1280×800 | light, sidebar expanded |
+| `04-needs-you-empty-dark-expanded.png` | needs-you/empty | 1280×800 | dark, sidebar expanded |
+
+Observed waiting: heading Needs you, badge “3 waiting”, sidebar count 3, three
+cards (command approval, publish approval, question). The Nightly running row
+keeps its attention glyph and is not added to the count. Document and the page
+scroller have equal scroll and client sizes (no overflow). Light focus is the
+Light control. Dark focus is the Dark control. Approve, Reject, Send, reply,
+and Open run are disabled. Mapped Open task stays available.
+
+Observed empty: heading only, no sidebar count, “Nothing needs you” plus the
+approved sentence. No “3 waiting”. Document scrollWidth equals clientWidth
+(1280) on the preview page; the clipped app column is 1280×800. Focus is the
+activated theme control. Loading, unavailable, and partial states have no
+approved specimen and were not captured as specimens.
+
 ## Design provenance for this inspection
 
 - HarflowDesign commit `3643d083700be4032c93237813b573d04bab6ab1`
@@ -235,11 +265,14 @@ Earlier new-task screenshots remain under
   `task/done` transcript+summary+Changes light/dark)
 - Settings: `v2/scripts/screens-settings.js` (`settings/general` and
   `settings/harnesses` light/dark)
+- Needs you: `v2/scripts/screens-needs-you.js` (`needs-you/waiting` and
+  `needs-you/empty` light/dark)
 - Observed in the running Vite app (not substituted from hosted design)
 
 ## Checks performed
 
-- Keyboard: New task / Workflows / Resources / Statistics / Settings are buttons;
+- Keyboard: New task / Needs you / Workflows / Resources / Statistics / Settings
+  are buttons;
   unmapped task destinations and Install announce unavailable in accessible names.
   Statistics period segment is a keyboard-operable button group (`aria-pressed`).
   Mapped running rows open the transcript; tool heads toggle with Enter/Space.
@@ -264,8 +297,8 @@ Earlier new-task screenshots remain under
 ## Limitations
 
 - Pixel fidelity to native materials is not claimed.
-- Workflows/resources/statistics/task loading and unavailable treatments are
-  proposals, not approved specimens.
+- Workflows/resources/statistics/task/Needs you loading, unavailable, and
+  partial treatments are proposals, not approved specimens.
 - Empty workflows and resources screenshots used `/preview` with the scenario
   panel hidden. Statistics and running-task verification use `/` to avoid the
   preview-grid capture trap described above.

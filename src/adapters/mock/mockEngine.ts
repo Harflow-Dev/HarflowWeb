@@ -3,6 +3,7 @@ import {
   asTaskId,
   type ContextLoad,
   type HarnessesLoad,
+  type NeedsYouLoad,
   type ResourcesLoad,
   type StartTaskOutcome,
   type StartTaskRequest,
@@ -36,6 +37,7 @@ export type MockEngineControls = {
   publishTask(taskId: TaskId, load: TaskLoad): void
   publishTaskChanges(query: TaskChangesQuery, load: TaskChangesLoad): void
   publishHarnesses(load: HarnessesLoad): void
+  publishNeedsYou(load: NeedsYouLoad): void
   resolveHeldStart(outcome?: StartTaskOutcome): void
   readonly startRequestCount: () => number
   readonly lastStartRequest: () => StartTaskRequest | null
@@ -90,6 +92,11 @@ function republishScenario(
         : scenario.harnesses,
     )
   }
+  for (const listener of listeners.needsYou) {
+    listener(
+      scenario.needsYou === 'defer' ? { kind: 'loading' } : scenario.needsYou,
+    )
+  }
 }
 
 export function createMockEngine(
@@ -140,6 +147,9 @@ export function createMockEngine(
     },
     publishHarnesses(load) {
       for (const listener of listeners.harnesses) listener(load)
+    },
+    publishNeedsYou(load) {
+      for (const listener of listeners.needsYou) listener(load)
     },
     publishTaskChanges(query, load) {
       const key = taskChangesKey(query)

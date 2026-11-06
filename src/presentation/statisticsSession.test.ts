@@ -62,6 +62,9 @@ function createCapturingPort(
     observeHarnesses() {
       return noopHandle('harnesses')
     },
+    observeNeedsYou() {
+      return noopHandle('needs')
+    },
     async startTask(_request: StartTaskRequest) {
       return { kind: 'accepted', taskId: asTaskId('unused') }
     },
@@ -110,6 +113,9 @@ function createDeferredPort(): {
       },
       observeHarnesses() {
         return noopHandle('harnesses')
+      },
+      observeNeedsYou() {
+        return noopHandle('needs')
       },
       async startTask() {
         return { kind: 'accepted', taskId: asTaskId('unused') }

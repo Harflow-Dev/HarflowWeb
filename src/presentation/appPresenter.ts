@@ -1,6 +1,7 @@
 import type {
   LoadContextUseCase,
   LoadHarnessesUseCase,
+  LoadNeedsYouUseCase,
   LoadResourcesUseCase,
   LoadStatisticsUseCase,
   LoadTaskChangesUseCase,
@@ -53,6 +54,7 @@ type Deps = {
   readonly loadTask: LoadTaskUseCase
   readonly loadTaskChanges: LoadTaskChangesUseCase
   readonly loadHarnesses: LoadHarnessesUseCase
+  readonly loadNeedsYou: LoadNeedsYouUseCase
 }
 
 export function createAppPresenter(deps: Deps): AppPresenter {

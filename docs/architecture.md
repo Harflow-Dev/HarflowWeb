@@ -32,11 +32,16 @@ A green import check does **not** prove semantic architecture correctness.
   Changes-pane observation keyed by task and selected file path)
 - settings section (`general` | `harnesses`) plus a read-only harness
   observation (install, MCP registration, and qualification stay independent)
+- Needs you child session (read-only approvals and questions). The sidebar
+  badge is derived only from this observation. A running-row attention glyph
+  is not an item and is not added to the count. Context `needsYouCount` is
+  not the badge.
 
 Navigating does **not** dispose any child. In-flight launches keep applying;
 returning to New task shows the current pending/accepted/refused/unknown state
-without resubmitting. Statistics range selection and the selected running-task
-identity survive navigation. Appearance and sidebar collapse live on the
+without resubmitting. Statistics range selection, the selected task,
+the Settings section, and appearance survive navigation. Appearance and
+sidebar collapse live on the
 new-task session and remain shared chrome for all routes, including the
 Settings theme control. There is one appearance value.
 
@@ -72,6 +77,10 @@ onto one file. Task UI is split across `TaskMain`, `TaskPage`, `TaskTranscript`,
 - `observeHarnesses(onUpdate) → ObservationHandle` — fixture installation,
   MCP registration, and qualification. None is derived from another. Unknown
   stays unknown.
+- `observeNeedsYou(onUpdate) → ObservationHandle` — approvals and questions
+  only. Complete coverage with zero items is the empty state. Unknown or
+  unavailable coverage is not zero and is not “nothing needs you.” Partial
+  coverage stays explicit.
 - `startTask(request) → Promise<StartTaskOutcome>` — accepted | refused | unknown
 - `ObservationHandle.cancel()` — dispose outstanding observations
 
@@ -88,7 +97,11 @@ downloads, or a public ctl diff protocol. Harness settings are mock fixture
 facts — not a host PATH/filesystem probe, not install/register/remove, and not
 MCP approval management. A loading or unavailable harness observation replaces
 the previous ready facts. Replacing or disposing the observation rejects a
-captured callback.
+captured callback. Needs you is the same shape: loading replaces a previous
+ready or empty claim, and a captured callback after replacement or disposal
+cannot restore it. Approve, reject, answer, and workflow-run controls stay
+disabled. Mapped Open task calls the existing `openTask` navigation and does
+not start a task. Unmapped Open task stays disabled.
 
 Each page observation uses an independent epoch so disposed or replaced
 callbacks cannot mutate presentation state after cancel/replace. Changing the

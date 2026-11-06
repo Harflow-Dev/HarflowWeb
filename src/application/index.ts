@@ -28,6 +28,10 @@ export {
   type LoadHarnessesUseCase,
 } from './loadHarnesses'
 export {
+  createLoadNeedsYouUseCase,
+  type LoadNeedsYouUseCase,
+} from './loadNeedsYou'
+export {
   createStartTaskUseCase,
   type StartTaskUseCase,
 } from './startTask'

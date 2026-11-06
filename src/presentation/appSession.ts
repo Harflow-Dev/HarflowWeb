@@ -1,6 +1,7 @@
 import type {
   LoadContextUseCase,
   LoadHarnessesUseCase,
+  LoadNeedsYouUseCase,
   LoadResourcesUseCase,
   LoadStatisticsUseCase,
   LoadTaskChangesUseCase,
@@ -19,6 +20,7 @@ import type {
 } from '../model'
 import type { AppRoute, AppScreenState, SettingsSection } from './appState'
 import { HarnessesSession } from './harnessesSession'
+import { NeedsYouSession } from './needsYouSession'
 import { PresenterSession } from './presenterSession'
 import { ResourcesSession } from './resourcesSession'
 import type { OpenMenu } from './screenState'
@@ -37,12 +39,14 @@ type Deps = {
   readonly loadTask: LoadTaskUseCase
   readonly loadTaskChanges: LoadTaskChangesUseCase
   readonly loadHarnesses: LoadHarnessesUseCase
+  readonly loadNeedsYou: LoadNeedsYouUseCase
 }
 
 /**
  * App shell session: owns new-task, workflows, resources, statistics, and
- * task lifetimes + route. Navigating does not dispose child sessions,
- * so drafts, range selection, task identity, and in-flight launches survive.
+ * task, settings, and Needs you lifetimes + route. Navigating does not
+ * dispose child sessions, so drafts, range selection, task identity,
+ * the Settings section, appearance, and in-flight launches survive.
  */
 export class AppSession {
   private route: AppRoute = 'new-task'
@@ -52,6 +56,7 @@ export class AppSession {
   private readonly statistics: StatisticsSession
   private readonly task: TaskSession
   private readonly harnesses: HarnessesSession
+  private readonly needsYou: NeedsYouSession
   private settingsSection: SettingsSection = 'general'
   private readonly listeners = new Set<AppListener>()
   private snapshot: AppScreenState
@@ -66,6 +71,7 @@ export class AppSession {
     this.statistics = new StatisticsSession(deps.loadStatistics)
     this.task = new TaskSession(deps.loadTask, deps.loadTaskChanges)
     this.harnesses = new HarnessesSession(deps.loadHarnesses)
+    this.needsYou = new NeedsYouSession(deps.loadNeedsYou)
     this.snapshot = this.buildSnapshot()
     this.newTask.subscribe(() => this.emit())
     this.workflows.subscribe(() => this.emit())
@@ -73,6 +79,7 @@ export class AppSession {
     this.statistics.subscribe(() => this.emit())
     this.task.subscribe(() => this.emit())
     this.harnesses.subscribe(() => this.emit())
+    this.needsYou.subscribe(() => this.emit())
   }
 
   subscribe(listener: AppListener): () => void {
@@ -94,6 +101,7 @@ export class AppSession {
     this.statistics.start()
     this.task.start()
     this.harnesses.start()
+    this.needsYou.start()
   }
 
   dispose(): void {
@@ -103,6 +111,7 @@ export class AppSession {
     this.statistics.dispose()
     this.task.dispose()
     this.harnesses.dispose()
+    this.needsYou.dispose()
   }
 
   navigate(route: AppRoute): void {
@@ -185,6 +194,7 @@ export class AppSession {
       task: this.task.getState(),
       settingsSection: this.settingsSection,
       harnesses: this.harnesses.getState(),
+      needsYou: this.needsYou.getState(),
     }
   }
 

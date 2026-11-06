@@ -2,18 +2,18 @@
 
 ## Intent
 
-Review checkpoint after the mock-backed Settings harnesses page (General
-Settings committed first). Does not complete W01–W05, authenticate, connect a
-real engine, run workflows, administer slots, bill, submit follow-ups, retry,
-apply patches, install a runtime, register MCP servers, manage approvals, or
-touch the task store.
+Review checkpoint after the mock-backed Needs you waiting and empty states
+(Harnesses Settings committed first). Does not complete W01–W05, authenticate,
+connect a real engine, run workflows, administer slots, bill, submit
+follow-ups, retry, apply patches, install a runtime, register MCP servers,
+grant approvals, answer questions, or touch the task store.
 
 ## Known deviations
 
 - Loading / unavailable / partial-sidebar treatments are **proposals** requiring
   design review; they are not approved specimens.
-- Workflows/resources/statistics/task/harnesses loading and unavailable copy are
-  **proposals**, not approved specimens.
+- Workflows/resources/statistics/task/harnesses/Needs you loading, unavailable,
+  and partial copy are **proposals**, not approved specimens.
 - Specimen copy “Choices are remembered per repository” is not implemented;
   selection is one global set for the mock session.
 - Narrow-width layout is a responsive proposal; desktop specimens are approved at
@@ -30,8 +30,17 @@ touch the task store.
   disabled and explained in the accessibility tree. The MCP approvals editor
   is omitted. Specimen paths and readiness sentences are not this computer.
   No install, store, notification, credential, PATH, or OS settings.
+- Needs you waiting shows the three fixture approvals and the question. The
+  publish action reads “Approve this publish” (exact action; specimen “Approve”
+  is not used). Approve, Reject, Send, reply, and Open run are disabled and
+  explained before activation. Mapped Open task navigates to that task and
+  does not start one. The empty state is complete coverage with zero items.
+  Loading and unavailable do not say nothing needs you and do not show a zero
+  badge. Partial coverage shows known items with an incomplete mark. The
+  Nightly row’s attention glyph is not counted. No approval authority, answer
+  submission, clipboard, provider, filesystem, or engine access.
 - Sidebar destinations outside New task, Workflows, Resources, Statistics,
-  Settings, and explicitly mapped running-task rows stay unavailable.
+  Settings, Needs you, and explicitly mapped running-task rows stay unavailable.
 - Run, Edit, New workflow, “Describe one to an agent”, Resources task links,
   Install, follow-up send, Stop (running only), Retry, and Copy resume command
   are visible per design and explicitly unavailable in this slice — no
@@ -64,8 +73,9 @@ touch the task store.
 - Summary, tool outcomes, and Changes diffs are fixture-reported / recorded
   observations only; they do not claim independently verified authorship or
   working-tree proof. Change evidence is independent of task success.
-- No task-level Summary/Prompt tabs, product search, artifact browser, approval
-  cards, or workflow-run destinations. More-actions chrome remains omitted.
+- No task-level Summary/Prompt tabs, product search, artifact browser, or
+  workflow-run destinations. Needs you shows approval and question cards only.
+  More-actions chrome remains omitted.
 - Only rows with `mappedTaskId` open a transcript. Synthetic launch-accepted ids
   remain unmapped unless an explicit fixture exists.
 - Product search is deliberately omitted (coverage ledger: remove product search /

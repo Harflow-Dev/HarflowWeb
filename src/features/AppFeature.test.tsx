@@ -4,6 +4,7 @@ import { afterEach, describe, expect, it } from 'vitest'
 import {
   createLoadContextUseCase,
   createLoadHarnessesUseCase,
+  createLoadNeedsYouUseCase,
   createLoadResourcesUseCase,
   createLoadStatisticsUseCase,
   createLoadTaskChangesUseCase,
@@ -24,6 +25,7 @@ import {
   type StatisticsRangeId,
   type TaskChangesLoad,
   type TaskChangesQuery,
+  type NeedsYouLoad,
   type TaskId,
   type TaskLoad,
   type WorkflowsLoad,
@@ -31,6 +33,13 @@ import {
 import { createControllablePromise } from '../adapters/mock/controllable'
 import { populatedComposer, populatedSidebar } from '../adapters/mock/fixtures'
 import { populatedHarnessesLoad } from '../adapters/mock/harnessFixtures'
+import {
+  emptyNeedsYouLoad,
+  partialNeedsYouObservation,
+  unavailableNeedsYouLoad,
+  waitingNeedsYouLoad,
+} from '../adapters/mock/needsYouFixtures'
+import { SLOT_RELEASE_TASK_ID } from '../adapters/mock/taskFixtures'
 import { populatedResourcesLoad } from '../adapters/mock/resourceFixtures'
 import { statisticsLoadFor } from '../adapters/mock/statisticsFixtures'
 import {
@@ -69,6 +78,7 @@ function createTestEngine(options?: {
   publishStatistics: (range: StatisticsRangeId, load: StatisticsLoad) => void
   publishTask: (taskId: TaskId, load: TaskLoad) => void
   publishTaskChanges: (query: TaskChangesQuery, load: TaskChangesLoad) => void
+  publishNeedsYou: (load: NeedsYouLoad) => void
   captureChangesCallback: () => ((load: TaskChangesLoad) => void) | null
 } {
   const starts: StartTaskRequest[] = []
@@ -89,6 +99,7 @@ function createTestEngine(options?: {
     string,
     (load: TaskChangesLoad) => void
   >()
+  const needsListeners = new Set<(load: NeedsYouLoad) => void>()
   let lastChangesCallback: ((load: TaskChangesLoad) => void) | null = null
   const port: EnginePort = {
     observeContext(onUpdate) {
@@ -172,6 +183,16 @@ function createTestEngine(options?: {
         },
       }
     },
+    observeNeedsYou(onUpdate) {
+      needsListeners.add(onUpdate)
+      queueMicrotask(() => onUpdate(waitingNeedsYouLoad()))
+      return {
+        id: asObservationId('ui-needs'),
+        cancel() {
+          needsListeners.delete(onUpdate)
+        },
+      }
+    },
     async startTask(request) {
       starts.push(request)
       if (options?.holdStart) {
@@ -197,6 +218,9 @@ function createTestEngine(options?: {
       const key = `${query.taskId}\0${query.selectedPath ?? ''}`
       changesListeners.get(key)?.(load)
     },
+    publishNeedsYou(load) {
+      for (const listener of needsListeners) listener(load)
+    },
     captureChangesCallback: () => lastChangesCallback,
   }
 }
@@ -211,6 +235,7 @@ function renderApp(engine: EnginePort) {
     loadTask: createLoadTaskUseCase(engine),
     loadTaskChanges: createLoadTaskChangesUseCase(engine),
     loadHarnesses: createLoadHarnessesUseCase(engine),
+    loadNeedsYou: createLoadNeedsYouUseCase(engine),
   })
   const view = render(<AppFeature presenter={presenter} />)
   return { presenter, ...view }
@@ -1292,5 +1317,147 @@ describe('AppFeature navigation', () => {
     } finally {
       window.matchMedia = original
     }
+  })
+
+  it('keeps the unmapped Needs you question off the failed-task transcript', async () => {
+    const user = userEvent.setup()
+    const { port, starts } = createTestEngine()
+    const { presenter } = renderApp(port)
+    await flush()
+
+    const nav = screen.getByRole('navigation', { name: 'Main' })
+    await user.click(within(nav).getByRole('button', { name: /Needs you/ }))
+    const question = await screen.findByRole('region', { name: 'Asks a question' })
+    const openQuestion = within(question).getByRole('button', {
+      name: 'Open task Migrate events.jsonl reader',
+    })
+    expect(openQuestion).toBeDisabled()
+    expect(openQuestion).toHaveAttribute('aria-disabled', 'true')
+    expect(openQuestion).toHaveAccessibleDescription(
+      /does not approve, reject, send an answer, or open a workflow run/,
+    )
+    await user.click(openQuestion)
+    fireEvent.keyDown(openQuestion, { key: 'Enter' })
+    expect(presenter.getState().route).toBe('needs-you')
+    expect(presenter.getState().task.selectedTaskId).toBeNull()
+    expect(screen.queryByText('Failed 07:48')).not.toBeInTheDocument()
+    expect(
+      screen.queryByText('Task failed: the harness exited with code 1'),
+    ).not.toBeInTheDocument()
+    expect(starts).toHaveLength(0)
+
+    const approval = screen.getByRole('region', { name: 'Wants to run a command' })
+    await user.click(
+      within(approval).getByRole('button', {
+        name: 'Open task Fix flaky slot release test',
+      }),
+    )
+    expect(presenter.getState().route).toBe('task')
+    expect(presenter.getState().task.selectedTaskId).toBe(SLOT_RELEASE_TASK_ID)
+    expect(await screen.findByText('Running tests…')).toBeInTheDocument()
+    expect(screen.queryByText('Failed 07:48')).not.toBeInTheDocument()
+    expect(starts).toHaveLength(0)
+  })
+
+  it('keeps the Needs you badge, page, and surrounding state on one observation', async () => {
+    const user = userEvent.setup()
+    const engine = createTestEngine({ holdStart: true })
+    const { presenter } = renderApp(engine.port)
+    await flush()
+
+    await user.type(
+      screen.getByLabelText('Task prompt'),
+      'draft beside needs you',
+    )
+    await user.click(screen.getByRole('button', { name: 'Start task' }))
+    await user.click(screen.getByRole('button', { name: 'Statistics' }))
+    await user.click(screen.getByRole('button', { name: '7 days' }))
+    await user.click(
+      screen.getByRole('button', { name: /Fix flaky slot release test/ }),
+    )
+    const selectedTask = presenter.getState().task.selectedTaskId
+    expect(await screen.findByText('Running tests…')).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Settings' }))
+    await user.click(screen.getByRole('tab', { name: 'Harnesses' }))
+    const sidebar = screen.getByRole('complementary', { name: 'Sidebar' })
+    await user.click(within(sidebar).getByRole('button', { name: 'Dark' }))
+
+    const nav = screen.getByRole('navigation', { name: 'Main' })
+    const needs = within(nav).getByRole('button', { name: /Needs you/ })
+    expect(within(nav).getByText('3')).toBeInTheDocument()
+    needs.focus()
+    expect(needs).toHaveFocus()
+    await user.keyboard('{Enter}')
+    expect(
+      await screen.findByRole('heading', { name: 'Needs you' }),
+    ).toBeInTheDocument()
+    expect(screen.getByText('3 waiting')).toBeInTheDocument()
+    expect(
+      screen.getByRole('region', { name: 'Wants to run a command' }),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('region', { name: 'Wants to publish' }),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('region', { name: 'Asks a question' }),
+    ).toBeInTheDocument()
+    expect(screen.queryByText('Nothing needs you')).not.toBeInTheDocument()
+    expect(presenter.getState().newTask.prompt).toBe('draft beside needs you')
+    expect(presenter.getState().statistics.selectedRange).toBe('7d')
+    expect(presenter.getState().task.selectedTaskId).toBe(selectedTask)
+    expect(presenter.getState().settingsSection).toBe('harnesses')
+    expect(presenter.getState().newTask.appearance).toBe('dark')
+    expect(presenter.getState().newTask.submission.kind).toBe('pending')
+    expect(engine.starts).toHaveLength(1)
+
+    const command = screen.getByRole('region', { name: 'Wants to run a command' })
+    await user.click(within(command).getByRole('button', { name: 'Approve once' }))
+    await user.click(within(command).getByRole('button', { name: 'Reject' }))
+    await user.click(screen.getByRole('button', { name: 'Open run' }))
+    await user.click(screen.getByRole('button', { name: 'Send' }))
+    expect(engine.starts).toHaveLength(1)
+    expect(presenter.getState().route).toBe('needs-you')
+
+    const openTask = screen.getByRole('button', {
+      name: 'Open task Fix flaky slot release test',
+    })
+    openTask.focus()
+    await user.keyboard('{Enter}')
+    expect(presenter.getState().route).toBe('task')
+    expect(presenter.getState().task.selectedTaskId).toBe(SLOT_RELEASE_TASK_ID)
+    expect(engine.starts).toHaveLength(1)
+
+    await user.click(within(nav).getByRole('button', { name: /Needs you/ }))
+    engine.publishNeedsYou({
+      kind: 'ready',
+      observation: partialNeedsYouObservation(),
+    })
+    await flush()
+    expect(within(nav).getByText('1+')).toBeInTheDocument()
+    expect(screen.getByText(/Coverage is incomplete/)).toBeInTheDocument()
+    expect(screen.queryByText('Nothing needs you')).not.toBeInTheDocument()
+    expect(screen.queryByText('1 waiting')).not.toBeInTheDocument()
+
+    engine.publishNeedsYou(emptyNeedsYouLoad())
+    await flush()
+    expect(screen.getByText('Nothing needs you')).toBeInTheDocument()
+    expect(within(nav).queryByText('3')).not.toBeInTheDocument()
+    expect(screen.queryByText(/waiting/)).not.toBeInTheDocument()
+
+    engine.publishNeedsYou({ kind: 'loading' })
+    await flush()
+    expect(screen.queryByText('Nothing needs you')).not.toBeInTheDocument()
+    expect(screen.getByText(/Loading requests/)).toBeInTheDocument()
+
+    engine.publishNeedsYou(unavailableNeedsYouLoad())
+    await flush()
+    expect(screen.queryByText('Nothing needs you')).not.toBeInTheDocument()
+    expect(screen.getByText('Needs you is unavailable.')).toBeInTheDocument()
+    expect(within(nav).queryByText('0')).not.toBeInTheDocument()
+    expect(presenter.getState().settingsSection).toBe('harnesses')
+    expect(presenter.getState().newTask.appearance).toBe('dark')
+    expect(presenter.getState().statistics.selectedRange).toBe('7d')
+    expect(presenter.getState().newTask.prompt).toBe('draft beside needs you')
+    expect(engine.starts).toHaveLength(1)
   })
 })

@@ -28,9 +28,10 @@ populated fixture and shows a single “Mock engine” badge.
 | Task running | Approved `task/running` transcript for mapped sidebar rows |
 | Task failed | Approved `task/failed` transcript for the mapped recent-work row |
 | Task done | Approved `task/done` transcript+summary + read-only Changes pane |
+| Needs you empty | Approved `needs-you/empty` specimen. Populated scenarios use `needs-you/waiting` |
 
 Sidebar navigation between **New task**, **Workflows**, **Resources**,
-**Statistics**, and **Settings** is live, and explicitly mapped Running / Recent rows open the
+**Statistics**, **Settings**, and **Needs you** is live, and explicitly mapped Running / Recent rows open the
 matching task transcript. Draft text, selections, pending launch outcomes, the
 selected statistics range, theme, and sidebar collapse are preserved across
 pages; navigation never starts or repeats a task. Changing the statistics range
@@ -43,7 +44,11 @@ observation and clears the prior diff immediately. Settings → Harnesses observ
 `observeHarnesses(…)`. Install, MCP registration, and qualification are separate
 fixture fields. A later loading or unavailable result drops the previous ready
 rows. Refresh, update, remove, and MCP approvals are disabled and do not
-re-observe.
+re-observe. Needs you observes `observeNeedsYou(…)`. The sidebar count is that
+observation: three waiting items on the populated fixture, no count on the
+empty scenario, and no zero when the observation is loading or unavailable.
+Approve, reject, Send, and Open run stay disabled. Mapped Open task only
+navigates.
 
 Run, Edit, New workflow, “Describe one to an agent”, Resources task links,
 Install, unmapped sidebar rows, follow-up send, Stop (running only), Retry,

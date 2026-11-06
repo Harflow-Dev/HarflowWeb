@@ -1,6 +1,7 @@
 import type {
   ContextLoad,
   HarnessesLoad,
+  NeedsYouLoad,
   ObservationHandle,
   ResourcesLoad,
   StartTaskOutcome,
@@ -82,6 +83,15 @@ export type EnginePort = {
    */
   observeHarnesses(
     onUpdate: (load: HarnessesLoad) => void,
+  ): ObservationHandle
+
+  /**
+   * Read approvals and questions that need the owner.
+   * Unknown coverage is not an empty inbox.
+   * Mock-only — not approval authority or a public ctl claim.
+   */
+  observeNeedsYou(
+    onUpdate: (load: NeedsYouLoad) => void,
   ): ObservationHandle
 
   /**

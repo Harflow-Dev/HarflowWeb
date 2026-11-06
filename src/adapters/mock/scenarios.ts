@@ -2,6 +2,7 @@ import {
   asTaskId,
   type ContextLoad,
   type HarnessesLoad,
+  type NeedsYouLoad,
   type ResourcesLoad,
   type StartTaskOutcome,
   type StatisticsLoad,
@@ -19,6 +20,10 @@ import {
   populatedSidebar,
 } from './fixtures'
 import { populatedHarnessesLoad } from './harnessFixtures'
+import {
+  emptyNeedsYouLoad,
+  waitingNeedsYouLoad,
+} from './needsYouFixtures'
 import { populatedResourcesLoad } from './resourceFixtures'
 import { statisticsLoadFor } from './statisticsFixtures'
 import { taskLoadFor } from './taskFixtures'
@@ -63,6 +68,7 @@ export type ScenarioId =
   | 'task-running'
   | 'task-failed'
   | 'task-done'
+  | 'needs-you-empty'
 
 export type ScenarioDefinition = {
   readonly id: ScenarioId
@@ -75,6 +81,7 @@ export type ScenarioDefinition = {
   readonly tasks: TasksScenario
   readonly taskChanges: TaskChangesScenario
   readonly harnesses: HarnessesLoad | 'defer'
+  readonly needsYou: NeedsYouLoad | 'defer'
   readonly startOutcome: StartTaskOutcome
   readonly holdStart: boolean
 }
@@ -98,6 +105,7 @@ const statistics: StatisticsScenario = 'default'
 const tasks: TasksScenario = 'default'
 const taskChanges: TaskChangesScenario = 'default'
 const harnesses = populatedHarnessesLoad()
+const needsYou = waitingNeedsYouLoad()
 
 function base(
   partial: Omit<
@@ -108,6 +116,7 @@ function base(
     | 'tasks'
     | 'taskChanges'
     | 'harnesses'
+    | 'needsYou'
   > &
     Partial<
       Pick<
@@ -118,6 +127,7 @@ function base(
         | 'tasks'
         | 'taskChanges'
         | 'harnesses'
+        | 'needsYou'
       >
     >,
 ): ScenarioDefinition {
@@ -128,6 +138,7 @@ function base(
     tasks,
     taskChanges,
     harnesses,
+    needsYou,
     ...partial,
   }
 }
@@ -289,6 +300,16 @@ export const SCENARIOS: readonly ScenarioDefinition[] = [
       'Approved task/done transcript+summary with read-only Changes pane.',
     context: readyContext(),
     tasks: (taskId) => taskLoadFor(taskId),
+    startOutcome: accepted,
+    holdStart: false,
+  }),
+  base({
+    id: 'needs-you-empty',
+    label: 'Needs you empty',
+    description:
+      'Approved needs-you/empty specimen. Complete coverage and zero requests.',
+    context: readyContext(),
+    needsYou: emptyNeedsYouLoad(),
     startOutcome: accepted,
     holdStart: false,
   }),

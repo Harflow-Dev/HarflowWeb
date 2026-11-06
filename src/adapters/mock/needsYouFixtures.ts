@@ -1,4 +1,5 @@
 import type { NeedsYouLoad, NeedsYouObservation } from '../../model'
+import { NIGHTLY_AUDIT_RUN_ID } from './workflowExecutionFixtures'
 import { SLOT_RELEASE_TASK_ID } from './taskFixtures'
 
 /**
@@ -39,6 +40,7 @@ export function waitingNeedsYouObservation(): NeedsYouObservation {
           title: 'Nightly dependency audit',
           step: 'Open pull request',
           waitingLabel: 'waiting 1h',
+          runId: NIGHTLY_AUDIT_RUN_ID,
         },
       },
       {

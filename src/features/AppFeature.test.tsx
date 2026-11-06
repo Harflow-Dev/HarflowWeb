@@ -10,6 +10,7 @@ import {
   createLoadTaskChangesUseCase,
   createLoadTaskUseCase,
   createLoadWorkflowEditorUseCase,
+  createLoadWorkflowExecutionUseCase,
   createLoadWorkflowRunUseCase,
   createLoadWorkflowsUseCase,
   createStartTaskUseCase,
@@ -51,6 +52,7 @@ import { SLOT_RELEASE_TASK_ID } from '../adapters/mock/taskFixtures'
 import {
   workflowEditorLoadFor,
 } from '../adapters/mock/workflowEditorFixtures'
+import { workflowExecutionLoadFor } from '../adapters/mock/workflowExecutionFixtures'
 import {
   NIGHTLY_WORKFLOW_ID,
   RELEASE_WORKFLOW_ID,
@@ -177,6 +179,15 @@ function createTestEngine(options?: {
           if (editorListeners.get(workflowId) === onUpdate) {
             editorListeners.delete(workflowId)
           }
+        },
+      }
+    },
+    observeWorkflowExecution(runId, onUpdate) {
+      queueMicrotask(() => onUpdate(workflowExecutionLoadFor(runId)))
+      return {
+        id: asObservationId('ui-workflow-execution'),
+        cancel() {
+          /* run lifetime is covered in its session tests */
         },
       }
     },
@@ -309,6 +320,7 @@ function renderApp(engine: EnginePort) {
     loadNeedsYou: createLoadNeedsYouUseCase(engine),
     loadWorkflowRun: createLoadWorkflowRunUseCase(engine),
     loadWorkflowEditor: createLoadWorkflowEditorUseCase(engine),
+    loadWorkflowExecution: createLoadWorkflowExecutionUseCase(engine),
   })
   const view = render(<AppFeature presenter={presenter} />)
   return { presenter, ...view }
@@ -1483,9 +1495,24 @@ describe('AppFeature navigation', () => {
     const command = screen.getByRole('region', { name: 'Wants to run a command' })
     await user.click(within(command).getByRole('button', { name: 'Approve once' }))
     await user.click(within(command).getByRole('button', { name: 'Reject' }))
-    await user.click(screen.getByRole('button', { name: 'Open run' }))
     await user.click(screen.getByRole('button', { name: 'Send' }))
+    const openRun = screen.getByRole('button', {
+      name: 'Open run Nightly dependency audit',
+    })
+    expect(openRun).toBeEnabled()
+    await user.click(openRun)
     expect(engine.starts).toHaveLength(1)
+    expect(presenter.getState().route).toBe('workflows')
+    expect(presenter.getState().workflowExecution.runId).toBe(
+      'run-nightly-dependency-audit',
+    )
+    const step = screen.getByRole('complementary', { name: 'Selected step' })
+    expect(step).toHaveTextContent('Open pull request')
+    expect(step).toHaveTextContent('Publish changes')
+    expect(screen.getByRole('img', { name: /Scan lockfiles/ })).toBeInTheDocument()
+    await user.click(within(nav).getByRole('button', { name: 'Workflows' }))
+    expect(presenter.getState().workflowExecution.runId).toBeNull()
+    await user.click(within(nav).getByRole('button', { name: /Needs you/ }))
     expect(presenter.getState().route).toBe('needs-you')
 
     const openTask = screen.getByRole('button', {

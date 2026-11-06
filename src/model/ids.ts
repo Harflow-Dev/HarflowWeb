@@ -5,6 +5,7 @@ export type HarnessId = string & { readonly __brand: 'HarnessId' }
 export type ModelId = string & { readonly __brand: 'ModelId' }
 export type TaskId = string & { readonly __brand: 'TaskId' }
 export type WorkflowId = string & { readonly __brand: 'WorkflowId' }
+export type WorkflowRunId = string & { readonly __brand: 'WorkflowRunId' }
 export type WorkflowNodeId = string & { readonly __brand: 'WorkflowNodeId' }
 export type ObservationId = string & { readonly __brand: 'ObservationId' }
 
@@ -26,6 +27,10 @@ export function asTaskId(value: string): TaskId {
 
 export function asWorkflowId(value: string): WorkflowId {
   return value as WorkflowId
+}
+
+export function asWorkflowRunId(value: string): WorkflowRunId {
+  return value as WorkflowRunId
 }
 
 export function asWorkflowNodeId(value: string): WorkflowNodeId {

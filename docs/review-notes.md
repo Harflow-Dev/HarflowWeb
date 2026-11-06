@@ -34,9 +34,11 @@ grant approvals, answer questions, or touch the task store.
   No install, store, notification, credential, PATH, or OS settings.
 - Needs you waiting shows the three fixture approvals and the question. The
   publish action reads “Approve this publish” (exact action; specimen “Approve”
-  is not used). Approve, Reject, Send, reply, and Open run are disabled and
-  explained before activation. Mapped Open task navigates to that task and
-  does not start one. The empty state is complete coverage with zero items.
+  is not used). Approve, Reject, Send, and reply stay disabled. The Nightly
+  publish card’s Open run opens the mapped run screen and does not approve
+  it. Unmapped Open task stays disabled. Mapped Open task navigates to that
+  task and does not start one. The empty state is complete coverage with zero
+  items.
   Loading and unavailable do not say nothing needs you and do not show a zero
   badge. Partial coverage shows known items with an incomplete mark. The
   Nightly row’s attention glyph is not counted. No approval authority, answer

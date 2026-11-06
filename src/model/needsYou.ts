@@ -1,4 +1,4 @@
-import type { TaskId } from './ids'
+import type { TaskId, WorkflowRunId } from './ids'
 
 /**
  * Needs you is approvals and questions only.
@@ -19,6 +19,8 @@ export type NeedsYouWorkflowContext = {
   readonly title: string
   readonly step: string | null
   readonly waitingLabel: string
+  /** Null stays unmapped. A definition id is not a run id. */
+  readonly runId: WorkflowRunId | null
 }
 
 export type NeedsYouContext = NeedsYouTaskContext | NeedsYouWorkflowContext

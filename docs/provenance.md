@@ -77,6 +77,7 @@
 | Workflow definition list | Design `workflows/list` + `workflows/empty` specimen copy | **Mock-only presentation** — not a public ctl workflow catalog; no run status |
 | Workflow run form | Design `workflows/run` Task, Goal, repository, saved orchestrator, and permissions preview | **Mock-only presentation** — session-local draft; final Run disabled; permission lines are fixture facts, not installed or qualified backends and not enforcement |
 | Workflow editor preview | Design `workflow-editor/node-selected` graph, standalone strip, and inspector | **Mock-only presentation** — read-only; two mapped definitions; editing, save, delete, connect, and run stay disabled |
+| Workflow run graph | Design `workflow-run/graph-needs-you` | **Mock-only presentation** — one mapped run id, distinct from the Nightly definition id; Pause, Cancel, Approve, Reject, and goal edits stay disabled; Parallel, recovery, and on-demand details are omitted |
 | Resources slot observation | Design `resources/slots` specimen copy | **Mock-only presentation** — not a public ctl resources catalog; no install/release/admin |
 | Statistics overview | Design `statistics/overview` specimen copy + distinct 7-day mock range | **Mock-only presentation** — not a public ctl statistics/billing API; success rate and median are fixture facts only when coverage is complete |
 | Running-task transcript | Design `task/running` specimen copy | **Mock-only presentation** — not a public ctl transcript protocol; mapped fixture ids only |
@@ -141,8 +142,9 @@
 - Complete coverage with zero items is the only “Nothing needs you” state.
   Loading, unavailable, and partial coverage are proposals without approved
   specimens. Partial coverage shows the known items plus an incomplete mark.
-- Mapped Open task navigates to that task. Open run and unmapped Open task
-  stay unavailable. The reply control is not a submitting form.
+- Mapped Open task navigates to that task. The Nightly publish card’s Open
+  run navigates to the mapped run graph and does not approve it. Unmapped
+  Open task stays unavailable. The reply control is not a submitting form.
 
 ### Workflow run form semantic gaps (explicit)
 

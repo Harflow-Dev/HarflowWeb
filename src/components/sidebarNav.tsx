@@ -80,7 +80,12 @@ export function ExpandedNavItem({
   )
   if (active) {
     return (
-      <button type="button" className="hd-nav-item is-active" aria-current="page">
+      <button
+        type="button"
+        className="hd-nav-item is-active"
+        aria-current="page"
+        onClick={() => onNavigate(item.id)}
+      >
         {body}
       </button>
     )

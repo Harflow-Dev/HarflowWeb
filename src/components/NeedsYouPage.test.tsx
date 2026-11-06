@@ -18,7 +18,14 @@ describe('NeedsYouPage', () => {
   it('renders typed waiting items as literal text and blocks unavailable actions', async () => {
     const user = userEvent.setup()
     const onOpenTask = vi.fn()
-    render(<NeedsYouPage load={waitingNeedsYouLoad()} onOpenTask={onOpenTask} />)
+    const onOpenRun = vi.fn()
+    render(
+      <NeedsYouPage
+        load={waitingNeedsYouLoad()}
+        onOpenTask={onOpenTask}
+        onOpenRun={onOpenRun}
+      />,
+    )
 
     expect(screen.getByText('3 waiting')).toBeInTheDocument()
     expect(screen.getByText('npm test -- --runInBand slot-release')).toBeInTheDocument()
@@ -35,12 +42,14 @@ describe('NeedsYouPage', () => {
     const approve = screen.getByRole('button', { name: 'Approve once' })
     const publish = screen.getByRole('button', { name: 'Approve this publish' })
     const send = screen.getByRole('button', { name: 'Send' })
-    const openRun = screen.getByRole('button', { name: 'Open run' })
+    const openRun = screen.getByRole('button', {
+      name: 'Open run Nightly dependency audit',
+    })
     const reply = screen.getByRole('textbox', { name: 'Reply' })
     const openQuestion = screen.getByRole('button', {
       name: 'Open task Migrate events.jsonl reader',
     })
-    for (const control of [approve, publish, send, openRun, reply, openQuestion]) {
+    for (const control of [approve, publish, send, reply, openQuestion]) {
       expect(control).toBeDisabled()
       expect(control).toHaveAttribute('aria-disabled', 'true')
       expect(control).toHaveAccessibleDescription(NEEDS_YOU_ACTION_EXPLANATION)
@@ -48,9 +57,13 @@ describe('NeedsYouPage', () => {
     await user.click(approve)
     await user.click(publish)
     await user.click(send)
-    await user.click(openRun)
     await user.click(openQuestion)
     expect(onOpenTask).not.toHaveBeenCalled()
+    expect(openRun).toBeEnabled()
+    openRun.focus()
+    await user.keyboard('{Enter}')
+    expect(onOpenRun).toHaveBeenCalledTimes(1)
+    expect(onOpenRun).toHaveBeenCalledWith('run-nightly-dependency-audit')
 
     const openTask = screen.getByRole('button', {
       name: 'Open task Fix flaky slot release test',
@@ -64,7 +77,7 @@ describe('NeedsYouPage', () => {
 
   it('shows the approved empty state only for complete coverage with zero items', () => {
     const { rerender } = render(
-      <NeedsYouPage load={emptyNeedsYouLoad()} onOpenTask={vi.fn()} />,
+      <NeedsYouPage load={emptyNeedsYouLoad()} onOpenTask={vi.fn()} onOpenRun={vi.fn()} />,
     )
     expect(screen.getByText('Nothing needs you')).toBeInTheDocument()
     expect(
@@ -76,6 +89,7 @@ describe('NeedsYouPage', () => {
       <NeedsYouPage
         load={{ kind: 'ready', observation: partialNeedsYouObservation() }}
         onOpenTask={vi.fn()}
+        onOpenRun={vi.fn()}
       />,
     )
     expect(screen.queryByText('Nothing needs you')).not.toBeInTheDocument()
@@ -83,12 +97,12 @@ describe('NeedsYouPage', () => {
     expect(screen.getByText('1 known. Not a complete total.')).toBeInTheDocument()
     expect(screen.queryByText('1 waiting')).not.toBeInTheDocument()
 
-    rerender(<NeedsYouPage load={{ kind: 'loading' }} onOpenTask={vi.fn()} />)
+    rerender(<NeedsYouPage load={{ kind: 'loading' }} onOpenTask={vi.fn()} onOpenRun={vi.fn()} />)
     expect(screen.queryByText('Nothing needs you')).not.toBeInTheDocument()
     expect(screen.getByRole('status')).toHaveTextContent(/Loading requests/)
 
     rerender(
-      <NeedsYouPage load={unavailableNeedsYouLoad()} onOpenTask={vi.fn()} />,
+      <NeedsYouPage load={unavailableNeedsYouLoad()} onOpenTask={vi.fn()} onOpenRun={vi.fn()} />,
     )
     expect(screen.queryByText('Nothing needs you')).not.toBeInTheDocument()
     expect(screen.getByRole('status')).toHaveTextContent('Needs you is unavailable.')
@@ -99,6 +113,7 @@ describe('NeedsYouPage', () => {
       <NeedsYouPage
         load={{ kind: 'ready', observation: literalNeedsYouObservation() }}
         onOpenTask={vi.fn()}
+        onOpenRun={vi.fn()}
       />,
     )
     expect(

@@ -31,6 +31,9 @@ function createCapturingPort(): {
     observeWorkflowEditor() {
       return noopHandle('workflow-editor')
     },
+    observeWorkflowExecution() {
+      return noopHandle('workflow-execution')
+    },
     observeResources() {
       return noopHandle('res')
     },

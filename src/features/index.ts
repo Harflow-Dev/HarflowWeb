@@ -7,6 +7,7 @@ export { SettingsMain } from './SettingsMain'
 export { StatisticsMain } from './StatisticsMain'
 export { TaskMain } from './TaskMain'
 export { WorkflowsMain } from './WorkflowsMain'
+export { WorkflowRunMain } from './WorkflowRunMain'
 export {
   useEphemeralNote,
   usePresenter,

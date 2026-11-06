@@ -7,6 +7,7 @@ import {
   createLoadTaskChangesUseCase,
   createLoadTaskUseCase,
   createLoadWorkflowEditorUseCase,
+  createLoadWorkflowExecutionUseCase,
   createLoadWorkflowRunUseCase,
   createLoadWorkflowsUseCase,
   createStartTaskUseCase,
@@ -34,6 +35,7 @@ export function createApp(scenario: ScenarioId = 'populated'): AppBundle {
   const loadWorkflows = createLoadWorkflowsUseCase(mock.engine)
   const loadWorkflowRun = createLoadWorkflowRunUseCase(mock.engine)
   const loadWorkflowEditor = createLoadWorkflowEditorUseCase(mock.engine)
+  const loadWorkflowExecution = createLoadWorkflowExecutionUseCase(mock.engine)
   const loadResources = createLoadResourcesUseCase(mock.engine)
   const loadStatistics = createLoadStatisticsUseCase(mock.engine)
   const loadTask = createLoadTaskUseCase(mock.engine)
@@ -52,6 +54,7 @@ export function createApp(scenario: ScenarioId = 'populated'): AppBundle {
     loadNeedsYou,
     loadWorkflowRun,
     loadWorkflowEditor,
+    loadWorkflowExecution,
   })
   return { presenter, mock }
 }

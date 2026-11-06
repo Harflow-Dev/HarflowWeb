@@ -269,8 +269,10 @@ Observed waiting: heading Needs you, badge “3 waiting”, sidebar count 3, thr
 cards (command approval, publish approval, question). The Nightly running row
 keeps its attention glyph and is not added to the count. Document and the page
 scroller have equal scroll and client sizes (no overflow). Light focus is the
-Light control. Dark focus is the Dark control. Approve, Reject, Send, reply,
-and Open run are disabled. Mapped Open task stays available.
+Light control. Dark focus is the Dark control. Approve, Reject, Send, and
+reply are disabled. Those captures predate the mapped Nightly Open run. That
+control now opens the run graph; unmapped Open run stays disabled. Mapped
+Open task stays available.
 
 Observed empty: heading only, no sidebar count, “Nothing needs you” plus the
 approved sentence. No “3 waiting”. Document scrollWidth equals clientWidth
@@ -303,6 +305,32 @@ accepted focus; the menu was closed without changing the selection. Dark
 capture focus is the Dark control. The Run control stays disabled. Loading,
 validation, error, and adaptive states have no approved specimen and were
 not captured as specimens.
+
+## Workflow run graph — verified 1280×800 captures
+
+Directory:
+`~/.codex/workflows/screenshots/2026-11-06-harflowweb-workflow-run-graph/`
+
+Captured from `/` after Needs you → Open run on Nightly dependency audit.
+Same CDP clip + `sips` verification.
+
+| File | Scenario | Viewport / PNG | Appearance / chrome |
+| --- | --- | --- | --- |
+| `01-graph-needs-you-light.png` | workflow-run/graph-needs-you | 1280×800 | light, sidebar expanded |
+| `02-graph-needs-you-dark.png` | workflow-run/graph-needs-you | 1280×800 | dark, sidebar expanded |
+
+Observed: title “Nightly dependency audit”, Needs you badge, and
+“Step 2 of 4 · 06:31”. Graph is current. Parallel, Pause, Cancel run, More
+actions, Revise goal, and the standalone on-demand nodes stay disabled.
+The graph image names Scan lockfiles, Draft upgrade plan, Open pull request,
+and Notify. At 1280×800 the canvas port client width and scroll width are
+both 556; Notify’s box ends at 543 inside that port. The selected pane shows
+the goal, pytest output “812 passed in 71.40s”, Publish changes, and disabled
+Approve and Reject. The pane’s maximum scroll is 57px; after scrolling,
+Approve’s bottom is 792, inside the 800px viewport. Document scrollWidth
+equals clientWidth (1280). Light focus is the Light control. Dark focus is
+the Dark control. Parallel, recovery, and on-demand detail views were not
+captured.
 
 ## Workflow editor — verified 1280×800 captures
 
@@ -386,6 +414,8 @@ approved specimen and were not captured as specimens.
 - Needs you: `v2/scripts/screens-needs-you.js` (`needs-you/waiting` and
   `needs-you/empty` light/dark)
 - Workflow run: `v2/scripts/screens-workflows.js` (`workflows/run` light/dark)
+- Workflow run graph: `v2/scripts/screens-workflow-run.js`
+  (`workflow-run/graph-needs-you` light/dark)
 - Workflow editor: `v2/scripts/screens-workflow-editor.js`
   (`workflow-editor/node-selected` light/dark)
 - Observed in the running Vite app (not substituted from hosted design)
@@ -424,6 +454,7 @@ approved specimen and were not captured as specimens.
   not approved specimens. Workflow editor loading, error, and adaptive
   states are proposals, not approved specimens. MCP approvals Add and
   Remove stay disabled, so the expanded list is a read-only fixture view.
+  Parallel, recovery, and on-demand run details are outside this slice.
   At 1280×800 the scaled
   Release checklist board is wider than the visible canvas. The inner
   scrollport reaches End; `01` and `02` still show the earlier clipped frame.

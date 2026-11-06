@@ -15,6 +15,8 @@ import type {
   WorkflowEditorLoad,
   WorkflowId,
   WorkflowRunContextLoad,
+  WorkflowRunId,
+  WorkflowRunLoad,
   WorkflowsLoad,
 } from '../model'
 
@@ -59,6 +61,17 @@ export type EnginePort = {
   observeWorkflowEditor(
     workflowId: WorkflowId,
     onUpdate: (load: WorkflowEditorLoad) => void,
+  ): ObservationHandle
+
+  /**
+   * Read one running workflow graph.
+   * The key is a run id, not a workflow definition id.
+   * Unmapped and mismatched runs stay unavailable.
+   * Mock-only — not execution, pause, cancel, or approval authority.
+   */
+  observeWorkflowExecution(
+    runId: WorkflowRunId,
+    onUpdate: (load: WorkflowRunLoad) => void,
   ): ObservationHandle
 
   /**

@@ -4,6 +4,7 @@ import type {
   LoadNeedsYouUseCase,
   LoadResourcesUseCase,
   LoadWorkflowEditorUseCase,
+  LoadWorkflowExecutionUseCase,
   LoadWorkflowRunUseCase,
   LoadStatisticsUseCase,
   LoadTaskChangesUseCase,
@@ -21,6 +22,7 @@ import type {
   TaskId,
   WorkflowId,
   WorkflowNodeId,
+  WorkflowRunId,
   WorkflowOverrideId,
 } from '../model'
 import type { AppRoute, AppScreenState, SettingsSection } from './appState'
@@ -32,6 +34,7 @@ import type { OpenMenu } from './screenState'
 import { StatisticsSession } from './statisticsSession'
 import { TaskSession } from './taskSession'
 import { WorkflowEditorSession } from './workflowEditorSession'
+import { WorkflowExecutionSession } from './workflowExecutionSession'
 import { WorkflowsSession } from './workflowsSession'
 
 export type AppListener = (state: AppScreenState) => void
@@ -48,6 +51,7 @@ type Deps = {
   readonly loadNeedsYou: LoadNeedsYouUseCase
   readonly loadWorkflowRun: LoadWorkflowRunUseCase
   readonly loadWorkflowEditor: LoadWorkflowEditorUseCase
+  readonly loadWorkflowExecution: LoadWorkflowExecutionUseCase
 }
 
 /**
@@ -66,6 +70,7 @@ export class AppSession {
   private readonly harnesses: HarnessesSession
   private readonly needsYou: NeedsYouSession
   private readonly workflowEditor: WorkflowEditorSession
+  private readonly workflowExecution: WorkflowExecutionSession
   private settingsSection: SettingsSection = 'general'
   private readonly listeners = new Set<AppListener>()
   private snapshot: AppScreenState
@@ -85,6 +90,7 @@ export class AppSession {
     this.harnesses = new HarnessesSession(deps.loadHarnesses)
     this.needsYou = new NeedsYouSession(deps.loadNeedsYou)
     this.workflowEditor = new WorkflowEditorSession(deps.loadWorkflowEditor)
+    this.workflowExecution = new WorkflowExecutionSession(deps.loadWorkflowExecution)
     this.snapshot = this.buildSnapshot()
     this.newTask.subscribe(() => this.emit())
     this.workflows.subscribe(() => this.emit())
@@ -94,6 +100,7 @@ export class AppSession {
     this.harnesses.subscribe(() => this.emit())
     this.needsYou.subscribe(() => this.emit())
     this.workflowEditor.subscribe(() => this.emit())
+    this.workflowExecution.subscribe(() => this.emit())
   }
 
   subscribe(listener: AppListener): () => void {
@@ -117,6 +124,7 @@ export class AppSession {
     this.harnesses.start()
     this.needsYou.start()
     this.workflowEditor.start()
+    this.workflowExecution.start()
   }
 
   dispose(): void {
@@ -128,11 +136,23 @@ export class AppSession {
     this.harnesses.dispose()
     this.needsYou.dispose()
     this.workflowEditor.dispose()
+    this.workflowExecution.dispose()
   }
 
   navigate(route: AppRoute): void {
-    if (this.route === route) return
+    const closingRun =
+      route === 'workflows' &&
+      this.route === 'workflows' &&
+      this.workflowExecution.getState().runId !== null
+    if (closingRun) this.workflowExecution.close()
+    if (this.route === route && !closingRun) return
     this.route = route
+    this.emit()
+  }
+
+  openWorkflowExecution(id: WorkflowRunId): void {
+    this.route = 'workflows'
+    this.workflowExecution.open(id)
     this.emit()
   }
 
@@ -256,6 +276,7 @@ export class AppSession {
       harnesses: this.harnesses.getState(),
       needsYou: this.needsYou.getState(),
       workflowEditor: this.workflowEditor.getState(),
+      workflowExecution: this.workflowExecution.getState(),
     }
   }
 

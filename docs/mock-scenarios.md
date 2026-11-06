@@ -49,7 +49,10 @@ the list. The MCP approvals control only expands the selected harness.
 Needs you observes `observeNeedsYou(…)`. The sidebar count is that
 observation: three waiting items on the populated fixture, no count on the
 empty scenario, and no zero when the observation is loading or unavailable.
-Approve, reject, Send, and Open run stay disabled. Mapped Open task only
+Approve, reject, and Send stay disabled. The Nightly card’s Open run opens
+`observeWorkflowExecution(runId, …)` for `run-nightly-dependency-audit`.
+That id is not the workflow definition id. An unmapped run id shows
+unavailable and does not borrow the Nightly graph. Mapped Open task only
 navigates. A workflow-list Run button opens that definition’s run form through
 `observeWorkflowRun(workflowId, …)`. The draft is session-local and kept per
 definition id. Switching definitions clears the previous permissions into

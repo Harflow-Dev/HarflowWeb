@@ -9,6 +9,7 @@ import { SettingsMain } from './SettingsMain'
 import { StatisticsMain } from './StatisticsMain'
 import { TaskMain } from './TaskMain'
 import { useEphemeralNote, usePresenter, usePresenterLifetime } from './usePresenter'
+import { WorkflowRunMain } from './WorkflowRunMain'
 import { WorkflowsMain } from './WorkflowsMain'
 
 type Props = {
@@ -55,7 +56,9 @@ export function AppFeature({ presenter }: Props) {
           onUnavailable={(label) => ephemeral.show(label)}
         />
         <main className="hd-main">
-          {state.route === 'new-task' ? (
+          {state.workflowExecution.runId !== null && state.route === 'workflows' ? (
+            <WorkflowRunMain state={state.workflowExecution} />
+          ) : state.route === 'new-task' ? (
             <NewTaskMain presenter={presenter} state={newTask} />
           ) : state.route === 'workflows' ? (
             <WorkflowsMain
@@ -96,6 +99,7 @@ export function AppFeature({ presenter }: Props) {
             <NeedsYouMain
               state={state.needsYou}
               onOpenTask={(taskId) => presenter.openTask(taskId)}
+              onOpenRun={(runId) => presenter.openWorkflowExecution(runId)}
             />
           ) : (
             <TaskMain

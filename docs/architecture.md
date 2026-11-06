@@ -77,6 +77,10 @@ onto one file. Task UI is split across `TaskMain`, `TaskPage`, `TaskTranscript`,
   graph for that definition. An unmapped id is unavailable and is never filled
   with another definition. Node selection is presentation state and is kept
   only while that node remains in the current definition.
+- `observeWorkflowExecution(runId, onUpdate) → ObservationHandle` — read-only
+  running graph for that run id. A workflow definition id is not a run id.
+  An unmapped or mismatched payload is unavailable and is never filled from
+  another run. Pause, cancel, and approval stay disabled.
 - `observeResources(onUpdate) → ObservationHandle` — harness slot usage observation
 - `observeStatistics(range, onUpdate) → ObservationHandle` — range-scoped overview
 - `observeTask(taskId, onUpdate) → ObservationHandle` — running-task transcript
@@ -125,9 +129,10 @@ unavailable harness observation replaces
 the previous ready facts. Replacing or disposing the observation rejects a
 captured callback. Needs you is the same shape: loading replaces a previous
 ready or empty claim, and a captured callback after replacement or disposal
-cannot restore it. Approve, reject, answer, and Needs you Open run stay
-disabled. Mapped Open task calls the existing `openTask` navigation and does
-not start a task. Unmapped Open task stays disabled.
+cannot restore it. Approve, reject, and answer stay disabled. Mapped Open
+task calls the existing `openTask` navigation and does not start a task.
+Unmapped Open task stays disabled. The Nightly Needs you item’s Open run
+opens that mapped run id and does not approve the publish.
 
 Opening a workflow Run from the list sets `runWorkflowId` and observes that
 id. The previous context is cleared to loading before the next result arrives.

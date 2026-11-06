@@ -30,6 +30,7 @@ import {
 } from './mockEngineCore'
 import { scenarioById, type ScenarioDefinition, type ScenarioId } from './scenarios'
 import { workflowEditorLoadFor } from './workflowEditorFixtures'
+import { workflowExecutionLoadFor } from './workflowExecutionFixtures'
 import { workflowRunLoadFor } from './workflowRunFixtures'
 
 export type MockEngineControls = {
@@ -109,6 +110,9 @@ function republishScenario(
   }
   for (const listener of listeners.workflowEditors) {
     listener.send(workflowEditorLoadFor(listener.key))
+  }
+  for (const listener of listeners.workflowExecutions) {
+    listener.send(workflowExecutionLoadFor(listener.key))
   }
 }
 

@@ -106,6 +106,20 @@ function createTestEngine(options?: {
         },
       }
     },
+    observeWorkflowExecution(_runId, onUpdate) {
+      queueMicrotask(() =>
+        onUpdate({
+          kind: 'unavailable',
+          message: 'unused in new-task tests',
+        }),
+      )
+      return {
+        id: asObservationId('test-workflow-execution-obs'),
+        cancel() {
+          /* no-op */
+        },
+      }
+    },
     observeResources(onUpdate) {
       queueMicrotask(() =>
         onUpdate({

@@ -1,4 +1,4 @@
-import type { NeedsYouItem, NeedsYouLoad, TaskId } from '../model'
+import type { NeedsYouItem, NeedsYouLoad, TaskId, WorkflowRunId } from '../model'
 import { needsYouContextText } from '../model'
 import { Icon } from './Icon'
 
@@ -9,17 +9,18 @@ export const NEEDS_YOU_ACTION_EXPLANATION =
 type Props = {
   readonly load: NeedsYouLoad
   readonly onOpenTask: (taskId: TaskId) => void
+  readonly onOpenRun: (runId: WorkflowRunId) => void
 }
 
 /** Approved needs-you/waiting and needs-you/empty composition. */
-export function NeedsYouPage({ load, onOpenTask }: Props) {
+export function NeedsYouPage({ load, onOpenTask, onOpenRun }: Props) {
   return (
     <div className="hd-page">
       <div className="hd-page__head">
         <h1 className="hd-page__title">Needs you</h1>
         <WaitingBadge load={load} />
       </div>
-      <NeedsYouBody load={load} onOpenTask={onOpenTask} />
+      <NeedsYouBody load={load} onOpenTask={onOpenTask} onOpenRun={onOpenRun} />
     </div>
   )
 }
@@ -39,9 +40,11 @@ function WaitingBadge({ load }: { readonly load: NeedsYouLoad }) {
 function NeedsYouBody({
   load,
   onOpenTask,
+  onOpenRun,
 }: {
   readonly load: NeedsYouLoad
   readonly onOpenTask: (taskId: TaskId) => void
+  readonly onOpenRun: (runId: WorkflowRunId) => void
 }) {
   if (load.kind === 'loading') {
     return (
@@ -65,7 +68,7 @@ function NeedsYouBody({
           {load.observation.items.length} known. Not a complete total.
         </p>
         {load.observation.items.map((item) => (
-          <NeedsYouCard key={item.id} item={item} onOpenTask={onOpenTask} />
+          <NeedsYouCard key={item.id} item={item} onOpenTask={onOpenTask} onOpenRun={onOpenRun} />
         ))}
       </div>
     )
@@ -80,7 +83,7 @@ function NeedsYouBody({
         Fixture requests. Not commands or answers on this computer.
       </p>
       {load.observation.items.map((item) => (
-        <NeedsYouCard key={item.id} item={item} onOpenTask={onOpenTask} />
+        <NeedsYouCard key={item.id} item={item} onOpenTask={onOpenTask} onOpenRun={onOpenRun} />
       ))}
     </div>
   )
@@ -112,9 +115,11 @@ function NeedsYouEmpty() {
 function NeedsYouCard({
   item,
   onOpenTask,
+  onOpenRun,
 }: {
   readonly item: NeedsYouItem
   readonly onOpenTask: (taskId: TaskId) => void
+  readonly onOpenRun: (runId: WorkflowRunId) => void
 }) {
   const label = item.kind === 'approval' ? item.actionLabel : 'Asks a question'
   return (
@@ -133,9 +138,9 @@ function NeedsYouCard({
         <div className="hd-approval__meta">{item.detail}</div>
       </div>
       {item.kind === 'approval' ? (
-        <ApprovalActions item={item} onOpenTask={onOpenTask} />
+        <ApprovalActions item={item} onOpenTask={onOpenTask} onOpenRun={onOpenRun} />
       ) : (
-        <QuestionActions item={item} onOpenTask={onOpenTask} />
+        <QuestionActions item={item} onOpenTask={onOpenTask} onOpenRun={onOpenRun} />
       )}
     </section>
   )
@@ -144,16 +149,18 @@ function NeedsYouCard({
 function ApprovalActions({
   item,
   onOpenTask,
+  onOpenRun,
 }: {
   readonly item: Extract<NeedsYouItem, { kind: 'approval' }>
   readonly onOpenTask: (taskId: TaskId) => void
+  readonly onOpenRun: (runId: WorkflowRunId) => void
 }) {
   return (
     <div className="hd-approval__actions">
       <UnavailableButton label={item.approveLabel} tone="primary" />
       <UnavailableButton label={item.rejectLabel} tone="secondary" />
       <span style={{ flex: 1 }} />
-      <DestinationButton item={item} onOpenTask={onOpenTask} />
+      <DestinationButton item={item} onOpenTask={onOpenTask} onOpenRun={onOpenRun} />
     </div>
   )
 }
@@ -161,9 +168,11 @@ function ApprovalActions({
 function QuestionActions({
   item,
   onOpenTask,
+  onOpenRun,
 }: {
   readonly item: Extract<NeedsYouItem, { kind: 'question' }>
   readonly onOpenTask: (taskId: TaskId) => void
+  readonly onOpenRun: (runId: WorkflowRunId) => void
 }) {
   const replyId = `needs-you-reply-${item.id}`
   return (
@@ -182,7 +191,7 @@ function QuestionActions({
         style={{ flex: 1, width: 'auto', minWidth: 0 }}
       />
       <UnavailableButton label="Send" tone="primary" />
-      <DestinationButton item={item} onOpenTask={onOpenTask} />
+      <DestinationButton item={item} onOpenTask={onOpenTask} onOpenRun={onOpenRun} />
     </div>
   )
 }
@@ -190,12 +199,26 @@ function QuestionActions({
 function DestinationButton({
   item,
   onOpenTask,
+  onOpenRun,
 }: {
   readonly item: NeedsYouItem
   readonly onOpenTask: (taskId: TaskId) => void
+  readonly onOpenRun: (runId: WorkflowRunId) => void
 }) {
   if (item.context.kind === 'workflow') {
-    return <UnavailableButton label="Open run" tone="ghost" icon />
+    const runId = item.context.runId
+    if (runId === null) return <UnavailableButton label="Open run" tone="ghost" icon />
+    return (
+      <button
+        type="button"
+        className="hd-btn hd-btn--ghost"
+        aria-label={`Open run ${item.context.title}`}
+        onClick={() => onOpenRun(runId)}
+      >
+        <Icon name="external" />
+        Open run
+      </button>
+    )
   }
   if (item.context.taskId === null) {
     return (

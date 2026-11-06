@@ -49,6 +49,12 @@ export {
   type WorkflowEditorScreenState,
 } from './workflowEditorState'
 export { WorkflowEditorSession } from './workflowEditorSession'
+export {
+  initialWorkflowExecutionState,
+  type WorkflowExecutionScreenState,
+} from './workflowExecutionState'
+export { WorkflowExecutionSession } from './workflowExecutionSession'
+export { workflowRunScene } from './workflowRunScene'
 export { workflowScene, type WorkflowScene } from './workflowGraphRoutes'
 export { roundedOrthogonalPath } from './workflowRoundedPath'
 export { routeConnection } from './workflowConnectionRouter'

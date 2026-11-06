@@ -25,7 +25,11 @@ describe('needs you fixtures', () => {
     })
     expect(waiting.items[1]).toMatchObject({
       approveLabel: 'Approve this publish',
-      context: { kind: 'workflow', title: 'Nightly dependency audit' },
+      context: {
+        kind: 'workflow',
+        title: 'Nightly dependency audit',
+        runId: 'run-nightly-dependency-audit',
+      },
     })
     expect(waiting.items[2]).toMatchObject({
       kind: 'question',

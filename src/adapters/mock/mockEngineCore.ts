@@ -15,6 +15,8 @@ import type {
   WorkflowEditorLoad,
   WorkflowId,
   WorkflowRunContextLoad,
+  WorkflowRunId,
+  WorkflowRunLoad,
   WorkflowsLoad,
 } from '../../model'
 import { createControllablePromise, type ControllablePromise } from './controllable'
@@ -28,6 +30,7 @@ import { statisticsLoadFor } from './statisticsFixtures'
 import { taskChangesLoadFor } from './taskChangesFixtures'
 import { taskLoadFor } from './taskFixtures'
 import { workflowEditorLoadFor } from './workflowEditorFixtures'
+import { workflowExecutionLoadFor } from './workflowExecutionFixtures'
 import { workflowRunLoadFor } from './workflowRunFixtures'
 
 export type TaskChangesKey = string
@@ -47,6 +50,7 @@ export type MockListenerSets = {
   readonly needsYou: Set<(load: NeedsYouLoad) => void>
   readonly workflowRuns: Set<KeyedListener<WorkflowId, WorkflowRunContextLoad>>
   readonly workflowEditors: Set<KeyedListener<WorkflowId, WorkflowEditorLoad>>
+  readonly workflowExecutions: Set<KeyedListener<WorkflowRunId, WorkflowRunLoad>>
 }
 
 export function createListenerSets(): MockListenerSets {
@@ -61,6 +65,7 @@ export function createListenerSets(): MockListenerSets {
     needsYou: new Set(),
     workflowRuns: new Set(),
     workflowEditors: new Set(),
+    workflowExecutions: new Set(),
   }
 }
 
@@ -166,6 +171,14 @@ export function buildMockEnginePort(options: {
         workflowId,
         onUpdate,
         (id) => workflowEditorLoadFor(id),
+      )
+    },
+    observeWorkflowExecution(runId, onUpdate) {
+      return createKeyedObservation(
+        listeners.workflowExecutions,
+        runId,
+        onUpdate,
+        (id) => workflowExecutionLoadFor(id),
       )
     },
     observeHarnesses(onUpdate) {

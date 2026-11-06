@@ -29,6 +29,7 @@ type IconName =
   | 'copy'
   | 'external'
   | 'play'
+  | 'pause'
   | 'panel-right'
   | 'more'
   | 'flag'

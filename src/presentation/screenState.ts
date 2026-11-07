@@ -7,6 +7,13 @@ import type {
   RepositoryId,
   TaskId,
 } from '../model'
+import {
+  DEFAULT_APPROVALS,
+  DEFAULT_EFFORT,
+  DEFAULT_TURNS,
+  type ApprovalsMode,
+  type EffortLevel,
+} from './taskOptions'
 
 export type OpenMenu = 'repository' | 'harness' | 'access' | null
 
@@ -28,6 +35,10 @@ export type NewTaskScreenState = {
   readonly selectedAccess: AccessLevel
   readonly openMenu: OpenMenu
   readonly harnessMenuPhase: 'harness' | 'model'
+  readonly optionsOpen: boolean
+  readonly effort: EffortLevel
+  readonly turns: string
+  readonly approvals: ApprovalsMode
   readonly submission: SubmissionStatus
   readonly canSubmit: boolean
 }
@@ -46,6 +57,10 @@ export function initialScreenState(
     selectedAccess: 'edit_repo',
     openMenu: null,
     harnessMenuPhase: 'harness',
+    optionsOpen: false,
+    effort: DEFAULT_EFFORT,
+    turns: DEFAULT_TURNS,
+    approvals: DEFAULT_APPROVALS,
     submission: { kind: 'idle' },
     canSubmit: false,
   }

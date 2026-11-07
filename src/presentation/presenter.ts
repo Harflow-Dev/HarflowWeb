@@ -11,6 +11,7 @@ import {
   type PresenterListener,
 } from './presenterSession'
 import type { NewTaskScreenState, OpenMenu } from './screenState'
+import type { ApprovalsMode, EffortLevel } from './taskOptions'
 
 export type { PresenterListener }
 
@@ -24,6 +25,10 @@ export type NewTaskPresenter = {
   setSidebarCollapsed(collapsed: boolean): void
   setPrompt(prompt: string): void
   setOpenMenu(menu: OpenMenu): void
+  setOptionsOpen(open: boolean): void
+  setEffort(effort: EffortLevel): void
+  setTurns(turns: string): void
+  setApprovals(approvals: ApprovalsMode): void
   selectRepository(id: RepositoryId): void
   selectHarness(id: HarnessId): void
   selectModel(id: ModelId): void
@@ -48,6 +53,10 @@ export function createNewTaskPresenter(deps: Deps): NewTaskPresenter {
     setSidebarCollapsed: (collapsed) => session.setSidebarCollapsed(collapsed),
     setPrompt: (prompt) => session.setPrompt(prompt),
     setOpenMenu: (menu) => session.setOpenMenu(menu),
+    setOptionsOpen: (open) => session.setOptionsOpen(open),
+    setEffort: (effort) => session.setEffort(effort),
+    setTurns: (turns) => session.setTurns(turns),
+    setApprovals: (approvals) => session.setApprovals(approvals),
     selectRepository: (id) => session.selectRepository(id),
     selectHarness: (id) => session.selectHarness(id),
     selectModel: (id) => session.selectModel(id),

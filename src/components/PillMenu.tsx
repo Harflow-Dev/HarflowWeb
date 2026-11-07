@@ -7,6 +7,7 @@ type Props = {
   readonly icon: Extract<IconName, 'folder' | 'harness' | 'shield' | 'workflow'>
   readonly accent?: boolean
   readonly menuLabel: string
+  readonly disabled?: boolean
   readonly onToggle: () => void
   readonly children: ReactNode
 }
@@ -17,6 +18,7 @@ export function PillMenu({
   icon,
   accent = false,
   menuLabel,
+  disabled = false,
   onToggle,
   children,
 }: Props) {
@@ -28,6 +30,8 @@ export function PillMenu({
         className={`hd-pill${tone}${open ? ' is-open' : ''}`}
         aria-haspopup="menu"
         aria-expanded={open}
+        disabled={disabled}
+        aria-disabled={disabled || undefined}
         onClick={onToggle}
       >
         <Icon name={icon} />

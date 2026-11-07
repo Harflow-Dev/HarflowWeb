@@ -188,6 +188,168 @@ body,
   flex-wrap: wrap;
 }
 
+/* Centered New task composer — HarflowDesign 9d64bfd amendment. */
+.hw-compose-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: var(--space-6);
+}
+
+.hw-compose-group {
+  width: 100%;
+  max-width: 720px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  margin-top: auto;
+  margin-bottom: auto;
+}
+
+.hw-composer {
+  overflow: visible;
+}
+
+.hw-compose-area .hd-composer__input {
+  box-sizing: border-box;
+  min-height: 26px;
+  height: 26px;
+  resize: none;
+  overflow-y: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--text-tertiary) 72%, transparent)
+    transparent;
+}
+
+.hw-compose-area .hd-composer__input::-webkit-scrollbar {
+  width: 6px;
+  background: transparent;
+}
+
+.hw-compose-area .hd-composer__input::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.hw-compose-area .hd-composer__input::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--text-tertiary) 72%, transparent);
+  border-radius: 999px;
+}
+
+.hw-compose-status {
+  min-height: 18px;
+  color: var(--text-secondary);
+  font-size: 13px;
+  text-align: center;
+}
+
+.hw-compose-help {
+  margin: 0;
+  text-align: center;
+}
+
+.hw-options-anchor {
+  position: relative;
+  display: inline-flex;
+  align-self: center;
+}
+
+.hw-options-trigger {
+  position: relative;
+}
+
+.hw-options-dot {
+  position: absolute;
+  right: 3px;
+  top: 3px;
+  width: 5px;
+  height: 5px;
+  border-radius: var(--radius-full);
+  background: var(--accent);
+}
+
+.hw-options-popover {
+  box-sizing: border-box;
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 0;
+  width: 360px;
+  z-index: 10;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 400px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  box-shadow: var(--shadow-popover);
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--text-tertiary) 72%, transparent)
+    transparent;
+}
+
+.hw-options-popover--below {
+  top: calc(100% + 8px);
+  bottom: auto;
+}
+
+.hw-options-popover[hidden],
+.hw-options-dot[hidden] {
+  display: none !important;
+}
+
+.hw-options-fields {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.hw-options-popover label {
+  display: grid;
+  grid-template-columns: 72px minmax(0, 1fr);
+  gap: 8px;
+  align-items: center;
+  min-width: 0;
+  width: 100%;
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+
+.hw-options-popover label select,
+.hw-options-popover label input {
+  min-width: 0;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  font: inherit;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 6px 8px;
+}
+
+.hw-options-popover p {
+  margin: 0;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.hw-options-popover::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+  background: transparent;
+}
+
+.hw-options-popover::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.hw-options-popover::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--text-tertiary) 72%, transparent);
+  border-radius: 999px;
+}
+
 .hd-composer__spacer {
   flex: 1;
 }

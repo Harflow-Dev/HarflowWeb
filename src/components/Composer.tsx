@@ -1,4 +1,3 @@
-import type { KeyboardEvent } from 'react'
 import type {
   AccessLevel,
   AccessOption,
@@ -9,13 +8,15 @@ import type {
   RepositoryOption,
 } from '../model'
 import type { OpenMenu } from '../presentation'
-import { Icon } from './Icon'
-import { AccessMenu, HarnessMenu, RepositoryMenu } from './ComposerMenus'
+import type { ApprovalsMode, EffortLevel } from '../presentation/taskOptions'
+import { ComposerBar } from './ComposerBar'
+import { ComposerPrompt } from './ComposerPrompt'
 
 type Props = {
   readonly prompt: string
   readonly canSubmit: boolean
   readonly pending: boolean
+  readonly locked: boolean
   readonly repositories: readonly RepositoryOption[]
   readonly harnesses: readonly HarnessOption[]
   readonly accessOptions: readonly AccessOption[]
@@ -25,92 +26,74 @@ type Props = {
   readonly selectedAccess: AccessLevel
   readonly openMenu: OpenMenu
   readonly harnessMenuPhase: 'harness' | 'model'
+  readonly optionsOpen: boolean
+  readonly optionsCustomized: boolean
+  readonly effort: EffortLevel
+  readonly turns: string
+  readonly approvals: ApprovalsMode
+  readonly effortOptions: readonly EffortLevel[]
+  readonly permissionPreview: string
   readonly onPrompt: (value: string) => void
   readonly onOpenMenu: (menu: OpenMenu) => void
   readonly onSelectRepository: (id: RepositoryId) => void
   readonly onSelectHarness: (id: HarnessId) => void
   readonly onSelectModel: (id: ModelId) => void
   readonly onSelectAccess: (access: AccessLevel) => void
+  readonly onToggleOptions: () => void
+  readonly onCloseOptions: (focusTrigger: boolean) => void
+  readonly onEffort: (value: EffortLevel) => void
+  readonly onTurns: (value: string) => void
+  readonly onApprovals: (value: ApprovalsMode) => void
   readonly onSubmit: () => void
 }
 
 export function Composer(props: Props) {
-  function onKeyDown(event: KeyboardEvent<HTMLTextAreaElement>): void {
-    // Do not submit while an IME composition is confirming (Enter / keyCode 229).
-    if (event.nativeEvent.isComposing || event.keyCode === 229) {
-      return
-    }
-    if (event.key === 'Enter' && !event.shiftKey) {
-      event.preventDefault()
-      props.onSubmit()
-    }
-  }
-
   return (
     <form
-      className="hd-composer"
+      className="hd-composer hw-composer"
       aria-label="New task"
       onSubmit={(event) => {
         event.preventDefault()
         props.onSubmit()
       }}
     >
-      <label className="hd-sr" htmlFor="prompt">
-        Task prompt
-      </label>
-      <textarea
-        id="prompt"
-        className="hd-composer__input"
-        rows={3}
-        placeholder="Describe the task. Use @ to mention files."
-        value={props.prompt}
-        disabled={props.pending}
-        onChange={(event) => props.onPrompt(event.target.value)}
-        onKeyDown={onKeyDown}
+      <ComposerPrompt
+        prompt={props.prompt}
+        locked={props.locked}
+        onPrompt={props.onPrompt}
+        onSubmit={props.onSubmit}
       />
-      <div className="hd-composer__bar">
-        <RepositoryMenu
-          open={props.openMenu === 'repository'}
-          repositories={props.repositories}
-          selectedRepositoryId={props.selectedRepositoryId}
-          onToggle={() =>
-            props.onOpenMenu(props.openMenu === 'repository' ? null : 'repository')
-          }
-          onSelect={props.onSelectRepository}
-        />
-        <HarnessMenu
-          open={props.openMenu === 'harness'}
-          harnesses={props.harnesses}
-          selectedHarnessId={props.selectedHarnessId}
-          selectedModelId={props.selectedModelId}
-          harnessMenuPhase={props.harnessMenuPhase}
-          onToggle={() =>
-            props.onOpenMenu(props.openMenu === 'harness' ? null : 'harness')
-          }
-          onSelectHarness={props.onSelectHarness}
-          onSelectModel={props.onSelectModel}
-        />
-        <AccessMenu
-          open={props.openMenu === 'access'}
-          accessOptions={props.accessOptions}
-          selectedAccess={props.selectedAccess}
-          selectedHarnessId={props.selectedHarnessId}
-          harnesses={props.harnesses}
-          onToggle={() =>
-            props.onOpenMenu(props.openMenu === 'access' ? null : 'access')
-          }
-          onSelect={props.onSelectAccess}
-        />
-        <span className="hd-composer__spacer" />
-        <button
-          type="submit"
-          className="hd-composer__send"
-          aria-label="Start task"
-          disabled={!props.canSubmit || props.pending}
-        >
-          <Icon name="arrow-up" />
-        </button>
-      </div>
+      <ComposerBar
+        canSubmit={props.canSubmit}
+        pending={props.pending}
+        locked={props.locked}
+        repositories={props.repositories}
+        harnesses={props.harnesses}
+        accessOptions={props.accessOptions}
+        selectedRepositoryId={props.selectedRepositoryId}
+        selectedHarnessId={props.selectedHarnessId}
+        selectedModelId={props.selectedModelId}
+        selectedAccess={props.selectedAccess}
+        openMenu={props.openMenu}
+        harnessMenuPhase={props.harnessMenuPhase}
+        optionsOpen={props.optionsOpen}
+        optionsCustomized={props.optionsCustomized}
+        effort={props.effort}
+        turns={props.turns}
+        approvals={props.approvals}
+        effortOptions={props.effortOptions}
+        permissionPreview={props.permissionPreview}
+        onOpenMenu={props.onOpenMenu}
+        onSelectRepository={props.onSelectRepository}
+        onSelectHarness={props.onSelectHarness}
+        onSelectModel={props.onSelectModel}
+        onSelectAccess={props.onSelectAccess}
+        onToggleOptions={props.onToggleOptions}
+        onCloseOptions={props.onCloseOptions}
+        onEffort={props.onEffort}
+        onTurns={props.onTurns}
+        onApprovals={props.onApprovals}
+      />
     </form>
   )
 }

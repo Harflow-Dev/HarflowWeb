@@ -1,6 +1,14 @@
 import { Composer } from '../components'
 import type { AppPresenter } from '../presentation'
 import type { NewTaskScreenState } from '../presentation'
+import {
+  newTaskOptionsAreCustomized,
+  newTaskStatusMessage,
+} from '../presentation/newTaskStatus'
+import {
+  EFFORT_OPTIONS,
+  accessPermissionPreview,
+} from '../presentation/taskOptions'
 
 type Props = {
   readonly presenter: AppPresenter
@@ -10,29 +18,15 @@ type Props = {
 /** New-task main pane only — shell chrome lives in AppFeature. */
 export function NewTaskMain({ presenter, state }: Props) {
   const ready = state.context.kind === 'ready' ? state.context : null
+  const locked =
+    state.submission.kind === 'pending' || state.submission.kind === 'unknown'
   return (
     <>
       <div className="hd-topbar">
         <span className="hd-topbar__spacer" />
       </div>
-      <div
-        className="hd-scroll"
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          padding: '120px var(--space-6) var(--space-6)',
-        }}
-      >
-        <div
-          style={{
-            width: '100%',
-            maxWidth: 720,
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 'var(--space-5)',
-          }}
-        >
+      <div className="hd-scroll hw-compose-area">
+        <div className="hw-compose-group">
           <h1 className="display" style={{ margin: 0, textAlign: 'center' }}>
             What should we work on?
           </h1>
@@ -41,6 +35,7 @@ export function NewTaskMain({ presenter, state }: Props) {
               prompt={state.prompt}
               canSubmit={state.canSubmit}
               pending={state.submission.kind === 'pending'}
+              locked={locked}
               repositories={ready.composer.repositories}
               harnesses={ready.composer.harnesses}
               accessOptions={ready.composer.accessOptions}
@@ -50,12 +45,26 @@ export function NewTaskMain({ presenter, state }: Props) {
               selectedAccess={state.selectedAccess}
               openMenu={state.openMenu}
               harnessMenuPhase={state.harnessMenuPhase}
+              optionsOpen={state.optionsOpen}
+              optionsCustomized={newTaskOptionsAreCustomized(state)}
+              effort={state.effort}
+              turns={state.turns}
+              approvals={state.approvals}
+              effortOptions={EFFORT_OPTIONS}
+              permissionPreview={accessPermissionPreview(state.selectedAccess)}
               onPrompt={(value) => presenter.setPrompt(value)}
               onOpenMenu={(menu) => presenter.setOpenMenu(menu)}
               onSelectRepository={(id) => presenter.selectRepository(id)}
               onSelectHarness={(id) => presenter.selectHarness(id)}
               onSelectModel={(id) => presenter.selectModel(id)}
               onSelectAccess={(access) => presenter.selectAccess(access)}
+              onToggleOptions={() =>
+                presenter.setOptionsOpen(!state.optionsOpen)
+              }
+              onCloseOptions={() => presenter.setOptionsOpen(false)}
+              onEffort={(value) => presenter.setEffort(value)}
+              onTurns={(value) => presenter.setTurns(value)}
+              onApprovals={(value) => presenter.setApprovals(value)}
               onSubmit={() => presenter.submit()}
             />
           ) : (
@@ -67,10 +76,11 @@ export function NewTaskMain({ presenter, state }: Props) {
                   : null}
             </p>
           )}
-          <p
-            className="caption hd-faint"
-            style={{ margin: 0, textAlign: 'center' }}
-          >
+          {/* Visual status only — StatusRegion is the sole live region. */}
+          <div className="hw-compose-status">
+            {ready ? newTaskStatusMessage(state) : null}
+          </div>
+          <p className="caption hd-faint hw-compose-help">
             Press <span className="hd-kbd">↵</span> to start. Choices are
             remembered per repository.
           </p>

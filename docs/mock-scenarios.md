@@ -12,14 +12,14 @@ populated fixture and shows a single “Mock engine” badge.
 
 | Scenario | What it shows |
 | --- | --- |
-| Populated | Design-aligned new-task + workflows + resources + statistics + mapped running-task fixtures |
+| Populated | Design-aligned new-task (centered grow-to-cap composer and + task options) + workflows + resources + statistics + mapped running-task fixtures |
 | Empty sidebar | Ready composer; empty Running/Recent |
 | Context loading | Proposal status (not design-approved) |
 | Context unavailable | Proposal status (not design-approved) |
 | Partial sidebar | Incomplete coverage note (proposal) |
 | Submit accepted | Outcome ≈ `ctl-launch-run-accepted` |
 | Submit refused | Outcome ≈ `ctl-launch-run-refused`; draft kept |
-| Submit unknown | Outcome ≈ `ctl-launch-run-unknown`; draft kept; no auto-retry |
+| Submit unknown | Outcome ≈ `ctl-launch-run-unknown`; draft kept; Start and selections locked; no second launch; no Review Recent work navigation |
 | Stale response | Holds start; remount/dispose, then “Resolve held start” — late accept ignored |
 | Workflows list | Approved `workflows/list` definition rows |
 | Workflows empty | Approved `workflows/empty` specimen |
@@ -32,7 +32,13 @@ populated fixture and shows a single “Mock engine” badge.
 
 Sidebar navigation between **New task**, **Workflows**, **Resources**,
 **Statistics**, **Settings**, and **Needs you** is live, and explicitly mapped Running / Recent rows open the
-matching task transcript. Draft text, selections, pending launch outcomes, the
+matching task transcript. On New task the composer matches the M04 centered
+amendment: one-line prompt that grows to six lines, visual status line (live
+announcements stay in `StatusRegion`), and a `+` Task options control for
+effort, turn limit, and approvals. Escape returns focus to `+`; outside click
+closes without that focus move. Invalid options outrank a prior accepted or
+refused message. Those options gate Start in the mock and are not added to the
+start request. Draft text, selections, pending launch outcomes, the
 selected statistics range, theme, and sidebar collapse are preserved across
 pages; navigation never starts or repeats a task. Changing the statistics range
 requests that range through `observeStatistics(range, …)` and cancels the prior

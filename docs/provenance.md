@@ -17,8 +17,31 @@
   - `v2/scripts/components.js`
   - `v2/styles/tokens.css`
   - `v2/styles/bundle.css` (vendored into `src/styles/`)
+- Centered New task composer amendment (owner-approved 2026-11-06), separate
+  from the baseline `new-task/*` templates: HarflowDesign
+  `9d64bfda7bed735d42c761c3149516c7f3e6ca01`
+  `v2/docs/m04-centered-composer-proposal.md`,
+  `v2/scripts/m04-proposal.js`, `v2/styles/m04-proposal.css`, states
+  `m04-proposal/amendment-empty`, `amendment-ready`, `amendment-growing`,
+  `amendment-capped`, `amendment-options`, and `amendment-unknown`. The
+  greeting / composer / status / help group is centered. The prompt starts at
+  one visual line, grows from `scrollHeight`, and caps at six lines then
+  scrolls. The bottom-left `+` opens Task options (effort, turn limit,
+  approvals) with a customized dot. Escape dismisses and returns focus to `+`;
+  an outside click closes without moving focus there. Keyboard opening
+  (`click.detail === 0`) moves focus to the first select; pointer opening does
+  not. Placement is above or below from available compose-area space and is
+  remeasured while open on viewport or compose-area resize. Pending and
+  unknown outcomes disable Start and lock repository, harness, model, access,
+  and option fields; unknown also refuses another launch. The compose status
+  line is visual only; `StatusRegion` is the sole polite live region. Unknown
+  specimen copy mentions Review Recent work; that action navigates to the
+  design's `history-retained` board, which this mock does not implement, so
+  the button is omitted. Option values are presentation state in this mock and
+  are not sent on `startTask`. The plus control itself comes from HarflowDesign
+  `bd5d349b9a4e068752fc071baf25782db0746a34`.
 - States implemented:
-  - `new-task/default/light` and `/dark`
+  - `new-task/default/light` and `/dark` (layout follows the centered amendment)
   - `new-task/harness-menu/light` and `/dark`
   - `new-task/sidebar-collapsed/light` and `/dark`
   - `workflows/list/light` and `/dark` (list chrome without product search; see

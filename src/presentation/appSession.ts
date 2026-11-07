@@ -248,6 +248,9 @@ export class AppSession {
     this.newTask.setOpenMenu(menu)
   }
 
+  /** Direct New task session for composer options and draft controls. */
+  composer(): PresenterSession { return this.newTask }
+
   selectRepository(id: RepositoryId): void {
     this.newTask.selectRepository(id)
   }

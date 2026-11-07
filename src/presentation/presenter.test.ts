@@ -27,6 +27,11 @@ import {
 } from '../adapters/mock/fixtures'
 import type { ComposerContext } from '../model'
 import { createNewTaskPresenter } from './presenter'
+import {
+  DEFAULT_APPROVALS,
+  DEFAULT_EFFORT,
+  DEFAULT_TURNS,
+} from './taskOptions'
 
 function readyContext(): ContextLoad {
   return {
@@ -258,6 +263,25 @@ describe('NewTaskPresenter', () => {
     presenter.dispose()
   })
 
+  it('opens task options and blocks Start when options are invalid', async () => {
+    const { port, starts } = createTestEngine()
+    const presenter = createPresenter(port)
+    presenter.start()
+    await flush()
+    presenter.setPrompt('Ship the fix')
+    expect(presenter.getState().canSubmit).toBe(true)
+    presenter.setOptionsOpen(true)
+    expect(presenter.getState().optionsOpen).toBe(true)
+    presenter.setEffort('unsupported')
+    expect(presenter.getState().canSubmit).toBe(false)
+    presenter.submit()
+    expect(starts).toHaveLength(0)
+    presenter.setEffort('default')
+    presenter.setTurns('0')
+    expect(presenter.getState().canSubmit).toBe(false)
+    presenter.dispose()
+  })
+
   it('preserves exact multiline Unicode prompt on submission', async () => {
     const { port, starts } = createTestEngine()
     const presenter = createPresenter(port)
@@ -330,6 +354,92 @@ describe('NewTaskPresenter', () => {
     expect(p2.getState().submission.kind).toBe('unknown')
     expect(unknown.starts).toHaveLength(1)
     p2.dispose()
+  })
+
+  it('blocks a second Start while unknown and locks selections', async () => {
+    const { port, starts } = createTestEngine({
+      outcome: {
+        kind: 'unknown',
+        message: 'fixture: owner did not report; a task may exist',
+      },
+    })
+    const presenter = createPresenter(port)
+    presenter.start()
+    await flush()
+    presenter.setPrompt('First launch')
+    presenter.submit()
+    await flush()
+    expect(presenter.getState().submission.kind).toBe('unknown')
+    expect(presenter.getState().canSubmit).toBe(false)
+    expect(starts).toHaveLength(1)
+
+    const harness = presenter.getState().selectedHarnessId
+    const model = presenter.getState().selectedModelId
+    const access = presenter.getState().selectedAccess
+    const repository = presenter.getState().selectedRepositoryId
+    presenter.submit()
+    presenter.setPrompt('Second attempt')
+    presenter.selectRepository(asRepositoryId('repo-design'))
+    presenter.selectHarness(asHarnessId('codex'))
+    presenter.selectModel(asModelId('gpt-6-astra'))
+    presenter.selectAccess('read_only')
+    presenter.setEffort('high')
+    presenter.setTurns('3')
+    presenter.setApprovals('caller')
+    presenter.setOptionsOpen(true)
+    presenter.setOpenMenu('repository')
+    expect(starts).toHaveLength(1)
+    expect(presenter.getState().prompt).toBe('First launch')
+    expect(presenter.getState().selectedHarnessId).toBe(harness)
+    expect(presenter.getState().selectedModelId).toBe(model)
+    expect(presenter.getState().selectedAccess).toBe(access)
+    expect(presenter.getState().selectedRepositoryId).toBe(repository)
+    expect(presenter.getState().effort).toBe(DEFAULT_EFFORT)
+    expect(presenter.getState().turns).toBe(DEFAULT_TURNS)
+    expect(presenter.getState().approvals).toBe(DEFAULT_APPROVALS)
+    expect(presenter.getState().optionsOpen).toBe(false)
+    expect(presenter.getState().openMenu).toBe(null)
+    expect(presenter.getState().canSubmit).toBe(false)
+    presenter.dispose()
+  })
+
+  it('locks selections while a start is pending', async () => {
+    const { port, starts, resolveStart } = createTestEngine({ holdStart: true })
+    const presenter = createPresenter(port)
+    presenter.start()
+    await flush()
+    presenter.setPrompt('Pending lock')
+    presenter.submit()
+    expect(presenter.getState().submission.kind).toBe('pending')
+    expect(presenter.getState().canSubmit).toBe(false)
+    const repository = presenter.getState().selectedRepositoryId
+    presenter.selectRepository(asRepositoryId('repo-design'))
+    presenter.setOpenMenu('harness')
+    presenter.setOptionsOpen(true)
+    presenter.setPrompt('changed')
+    expect(starts).toHaveLength(1)
+    expect(presenter.getState().selectedRepositoryId).toBe(repository)
+    expect(presenter.getState().openMenu).toBe(null)
+    expect(presenter.getState().optionsOpen).toBe(false)
+    expect(presenter.getState().prompt).toBe('Pending lock')
+    resolveStart({ kind: 'accepted', taskId: asTaskId('pending-lock') })
+    await flush()
+    presenter.dispose()
+  })
+
+  it('clears an accepted outcome when a new draft starts', async () => {
+    const { port } = createTestEngine()
+    const presenter = createPresenter(port)
+    presenter.start()
+    await flush()
+    presenter.setPrompt('Launch once')
+    presenter.submit()
+    await flush()
+    expect(presenter.getState().submission.kind).toBe('accepted')
+    expect(presenter.getState().prompt).toBe('')
+    presenter.setPrompt('New draft')
+    expect(presenter.getState().submission.kind).toBe('idle')
+    presenter.dispose()
   })
 
   it('rejects stale responses after disposal', async () => {
@@ -448,6 +558,8 @@ describe('NewTaskPresenter', () => {
     presenter.selectHarness(asHarnessId('codex'))
     presenter.selectModel(asModelId('gpt-6-astra'))
     presenter.selectAccess('publish')
+    // Codex rejects a turn limit; clear the specimen default so Start is allowed.
+    presenter.setTurns('')
     expect(presenter.getState().selectedRepositoryId).toBe(asRepositoryId('repo-mac'))
     expect(presenter.getState().selectedHarnessId).toBe(asHarnessId('codex'))
     expect(presenter.getState().selectedModelId).toBe(asModelId('gpt-6-astra'))

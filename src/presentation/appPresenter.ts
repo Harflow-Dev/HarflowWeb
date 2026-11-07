@@ -28,6 +28,7 @@ import type {
 import { AppSession, type AppListener } from './appSession'
 import type { AppRoute, AppScreenState, SettingsSection } from './appState'
 import type { OpenMenu } from './screenState'
+import type { ApprovalsMode, EffortLevel } from './taskOptions'
 
 export type AppPresenter = {
   subscribe(listener: AppListener): () => void
@@ -57,6 +58,10 @@ export type AppPresenter = {
   setSidebarCollapsed(collapsed: boolean): void
   setPrompt(prompt: string): void
   setOpenMenu(menu: OpenMenu): void
+  setOptionsOpen(open: boolean): void
+  setEffort(effort: EffortLevel): void
+  setTurns(turns: string): void
+  setApprovals(approvals: ApprovalsMode): void
   selectRepository(id: RepositoryId): void
   selectHarness(id: HarnessId): void
   selectModel(id: ModelId): void
@@ -109,6 +114,10 @@ export function createAppPresenter(deps: Deps): AppPresenter {
     setSidebarCollapsed: (collapsed) => session.setSidebarCollapsed(collapsed),
     setPrompt: (prompt) => session.setPrompt(prompt),
     setOpenMenu: (menu) => session.setOpenMenu(menu),
+    setOptionsOpen: (open) => session.composer().setOptionsOpen(open),
+    setEffort: (effort) => session.composer().setEffort(effort),
+    setTurns: (turns) => session.composer().setTurns(turns),
+    setApprovals: (approvals) => session.composer().setApprovals(approvals),
     selectRepository: (id) => session.selectRepository(id),
     selectHarness: (id) => session.selectHarness(id),
     selectModel: (id) => session.selectModel(id),

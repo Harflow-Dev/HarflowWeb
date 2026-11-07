@@ -1,25 +1,22 @@
 import type { LoadContextUseCase, StartTaskUseCase } from '../application'
-import {
-  isSubmittablePrompt,
-  type AccessLevel,
-  type Appearance,
-  type ContextLoad,
-  type HarnessId,
-  type ModelId,
-  type ObservationHandle,
-  type RepositoryId,
-  type StartTaskOutcome,
-  type TaskId,
+import type {
+  AccessLevel,
+  Appearance,
+  ContextLoad,
+  HarnessId,
+  ModelId,
+  ObservationHandle,
+  RepositoryId,
 } from '../model'
-import {
-  reconcileSelections,
-  selectionsAreSubmittable,
-} from './reconcileSelections'
+import { reconcileSelections } from './reconcileSelections'
+import { withNewTaskCanSubmit } from './newTaskCanSubmit'
 import {
   initialScreenState,
   type NewTaskScreenState,
   type OpenMenu,
 } from './screenState'
+import { submitNewTask } from './presenterSubmission'
+import type { ApprovalsMode, EffortLevel } from './taskOptions'
 
 export type PresenterListener = (state: NewTaskScreenState) => void
 
@@ -93,14 +90,30 @@ export class PresenterSession {
   }
 
   setSidebarCollapsed(collapsed: boolean): void {
-    this.publish(this.withCanSubmit({ sidebarCollapsed: collapsed, openMenu: null }))
+    this.publish(
+      this.withCanSubmit({
+        sidebarCollapsed: collapsed,
+        openMenu: null,
+        optionsOpen: false,
+      }),
+    )
   }
 
   setPrompt(prompt: string): void {
-    this.publish(this.withCanSubmit({ prompt }))
+    if (this.optionsLocked()) return
+    const clearOutcome =
+      this.state.submission.kind === 'accepted' ||
+      this.state.submission.kind === 'refused'
+    this.publish(
+      this.withCanSubmit({
+        prompt,
+        ...(clearOutcome ? { submission: { kind: 'idle' as const } } : {}),
+      }),
+    )
   }
 
   setOpenMenu(menu: OpenMenu): void {
+    if (this.optionsLocked() && menu !== null) return
     // Design specimen shows harness list + models for the current selection.
     const harnessMenuPhase =
       menu === 'harness' && this.state.selectedHarnessId !== null
@@ -108,15 +121,44 @@ export class PresenterSession {
         : menu === 'harness'
           ? 'harness'
           : this.state.harnessMenuPhase
-    this.publish(this.withCanSubmit({ openMenu: menu, harnessMenuPhase }))
+    this.publish(
+      this.withCanSubmit({
+        openMenu: menu,
+        harnessMenuPhase,
+        optionsOpen: menu === null ? this.state.optionsOpen : false,
+      }),
+    )
+  }
+
+  setOptionsOpen(open: boolean): void {
+    if (this.optionsLocked() && open) return
+    this.publish(
+      this.withCanSubmit({
+        optionsOpen: open,
+        openMenu: open ? null : this.state.openMenu,
+      }),
+    )
+  }
+
+  setEffort(effort: EffortLevel): void {
+    if (!this.optionsLocked()) this.publish(this.withCanSubmit({ effort }))
+  }
+
+  setTurns(turns: string): void {
+    if (!this.optionsLocked()) this.publish(this.withCanSubmit({ turns }))
+  }
+
+  setApprovals(approvals: ApprovalsMode): void {
+    if (!this.optionsLocked()) this.publish(this.withCanSubmit({ approvals }))
   }
 
   selectRepository(id: RepositoryId): void {
+    if (this.optionsLocked()) return
     this.publish(this.withCanSubmit({ selectedRepositoryId: id, openMenu: null }))
   }
 
   selectHarness(id: HarnessId): void {
-    if (this.state.context.kind !== 'ready') return
+    if (this.optionsLocked() || this.state.context.kind !== 'ready') return
     const harness = this.state.context.composer.harnesses.find((h) => h.id === id)
     if (!harness || !harness.available) return
     const modelId = harness.defaultModelId ?? harness.models[0]?.id ?? null
@@ -134,6 +176,7 @@ export class PresenterSession {
   }
 
   selectModel(id: ModelId): void {
+    if (this.optionsLocked()) return
     this.publish(
       this.withCanSubmit({
         selectedModelId: id,
@@ -144,7 +187,7 @@ export class PresenterSession {
   }
 
   selectAccess(access: AccessLevel): void {
-    if (this.state.context.kind !== 'ready') return
+    if (this.optionsLocked() || this.state.context.kind !== 'ready') return
     const harness = this.state.context.composer.harnesses.find(
       (h) => h.id === this.state.selectedHarnessId,
     )
@@ -155,56 +198,17 @@ export class PresenterSession {
   }
 
   submit(): void {
-    if (this.disposed || !this.state.canSubmit || this.state.submission.kind === 'pending') {
-      return
-    }
-    const repositoryId = this.state.selectedRepositoryId
-    const harnessId = this.state.selectedHarnessId
-    const modelId = this.state.selectedModelId
-    if (repositoryId === null || harnessId === null || modelId === null) return
-    const request = {
-      prompt: this.state.prompt,
-      repositoryId,
-      harnessId,
-      modelId,
-      access: this.state.selectedAccess,
-    }
-    this.submissionEpoch += 1
-    const submissionGen = this.submissionEpoch
-    this.publish(this.withCanSubmit({ submission: { kind: 'pending' }, openMenu: null }))
-    void this.deps.startTask.execute(request).then((outcome) => {
-      this.applySubmission(outcome, submissionGen)
-    })
-  }
-
-  private applySubmission(outcome: StartTaskOutcome, gen: number): void {
-    if (this.disposed || gen !== this.submissionEpoch) return
-    if (outcome.kind === 'accepted') {
-      const taskId: TaskId = outcome.taskId
-      this.publish(
-        this.withCanSubmit({
-          submission: { kind: 'accepted', taskId },
-          prompt: '',
-        }),
-      )
-      return
-    }
-    if (outcome.kind === 'refused') {
-      this.publish(
-        this.withCanSubmit({
-          submission: {
-            kind: 'refused',
-            code: outcome.code,
-            reason: outcome.reason,
-          },
-        }),
-      )
-      return
-    }
-    this.publish(
-      this.withCanSubmit({
-        submission: { kind: 'unknown', message: outcome.message },
-      }),
+    submitNewTask(
+      {
+        isDisposed: () => this.disposed,
+        getState: () => this.state,
+        getSubmissionEpoch: () => this.submissionEpoch,
+        setSubmissionEpoch: (value) => {
+          this.submissionEpoch = value
+        },
+        publishPartial: (partial) => this.publish(this.withCanSubmit(partial)),
+      },
+      this.deps.startTask,
     )
   }
 
@@ -228,26 +232,15 @@ export class PresenterSession {
     )
   }
 
+  private optionsLocked(): boolean {
+    return (
+      this.state.submission.kind === 'pending' ||
+      this.state.submission.kind === 'unknown'
+    )
+  }
+
   private withCanSubmit(partial: Partial<NewTaskScreenState>): NewTaskScreenState {
-    const merged = { ...this.state, ...partial }
-    const pending = merged.submission.kind === 'pending'
-    const context = merged.context
-    const validSelections =
-      context.kind === 'ready' &&
-      selectionsAreSubmittable(context.composer, {
-        selectedRepositoryId: merged.selectedRepositoryId,
-        selectedHarnessId: merged.selectedHarnessId,
-        selectedModelId: merged.selectedModelId,
-        selectedAccess: merged.selectedAccess,
-      })
-    return {
-      ...merged,
-      canSubmit:
-        !pending &&
-        isSubmittablePrompt(merged.prompt) &&
-        context.kind === 'ready' &&
-        validSelections,
-    }
+    return withNewTaskCanSubmit(this.state, partial)
   }
 
   private publish(next: NewTaskScreenState): void {

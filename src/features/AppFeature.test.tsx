@@ -560,11 +560,22 @@ describe('AppFeature navigation', () => {
 
     await user.type(screen.getByLabelText('Task prompt'), 'held launch')
     await user.click(screen.getByRole('button', { name: 'Start task' }))
-    expect(screen.getByText('Starting task…')).toBeInTheDocument()
+    expect(document.querySelector('.hw-compose-status')?.textContent).toBe(
+      'Starting task…',
+    )
+    expect(document.querySelector('.hw-compose-status')).not.toHaveAttribute(
+      'role',
+    )
+    const live = document.querySelector('.hw-status')
+    expect(live?.textContent).toBe('Starting task…')
+    expect(live).toHaveAttribute('role', 'status')
+    expect(screen.getAllByRole('status').map((el) => el.textContent)).toEqual([
+      'Starting task…',
+    ])
     expect(starts).toHaveLength(1)
 
     await user.click(screen.getByRole('button', { name: 'Workflows' }))
-    expect(screen.getByText('Starting task…')).toBeInTheDocument()
+    expect(screen.getByRole('status')).toHaveTextContent('Starting task…')
 
     resolveStart({ kind: 'accepted', taskId: asTaskId('nav-ok') })
     await flush()

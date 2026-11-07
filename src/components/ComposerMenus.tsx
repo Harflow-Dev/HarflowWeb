@@ -14,6 +14,7 @@ type RepoProps = {
   readonly open: boolean
   readonly repositories: readonly RepositoryOption[]
   readonly selectedRepositoryId: RepositoryId | null
+  readonly disabled?: boolean
   readonly onToggle: () => void
   readonly onSelect: (id: RepositoryId) => void
 }
@@ -26,6 +27,7 @@ export function RepositoryMenu(props: RepoProps) {
       label={repo?.label ?? 'Repository'}
       icon="folder"
       menuLabel="Repository"
+      disabled={props.disabled === true}
       onToggle={props.onToggle}
     >
       {props.repositories.map((item) => (
@@ -60,6 +62,7 @@ type HarnessProps = {
   readonly selectedHarnessId: HarnessId | null
   readonly selectedModelId: ModelId | null
   readonly harnessMenuPhase: 'harness' | 'model'
+  readonly disabled?: boolean
   readonly onToggle: () => void
   readonly onSelectHarness: (id: HarnessId) => void
   readonly onSelectModel: (id: ModelId) => void
@@ -76,6 +79,7 @@ export function HarnessMenu(props: HarnessProps) {
       label={label}
       icon="harness"
       menuLabel="Harness and model"
+      disabled={props.disabled === true}
       onToggle={props.onToggle}
     >
       <div className="hd-menu__label">Harness</div>
@@ -143,6 +147,7 @@ type AccessProps = {
   readonly selectedAccess: AccessLevel
   readonly selectedHarnessId: HarnessId | null
   readonly harnesses: readonly HarnessOption[]
+  readonly disabled?: boolean
   readonly onToggle: () => void
   readonly onSelect: (access: AccessLevel) => void
 }
@@ -156,6 +161,7 @@ export function AccessMenu(props: AccessProps) {
       label={access?.label ?? 'Access'}
       icon="shield"
       menuLabel="Access level"
+      disabled={props.disabled === true}
       onToggle={props.onToggle}
     >
       {props.accessOptions.map((item) => {

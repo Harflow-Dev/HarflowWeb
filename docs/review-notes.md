@@ -16,6 +16,10 @@ grant approvals, answer questions, or touch the task store.
   and partial copy are **proposals**, not approved specimens.
 - Specimen copy “Choices are remembered per repository” is not implemented;
   selection is one global set for the mock session.
+- New task follows the owner-approved centered composer amendment
+  (HarflowDesign `9d64bfd`): compact growing prompt, centered group, and `+`
+  Task options. Effort, turn limit, and approvals are presentation-only; they
+  gate Start with the specimen rules and are not sent on `startTask`.
 - Narrow-width layout is a responsive proposal; desktop specimens are approved at
   1280×800.
 - Settings General is live. Appearance is the same session System/Light/Dark

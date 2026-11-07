@@ -248,6 +248,30 @@ does not activate the disclosure; the component test covers Enter and Space.
 Earlier new-task screenshots remain under
 `~/.codex/workflows/screenshots/2026-11-05-harflowweb-new-task-slice/`.
 
+## New task centered composer — verified 1280×800 captures
+
+Directory:
+`~/.codex/workflows/screenshots/2026-11-07-harflowweb-new-task/`
+
+Captured from `/` after `Emulation.setDeviceMetricsOverride` to 1280×800 with
+CDP clip `{x:0,y:0,width:1280,height:800}`. Dimensions verified with `sips`.
+Design pin: HarflowDesign `9d64bfda7bed735d42c761c3149516c7f3e6ca01`
+(`m04-proposal` amendment states). Preview scenario panel not used.
+
+| File | State | Appearance |
+| --- | --- | --- |
+| `empty-light.png` / `empty-dark.png` | amendment-empty | light / dark |
+| `growing-light.png` / `growing-dark.png` | amendment-growing | light / dark |
+| `capped-light.png` / `capped-dark.png` | amendment-capped | light / dark |
+| `options-light.png` / `options-dark.png` | amendment-options | light / dark |
+| `unknown-light.png` / `unknown-dark.png` | amendment-unknown | light / dark |
+
+Observed: centered greeting + composer + status + help; one-line empty prompt;
+grown and six-line-capped prompts; `+` Task options open with effort / turns /
+approvals; unknown status copy without a Review Recent work button. Prior
+`01-new-task-light.png` / `02-new-task-dark.png` in the same directory are
+earlier compact captures, not the five-state set above.
+
 ## Needs you — verified 1280×800 captures
 
 Directory:

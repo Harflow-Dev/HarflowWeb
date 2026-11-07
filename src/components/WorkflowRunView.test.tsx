@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import {
   NIGHTLY_AUDIT_RUN_ID,
   SECURITY_REVIEWER_NODE_ID,
@@ -14,13 +14,19 @@ import {
   asWorkflowRunId,
   WORKFLOW_RUN_UNAVAILABLE,
   type WorkflowNodeId,
+  type WorkflowRunLoad,
 } from '../model'
-import type { WorkflowRunViewMode } from '../presentation'
+import {
+  effectiveWorkflowRunViewMode,
+  workflowRunHasParallel,
+  type WorkflowRunViewMode,
+} from '../presentation'
 import { WorkflowRunView } from './WorkflowRunView'
 import {
   WORKFLOW_RUN_ACTION_EXPLANATION,
   WORKFLOW_RUN_CALL_EXPLANATION,
   WORKFLOW_RUN_LANE_EXPLANATION,
+  WORKFLOW_RUN_PARALLEL_EXPLANATION,
   WORKFLOW_RUN_TOOL_EXPLANATION,
   WORKFLOW_RUN_ZOOM_EXPLANATION,
 } from './workflowRunUnavailable'
@@ -33,7 +39,7 @@ describe('WorkflowRunView', () => {
   it('shows the nightly graph and blocks run mutations', async () => {
     const user = userEvent.setup()
     const load = workflowExecutionLoadFor(NIGHTLY_AUDIT_RUN_ID)
-    render(<WorkflowRunView load={load} />)
+    render(<WorkflowRunView load={load} {...viewProps(load)} />)
     expect(screen.getByText('Nightly dependency audit')).toBeInTheDocument()
     expect(screen.getByText('Step 2 of 4 · 06:31')).toBeInTheDocument()
     const graph = screen.getByRole('region', { name: 'Workflow graph' })
@@ -104,6 +110,7 @@ describe('WorkflowRunView', () => {
     render(
       <WorkflowRunView
         load={workflowExecutionLoadFor(asWorkflowRunId('wf-nightly-audit'))}
+        {...viewProps(workflowExecutionLoadFor(asWorkflowRunId('wf-nightly-audit')))}
       />,
     )
     expect(screen.getByRole('status')).toHaveTextContent(WORKFLOW_RUN_UNAVAILABLE)
@@ -260,28 +267,32 @@ describe('WorkflowRunView', () => {
     const run = nightlyAuditRun()
     const demand = run.onDemand[0]
     if (!demand) throw new Error('missing inspector')
+    const initial: WorkflowRunLoad = { kind: 'ready', run }
+    const updated: WorkflowRunLoad = {
+      kind: 'ready',
+      run: {
+        ...run,
+        onDemand: [
+          {
+            ...demand,
+            call: { ...demand.call, result: 'Done · refreshed · 01:40' },
+          },
+        ],
+      },
+    }
     const { rerender } = render(
       <WorkflowRunView
-        load={{ kind: 'ready', run }}
+        load={initial}
         selectedNodeId={SECURITY_REVIEWER_NODE_ID}
+        {...viewProps(initial)}
       />,
     )
     expect(screen.getByText('Done · no advisories · 01:12')).toBeInTheDocument()
     rerender(
       <WorkflowRunView
-        load={{
-          kind: 'ready',
-          run: {
-            ...run,
-            onDemand: [
-              {
-                ...demand,
-                call: { ...demand.call, result: 'Done · refreshed · 01:40' },
-              },
-            ],
-          },
-        }}
+        load={updated}
         selectedNodeId={SECURITY_REVIEWER_NODE_ID}
+        {...viewProps(updated)}
       />,
     )
     expect(
@@ -292,17 +303,24 @@ describe('WorkflowRunView', () => {
 
   it('keeps the inspector when the same run observation changes', () => {
     const run = nightlyAuditRun()
+    const initial: WorkflowRunLoad = { kind: 'ready', run }
+    const updated: WorkflowRunLoad = {
+      kind: 'ready',
+      run: { ...run, progressLabel: 'Step 2 of 4 · 07:05' },
+    }
     const { rerender } = render(
       <WorkflowRunView
-        load={{ kind: 'ready', run }}
+        load={initial}
         selectedNodeId={SECURITY_REVIEWER_NODE_ID}
+        {...viewProps(initial)}
       />,
     )
     expect(screen.getByText('Done · no advisories · 01:12')).toBeInTheDocument()
     rerender(
       <WorkflowRunView
-        load={{ kind: 'ready', run: { ...run, progressLabel: 'Step 2 of 4 · 07:05' } }}
+        load={updated}
         selectedNodeId={SECURITY_REVIEWER_NODE_ID}
+        {...viewProps(updated)}
       />,
     )
     expect(screen.getByText('Step 2 of 4 · 07:05')).toBeInTheDocument()
@@ -317,6 +335,7 @@ describe('WorkflowRunView', () => {
       <WorkflowRunView
         load={workflowExecutionLoadFor(NIGHTLY_AUDIT_RUN_ID)}
         selectedNodeId={asWorkflowNodeId('run-missing-node')}
+        {...viewProps(workflowExecutionLoadFor(NIGHTLY_AUDIT_RUN_ID))}
       />,
     )
     const step = screen.getByRole('complementary', { name: 'Selected step' })
@@ -341,8 +360,9 @@ describe('WorkflowRunView', () => {
     if (!demand) throw new Error('missing inspector')
     const foreign = asWorkflowNodeId('run-other-reviewer')
     const tampered = { ...run, onDemand: [{ ...demand, nodeId: foreign }] }
+    const load: WorkflowRunLoad = { kind: 'ready', run: tampered }
     const { rerender } = render(
-      <WorkflowRunView load={{ kind: 'ready', run: tampered }} selectedNodeId={foreign} />,
+      <WorkflowRunView load={load} selectedNodeId={foreign} {...viewProps(load)} />,
     )
     expect(screen.getByRole('complementary', { name: 'Selected step' })).toHaveTextContent(
       'Publish changes',
@@ -350,8 +370,9 @@ describe('WorkflowRunView', () => {
     expect(screen.queryByText('Done · no advisories · 01:12')).not.toBeInTheDocument()
     rerender(
       <WorkflowRunView
-        load={{ kind: 'ready', run: tampered }}
+        load={load}
         selectedNodeId={SECURITY_REVIEWER_NODE_ID}
+        {...viewProps(load)}
       />,
     )
     expect(screen.getByRole('complementary', { name: 'Selected step' })).toHaveTextContent(
@@ -369,16 +390,18 @@ describe('WorkflowRunView', () => {
     const run = nightlyAuditRun()
     const demand = run.onDemand[0]
     if (!demand) throw new Error('missing inspector')
+    const load: WorkflowRunLoad = {
+      kind: 'ready',
+      run: {
+        ...run,
+        onDemand: [{ ...demand, call: { ...demand.call, id: 'run-security-call-1' } }],
+      },
+    }
     render(
       <WorkflowRunView
-        load={{
-          kind: 'ready',
-          run: {
-            ...run,
-            onDemand: [{ ...demand, call: { ...demand.call, id: 'run-security-call-1' } }],
-          },
-        }}
+        load={load}
         selectedNodeId={SECURITY_REVIEWER_NODE_ID}
+        {...viewProps(load)}
       />,
     )
     expect(screen.getByText('Call 2 · Done · 01:12')).toBeInTheDocument()
@@ -433,29 +456,37 @@ describe('WorkflowRunView', () => {
 
   it('shows new Parallel lane text from a same-run update', () => {
     const run = nightlyAuditRun()
-    const lanes = run.parallel
-    if (!lanes) throw new Error('missing parallel')
+    const parallel = run.parallel
+    if (!parallel) throw new Error('missing parallel')
+    const load: WorkflowRunLoad = { kind: 'ready', run }
     const { rerender } = render(
-      <WorkflowRunView load={{ kind: 'ready', run }} viewMode="parallel" />,
+      <WorkflowRunView
+        load={load}
+        {...viewProps(load, 'parallel')}
+      />,
     )
     expect(screen.getByText('Reading package-lock.json…')).toBeInTheDocument()
-    const next = lanes.map((lane) =>
-      lane.id === 'lane-scan-npm'
-        ? {
-            ...lane,
-            blocks: lane.blocks.map((block) =>
-              block.kind === 'working'
-                ? { ...block, text: 'Reading package-lock.json… refreshed' }
-                : block,
-            ),
-          }
-        : lane,
-    )
+    const next = {
+      ...parallel,
+      lanes: parallel.lanes.map((lane) =>
+        lane.id === 'lane-scan-npm'
+          ? {
+              ...lane,
+              blocks: lane.blocks.map((block) =>
+                block.kind === 'working'
+                  ? { ...block, text: 'Reading package-lock.json… refreshed' }
+                  : block,
+              ),
+            }
+          : lane,
+      ),
+    }
+    const updated: WorkflowRunLoad = {
+      kind: 'ready',
+      run: { ...run, parallel: next },
+    }
     rerender(
-      <WorkflowRunView
-        load={{ kind: 'ready', run: { ...run, parallel: next } }}
-        viewMode="parallel"
-      />,
+      <WorkflowRunView load={updated} {...viewProps(updated, 'parallel')} />,
     )
     expect(screen.getByText('Reading package-lock.json… refreshed')).toBeInTheDocument()
     expect(screen.queryByText('Reading package-lock.json…')).not.toBeInTheDocument()
@@ -463,17 +494,62 @@ describe('WorkflowRunView', () => {
 
   it('falls back to Graph when Parallel data is missing without borrowing lanes', () => {
     const run = { ...nightlyAuditRun(), parallel: null }
+    const load: WorkflowRunLoad = { kind: 'ready', run }
     render(
-      <WorkflowRunView load={{ kind: 'ready', run }} viewMode="parallel" />,
+      <WorkflowRunView load={load} {...viewProps(load, 'parallel')} />,
     )
     expect(screen.getByRole('region', { name: 'Workflow graph' })).toBeInTheDocument()
     expect(screen.queryByRole('region', { name: 'Parallel lanes' })).not.toBeInTheDocument()
     expect(screen.queryByText('Scan Python deps')).not.toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Parallel' })).toBeDisabled()
+    const parallel = screen.getByRole('button', { name: 'Parallel' })
+    expect(parallel).toBeDisabled()
+    expect(parallel).toHaveAccessibleDescription(WORKFLOW_RUN_PARALLEL_EXPLANATION)
+    expect(parallel).not.toHaveAccessibleDescription(WORKFLOW_RUN_ACTION_EXPLANATION)
     expect(screen.getByRole('button', { name: 'Graph' })).toHaveAttribute(
       'aria-current',
       'page',
     )
+  })
+
+  it('falls back to Graph when Parallel lanes are an empty array', () => {
+    const base = nightlyAuditRun()
+    const run = {
+      ...base,
+      parallel: {
+        lanes: [],
+        workingLabel: 'Orchestrator is choosing the next node…',
+        decisionAttemptsLabel: 'Decision attempts: 1 / 3',
+      },
+    }
+    const load: WorkflowRunLoad = { kind: 'ready', run }
+    render(<WorkflowRunView load={load} {...viewProps(load, 'parallel')} />)
+    expect(screen.getByRole('region', { name: 'Workflow graph' })).toBeInTheDocument()
+    expect(screen.queryByRole('region', { name: 'Parallel lanes' })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Parallel' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Parallel' })).toHaveAccessibleDescription(
+      WORKFLOW_RUN_PARALLEL_EXPLANATION,
+    )
+  })
+
+  it('shows the Parallel footer from the observation', async () => {
+    const user = userEvent.setup()
+    render(<RunHarness />)
+    await user.click(screen.getByRole('button', { name: 'Parallel' }))
+    expect(screen.getByText('Orchestrator is choosing the next node…')).toBeInTheDocument()
+    expect(screen.getByText('Decision attempts: 1 / 3')).toBeInTheDocument()
+  })
+
+  it('switches from Graph to Parallel with the keyboard', async () => {
+    const user = userEvent.setup()
+    render(<RunHarness />)
+    const parallel = screen.getByRole('button', { name: 'Parallel' })
+    parallel.focus()
+    expect(parallel).toHaveFocus()
+    await user.keyboard('{Enter}')
+    expect(parallel).toHaveAttribute('aria-current', 'page')
+    expect(parallel).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByRole('region', { name: 'Parallel lanes' })).toBeInTheDocument()
+    expect(parallel).toHaveFocus()
   })
 
   it('preserves the selected node when returning from Parallel to Graph', async () => {
@@ -502,16 +578,29 @@ describe('WorkflowRunView', () => {
 
   it('keeps Parallel lane actions and composers disabled without sending', async () => {
     const user = userEvent.setup()
-    render(<RunHarness />)
-    await user.click(screen.getByRole('button', { name: 'Parallel' }))
+    const onViewMode = vi.fn()
+    const onSelectNode = vi.fn()
+    const load = workflowExecutionLoadFor(NIGHTLY_AUDIT_RUN_ID)
+    render(
+      <WorkflowRunView
+        load={load}
+        {...viewProps(load, 'parallel')}
+        onViewMode={onViewMode}
+        onSelectNode={onSelectNode}
+      />,
+    )
     const actions = screen.getAllByRole('button', { name: 'Lane actions' })
     const sendCodex = screen.getByRole('button', { name: 'Send to Codex' })
     const sendClaude = screen.getByRole('button', { name: 'Send to Claude Code' })
+    const messageCodex = screen.getByRole('textbox', { name: 'Message Codex' })
+    const messageClaude = screen.getByRole('textbox', { name: 'Message Claude Code' })
     const pause = screen.getByRole('button', { name: 'Pause' })
     const cancel = screen.getByRole('button', { name: 'Cancel run' })
     const more = screen.getByRole('button', { name: 'More actions' })
-    for (const control of [...actions, sendCodex, sendClaude]) {
+    for (const control of [...actions, sendCodex, sendClaude, messageCodex, messageClaude]) {
       expect(control).toBeDisabled()
+    }
+    for (const control of [...actions, sendCodex, sendClaude]) {
       expect(control).toHaveAccessibleDescription(WORKFLOW_RUN_LANE_EXPLANATION)
     }
     for (const control of [pause, cancel, more]) {
@@ -524,19 +613,33 @@ describe('WorkflowRunView', () => {
     await user.click(sendCodex)
     fireEvent.click(actions[0]!)
     fireEvent.click(pip)
+    fireEvent.submit(sendCodex.closest('form')!)
+    expect(onViewMode).not.toHaveBeenCalled()
+    expect(onSelectNode).not.toHaveBeenCalled()
     expect(screen.getByText('Done · 4 updates · 02:14')).toBeInTheDocument()
     expect(screen.queryByRole('heading', { name: /Add retry budget/ })).not.toBeInTheDocument()
   })
 })
 
+function viewProps(
+  load: WorkflowRunLoad,
+  viewMode: WorkflowRunViewMode = 'graph',
+) {
+  return {
+    activeView: effectiveWorkflowRunViewMode(viewMode, load),
+    parallelAvailable: load.kind === 'ready' && workflowRunHasParallel(load.run),
+  }
+}
+
 function RunHarness() {
   const [selectedNodeId, setSelectedNodeId] = useState<WorkflowNodeId | null>(null)
   const [viewMode, setViewMode] = useState<WorkflowRunViewMode>('graph')
+  const load = workflowExecutionLoadFor(NIGHTLY_AUDIT_RUN_ID)
   return (
     <WorkflowRunView
-      load={workflowExecutionLoadFor(NIGHTLY_AUDIT_RUN_ID)}
+      load={load}
       selectedNodeId={selectedNodeId}
-      viewMode={viewMode}
+      {...viewProps(load, viewMode)}
       onSelectNode={setSelectedNodeId}
       onViewMode={setViewMode}
     />

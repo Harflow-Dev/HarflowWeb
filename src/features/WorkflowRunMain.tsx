@@ -1,8 +1,10 @@
 import { WorkflowRunView } from '../components'
 import type { WorkflowNodeId } from '../model'
-import type {
-  WorkflowExecutionScreenState,
-  WorkflowRunViewMode,
+import {
+  effectiveWorkflowRunViewMode,
+  workflowRunHasParallel,
+  type WorkflowExecutionScreenState,
+  type WorkflowRunViewMode,
 } from '../presentation'
 
 type Props = {
@@ -13,11 +15,16 @@ type Props = {
 
 /** Running workflow graph or Parallel lanes for the open run id only. */
 export function WorkflowRunMain({ state, onSelectNode, onViewMode }: Props) {
+  const load = state.load
+  const activeView = effectiveWorkflowRunViewMode(state.viewMode, load)
+  const parallelAvailable =
+    load.kind === 'ready' && workflowRunHasParallel(load.run)
   return (
     <WorkflowRunView
-      load={state.load}
+      load={load}
       selectedNodeId={state.selectedNodeId}
-      viewMode={state.viewMode}
+      activeView={activeView}
+      parallelAvailable={parallelAvailable}
       onSelectNode={onSelectNode}
       onViewMode={onViewMode}
     />

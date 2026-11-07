@@ -384,7 +384,8 @@ state `workflow-run/parallel`.
 Observed: Nightly title with Needs you / Step 2 of 4 · 06:31 (not the
 specimen Running chrome). Parallel is current. Three lanes — Scan Python
 deps (done, Codex · gpt-6-astra), Scan npm deps (running), Draft upgrade PR
-(pending) — scroll horizontally so every lane stays reachable. Document
+(pending) — stay reachable. Footer shows “Orchestrator is choosing the next
+node…” and “Decision attempts: 1 / 3” from the observation. Document
 scrollWidth equals clientWidth (1280). Pause, Cancel, More actions, lane
 actions, and lane send stay disabled.
 

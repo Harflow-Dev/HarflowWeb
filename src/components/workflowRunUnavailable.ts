@@ -6,6 +6,10 @@ export const RUN_LANE_UNAVAILABLE_ID = 'workflow-run-lane-unavailable'
 export const WORKFLOW_RUN_LANE_EXPLANATION =
   'Unavailable. Lane actions and composers do not send messages in this mock.'
 
+export const RUN_PARALLEL_UNAVAILABLE_ID = 'workflow-run-parallel-unavailable'
+export const WORKFLOW_RUN_PARALLEL_EXPLANATION =
+  'Unavailable. This run has no Parallel lane data.'
+
 export const RUN_CALL_UNAVAILABLE_ID = 'workflow-run-call-unavailable'
 export const WORKFLOW_RUN_CALL_EXPLANATION =
   'Unavailable. This control does not open a task or send a message to the node.'

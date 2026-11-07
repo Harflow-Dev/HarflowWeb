@@ -6,7 +6,6 @@ import type {
   WorkflowRunObservation,
 } from '../model'
 import {
-  effectiveWorkflowRunViewMode,
   resolveWorkflowRunSelection,
   workflowRunOnDemandFor,
   type WorkflowRunViewMode,
@@ -20,18 +19,21 @@ import { WorkflowRunViewToggle } from './WorkflowRunViewToggle'
 import {
   RUN_CALL_UNAVAILABLE_ID,
   RUN_LANE_UNAVAILABLE_ID,
+  RUN_PARALLEL_UNAVAILABLE_ID,
   RUN_TOOL_UNAVAILABLE_ID,
   RUN_UNAVAILABLE_ID,
   WORKFLOW_RUN_ACTION_EXPLANATION,
   WORKFLOW_RUN_CALL_EXPLANATION,
   WORKFLOW_RUN_LANE_EXPLANATION,
+  WORKFLOW_RUN_PARALLEL_EXPLANATION,
   WORKFLOW_RUN_TOOL_EXPLANATION,
 } from './workflowRunUnavailable'
 
 type Props = {
   readonly load: WorkflowRunLoad
   readonly selectedNodeId?: WorkflowNodeId | null
-  readonly viewMode?: WorkflowRunViewMode
+  readonly activeView?: WorkflowRunViewMode
+  readonly parallelAvailable?: boolean
   readonly onSelectNode?: (id: WorkflowNodeId | null) => void
   readonly onViewMode?: (mode: WorkflowRunViewMode) => void
 }
@@ -40,7 +42,8 @@ type Props = {
 export function WorkflowRunView({
   load,
   selectedNodeId = null,
-  viewMode = 'graph',
+  activeView = 'graph',
+  parallelAvailable = false,
   onSelectNode,
   onViewMode,
 }: Props) {
@@ -53,7 +56,6 @@ export function WorkflowRunView({
   }
   const run = load.run
   const display = resolveWorkflowRunSelection(run, selectedNodeId)
-  const activeView = effectiveWorkflowRunViewMode(viewMode, load)
   const closeInspector = () => {
     onSelectNode?.(null)
     reviewerButton.current?.focus()
@@ -72,6 +74,9 @@ export function WorkflowRunView({
       <p id={RUN_LANE_UNAVAILABLE_ID} className="hd-sr">
         {WORKFLOW_RUN_LANE_EXPLANATION}
       </p>
+      <p id={RUN_PARALLEL_UNAVAILABLE_ID} className="hd-sr">
+        {WORKFLOW_RUN_PARALLEL_EXPLANATION}
+      </p>
       <div className="hd-topbar">
         <span className="hd-topbar__title">{run.title}</span>
         <span className="hd-badge hd-badge--attention">
@@ -81,8 +86,8 @@ export function WorkflowRunView({
         <span className="hd-topbar__meta">{run.progressLabel}</span>
         <span className="hd-topbar__spacer" />
         <WorkflowRunViewToggle
-          load={load}
-          viewMode={viewMode}
+          activeView={activeView}
+          parallelAvailable={parallelAvailable}
           onViewMode={(mode) => onViewMode?.(mode)}
         />
         <DisabledBar label="Pause" icon="pause" />
@@ -98,8 +103,8 @@ export function WorkflowRunView({
           <Icon name="more" />
         </button>
       </div>
-      {activeView === 'parallel' && run.parallel ? (
-        <WorkflowRunParallelView lanes={run.parallel} />
+      {activeView === 'parallel' && run.parallel && run.parallel.lanes.length > 0 ? (
+        <WorkflowRunParallelView parallel={run.parallel} />
       ) : (
         <>
           <Standalone

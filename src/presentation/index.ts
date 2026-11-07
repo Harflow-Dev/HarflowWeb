@@ -78,6 +78,7 @@ export {
   type WorkflowRunLane,
   type WorkflowRunLaneBlock,
   type WorkflowRunLaneStatus,
+  type WorkflowRunParallel,
   type WorkflowRunViewMode,
 } from './workflowRunParallel'
 export { workflowScene, type WorkflowScene } from './workflowGraphRoutes'

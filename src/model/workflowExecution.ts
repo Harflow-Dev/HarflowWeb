@@ -116,6 +116,16 @@ export type WorkflowRunLane = {
   readonly blocks: readonly WorkflowRunLaneBlock[]
 }
 
+/**
+ * Parallel observation for this run.
+ * Null or empty lanes means Parallel is unavailable.
+ */
+export type WorkflowRunParallel = {
+  readonly lanes: readonly WorkflowRunLane[]
+  readonly workingLabel: string
+  readonly decisionAttemptsLabel: string
+}
+
 export type WorkflowRunObservation = {
   readonly runId: WorkflowRunId
   readonly definitionId: WorkflowId
@@ -130,8 +140,8 @@ export type WorkflowRunObservation = {
   readonly selectedNodeId: WorkflowNodeId
   readonly detail: WorkflowRunDetail
   readonly onDemand: readonly WorkflowRunOnDemand[]
-  /** Parallel lanes for this run. Null or empty means Parallel is unavailable. */
-  readonly parallel: readonly WorkflowRunLane[] | null
+  /** Parallel lanes and footer for this run. Null or empty lanes means unavailable. */
+  readonly parallel: WorkflowRunParallel | null
 }
 
 export type WorkflowRunLoad =

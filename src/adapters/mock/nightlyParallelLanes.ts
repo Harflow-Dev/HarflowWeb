@@ -1,16 +1,20 @@
-import type { WorkflowRunLane } from '../../model'
+import type { WorkflowRunLane, WorkflowRunParallel } from '../../model'
 import { NIGHTLY_REQUESTER_MODEL } from './nightlyPublishSnapshot'
 
 /**
- * Parallel lanes for the Nightly run.
+ * Parallel observation for the Nightly run.
  * Design pin f2a30d7e625ae448588dc844e0dec16eb980eeee
  * `v2/scripts/screens-workflow-run.js` state `workflow-run/parallel`.
  * Codex · gpt-6 in that specimen is adapted to the Nightly snapshot model
  * `Codex · gpt-6-astra`. Lane titles stay the Parallel specimen's names.
  */
 
-export function nightlyParallelLanes(): readonly WorkflowRunLane[] {
-  return [pythonLane(), npmLane(), draftLane()]
+export function nightlyParallel(): WorkflowRunParallel {
+  return {
+    lanes: [pythonLane(), npmLane(), draftLane()],
+    workingLabel: 'Orchestrator is choosing the next node…',
+    decisionAttemptsLabel: 'Decision attempts: 1 / 3',
+  }
 }
 
 function pythonLane(): WorkflowRunLane {

@@ -6,11 +6,12 @@ export type {
   WorkflowRunLane,
   WorkflowRunLaneBlock,
   WorkflowRunLaneStatus,
+  WorkflowRunParallel,
 } from '../model'
 
 /** True when this ready observation carries at least one Parallel lane. */
 export function workflowRunHasParallel(run: WorkflowRunObservation): boolean {
-  return run.parallel !== null && run.parallel.length > 0
+  return run.parallel !== null && run.parallel.lanes.length > 0
 }
 
 /**

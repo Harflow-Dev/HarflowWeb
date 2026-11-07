@@ -74,10 +74,11 @@ that default detail and does not use another node's calls. The strip keeps
 `docs/provenance.md`. Docs checker, call rows, Open task, the node
 composer, and the canvas zoom control stay unavailable. The zoom label reads 70%,
 and its buttons use their own explanation rather than the Pause and Cancel text.
-The Graph / Parallel control toggles the Nightly run’s Parallel lanes from the
-same observation; missing lanes fall back to Graph. recovery stays unavailable.
-Lane composers and lane actions stay disabled. Mapped Open task only
-navigates. A workflow-list Run button opens that definition’s run form through
+The Graph / Parallel control toggles the Nightly run’s Parallel lanes and
+orchestrator footer from the same observation; missing or empty lanes fall back
+to Graph and disable Parallel with a Parallel-specific explanation. recovery
+stays unavailable. Lane composers and lane actions stay disabled. Mapped Open
+task only navigates. A workflow-list Run button opens that definition’s run form through
 `observeWorkflowRun(workflowId, …)`. The draft is session-local and kept per
 definition id. Switching definitions clears the previous permissions into
 loading and does not reuse the other draft. An unmapped id shows unavailable

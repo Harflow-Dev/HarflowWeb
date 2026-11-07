@@ -225,23 +225,28 @@ describe('WorkflowExecutionSession', () => {
     session.setViewMode('parallel')
     expect(session.getState().viewMode).toBe('parallel')
     const run = nightlyAuditRun()
+    const parallel = run.parallel
+    if (!parallel) throw new Error('missing parallel')
     callback?.({
       kind: 'ready',
       run: {
         ...run,
         progressLabel: 'Step 2 of 4 · 07:05',
-        parallel: run.parallel?.map((lane) =>
-          lane.id === 'lane-scan-npm'
-            ? { ...lane, statusMeta: 'Running 03:10' }
-            : lane,
-        ) ?? null,
+        parallel: {
+          ...parallel,
+          lanes: parallel.lanes.map((lane) =>
+            lane.id === 'lane-scan-npm'
+              ? { ...lane, statusMeta: 'Running 03:10' }
+              : lane,
+          ),
+        },
       },
     })
     expect(session.getState().viewMode).toBe('parallel')
     const updated = session.getState().load
     expect(updated.kind).toBe('ready')
     if (updated.kind === 'ready') {
-      expect(updated.run.parallel?.[1]?.statusMeta).toBe('Running 03:10')
+      expect(updated.run.parallel?.lanes[1]?.statusMeta).toBe('Running 03:10')
     }
     callback?.({ kind: 'ready', run: { ...run, parallel: null } })
     expect(session.getState().viewMode).toBe('graph')
@@ -265,5 +270,18 @@ describe('WorkflowExecutionSession', () => {
     saved[1]?.send(workflowExecutionLoadFor(NIGHTLY_AUDIT_RUN_ID))
     expect(session.getState().viewMode).toBe('graph')
     expect(session.getState().selectedNodeId).toBeNull()
+  })
+
+  it('resets to Graph on a direct reopen of the same run', () => {
+    const { engine, saved } = port({ auto: false })
+    const session = sessionFor(engine)
+    session.open(NIGHTLY_AUDIT_RUN_ID)
+    saved[0]?.send(workflowExecutionLoadFor(NIGHTLY_AUDIT_RUN_ID))
+    session.setViewMode('parallel')
+    expect(session.getState().viewMode).toBe('parallel')
+    session.open(NIGHTLY_AUDIT_RUN_ID)
+    expect(session.getState().viewMode).toBe('graph')
+    saved[1]?.send(workflowExecutionLoadFor(NIGHTLY_AUDIT_RUN_ID))
+    expect(session.getState().viewMode).toBe('graph')
   })
 })

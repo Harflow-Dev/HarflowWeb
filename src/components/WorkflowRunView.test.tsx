@@ -15,10 +15,12 @@ import {
   WORKFLOW_RUN_UNAVAILABLE,
   type WorkflowNodeId,
 } from '../model'
+import type { WorkflowRunViewMode } from '../presentation'
 import { WorkflowRunView } from './WorkflowRunView'
 import {
   WORKFLOW_RUN_ACTION_EXPLANATION,
   WORKFLOW_RUN_CALL_EXPLANATION,
+  WORKFLOW_RUN_LANE_EXPLANATION,
   WORKFLOW_RUN_TOOL_EXPLANATION,
   WORKFLOW_RUN_ZOOM_EXPLANATION,
 } from './workflowRunUnavailable'
@@ -77,10 +79,16 @@ describe('WorkflowRunView', () => {
     expect(zoom).toHaveTextContent('70%')
     const zoomOut = within(zoom).getByRole('button', { name: 'Zoom out' })
     const zoomIn = within(zoom).getByRole('button', { name: 'Zoom in' })
-    for (const control of [approve, reject, pause, cancel, parallel, revise]) {
+    for (const control of [approve, reject, pause, cancel, revise]) {
       expect(control).toBeDisabled()
       expect(control).toHaveAccessibleDescription(WORKFLOW_RUN_ACTION_EXPLANATION)
     }
+    expect(parallel).toBeEnabled()
+    expect(parallel).toHaveAttribute('aria-pressed', 'false')
+    expect(screen.getByRole('button', { name: 'Graph' })).toHaveAttribute(
+      'aria-current',
+      'page',
+    )
     for (const control of [zoomOut, zoomIn]) {
       expect(control).toBeDisabled()
       expect(control).toHaveAccessibleDescription(WORKFLOW_RUN_ZOOM_EXPLANATION)
@@ -90,7 +98,6 @@ describe('WorkflowRunView', () => {
     fireEvent.click(reject)
     fireEvent.click(pause)
     expect(within(step).getByText('Publish changes')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Graph' })).toHaveAttribute('aria-current', 'page')
   })
 
   it('does not show the nightly run for another identity', () => {
@@ -170,7 +177,6 @@ describe('WorkflowRunView', () => {
     const send = screen.getByRole('button', { name: 'Send to Security reviewer' })
     const pause = screen.getByRole('button', { name: 'Pause' })
     const cancel = screen.getByRole('button', { name: 'Cancel run' })
-    const parallel = screen.getByRole('button', { name: 'Parallel' })
     const more = screen.getByRole('button', { name: 'More actions' })
     const docs = screen.getByRole('button', {
       name: 'Docs checker, on demand node, not called, not selected',
@@ -184,10 +190,11 @@ describe('WorkflowRunView', () => {
     expect(zoom).toHaveTextContent('70%')
     const zoomOut = within(zoom).getByRole('button', { name: 'Zoom out' })
     const zoomIn = within(zoom).getByRole('button', { name: 'Zoom in' })
-    for (const control of [pause, cancel, parallel, more, docs]) {
+    for (const control of [pause, cancel, more, docs]) {
       expect(control).toBeDisabled()
       expect(control).toHaveAccessibleDescription(WORKFLOW_RUN_ACTION_EXPLANATION)
     }
+    expect(screen.getByRole('button', { name: 'Parallel' })).toBeEnabled()
     for (const control of [zoomOut, zoomIn]) {
       expect(control).toBeDisabled()
       expect(control).toHaveAccessibleDescription(WORKFLOW_RUN_ZOOM_EXPLANATION)
@@ -380,15 +387,158 @@ describe('WorkflowRunView', () => {
     expect(screen.queryByText(/no advisories/)).not.toBeInTheDocument()
     expect(screen.queryByText('pip-audit -r requirements.lock')).not.toBeInTheDocument()
   })
+
+  it('toggles Graph and Parallel with pressed state and keeps keyboard focus', async () => {
+    const user = userEvent.setup()
+    render(<RunHarness />)
+    const graph = screen.getByRole('button', { name: 'Graph' })
+    const parallel = screen.getByRole('button', { name: 'Parallel' })
+    expect(graph).toHaveAttribute('aria-current', 'page')
+    expect(graph).toHaveAttribute('aria-pressed', 'true')
+    expect(parallel).toHaveAttribute('aria-pressed', 'false')
+    await user.click(parallel)
+    expect(parallel).toHaveFocus()
+    expect(parallel).toHaveAttribute('aria-current', 'page')
+    expect(parallel).toHaveAttribute('aria-pressed', 'true')
+    expect(graph).toHaveAttribute('aria-pressed', 'false')
+    expect(screen.getByRole('region', { name: 'Parallel lanes' })).toBeInTheDocument()
+    expect(screen.queryByRole('region', { name: 'Workflow graph' })).not.toBeInTheDocument()
+    await user.keyboard('{Enter}')
+    expect(parallel).toHaveFocus()
+    await user.click(graph)
+    expect(graph).toHaveFocus()
+    expect(graph).toHaveAttribute('aria-current', 'page')
+    expect(screen.getByRole('region', { name: 'Workflow graph' })).toBeInTheDocument()
+  })
+
+  it('renders Parallel lane content from the observation', async () => {
+    const user = userEvent.setup()
+    render(<RunHarness />)
+    await user.click(screen.getByRole('button', { name: 'Parallel' }))
+    const lanes = screen.getByRole('region', { name: 'Parallel lanes' })
+    expect(within(lanes).getByRole('region', { name: 'Scan Python deps' })).toHaveTextContent(
+      'Codex · gpt-6-astra',
+    )
+    expect(within(lanes).getByRole('region', { name: 'Scan Python deps' })).toHaveTextContent(
+      'Done · 4 updates · 02:14',
+    )
+    expect(within(lanes).getByRole('region', { name: 'Scan npm deps' })).toHaveTextContent(
+      'Reading package-lock.json…',
+    )
+    expect(within(lanes).getByRole('region', { name: 'Draft upgrade PR' })).toHaveTextContent(
+      'Waits for both scans',
+    )
+    expect(screen.queryByText('Codex · gpt-6')).not.toBeInTheDocument()
+  })
+
+  it('shows new Parallel lane text from a same-run update', () => {
+    const run = nightlyAuditRun()
+    const lanes = run.parallel
+    if (!lanes) throw new Error('missing parallel')
+    const { rerender } = render(
+      <WorkflowRunView load={{ kind: 'ready', run }} viewMode="parallel" />,
+    )
+    expect(screen.getByText('Reading package-lock.json…')).toBeInTheDocument()
+    const next = lanes.map((lane) =>
+      lane.id === 'lane-scan-npm'
+        ? {
+            ...lane,
+            blocks: lane.blocks.map((block) =>
+              block.kind === 'working'
+                ? { ...block, text: 'Reading package-lock.json… refreshed' }
+                : block,
+            ),
+          }
+        : lane,
+    )
+    rerender(
+      <WorkflowRunView
+        load={{ kind: 'ready', run: { ...run, parallel: next } }}
+        viewMode="parallel"
+      />,
+    )
+    expect(screen.getByText('Reading package-lock.json… refreshed')).toBeInTheDocument()
+    expect(screen.queryByText('Reading package-lock.json…')).not.toBeInTheDocument()
+  })
+
+  it('falls back to Graph when Parallel data is missing without borrowing lanes', () => {
+    const run = { ...nightlyAuditRun(), parallel: null }
+    render(
+      <WorkflowRunView load={{ kind: 'ready', run }} viewMode="parallel" />,
+    )
+    expect(screen.getByRole('region', { name: 'Workflow graph' })).toBeInTheDocument()
+    expect(screen.queryByRole('region', { name: 'Parallel lanes' })).not.toBeInTheDocument()
+    expect(screen.queryByText('Scan Python deps')).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Parallel' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Graph' })).toHaveAttribute(
+      'aria-current',
+      'page',
+    )
+  })
+
+  it('preserves the selected node when returning from Parallel to Graph', async () => {
+    const user = userEvent.setup()
+    render(<RunHarness />)
+    await user.click(
+      screen.getByRole('button', {
+        name: 'Security reviewer, on demand node, done, not selected',
+      }),
+    )
+    expect(
+      screen.getByRole('complementary', { name: 'Selected on-demand node' }),
+    ).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Parallel' }))
+    expect(screen.queryByRole('complementary', { name: 'Selected on-demand node' })).not.toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Graph' }))
+    expect(
+      screen.getByRole('complementary', { name: 'Selected on-demand node' }),
+    ).toHaveTextContent('Security reviewer')
+    expect(
+      screen.getByRole('button', {
+        name: 'Security reviewer, on demand node, done, selected',
+      }),
+    ).toHaveAttribute('aria-pressed', 'true')
+  })
+
+  it('keeps Parallel lane actions and composers disabled without sending', async () => {
+    const user = userEvent.setup()
+    render(<RunHarness />)
+    await user.click(screen.getByRole('button', { name: 'Parallel' }))
+    const actions = screen.getAllByRole('button', { name: 'Lane actions' })
+    const sendCodex = screen.getByRole('button', { name: 'Send to Codex' })
+    const sendClaude = screen.getByRole('button', { name: 'Send to Claude Code' })
+    const pause = screen.getByRole('button', { name: 'Pause' })
+    const cancel = screen.getByRole('button', { name: 'Cancel run' })
+    const more = screen.getByRole('button', { name: 'More actions' })
+    for (const control of [...actions, sendCodex, sendClaude]) {
+      expect(control).toBeDisabled()
+      expect(control).toHaveAccessibleDescription(WORKFLOW_RUN_LANE_EXPLANATION)
+    }
+    for (const control of [pause, cancel, more]) {
+      expect(control).toBeDisabled()
+      expect(control).toHaveAccessibleDescription(WORKFLOW_RUN_ACTION_EXPLANATION)
+    }
+    const pip = screen.getByRole('button', { name: /pip-audit -r requirements.lock/ })
+    expect(pip).toBeDisabled()
+    expect(pip).toHaveAccessibleDescription(WORKFLOW_RUN_TOOL_EXPLANATION)
+    await user.click(sendCodex)
+    fireEvent.click(actions[0]!)
+    fireEvent.click(pip)
+    expect(screen.getByText('Done · 4 updates · 02:14')).toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: /Add retry budget/ })).not.toBeInTheDocument()
+  })
 })
 
 function RunHarness() {
   const [selectedNodeId, setSelectedNodeId] = useState<WorkflowNodeId | null>(null)
+  const [viewMode, setViewMode] = useState<WorkflowRunViewMode>('graph')
   return (
     <WorkflowRunView
       load={workflowExecutionLoadFor(NIGHTLY_AUDIT_RUN_ID)}
       selectedNodeId={selectedNodeId}
+      viewMode={viewMode}
       onSelectNode={setSelectedNodeId}
+      onViewMode={setViewMode}
     />
   )
 }

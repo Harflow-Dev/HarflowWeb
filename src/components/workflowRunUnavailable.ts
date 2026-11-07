@@ -1,6 +1,10 @@
 export const RUN_UNAVAILABLE_ID = 'workflow-run-unavailable'
 export const WORKFLOW_RUN_ACTION_EXPLANATION =
-  'Unavailable. This control does not pause, cancel, approve, reject, revise the goal, or open another run view.'
+  'Unavailable. This control does not pause, cancel, approve, reject, or revise the goal.'
+
+export const RUN_LANE_UNAVAILABLE_ID = 'workflow-run-lane-unavailable'
+export const WORKFLOW_RUN_LANE_EXPLANATION =
+  'Unavailable. Lane actions and composers do not send messages in this mock.'
 
 export const RUN_CALL_UNAVAILABLE_ID = 'workflow-run-call-unavailable'
 export const WORKFLOW_RUN_CALL_EXPLANATION =

@@ -73,7 +73,10 @@ that default detail and does not use another node's calls. The strip keeps
 “2 calls · one at a time”; the on-demand specimen's “2 calls” is recorded in
 `docs/provenance.md`. Docs checker, call rows, Open task, the node
 composer, and the canvas zoom control stay unavailable. The zoom label reads 70%,
-and its buttons use their own explanation rather than the Pause and Cancel text. Parallel and recovery stay unavailable. Mapped Open task only
+and its buttons use their own explanation rather than the Pause and Cancel text.
+The Graph / Parallel control toggles the Nightly run’s Parallel lanes from the
+same observation; missing lanes fall back to Graph. recovery stays unavailable.
+Lane composers and lane actions stay disabled. Mapped Open task only
 navigates. A workflow-list Run button opens that definition’s run form through
 `observeWorkflowRun(workflowId, …)`. The draft is session-local and kept per
 definition id. Switching definitions clears the previous permissions into

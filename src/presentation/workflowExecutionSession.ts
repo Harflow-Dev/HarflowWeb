@@ -6,6 +6,11 @@ import type {
   WorkflowRunLoad,
 } from '../model'
 import {
+  effectiveWorkflowRunViewMode,
+  workflowRunHasParallel,
+  type WorkflowRunViewMode,
+} from './workflowRunParallel'
+import {
   initialWorkflowExecutionState,
   type WorkflowExecutionScreenState,
 } from './workflowExecutionState'
@@ -58,7 +63,12 @@ export class WorkflowExecutionSession {
     this.epoch += 1
     const gen = this.epoch
     this.observation?.cancel()
-    this.publish({ runId: id, load: { kind: 'loading' }, selectedNodeId: null })
+    this.publish({
+      runId: id,
+      load: { kind: 'loading' },
+      selectedNodeId: null,
+      viewMode: 'graph',
+    })
     this.watch(id, gen)
   }
 
@@ -66,7 +76,12 @@ export class WorkflowExecutionSession {
     this.epoch += 1
     this.observation?.cancel()
     this.observation = null
-    this.publish({ runId: null, load: { kind: 'loading' }, selectedNodeId: null })
+    this.publish({
+      runId: null,
+      load: { kind: 'loading' },
+      selectedNodeId: null,
+      viewMode: 'graph',
+    })
   }
 
   /** Remember a node choice. Does not write the observation's selected node. */
@@ -75,6 +90,15 @@ export class WorkflowExecutionSession {
     if (current.runId === null || current.load.kind !== 'ready') return
     if (current.load.run.runId !== current.runId) return
     this.publish({ ...current, selectedNodeId: nodeId })
+  }
+
+  /** Presentation-only Graph / Parallel choice. Does not mutate the observation. */
+  setViewMode(mode: WorkflowRunViewMode): void {
+    const current = this.state
+    if (current.runId === null || current.load.kind !== 'ready') return
+    if (current.load.run.runId !== current.runId) return
+    if (mode === 'parallel' && !workflowRunHasParallel(current.load.run)) return
+    this.publish({ ...current, viewMode: mode })
   }
 
   private begin(id: WorkflowRunId): void {
@@ -96,6 +120,7 @@ export class WorkflowExecutionSession {
       runId: id,
       load,
       selectedNodeId: selectionStillPresent(this.state.selectedNodeId, load),
+      viewMode: effectiveWorkflowRunViewMode(this.state.viewMode, load),
     })
   }
 

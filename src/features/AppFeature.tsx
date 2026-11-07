@@ -60,6 +60,7 @@ export function AppFeature({ presenter }: Props) {
             <WorkflowRunMain
               state={state.workflowExecution}
               onSelectNode={(id) => presenter.selectWorkflowRunNode(id)}
+              onViewMode={(mode) => presenter.setWorkflowRunViewMode(mode)}
             />
           ) : state.route === 'new-task' ? (
             <NewTaskMain presenter={presenter} state={newTask} />

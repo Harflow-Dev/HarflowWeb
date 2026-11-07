@@ -48,8 +48,12 @@ grant approvals, answer questions, or touch the task store.
   that was already open, and shows the list only when neither is open.
   Editor and form drafts stay. Every graph node’s status and selected state are in a list.
   Unmapped Open task stays disabled. Mapped Open task navigates to that
-  task and does not start one. The empty state is complete coverage with zero
-  items.
+  task and does not start one. Graph / Parallel toggles the Nightly Parallel
+  lanes from the same observation (Design `f2a30d7` `workflow-run/parallel`).
+  Topbar stays Needs you rather than the Parallel specimen’s Running chrome.
+  Lane model `Codex · gpt-6` is adapted to `Codex · gpt-6-astra`. Lane actions
+  and composers stay disabled. recovery is not built. The empty state is
+  complete coverage with zero items.
   Loading and unavailable do not say nothing needs you and do not show a zero
   badge. Partial coverage shows known items with an incomplete mark. The
   Nightly row’s attention glyph is not counted. No approval authority, answer

@@ -29,6 +29,7 @@ import { AppSession, type AppListener } from './appSession'
 import type { AppRoute, AppScreenState, SettingsSection } from './appState'
 import type { OpenMenu } from './screenState'
 import type { ApprovalsMode, EffortLevel } from './taskOptions'
+import type { WorkflowRunViewMode } from './workflowRunParallel'
 
 export type AppPresenter = {
   subscribe(listener: AppListener): () => void
@@ -48,6 +49,7 @@ export type AppPresenter = {
   closeWorkflowEditor(): void
   selectWorkflowNode(id: WorkflowNodeId): void
   selectWorkflowRunNode(id: WorkflowNodeId | null): void
+  setWorkflowRunViewMode(mode: WorkflowRunViewMode): void
   openTask(taskId: TaskId): void
   setTaskChangesPaneOpen(open: boolean): void
   selectTaskChangedFile(path: string): void
@@ -104,6 +106,7 @@ export function createAppPresenter(deps: Deps): AppPresenter {
     closeWorkflowEditor: () => session.closeWorkflowEditor(),
     selectWorkflowNode: (id) => session.selectWorkflowNode(id),
     selectWorkflowRunNode: (id) => session.selectWorkflowRunNode(id),
+    setWorkflowRunViewMode: (mode) => session.setWorkflowRunViewMode(mode),
     openTask: (taskId) => session.openTask(taskId),
     setTaskChangesPaneOpen: (open) => session.setTaskChangesPaneOpen(open),
     selectTaskChangedFile: (path) => session.selectTaskChangedFile(path),

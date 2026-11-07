@@ -101,7 +101,8 @@
 | Workflow definition list | Design `workflows/list` + `workflows/empty` specimen copy | **Mock-only presentation** — not a public ctl workflow catalog; no run status |
 | Workflow run form | Design `workflows/run` Task, Goal, repository, saved orchestrator, and permissions preview | **Mock-only presentation** — session-local draft; final Run disabled; permission lines are fixture facts, not installed or qualified backends and not enforcement |
 | Workflow editor preview | Design `workflow-editor/node-selected` graph, standalone strip, and inspector | **Mock-only presentation** — read-only; two mapped definitions; editing, save, delete, connect, and run stay disabled |
-| Workflow run graph | Design `workflow-run/graph-needs-you` and `workflow-run/on-demand`, with the publish request and Call 2 model adapted to `needs-you/waiting` | **Mock-only presentation** — one mapped run id, distinct from the Nightly definition id; branch, requester, repository, and publish action come from the shared Nightly snapshot; Security reviewer selection is presentation state and does not change the observation's selected node; Close returns to the Open pull request detail; a missing or mismatched node id shows that default detail; Pause, Cancel, Approve, Reject, goal edits, the node composer, and Open task stay disabled; the canvas zoom control stays disabled at 70% with its own explanation that this mock does not zoom; Parallel, recovery, and the later locked Orchestrator strip card are omitted |
+| Workflow run graph | Design `workflow-run/graph-needs-you` and `workflow-run/on-demand`, with the publish request and Call 2 model adapted to `needs-you/waiting` | **Mock-only presentation** — one mapped run id, distinct from the Nightly definition id; branch, requester, repository, and publish action come from the shared Nightly snapshot; Security reviewer selection is presentation state and does not change the observation's selected node; Close returns to the Open pull request detail; a missing or mismatched node id shows that default detail; Pause, Cancel, Approve, Reject, goal edits, the node composer, and Open task stay disabled; the canvas zoom control stays disabled at 70% with its own explanation that this mock does not zoom; recovery and the later locked Orchestrator strip card are omitted |
+| Workflow run Parallel | Design `workflow-run/parallel` at HarflowDesign `f2a30d7e625ae448588dc844e0dec16eb980eeee` | **Mock-only presentation** — Graph/Parallel is presentation state on the same Nightly observation; lanes come from that observation only; missing lanes fall back to Graph without borrowing; close/reopen resets to Graph; lane composers, lane actions, Pause, Cancel, Approve, Reject, Revise goal, More actions, Zoom, and unmapped Open task stay disabled |
 | Resources slot observation | Design `resources/slots` specimen copy | **Mock-only presentation** — not a public ctl resources catalog; no install/release/admin |
 | Statistics overview | Design `statistics/overview` specimen copy + distinct 7-day mock range | **Mock-only presentation** — not a public ctl statistics/billing API; success rate and median are fixture facts only when coverage is complete |
 | Running-task transcript | Design `task/running` specimen copy | **Mock-only presentation** — not a public ctl transcript protocol; mapped fixture ids only |
@@ -209,8 +210,20 @@
   mock stays at 70%. It is not the Pause and Cancel explanation. The design
   control is present and is not marked disabled; neither changes the scale.
 - Docs checker stays disabled. No inspector state is approved for it.
-  Parallel, recovery, Pause, Cancel run, Approve, Reject, Revise goal, and
-  More actions stay disabled.
+  recovery, Pause, Cancel run, Approve, Reject, Revise goal, and More actions
+  stay disabled.
+- Parallel view pin: HarflowDesign `f2a30d7e625ae448588dc844e0dec16eb980eeee`
+  `v2/scripts/screens-workflow-run.js` state `workflow-run/parallel`. Lane
+  titles and body copy follow that specimen. The specimen topbar shows
+  Running / `Run started 02:00 · HarflowMCP`; this mock keeps the Nightly
+  Needs you / `Step 2 of 4 · 06:31` observation chrome when toggling views
+  (smaller change than inventing a second run status). Specimen lane model
+  `Codex · gpt-6` is adapted to the Nightly snapshot `Codex · gpt-6-astra`.
+  Lane titles stay the Parallel specimen names and are not rewritten to the
+  graph node titles. View mode is presentation-only; a same-run update keeps
+  Parallel when lanes remain, otherwise falls back to Graph. Closing or
+  reopening the run resets to Graph. `parallel-group/lanes` and
+  `workflow-run/recovery` are not built.
 
 ### Workflow run form semantic gaps (explicit)
 

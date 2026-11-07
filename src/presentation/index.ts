@@ -72,6 +72,14 @@ export {
   resolveWorkflowRunSelection,
   workflowRunOnDemandFor,
 } from './workflowRunSelection'
+export {
+  effectiveWorkflowRunViewMode,
+  workflowRunHasParallel,
+  type WorkflowRunLane,
+  type WorkflowRunLaneBlock,
+  type WorkflowRunLaneStatus,
+  type WorkflowRunViewMode,
+} from './workflowRunParallel'
 export { workflowScene, type WorkflowScene } from './workflowGraphRoutes'
 export { roundedOrthogonalPath } from './workflowRoundedPath'
 export { routeConnection } from './workflowConnectionRouter'

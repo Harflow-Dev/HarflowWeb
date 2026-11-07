@@ -35,6 +35,7 @@ import { StatisticsSession } from './statisticsSession'
 import { TaskSession } from './taskSession'
 import { WorkflowEditorSession } from './workflowEditorSession'
 import { WorkflowExecutionSession } from './workflowExecutionSession'
+import type { WorkflowRunViewMode } from './workflowRunParallel'
 import { WorkflowsSession } from './workflowsSession'
 
 export type AppListener = (state: AppScreenState) => void
@@ -197,6 +198,8 @@ export class AppSession {
 
   selectWorkflowRunNode(id: WorkflowNodeId | null): void { this.workflowExecution.selectNode(id) }
 
+  setWorkflowRunViewMode(mode: WorkflowRunViewMode): void { this.workflowExecution.setViewMode(mode) }
+
   openTask(taskId: TaskId): void {
     this.closeWorkflowExecution()
     this.route = 'task'
@@ -204,13 +207,9 @@ export class AppSession {
     this.emit()
   }
 
-  setTaskChangesPaneOpen(open: boolean): void {
-    this.task.setChangesPaneOpen(open)
-  }
+  setTaskChangesPaneOpen(open: boolean): void { this.task.setChangesPaneOpen(open) }
 
-  selectTaskChangedFile(path: string): void {
-    this.task.selectChangedFile(path)
-  }
+  selectTaskChangedFile(path: string): void { this.task.selectChangedFile(path) }
 
   selectStatisticsRange(range: StatisticsRangeId): void {
     this.statistics.selectRange(range)

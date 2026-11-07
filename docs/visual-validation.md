@@ -360,9 +360,33 @@ branch deps/audit-2026-11-03, pytest output “812 passed in 71.40s”, Publish
 changes, and disabled Approve and Reject. The pane’s maximum scroll is 57px;
 after scrolling, Approve’s bottom is 792, inside the 800px viewport. Document
 scrollWidth equals clientWidth (1280). Light focus is the Light control. Dark
-focus is the Dark control. Parallel and recovery detail views were not
-captured. The graph specimen’s `audit/2026-11-03`, Codex · gpt-6,
-and “on HarflowMCP” are adapted to the Needs you request.
+focus is the Dark control. Parallel was later enabled; see the Parallel
+captures below. recovery was not captured. The graph specimen’s
+`audit/2026-11-03`, Codex · gpt-6, and “on HarflowMCP” are adapted to the
+Needs you request.
+
+## Workflow run Parallel — verified 1280×800 captures
+
+Directory:
+`~/.codex/workflows/screenshots/2026-11-07-harflowweb-workflow-run-parallel/`
+
+Captured from `/` after Needs you → Open run on Nightly dependency audit,
+then Parallel. CDP clip `{x:0,y:0,width:1280,height:800}` after
+`Emulation.setDeviceMetricsOverride` to 1280×800. Dimensions verified with
+`sips`. Design pin: HarflowDesign `f2a30d7e625ae448588dc844e0dec16eb980eeee`
+state `workflow-run/parallel`.
+
+| File | Scenario | Viewport / PNG | Appearance |
+| --- | --- | --- | --- |
+| `01-parallel-light.png` | workflow-run/parallel | 1280×800 | light |
+| `02-parallel-dark.png` | workflow-run/parallel | 1280×800 | dark |
+
+Observed: Nightly title with Needs you / Step 2 of 4 · 06:31 (not the
+specimen Running chrome). Parallel is current. Three lanes — Scan Python
+deps (done, Codex · gpt-6-astra), Scan npm deps (running), Draft upgrade PR
+(pending) — scroll horizontally so every lane stays reachable. Document
+scrollWidth equals clientWidth (1280). Pause, Cancel, More actions, lane
+actions, and lane send stay disabled.
 
 ## Workflow run on-demand — verified 1280×800 captures
 
@@ -483,7 +507,8 @@ approved specimen and were not captured as specimens.
   `needs-you/empty` light/dark)
 - Workflow run: `v2/scripts/screens-workflows.js` (`workflows/run` light/dark)
 - Workflow run graph: `v2/scripts/screens-workflow-run.js`
-  (`workflow-run/graph-needs-you` and `workflow-run/on-demand` light/dark)
+  (`workflow-run/graph-needs-you`, `workflow-run/on-demand`, and
+  `workflow-run/parallel` light/dark)
 - Workflow editor: `v2/scripts/screens-workflow-editor.js`
   (`workflow-editor/node-selected` light/dark)
 - Observed in the running Vite app (not substituted from hosted design)
@@ -522,9 +547,10 @@ approved specimen and were not captured as specimens.
   not approved specimens. Workflow editor loading, error, and adaptive
   states are proposals, not approved specimens. MCP approvals Add and
   Remove stay disabled, so the expanded list is a read-only fixture view.
-  Parallel and recovery run details are outside this slice. The on-demand
-  inspector is the Security reviewer state above. The locked Orchestrator
-  strip card is a later design commit and is not on this screen.
+  recovery stays outside this slice. Parallel is the Nightly lanes capture
+  above. The on-demand inspector is the Security reviewer state above. The
+  locked Orchestrator strip card is a later design commit and is not on this
+  screen.
   At 1280×800 the scaled
   Release checklist board is wider than the visible canvas. The inner
   scrollport reaches End; `01` and `02` still show the earlier clipped frame.

@@ -214,4 +214,56 @@ describe('WorkflowExecutionSession', () => {
       expect(updated.run.onDemand[0]?.call.result).not.toBe('Done · no advisories · 01:12')
     }
   })
+
+  it('keeps Parallel across a same-run update and falls back without borrowing', () => {
+    const { engine, saved } = port({ auto: false })
+    const session = sessionFor(engine)
+    session.open(NIGHTLY_AUDIT_RUN_ID)
+    const callback = saved[0]?.send
+    callback?.(workflowExecutionLoadFor(NIGHTLY_AUDIT_RUN_ID))
+    expect(session.getState().viewMode).toBe('graph')
+    session.setViewMode('parallel')
+    expect(session.getState().viewMode).toBe('parallel')
+    const run = nightlyAuditRun()
+    callback?.({
+      kind: 'ready',
+      run: {
+        ...run,
+        progressLabel: 'Step 2 of 4 · 07:05',
+        parallel: run.parallel?.map((lane) =>
+          lane.id === 'lane-scan-npm'
+            ? { ...lane, statusMeta: 'Running 03:10' }
+            : lane,
+        ) ?? null,
+      },
+    })
+    expect(session.getState().viewMode).toBe('parallel')
+    const updated = session.getState().load
+    expect(updated.kind).toBe('ready')
+    if (updated.kind === 'ready') {
+      expect(updated.run.parallel?.[1]?.statusMeta).toBe('Running 03:10')
+    }
+    callback?.({ kind: 'ready', run: { ...run, parallel: null } })
+    expect(session.getState().viewMode).toBe('graph')
+    session.setViewMode('parallel')
+    expect(session.getState().viewMode).toBe('graph')
+  })
+
+  it('resets to Graph when the run closes and opens again', () => {
+    const { engine, saved } = port({ auto: false })
+    const session = sessionFor(engine)
+    session.open(NIGHTLY_AUDIT_RUN_ID)
+    saved[0]?.send(workflowExecutionLoadFor(NIGHTLY_AUDIT_RUN_ID))
+    session.setViewMode('parallel')
+    session.selectNode(SECURITY_REVIEWER_NODE_ID)
+    expect(session.getState().viewMode).toBe('parallel')
+    expect(session.getState().selectedNodeId).toBe(SECURITY_REVIEWER_NODE_ID)
+    session.close()
+    expect(session.getState().viewMode).toBe('graph')
+    expect(session.getState().selectedNodeId).toBeNull()
+    session.open(NIGHTLY_AUDIT_RUN_ID)
+    saved[1]?.send(workflowExecutionLoadFor(NIGHTLY_AUDIT_RUN_ID))
+    expect(session.getState().viewMode).toBe('graph')
+    expect(session.getState().selectedNodeId).toBeNull()
+  })
 })

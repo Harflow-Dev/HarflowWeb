@@ -82,6 +82,40 @@ export type WorkflowRunOnDemand = {
   readonly call: WorkflowRunOnDemandCall
 }
 
+/** Lane status for the read-only Parallel run view. */
+export type WorkflowRunLaneStatus = 'done' | 'running' | 'pending'
+
+/** One body block inside a Parallel lane. */
+export type WorkflowRunLaneBlock =
+  | { readonly kind: 'agent'; readonly runs: readonly InlineRun[] }
+  | {
+      readonly kind: 'tool'
+      readonly id: string
+      readonly summary: string
+      readonly duration: string
+    }
+  | { readonly kind: 'result'; readonly text: string }
+  | { readonly kind: 'working'; readonly text: string }
+  | {
+      readonly kind: 'waiting'
+      readonly title: string
+      readonly caption: string
+    }
+
+/**
+ * One Parallel lane for this run.
+ * Lane ids are observation facts for this run, not graph node ids.
+ */
+export type WorkflowRunLane = {
+  readonly id: string
+  readonly title: string
+  readonly agentLabel: string
+  readonly status: WorkflowRunLaneStatus
+  readonly statusMeta: string
+  readonly composerName: string
+  readonly blocks: readonly WorkflowRunLaneBlock[]
+}
+
 export type WorkflowRunObservation = {
   readonly runId: WorkflowRunId
   readonly definitionId: WorkflowId
@@ -96,6 +130,8 @@ export type WorkflowRunObservation = {
   readonly selectedNodeId: WorkflowNodeId
   readonly detail: WorkflowRunDetail
   readonly onDemand: readonly WorkflowRunOnDemand[]
+  /** Parallel lanes for this run. Null or empty means Parallel is unavailable. */
+  readonly parallel: readonly WorkflowRunLane[] | null
 }
 
 export type WorkflowRunLoad =

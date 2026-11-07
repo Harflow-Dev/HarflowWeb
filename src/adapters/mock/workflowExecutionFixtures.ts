@@ -13,6 +13,7 @@ import {
   NIGHTLY_PUBLISH_SNAPSHOT,
   NIGHTLY_REQUESTER_MODEL,
 } from './nightlyPublishSnapshot'
+import { nightlyParallelLanes } from './nightlyParallelLanes'
 
 /**
  * workflow-run/graph-needs-you from HarflowDesign
@@ -106,6 +107,7 @@ export function nightlyAuditRun(): WorkflowRunObservation {
       },
     },
     onDemand: [securityReviewerOnDemand()],
+    parallel: nightlyParallelLanes(),
   }
 }
 

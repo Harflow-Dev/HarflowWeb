@@ -1,27 +1,49 @@
 import { useRef, type RefObject } from 'react'
-import type { WorkflowNodeId, WorkflowRunLoad, WorkflowRunNode, WorkflowRunObservation } from '../model'
-import { resolveWorkflowRunSelection, workflowRunOnDemandFor } from '../presentation'
+import type {
+  WorkflowNodeId,
+  WorkflowRunLoad,
+  WorkflowRunNode,
+  WorkflowRunObservation,
+} from '../model'
+import {
+  effectiveWorkflowRunViewMode,
+  resolveWorkflowRunSelection,
+  workflowRunOnDemandFor,
+  type WorkflowRunViewMode,
+} from '../presentation'
 import { Icon } from './Icon'
 import { WorkflowRunCanvas } from './WorkflowRunCanvas'
 import { WorkflowRunDetail } from './WorkflowRunDetail'
 import { WorkflowRunOnDemandPane } from './WorkflowRunOnDemandPane'
+import { WorkflowRunParallelView } from './WorkflowRunParallelView'
+import { WorkflowRunViewToggle } from './WorkflowRunViewToggle'
 import {
   RUN_CALL_UNAVAILABLE_ID,
+  RUN_LANE_UNAVAILABLE_ID,
   RUN_TOOL_UNAVAILABLE_ID,
   RUN_UNAVAILABLE_ID,
   WORKFLOW_RUN_ACTION_EXPLANATION,
   WORKFLOW_RUN_CALL_EXPLANATION,
+  WORKFLOW_RUN_LANE_EXPLANATION,
   WORKFLOW_RUN_TOOL_EXPLANATION,
 } from './workflowRunUnavailable'
 
 type Props = {
   readonly load: WorkflowRunLoad
   readonly selectedNodeId?: WorkflowNodeId | null
+  readonly viewMode?: WorkflowRunViewMode
   readonly onSelectNode?: (id: WorkflowNodeId | null) => void
+  readonly onViewMode?: (mode: WorkflowRunViewMode) => void
 }
 
-/** Approved workflow-run graph. Mutations and unapproved node details stay disabled. */
-export function WorkflowRunView({ load, selectedNodeId = null, onSelectNode }: Props) {
+/** Approved workflow-run graph or Parallel lanes. Mutations stay disabled. */
+export function WorkflowRunView({
+  load,
+  selectedNodeId = null,
+  viewMode = 'graph',
+  onSelectNode,
+  onViewMode,
+}: Props) {
   const reviewerButton = useRef<HTMLButtonElement>(null)
   if (load.kind === 'loading') {
     return <p role="status">Loading workflow run…</p>
@@ -31,6 +53,7 @@ export function WorkflowRunView({ load, selectedNodeId = null, onSelectNode }: P
   }
   const run = load.run
   const display = resolveWorkflowRunSelection(run, selectedNodeId)
+  const activeView = effectiveWorkflowRunViewMode(viewMode, load)
   const closeInspector = () => {
     onSelectNode?.(null)
     reviewerButton.current?.focus()
@@ -46,6 +69,9 @@ export function WorkflowRunView({ load, selectedNodeId = null, onSelectNode }: P
       <p id={RUN_TOOL_UNAVAILABLE_ID} className="hd-sr">
         {WORKFLOW_RUN_TOOL_EXPLANATION}
       </p>
+      <p id={RUN_LANE_UNAVAILABLE_ID} className="hd-sr">
+        {WORKFLOW_RUN_LANE_EXPLANATION}
+      </p>
       <div className="hd-topbar">
         <span className="hd-topbar__title">{run.title}</span>
         <span className="hd-badge hd-badge--attention">
@@ -54,20 +80,11 @@ export function WorkflowRunView({ load, selectedNodeId = null, onSelectNode }: P
         </span>
         <span className="hd-topbar__meta">{run.progressLabel}</span>
         <span className="hd-topbar__spacer" />
-        <div className="hd-seg" role="group" aria-label="Run view">
-          <button type="button" className="hd-seg__item is-active" aria-current="page">
-            Graph
-          </button>
-          <button
-            type="button"
-            className="hd-seg__item"
-            disabled
-            aria-disabled="true"
-            aria-describedby={RUN_UNAVAILABLE_ID}
-          >
-            Parallel
-          </button>
-        </div>
+        <WorkflowRunViewToggle
+          load={load}
+          viewMode={viewMode}
+          onViewMode={(mode) => onViewMode?.(mode)}
+        />
         <DisabledBar label="Pause" icon="pause" />
         <DisabledBar label="Cancel run" />
         <button
@@ -81,20 +98,26 @@ export function WorkflowRunView({ load, selectedNodeId = null, onSelectNode }: P
           <Icon name="more" />
         </button>
       </div>
-      <Standalone
-        run={run}
-        selectedNodeId={display.nodeId}
-        reviewerButton={reviewerButton}
-        {...(onSelectNode ? { onSelectNode } : {})}
-      />
-      <div className="hd-split">
-        <WorkflowRunCanvas run={run} selectedNodeId={display.nodeId} />
-        {display.onDemand ? (
-          <WorkflowRunOnDemandPane detail={display.onDemand} onClose={closeInspector} />
-        ) : (
-          <WorkflowRunDetail detail={run.detail} />
-        )}
-      </div>
+      {activeView === 'parallel' && run.parallel ? (
+        <WorkflowRunParallelView lanes={run.parallel} />
+      ) : (
+        <>
+          <Standalone
+            run={run}
+            selectedNodeId={display.nodeId}
+            reviewerButton={reviewerButton}
+            {...(onSelectNode ? { onSelectNode } : {})}
+          />
+          <div className="hd-split">
+            <WorkflowRunCanvas run={run} selectedNodeId={display.nodeId} />
+            {display.onDemand ? (
+              <WorkflowRunOnDemandPane detail={display.onDemand} onClose={closeInspector} />
+            ) : (
+              <WorkflowRunDetail detail={run.detail} />
+            )}
+          </div>
+        </>
+      )}
     </>
   )
 }

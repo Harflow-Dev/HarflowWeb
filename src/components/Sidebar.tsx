@@ -1,4 +1,10 @@
-import type { Appearance, NeedsYouBadge, SidebarData, TaskId } from '../model'
+import type {
+  Appearance,
+  NeedsYouBadge,
+  ParallelGroupId,
+  SidebarData,
+  TaskId,
+} from '../model'
 import type { AppRoute } from '../presentation'
 import { Icon } from './Icon'
 import { CollapsedRail, ExpandedNavItem, NAV } from './sidebarNav'
@@ -10,12 +16,14 @@ type Props = {
   readonly appearance: Appearance
   readonly activeRoute: AppRoute
   readonly activeTaskId: TaskId | null
+  readonly activeParallelGroupId: ParallelGroupId | null
   readonly sidebar: SidebarData | null
   readonly needsYou: NeedsYouBadge
   readonly onCollapse: (collapsed: boolean) => void
   readonly onAppearance: (appearance: Appearance) => void
   readonly onNavigate: (route: AppRoute) => void
   readonly onOpenTask: (taskId: TaskId) => void
+  readonly onOpenParallelGroup: (groupId: ParallelGroupId) => void
   readonly onUnavailable: (label: string) => void
 }
 
@@ -24,16 +32,20 @@ export function Sidebar({
   appearance,
   activeRoute,
   activeTaskId,
+  activeParallelGroupId,
   sidebar,
   needsYou,
   onCollapse,
   onAppearance,
   onNavigate,
   onOpenTask,
+  onOpenParallelGroup,
   onUnavailable,
 }: Props) {
   const runningCount = sidebar?.running.length ?? 0
   const taskActiveId = activeRoute === 'task' ? activeTaskId : null
+  const groupActiveId =
+    activeRoute === 'parallel-group' ? activeParallelGroupId : null
 
   if (collapsed) {
     return (
@@ -81,7 +93,9 @@ export function Sidebar({
         count={runningCount}
         rows={sidebar?.running ?? []}
         activeTaskId={taskActiveId}
+        activeParallelGroupId={groupActiveId}
         onOpenTask={onOpenTask}
+        onOpenParallelGroup={onOpenParallelGroup}
         onUnavailable={onUnavailable}
       />
       <TaskSection
@@ -91,7 +105,9 @@ export function Sidebar({
         coverageIncomplete={sidebar?.coverageIncomplete ?? false}
         fill
         activeTaskId={taskActiveId}
+        activeParallelGroupId={groupActiveId}
         onOpenTask={onOpenTask}
+        onOpenParallelGroup={onOpenParallelGroup}
         onUnavailable={onUnavailable}
       />
       <div className="hd-sidebar__foot">

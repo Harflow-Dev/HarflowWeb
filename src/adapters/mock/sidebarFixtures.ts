@@ -1,7 +1,7 @@
 import { asTaskId, type SidebarData, type SidebarEntry } from '../../model'
+import { PRELOAD_PARALLEL_GROUP_ID } from './parallelGroupFixtures'
 import {
   EVENTS_READER_FAILED_TASK_ID,
-  PRELOAD_TASK_ID,
   RETRY_BUDGET_DONE_TASK_ID,
   SLOT_RELEASE_TASK_ID,
 } from './taskFixtures'
@@ -12,7 +12,8 @@ export const POPULATED_RUNNING: readonly SidebarEntry[] = [
     title: 'Review preload bridge',
     meta: '1/3',
     glyph: 'parallel',
-    mappedTaskId: PRELOAD_TASK_ID,
+    mappedTaskId: null,
+    mappedParallelGroupId: PRELOAD_PARALLEL_GROUP_ID,
   },
   {
     id: 'run-2',
@@ -20,6 +21,7 @@ export const POPULATED_RUNNING: readonly SidebarEntry[] = [
     meta: '04:12',
     glyph: 'running',
     mappedTaskId: SLOT_RELEASE_TASK_ID,
+    mappedParallelGroupId: null,
   },
   {
     id: 'run-3',
@@ -27,6 +29,7 @@ export const POPULATED_RUNNING: readonly SidebarEntry[] = [
     meta: '2/4',
     glyph: 'attention',
     mappedTaskId: null,
+    mappedParallelGroupId: null,
   },
 ]
 
@@ -37,6 +40,7 @@ export const POPULATED_RECENT: readonly SidebarEntry[] = [
     meta: '12m',
     glyph: 'done',
     mappedTaskId: RETRY_BUDGET_DONE_TASK_ID,
+    mappedParallelGroupId: null,
   },
   {
     id: 'rec-2',
@@ -44,6 +48,7 @@ export const POPULATED_RECENT: readonly SidebarEntry[] = [
     meta: '1h',
     glyph: 'failed',
     mappedTaskId: EVENTS_READER_FAILED_TASK_ID,
+    mappedParallelGroupId: null,
   },
   {
     id: 'rec-3',
@@ -51,6 +56,7 @@ export const POPULATED_RECENT: readonly SidebarEntry[] = [
     meta: '2h',
     glyph: 'done',
     mappedTaskId: null,
+    mappedParallelGroupId: null,
   },
   {
     id: 'rec-4',
@@ -58,6 +64,7 @@ export const POPULATED_RECENT: readonly SidebarEntry[] = [
     meta: '3h',
     glyph: 'workflow',
     mappedTaskId: null,
+    mappedParallelGroupId: null,
   },
   {
     id: 'rec-5',
@@ -65,6 +72,7 @@ export const POPULATED_RECENT: readonly SidebarEntry[] = [
     meta: '5h',
     glyph: 'done',
     mappedTaskId: null,
+    mappedParallelGroupId: null,
   },
   {
     id: 'rec-6',
@@ -72,6 +80,7 @@ export const POPULATED_RECENT: readonly SidebarEntry[] = [
     meta: '1d',
     glyph: 'cancelled',
     mappedTaskId: null,
+    mappedParallelGroupId: null,
   },
   {
     id: 'rec-7',
@@ -79,6 +88,7 @@ export const POPULATED_RECENT: readonly SidebarEntry[] = [
     meta: '1d',
     glyph: 'done',
     mappedTaskId: null,
+    mappedParallelGroupId: null,
   },
   {
     id: 'rec-8',
@@ -86,6 +96,7 @@ export const POPULATED_RECENT: readonly SidebarEntry[] = [
     meta: '2d',
     glyph: 'workflow',
     mappedTaskId: null,
+    mappedParallelGroupId: null,
   },
   {
     id: 'rec-9',
@@ -93,6 +104,7 @@ export const POPULATED_RECENT: readonly SidebarEntry[] = [
     meta: '3d',
     glyph: 'done',
     mappedTaskId: null,
+    mappedParallelGroupId: null,
   },
 ]
 

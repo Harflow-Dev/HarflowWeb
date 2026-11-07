@@ -4,6 +4,7 @@ import { needsYouBadge } from '../model'
 import type { AppPresenter } from '../presentation'
 import { NeedsYouMain } from './NeedsYouMain'
 import { NewTaskMain } from './NewTaskMain'
+import { ParallelGroupMain } from './ParallelGroupMain'
 import { ResourcesMain } from './ResourcesMain'
 import { SettingsMain } from './SettingsMain'
 import { StatisticsMain } from './StatisticsMain'
@@ -47,16 +48,21 @@ export function AppFeature({ presenter }: Props) {
           appearance={newTask.appearance}
           activeRoute={state.route}
           activeTaskId={state.task.selectedTaskId}
+          activeParallelGroupId={state.parallelGroup.groupId}
           sidebar={ready?.sidebar ?? null}
           needsYou={needsYouBadge(state.needsYou.load)}
           onCollapse={(collapsed) => presenter.setSidebarCollapsed(collapsed)}
           onAppearance={(appearance) => presenter.setAppearance(appearance)}
           onNavigate={(route) => presenter.navigate(route)}
           onOpenTask={(taskId) => presenter.openTask(taskId)}
+          onOpenParallelGroup={(groupId) => presenter.openParallelGroup(groupId)}
           onUnavailable={(label) => ephemeral.show(label)}
         />
         <main className="hd-main">
-          {state.workflowExecution.runId !== null && state.route === 'workflows' ? (
+          {state.route === 'parallel-group' ? (
+            <ParallelGroupMain state={state.parallelGroup} />
+          ) : state.workflowExecution.runId !== null &&
+            state.route === 'workflows' ? (
             <WorkflowRunMain
               state={state.workflowExecution}
               onSelectNode={(id) => presenter.selectWorkflowRunNode(id)}

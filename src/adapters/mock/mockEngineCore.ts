@@ -3,6 +3,8 @@ import type {
   ContextLoad,
   HarnessesLoad,
   NeedsYouLoad,
+  ParallelGroupId,
+  ParallelGroupLoad,
   ResourcesLoad,
   StartTaskOutcome,
   StartTaskRequest,
@@ -30,6 +32,7 @@ import { statisticsLoadFor } from './statisticsFixtures'
 import { taskChangesLoadFor } from './taskChangesFixtures'
 import { taskLoadFor } from './taskFixtures'
 import { workflowEditorLoadFor } from './workflowEditorFixtures'
+import { parallelGroupLoadFor } from './parallelGroupFixtures'
 import { workflowExecutionLoadFor } from './workflowExecutionFixtures'
 import { workflowRunLoadFor } from './workflowRunFixtures'
 
@@ -51,6 +54,7 @@ export type MockListenerSets = {
   readonly workflowRuns: Set<KeyedListener<WorkflowId, WorkflowRunContextLoad>>
   readonly workflowEditors: Set<KeyedListener<WorkflowId, WorkflowEditorLoad>>
   readonly workflowExecutions: Set<KeyedListener<WorkflowRunId, WorkflowRunLoad>>
+  readonly parallelGroups: Set<KeyedListener<ParallelGroupId, ParallelGroupLoad>>
 }
 
 export function createListenerSets(): MockListenerSets {
@@ -66,6 +70,7 @@ export function createListenerSets(): MockListenerSets {
     workflowRuns: new Set(),
     workflowEditors: new Set(),
     workflowExecutions: new Set(),
+    parallelGroups: new Set(),
   }
 }
 
@@ -179,6 +184,14 @@ export function buildMockEnginePort(options: {
         runId,
         onUpdate,
         (id) => workflowExecutionLoadFor(id),
+      )
+    },
+    observeParallelGroup(groupId, onUpdate) {
+      return createKeyedObservation(
+        listeners.parallelGroups,
+        groupId,
+        onUpdate,
+        (id) => parallelGroupLoadFor(id),
       )
     },
     observeHarnesses(onUpdate) {

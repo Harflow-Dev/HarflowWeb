@@ -2,6 +2,7 @@ import type {
   LoadContextUseCase,
   LoadHarnessesUseCase,
   LoadNeedsYouUseCase,
+  LoadParallelGroupUseCase,
   LoadResourcesUseCase,
   LoadWorkflowEditorUseCase,
   LoadWorkflowExecutionUseCase,
@@ -17,6 +18,7 @@ import type {
   Appearance,
   HarnessId,
   ModelId,
+  ParallelGroupId,
   RepositoryId,
   StatisticsRangeId,
   TaskId,
@@ -28,6 +30,7 @@ import type {
 import type { AppRoute, AppScreenState, SettingsSection } from './appState'
 import { HarnessesSession } from './harnessesSession'
 import { NeedsYouSession } from './needsYouSession'
+import { ParallelGroupSession } from './parallelGroupSession'
 import { PresenterSession } from './presenterSession'
 import { ResourcesSession } from './resourcesSession'
 import type { OpenMenu } from './screenState'
@@ -53,6 +56,7 @@ type Deps = {
   readonly loadWorkflowRun: LoadWorkflowRunUseCase
   readonly loadWorkflowEditor: LoadWorkflowEditorUseCase
   readonly loadWorkflowExecution: LoadWorkflowExecutionUseCase
+  readonly loadParallelGroup: LoadParallelGroupUseCase
 }
 
 /**
@@ -72,6 +76,7 @@ export class AppSession {
   private readonly needsYou: NeedsYouSession
   private readonly workflowEditor: WorkflowEditorSession
   private readonly workflowExecution: WorkflowExecutionSession
+  private readonly parallelGroup: ParallelGroupSession
   private settingsSection: SettingsSection = 'general'
   private readonly listeners = new Set<AppListener>()
   private snapshot: AppScreenState
@@ -92,6 +97,7 @@ export class AppSession {
     this.needsYou = new NeedsYouSession(deps.loadNeedsYou)
     this.workflowEditor = new WorkflowEditorSession(deps.loadWorkflowEditor)
     this.workflowExecution = new WorkflowExecutionSession(deps.loadWorkflowExecution)
+    this.parallelGroup = new ParallelGroupSession(deps.loadParallelGroup)
     this.snapshot = this.buildSnapshot()
     this.newTask.subscribe(() => this.emit())
     this.workflows.subscribe(() => this.emit())
@@ -102,6 +108,7 @@ export class AppSession {
     this.needsYou.subscribe(() => this.emit())
     this.workflowEditor.subscribe(() => this.emit())
     this.workflowExecution.subscribe(() => this.emit())
+    this.parallelGroup.subscribe(() => this.emit())
   }
 
   subscribe(listener: AppListener): () => void {
@@ -126,6 +133,7 @@ export class AppSession {
     this.needsYou.start()
     this.workflowEditor.start()
     this.workflowExecution.start()
+    this.parallelGroup.start()
   }
 
   dispose(): void {
@@ -138,6 +146,7 @@ export class AppSession {
     this.needsYou.dispose()
     this.workflowEditor.dispose()
     this.workflowExecution.dispose()
+    this.parallelGroup.dispose()
   }
 
   navigate(route: AppRoute): void {
@@ -145,14 +154,32 @@ export class AppSession {
     const leavingRun = runOpen && route !== 'workflows'
     const dismissingRun = runOpen && route === 'workflows'
     if (leavingRun || dismissingRun) this.closeWorkflowExecution()
-    if (this.route === route && !leavingRun && !dismissingRun) return
+    const groupOpen = this.parallelGroup.getState().groupId !== null
+    const leavingGroup = groupOpen && route !== 'parallel-group'
+    if (leavingGroup) this.closeParallelGroup()
+    if (
+      this.route === route &&
+      !leavingRun &&
+      !dismissingRun &&
+      !leavingGroup
+    ) {
+      return
+    }
     this.route = route
     this.emit()
   }
 
   openWorkflowExecution(id: WorkflowRunId): void {
+    this.closeParallelGroup()
     this.route = 'workflows'
     this.workflowExecution.open(id)
+    this.emit()
+  }
+
+  openParallelGroup(id: ParallelGroupId): void {
+    this.closeWorkflowExecution()
+    this.route = 'parallel-group'
+    this.parallelGroup.open(id)
     this.emit()
   }
 
@@ -202,6 +229,7 @@ export class AppSession {
 
   openTask(taskId: TaskId): void {
     this.closeWorkflowExecution()
+    this.closeParallelGroup()
     this.route = 'task'
     this.task.openTask(taskId)
     this.emit()
@@ -219,6 +247,12 @@ export class AppSession {
   private closeWorkflowExecution(): void {
     if (this.workflowExecution.getState().runId === null) return
     this.workflowExecution.close()
+  }
+
+  /** Drop the Parallel group observation before any other route. */
+  private closeParallelGroup(): void {
+    if (this.parallelGroup.getState().groupId === null) return
+    this.parallelGroup.close()
   }
 
   selectSettingsSection(section: SettingsSection): void {
@@ -283,6 +317,7 @@ export class AppSession {
       needsYou: this.needsYou.getState(),
       workflowEditor: this.workflowEditor.getState(),
       workflowExecution: this.workflowExecution.getState(),
+      parallelGroup: this.parallelGroup.getState(),
     }
   }
 

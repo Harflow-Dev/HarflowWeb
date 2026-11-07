@@ -5,6 +5,7 @@ import {
   createLoadContextUseCase,
   createLoadHarnessesUseCase,
   createLoadNeedsYouUseCase,
+  createLoadParallelGroupUseCase,
   createLoadResourcesUseCase,
   createLoadStatisticsUseCase,
   createLoadTaskChangesUseCase,
@@ -18,12 +19,15 @@ import {
 } from '../application'
 import {
   asObservationId,
+  asParallelGroupId,
   asRepositoryId,
   asTaskId,
   asWorkflowId,
   asWorkflowNodeId,
   type ContextLoad,
   type ObservationHandle,
+  type ParallelGroupId,
+  type ParallelGroupLoad,
   type ResourcesLoad,
   type StartTaskOutcome,
   type StartTaskRequest,
@@ -48,6 +52,10 @@ import {
   unavailableNeedsYouLoad,
   waitingNeedsYouLoad,
 } from '../adapters/mock/needsYouFixtures'
+import {
+  parallelGroupLoadFor,
+  PRELOAD_PARALLEL_GROUP_ID,
+} from '../adapters/mock/parallelGroupFixtures'
 import { SLOT_RELEASE_TASK_ID } from '../adapters/mock/taskFixtures'
 import {
   workflowEditorLoadFor,
@@ -67,7 +75,6 @@ import {
 } from '../adapters/mock/taskChangesFixtures'
 import {
   EVENTS_READER_FAILED_TASK_ID,
-  PRELOAD_TASK_ID,
   RETRY_BUDGET_DONE_TASK_ID,
   taskLoadFor,
 } from '../adapters/mock/taskFixtures'
@@ -88,6 +95,7 @@ function createTestEngine(options?: {
   workflows?: WorkflowsLoad
   deferStatisticsRanges?: readonly StatisticsRangeId[]
   deferTaskIds?: readonly TaskId[]
+  deferParallelGroupIds?: readonly ParallelGroupId[]
   deferChanges?: boolean
   deferWorkflowRun?: boolean
 }): {
@@ -98,6 +106,10 @@ function createTestEngine(options?: {
   publishTask: (taskId: TaskId, load: TaskLoad) => void
   publishTaskChanges: (query: TaskChangesQuery, load: TaskChangesLoad) => void
   publishNeedsYou: (load: NeedsYouLoad) => void
+  publishParallelGroup: (
+    groupId: ParallelGroupId,
+    load: ParallelGroupLoad,
+  ) => void
   captureChangesCallback: () => ((load: TaskChangesLoad) => void) | null
   publishWorkflowRun: (id: WorkflowId, load: WorkflowRunContextLoad) => void
   captureWorkflowRun: (
@@ -107,6 +119,9 @@ function createTestEngine(options?: {
   captureWorkflowEditor: (
     id: WorkflowId,
   ) => ((load: WorkflowEditorLoad) => void) | null
+  captureParallelGroup: (
+    id: ParallelGroupId,
+  ) => ((load: ParallelGroupLoad) => void) | null
 } {
   const starts: StartTaskRequest[] = []
   let held = createControllablePromise<StartTaskOutcome>()
@@ -117,6 +132,7 @@ function createTestEngine(options?: {
   const resources: ResourcesLoad = populatedResourcesLoad()
   const deferred = new Set(options?.deferStatisticsRanges ?? [])
   const deferredTasks = new Set(options?.deferTaskIds ?? [])
+  const deferredParallelGroups = new Set(options?.deferParallelGroupIds ?? [])
   const statsListeners = new Map<
     StatisticsRangeId,
     (load: StatisticsLoad) => void
@@ -134,6 +150,10 @@ function createTestEngine(options?: {
   const editorListeners = new Map<
     WorkflowId,
     (load: WorkflowEditorLoad) => void
+  >()
+  const parallelGroupListeners = new Map<
+    ParallelGroupId,
+    (load: ParallelGroupLoad) => void
   >()
   let lastChangesCallback: ((load: TaskChangesLoad) => void) | null = null
   const port: EnginePort = {
@@ -188,6 +208,20 @@ function createTestEngine(options?: {
         id: asObservationId('ui-workflow-execution'),
         cancel() {
           /* run lifetime is covered in its session tests */
+        },
+      }
+    },
+    observeParallelGroup(groupId, onUpdate) {
+      parallelGroupListeners.set(groupId, onUpdate)
+      if (!deferredParallelGroups.has(groupId)) {
+        queueMicrotask(() => onUpdate(parallelGroupLoadFor(groupId)))
+      }
+      return {
+        id: asObservationId('ui-parallel-group'),
+        cancel() {
+          if (parallelGroupListeners.get(groupId) === onUpdate) {
+            parallelGroupListeners.delete(groupId)
+          }
         },
       }
     },
@@ -304,6 +338,12 @@ function createTestEngine(options?: {
     captureWorkflowEditor(id) {
       return editorListeners.get(id) ?? null
     },
+    publishParallelGroup(groupId, load) {
+      parallelGroupListeners.get(groupId)?.(load)
+    },
+    captureParallelGroup(id) {
+      return parallelGroupListeners.get(id) ?? null
+    },
   }
 }
 
@@ -321,6 +361,7 @@ function renderApp(engine: EnginePort) {
     loadWorkflowRun: createLoadWorkflowRunUseCase(engine),
     loadWorkflowEditor: createLoadWorkflowEditorUseCase(engine),
     loadWorkflowExecution: createLoadWorkflowExecutionUseCase(engine),
+    loadParallelGroup: createLoadParallelGroupUseCase(engine),
   })
   const view = render(<AppFeature presenter={presenter} />)
   return { presenter, ...view }
@@ -695,7 +736,7 @@ describe('AppFeature navigation', () => {
   it('does not show task A content under task B while B is loading', async () => {
     const user = userEvent.setup()
     const { port, publishTask } = createTestEngine({
-      deferTaskIds: [PRELOAD_TASK_ID],
+      deferTaskIds: [EVENTS_READER_FAILED_TASK_ID],
     })
     renderApp(port)
     await flush()
@@ -706,11 +747,11 @@ describe('AppFeature navigation', () => {
     expect(await screen.findByText('Running tests…')).toBeInTheDocument()
 
     await user.click(
-      screen.getByRole('button', { name: /Review preload bridge/ }),
+      screen.getByRole('button', { name: /Migrate events.jsonl reader/ }),
     )
     const main = screen.getByRole('main')
     expect(
-      within(main).getByText('Review preload bridge'),
+      within(main).getByText('Migrate events.jsonl reader'),
     ).toBeInTheDocument()
     expect(
       within(main).getByText(/Loading task… \(proposal/),
@@ -720,14 +761,84 @@ describe('AppFeature navigation', () => {
       within(main).queryByText(/test_release_frees_slot/),
     ).not.toBeInTheDocument()
 
-    publishTask(PRELOAD_TASK_ID, taskLoadFor(PRELOAD_TASK_ID))
+    publishTask(
+      EVENTS_READER_FAILED_TASK_ID,
+      taskLoadFor(EVENTS_READER_FAILED_TASK_ID),
+    )
     expect(
-      await within(main).findByText(/Reading bridge contracts/),
-    ).toBeInTheDocument()
-    expect(
-      within(main).getByText(/Include notes on <script>alert\("x"\)<\/script>/),
+      await within(main).findByText(
+        'Task failed: the harness exited with code 1',
+      ),
     ).toBeInTheDocument()
     expect(within(main).queryByText('Running tests…')).not.toBeInTheDocument()
+  })
+
+  it('opens the Parallel group from the Running sidebar row', async () => {
+    const user = userEvent.setup()
+    const engine = createTestEngine()
+    const { presenter } = renderApp(engine.port)
+    await flush()
+
+    const row = screen.getByRole('button', { name: /Review preload bridge/ })
+    expect(
+      within(row).getByLabelText('Parallel group, running'),
+    ).toBeInTheDocument()
+    expect(within(row).getByText('1/3')).toBeInTheDocument()
+
+    await user.click(row)
+    await flush()
+    expect(presenter.getState().route).toBe('parallel-group')
+    expect(presenter.getState().parallelGroup.groupId).toBe(
+      PRELOAD_PARALLEL_GROUP_ID,
+    )
+    expect(row).toHaveClass('is-active')
+    expect(row).toHaveAttribute('aria-current', 'page')
+
+    const main = screen.getByRole('main')
+    expect(
+      within(main).getByText('Review preload bridge'),
+    ).toBeInTheDocument()
+    expect(within(main).getByText('1 running · 2 done')).toBeInTheDocument()
+    expect(
+      within(main).getByText(
+        'Enforced for every agent here: Network: not controlled.',
+      ),
+    ).toBeInTheDocument()
+    expect(
+      within(main).getByRole('region', { name: 'Claude Code' }),
+    ).toBeInTheDocument()
+    expect(within(main).getByRole('region', { name: 'Codex' })).toBeInTheDocument()
+    expect(
+      within(main).getByRole('region', { name: 'Opencode' }),
+    ).toBeInTheDocument()
+  })
+
+  it('reaches the Parallel group sidebar row by keyboard', async () => {
+    const user = userEvent.setup()
+    renderApp(createTestEngine().port)
+    await flush()
+
+    const row = screen.getByRole('button', { name: /Review preload bridge/ })
+    row.focus()
+    expect(row).toHaveFocus()
+    await user.keyboard('{Enter}')
+    await flush()
+    const main = screen.getByRole('main')
+    expect(
+      within(main).getByText('1 running · 2 done'),
+    ).toBeInTheDocument()
+  })
+
+  it('shows unavailable for a missing Parallel group without borrowing lanes', async () => {
+    const { presenter } = renderApp(createTestEngine().port)
+    await flush()
+    presenter.openParallelGroup(asParallelGroupId('parallel-group-missing'))
+    await flush()
+    expect(
+      screen.getByText('This parallel group is unavailable.'),
+    ).toBeInTheDocument()
+    expect(screen.queryByText('Claude Code')).not.toBeInTheDocument()
+    expect(screen.queryByText('Reading src/preload/bridge.ts…')).not.toBeInTheDocument()
   })
 
   it('preserves draft, statistics range, and held launch across task navigation', async () => {

@@ -145,6 +145,7 @@ export function partialSidebar(): SidebarData {
         meta: '04:12',
         glyph: 'running',
         mappedTaskId: null,
+        mappedParallelGroupId: null,
       },
     ],
     recent: [],

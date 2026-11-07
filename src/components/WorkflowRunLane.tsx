@@ -1,6 +1,6 @@
 import type { InlineRun } from '../model'
 import type { WorkflowRunLane, WorkflowRunLaneBlock } from '../presentation'
-import { Icon } from './Icon'
+import { Icon, type IconName } from './Icon'
 import {
   RUN_LANE_UNAVAILABLE_ID,
   RUN_TOOL_UNAVAILABLE_ID,
@@ -10,10 +10,20 @@ import {
 
 type Props = {
   readonly lane: WorkflowRunLane
+  readonly laneUnavailableId?: string
+  readonly laneExplanation?: string
+  readonly toolUnavailableId?: string
+  readonly toolExplanation?: string
 }
 
 /** One read-only Parallel lane. Composers and lane actions stay disabled. */
-export function WorkflowRunLane({ lane }: Props) {
+export function WorkflowRunLane({
+  lane,
+  laneUnavailableId = RUN_LANE_UNAVAILABLE_ID,
+  laneExplanation = WORKFLOW_RUN_LANE_EXPLANATION,
+  toolUnavailableId = RUN_TOOL_UNAVAILABLE_ID,
+  toolExplanation = WORKFLOW_RUN_TOOL_EXPLANATION,
+}: Props) {
   const messageLabel = `Message ${lane.composerName}`
   const sendLabel = `Send to ${lane.composerName}`
   return (
@@ -24,11 +34,21 @@ export function WorkflowRunLane({ lane }: Props) {
     >
       <div className="hd-lane__head">
         <LaneGlyph status={lane.status} />
-        <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
+        <div
+          style={{
+            flex: 1,
+            minWidth: 0,
+            display: 'flex',
+            flexDirection: 'column',
+          }}
+        >
           <span className="hd-lane__title">{lane.title}</span>
           <span className="caption hd-faint">{lane.agentLabel}</span>
         </div>
-        <span className="caption" style={{ color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>
+        <span
+          className="caption"
+          style={{ color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}
+        >
           {lane.statusMeta}
         </span>
         <button
@@ -37,15 +57,20 @@ export function WorkflowRunLane({ lane }: Props) {
           aria-label="Lane actions"
           disabled
           aria-disabled="true"
-          aria-describedby={RUN_LANE_UNAVAILABLE_ID}
-          title={WORKFLOW_RUN_LANE_EXPLANATION}
+          aria-describedby={laneUnavailableId}
+          title={laneExplanation}
         >
           <Icon name="more" />
         </button>
       </div>
       <div className="hd-lane__body">
         {lane.blocks.map((block, index) => (
-          <LaneBlock key={`${lane.id}-${index}`} block={block} />
+          <LaneBlock
+            key={`${lane.id}-${index}`}
+            block={block}
+            toolUnavailableId={toolUnavailableId}
+            toolExplanation={toolExplanation}
+          />
         ))}
       </div>
       {lane.status === 'pending' ? null : (
@@ -71,7 +96,7 @@ export function WorkflowRunLane({ lane }: Props) {
               style={{ minHeight: 24 }}
               disabled
               aria-disabled="true"
-              aria-describedby={RUN_LANE_UNAVAILABLE_ID}
+              aria-describedby={laneUnavailableId}
             />
             <button
               type="submit"
@@ -79,7 +104,7 @@ export function WorkflowRunLane({ lane }: Props) {
               aria-label={sendLabel}
               disabled
               aria-disabled="true"
-              aria-describedby={RUN_LANE_UNAVAILABLE_ID}
+              aria-describedby={laneUnavailableId}
               style={{ width: 28, height: 28 }}
             >
               <Icon name="arrow-up" />
@@ -105,17 +130,36 @@ function LaneGlyph({ status }: { readonly status: WorkflowRunLane['status'] }) {
   return <span className="hd-glyph hd-glyph--queued" aria-label="Pending" />
 }
 
-function LaneBlock({ block }: { readonly block: WorkflowRunLaneBlock }) {
+function LaneBlock({
+  block,
+  toolUnavailableId,
+  toolExplanation,
+}: {
+  readonly block: WorkflowRunLaneBlock
+  readonly toolUnavailableId: string
+  readonly toolExplanation: string
+}) {
   if (block.kind === 'agent') {
     return (
       <div className="hd-msg-agent">
         <p>
           <InlineRuns runs={block.runs} />
         </p>
+        {block.listItems && block.listItems.length > 0 ? (
+          <ul>
+            {block.listItems.map((item, index) => (
+              <li key={index}>
+                <InlineRuns runs={item} />
+              </li>
+            ))}
+          </ul>
+        ) : null}
       </div>
     )
   }
   if (block.kind === 'tool') {
+    const iconName: IconName = block.icon ?? 'terminal'
+    const summaryKind = block.summaryKind ?? 'ran-code'
     return (
       <div className="hd-tool">
         <button
@@ -124,12 +168,18 @@ function LaneBlock({ block }: { readonly block: WorkflowRunLaneBlock }) {
           disabled
           aria-disabled="true"
           aria-expanded="false"
-          aria-describedby={RUN_TOOL_UNAVAILABLE_ID}
-          title={WORKFLOW_RUN_TOOL_EXPLANATION}
+          aria-describedby={toolUnavailableId}
+          title={toolExplanation}
         >
-          <Icon name="terminal" size="sm" />
+          <Icon name={iconName} size="sm" />
           <span className="hd-tool__summary">
-            Ran <code>{block.summary}</code>
+            {summaryKind === 'plain' ? (
+              block.summary
+            ) : (
+              <>
+                Ran <code>{block.summary}</code>
+              </>
+            )}
           </span>
           <span className="hd-tool__meta">{block.duration}</span>
           <Icon name="chevron-right" size="sm" />
@@ -160,7 +210,10 @@ function LaneBlock({ block }: { readonly block: WorkflowRunLaneBlock }) {
   if (block.kind === 'working') {
     return (
       <div className="hd-working">
-        <span className="hd-glyph hd-glyph--running is-animated" aria-hidden="true" />
+        <span
+          className="hd-glyph hd-glyph--running is-animated"
+          aria-hidden="true"
+        />
         <span>{block.text}</span>
       </div>
     )

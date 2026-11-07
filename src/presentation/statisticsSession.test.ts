@@ -50,6 +50,9 @@ function createCapturingPort(
     observeResources() {
       return noopHandle('res')
     },
+    observeParallelGroup() {
+      return noopHandle('parallel-group')
+    },
     observeStatistics(range, onUpdate) {
       ranges.push(range)
       latest = { range, callback: onUpdate }
@@ -110,6 +113,9 @@ function createDeferredPort(): {
       },
       observeResources() {
         return noopHandle('res')
+      },
+      observeParallelGroup() {
+        return noopHandle('parallel-group')
       },
       observeStatistics(range, onUpdate) {
         active.set(range, onUpdate)

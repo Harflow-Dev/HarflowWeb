@@ -20,5 +20,11 @@ export { TaskTranscript } from './TaskTranscript'
 export { WorkflowEditorView } from './WorkflowEditorView'
 export { WorkflowRunForm } from './WorkflowRunForm'
 export { WorkflowRunView } from './WorkflowRunView'
+export { ParallelGroupView } from './ParallelGroupView'
 export { WORKFLOW_RUN_ACTION_EXPLANATION } from './workflowRunUnavailable'
+export {
+  PARALLEL_GROUP_ACTION_EXPLANATION,
+  PARALLEL_GROUP_LANE_EXPLANATION,
+  PARALLEL_GROUP_TOOL_EXPLANATION,
+} from './parallelGroupUnavailable'
 export { WorkflowsPage } from './WorkflowsPage'

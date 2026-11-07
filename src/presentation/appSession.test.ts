@@ -3,6 +3,7 @@ import {
   createLoadContextUseCase,
   createLoadHarnessesUseCase,
   createLoadNeedsYouUseCase,
+  createLoadParallelGroupUseCase,
   createLoadResourcesUseCase,
   createLoadStatisticsUseCase,
   createLoadTaskChangesUseCase,
@@ -24,6 +25,8 @@ import {
   asWorkflowNodeId,
   type ContextLoad,
   type ObservationHandle,
+  type ParallelGroupId,
+  type ParallelGroupLoad,
   type ResourcesLoad,
   type StartTaskOutcome,
   type StartTaskRequest,
@@ -41,6 +44,11 @@ import { populatedComposer, populatedSidebar } from '../adapters/mock/fixtures'
 import { populatedHarnessesLoad } from '../adapters/mock/harnessFixtures'
 import { waitingNeedsYouLoad } from '../adapters/mock/needsYouFixtures'
 import { workflowEditorLoadFor } from '../adapters/mock/workflowEditorFixtures'
+import {
+  parallelGroupLoadFor,
+  PRELOAD_PARALLEL_GROUP_ID,
+  preloadParallelGroup,
+} from '../adapters/mock/parallelGroupFixtures'
 import {
   NIGHTLY_AUDIT_RUN_ID,
   nightlyAuditRun,
@@ -87,6 +95,9 @@ function createTestEngine(options?: {
   captureWorkflowExecution: (
     id: WorkflowRunId,
   ) => ((load: WorkflowRunLoad) => void) | null
+  captureParallelGroup: (
+    id: ParallelGroupId,
+  ) => ((load: ParallelGroupLoad) => void) | null
 } {
   const starts: StartTaskRequest[] = []
   const contextListeners = new Set<(load: ContextLoad) => void>()
@@ -98,6 +109,10 @@ function createTestEngine(options?: {
   const executionListeners = new Map<
     WorkflowRunId,
     (load: WorkflowRunLoad) => void
+  >()
+  const parallelGroupListeners = new Map<
+    ParallelGroupId,
+    (load: ParallelGroupLoad) => void
   >()
   let held = createControllablePromise<StartTaskOutcome>()
   const initialWorkflows: WorkflowsLoad = options?.workflows ?? {
@@ -160,6 +175,18 @@ function createTestEngine(options?: {
         cancel() {
           if (executionListeners.get(runId) === onUpdate) {
             executionListeners.delete(runId)
+          }
+        },
+      }
+    },
+    observeParallelGroup(groupId, onUpdate) {
+      parallelGroupListeners.set(groupId, onUpdate)
+      queueMicrotask(() => onUpdate(parallelGroupLoadFor(groupId)))
+      return {
+        id: asObservationId('app-parallel-group'),
+        cancel() {
+          if (parallelGroupListeners.get(groupId) === onUpdate) {
+            parallelGroupListeners.delete(groupId)
           }
         },
       }
@@ -249,6 +276,9 @@ function createTestEngine(options?: {
     captureWorkflowExecution(id) {
       return executionListeners.get(id) ?? null
     },
+    captureParallelGroup(id) {
+      return parallelGroupListeners.get(id) ?? null
+    },
   }
 }
 
@@ -266,6 +296,7 @@ function createPresenter(engine: EnginePort) {
     loadWorkflowRun: createLoadWorkflowRunUseCase(engine),
     loadWorkflowEditor: createLoadWorkflowEditorUseCase(engine),
     loadWorkflowExecution: createLoadWorkflowExecutionUseCase(engine),
+    loadParallelGroup: createLoadParallelGroupUseCase(engine),
   })
 }
 
@@ -865,6 +896,50 @@ describe('AppPresenter workflows slice', () => {
     expect(presenter.getState().workflows.runWorkflowId).toBe(RELEASE_WORKFLOW_ID)
     expect(presenter.getState().workflows.drafts[RELEASE_WORKFLOW_ID]).toEqual(draft)
     expect(presenter.getState().workflowEditor.selections).toEqual(selections)
+    presenter.dispose()
+  })
+
+  it('opens Parallel group, ignores late callbacks after leave, and resets on reopen', async () => {
+    const engine = createTestEngine()
+    const presenter = createPresenter(engine.port)
+    presenter.start()
+    await flush()
+    presenter.setPrompt('draft beside parallel group')
+    presenter.openParallelGroup(PRELOAD_PARALLEL_GROUP_ID)
+    await flush()
+    expect(presenter.getState().route).toBe('parallel-group')
+    expect(presenter.getState().parallelGroup.groupId).toBe(
+      PRELOAD_PARALLEL_GROUP_ID,
+    )
+    const load = presenter.getState().parallelGroup.load
+    expect(load.kind).toBe('ready')
+    if (load.kind === 'ready') {
+      expect(load.group.lanes).toHaveLength(3)
+    }
+    const callback = engine.captureParallelGroup(PRELOAD_PARALLEL_GROUP_ID)
+    presenter.navigate('new-task')
+    expect(presenter.getState().route).toBe('new-task')
+    expect(presenter.getState().parallelGroup.groupId).toBeNull()
+    expect(presenter.getState().newTask.prompt).toBe('draft beside parallel group')
+    expect(engine.captureParallelGroup(PRELOAD_PARALLEL_GROUP_ID)).toBeNull()
+    callback?.({
+      kind: 'ready',
+      group: { ...preloadParallelGroup(), title: 'Late replacement' },
+    })
+    expect(presenter.getState().parallelGroup.groupId).toBeNull()
+    expect(presenter.getState().parallelGroup.load.kind).toBe('loading')
+
+    presenter.openParallelGroup(PRELOAD_PARALLEL_GROUP_ID)
+    await flush()
+    expect(presenter.getState().parallelGroup.groupId).toBe(
+      PRELOAD_PARALLEL_GROUP_ID,
+    )
+    const reopened = presenter.getState().parallelGroup.load
+    expect(reopened.kind).toBe('ready')
+    if (reopened.kind === 'ready') {
+      expect(reopened.group.title).toBe('Review preload bridge')
+    }
+    expect(presenter.getState().newTask.prompt).toBe('draft beside parallel group')
     presenter.dispose()
   })
 })

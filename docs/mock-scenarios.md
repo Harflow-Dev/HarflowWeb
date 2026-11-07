@@ -31,8 +31,15 @@ populated fixture and shows a single “Mock engine” badge.
 | Needs you empty | Approved `needs-you/empty` specimen. Populated scenarios use `needs-you/waiting` |
 
 Sidebar navigation between **New task**, **Workflows**, **Resources**,
-**Statistics**, **Settings**, and **Needs you** is live, and explicitly mapped Running / Recent rows open the
-matching task transcript. On New task the composer matches the M04 centered
+**Statistics**, **Settings**, and **Needs you** is live. Explicitly mapped
+Running / Recent task rows open the matching task transcript. The Running row
+**Review preload bridge** (parallel glyph, meta `1/3`) opens the read-only
+Parallel group screen through `observeParallelGroup(groupId, …)` — Claude Code,
+Codex, and Opencode lanes from Design `parallel-group/lanes` (HarflowDesign
+`17739e4`). An unmapped group id or empty lanes stay unavailable and do not
+borrow another fixture. Leaving the group cancels its observation; reopening
+loads again. View prompt, Cancel all, lane actions, tool heads, and lane
+composers stay disabled. On New task the composer matches the M04 centered
 amendment: one-line prompt that grows to six lines, visual status line (live
 announcements stay in `StatusRegion`), and a `+` Task options control for
 effort, turn limit, and approvals. Escape returns focus to `+`; outside click

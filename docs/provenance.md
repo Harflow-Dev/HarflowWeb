@@ -103,6 +103,7 @@
 | Workflow editor preview | Design `workflow-editor/node-selected` graph, standalone strip, and inspector | **Mock-only presentation** — read-only; two mapped definitions; editing, save, delete, connect, and run stay disabled |
 | Workflow run graph | Design `workflow-run/graph-needs-you` and `workflow-run/on-demand`, with the publish request and Call 2 model adapted to `needs-you/waiting` | **Mock-only presentation** — one mapped run id, distinct from the Nightly definition id; branch, requester, repository, and publish action come from the shared Nightly snapshot; Security reviewer selection is presentation state and does not change the observation's selected node; Close returns to the Open pull request detail; a missing or mismatched node id shows that default detail; Pause, Cancel, Approve, Reject, goal edits, the node composer, and Open task stay disabled; the canvas zoom control stays disabled at 70% with its own explanation that this mock does not zoom; recovery and the later locked Orchestrator strip card are omitted |
 | Workflow run Parallel | Design `workflow-run/parallel` at HarflowDesign `f2a30d7e625ae448588dc844e0dec16eb980eeee` | **Mock-only presentation** — Graph/Parallel is presentation state on the same Nightly observation; lanes and the orchestrator footer (`Orchestrator is choosing the next node…`, `Decision attempts: 1 / 3`) come from that observation only; missing or empty lanes fall back to Graph without borrowing and disable Parallel with its own explanation; close/reopen resets to Graph; lane composers, lane actions, Pause, Cancel, Approve, Reject, Revise goal, More actions, Zoom, and unmapped Open task stay disabled |
+| Parallel group | Design `parallel-group/lanes` at HarflowDesign `17739e4` (`v2/scripts/screens-parallel-group.js`) | **Mock-only presentation** — Running sidebar row “Review preload bridge” (parallel glyph, meta `1/3`) opens `observeParallelGroup(groupId, …)` for that mapped group id only; top bar badge `1 running · 2 done`, enforcement meta, and three lanes (Claude Code / Codex / Opencode) come from that observation; missing group or empty lanes stay unavailable without borrowing; leave/reopen cancels the observation and resets; View prompt, Cancel all, lane actions, tool heads, and lane composers stay disabled with accessible explanations; working line is static (no fake clock) |
 | Resources slot observation | Design `resources/slots` specimen copy | **Mock-only presentation** — not a public ctl resources catalog; no install/release/admin |
 | Statistics overview | Design `statistics/overview` specimen copy + distinct 7-day mock range | **Mock-only presentation** — not a public ctl statistics/billing API; success rate and median are fixture facts only when coverage is complete |
 | Running-task transcript | Design `task/running` specimen copy | **Mock-only presentation** — not a public ctl transcript protocol; mapped fixture ids only |
@@ -225,8 +226,16 @@
   presentation-only; a same-run update keeps Parallel when lanes remain,
   otherwise falls back to Graph. Closing or reopening the run resets to Graph.
   A run without Parallel lane data disables the Parallel control with its own
-  explanation rather than the Pause/Cancel text. `parallel-group/lanes` and
-  `workflow-run/recovery` are not built.
+  explanation rather than the Pause/Cancel text. `workflow-run/recovery` is
+  not built.
+- Parallel group pin: HarflowDesign `17739e4`
+  `v2/scripts/screens-parallel-group.js` state `parallel-group/lanes`. Copy,
+  lane bodies, and top-bar chrome follow that specimen. Shared tokens and
+  component styles come from that same commit’s `v2/styles` (already vendored).
+  The Running row maps to a Parallel group id, not the former preload task
+  transcript. View prompt, Cancel all, lane actions, collapsed tool heads, and
+  lane composers stay disabled. The running working line does not animate a
+  clock or progress.
 
 ### Workflow run form semantic gaps (explicit)
 

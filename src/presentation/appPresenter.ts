@@ -2,6 +2,7 @@ import type {
   LoadContextUseCase,
   LoadHarnessesUseCase,
   LoadNeedsYouUseCase,
+  LoadParallelGroupUseCase,
   LoadResourcesUseCase,
   LoadWorkflowEditorUseCase,
   LoadWorkflowExecutionUseCase,
@@ -17,6 +18,7 @@ import type {
   Appearance,
   HarnessId,
   ModelId,
+  ParallelGroupId,
   RepositoryId,
   StatisticsRangeId,
   TaskId,
@@ -45,6 +47,7 @@ export type AppPresenter = {
   selectWorkflowRunRepository(id: RepositoryId): void
   selectWorkflowRunOverride(id: WorkflowOverrideId): void
   openWorkflowExecution(id: WorkflowRunId): void
+  openParallelGroup(id: ParallelGroupId): void
   openWorkflowEditor(id: WorkflowId): void
   closeWorkflowEditor(): void
   selectWorkflowNode(id: WorkflowNodeId): void
@@ -84,6 +87,7 @@ type Deps = {
   readonly loadWorkflowRun: LoadWorkflowRunUseCase
   readonly loadWorkflowEditor: LoadWorkflowEditorUseCase
   readonly loadWorkflowExecution: LoadWorkflowExecutionUseCase
+  readonly loadParallelGroup: LoadParallelGroupUseCase
 }
 
 export function createAppPresenter(deps: Deps): AppPresenter {
@@ -102,6 +106,7 @@ export function createAppPresenter(deps: Deps): AppPresenter {
     selectWorkflowRunRepository: (id) => session.selectWorkflowRunRepository(id),
     selectWorkflowRunOverride: (id) => session.selectWorkflowRunOverride(id),
     openWorkflowExecution: (id) => session.openWorkflowExecution(id),
+    openParallelGroup: (id) => session.openParallelGroup(id),
     openWorkflowEditor: (id) => session.openWorkflowEditor(id),
     closeWorkflowEditor: () => session.closeWorkflowEditor(),
     selectWorkflowNode: (id) => session.selectWorkflowNode(id),

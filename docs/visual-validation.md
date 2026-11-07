@@ -365,6 +365,16 @@ captures below. recovery was not captured. The graph specimen’s
 `audit/2026-11-03`, Codex · gpt-6, and “on HarflowMCP” are adapted to the
 Needs you request.
 
+## Parallel group — inspection target
+
+Design pin: HarflowDesign `17739e4` `v2/scripts/screens-parallel-group.js`
+state `parallel-group/lanes`. Open `/` and select Running → Review preload
+bridge. Expected: title Review preload bridge; badge `1 running · 2 done`;
+enforcement meta; three lanes (Claude Code · Opus 5.5 running with working
+line; Codex · gpt-6 done with three findings; Opencode · Kimi K3 done with
+two findings); View prompt and Cancel all disabled. No verified 1280×800
+capture folder was recorded for this slice in this commit.
+
 ## Workflow run Parallel — verified 1280×800 captures
 
 Directory:
@@ -510,6 +520,8 @@ approved specimen and were not captured as specimens.
 - Workflow run graph: `v2/scripts/screens-workflow-run.js`
   (`workflow-run/graph-needs-you`, `workflow-run/on-demand`, and
   `workflow-run/parallel` light/dark)
+- Parallel group: `v2/scripts/screens-parallel-group.js`
+  (`parallel-group/lanes` at HarflowDesign `17739e4`)
 - Workflow editor: `v2/scripts/screens-workflow-editor.js`
   (`workflow-editor/node-selected` light/dark)
 - Observed in the running Vite app (not substituted from hosted design)
@@ -520,7 +532,10 @@ approved specimen and were not captured as specimens.
   are buttons;
   unmapped task destinations and Install announce unavailable in accessible names.
   Statistics period segment is a keyboard-operable button group (`aria-pressed`).
-  Mapped running rows open the transcript; tool heads toggle with Enter/Space.
+  Mapped running task rows open the transcript; the Parallel group Running row
+  is keyboard-reachable and opens `parallel-group/lanes`; tool heads on task
+  transcripts toggle with Enter/Space; Parallel group tool heads stay collapsed
+  and disabled.
 - Focus: theme, nav, tool disclosures, and range controls remain operable after
   route changes.
 - Overflow: recent work scrolls in the sidebar; resources, statistics, and task
@@ -549,7 +564,8 @@ approved specimen and were not captured as specimens.
   states are proposals, not approved specimens. MCP approvals Add and
   Remove stay disabled, so the expanded list is a read-only fixture view.
   recovery stays outside this slice. Parallel is the Nightly lanes capture
-  above. The on-demand inspector is the Security reviewer state above. The
+  above. Parallel group is the Review preload bridge capture target above.
+  The on-demand inspector is the Security reviewer state above. The
   locked Orchestrator strip card is a later design commit and is not on this
   screen.
   At 1280×800 the scaled

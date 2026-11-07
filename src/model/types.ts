@@ -54,9 +54,15 @@ export type SidebarEntry = {
   readonly glyph: SidebarGlyph
   /**
    * Explicit fixture mapping to a running-task transcript.
-   * Null means the row stays unavailable — never invent a fallback task.
+   * Null means the row is not a task destination — never invent a fallback task.
    */
   readonly mappedTaskId: import('./ids').TaskId | null
+  /**
+   * Explicit fixture mapping to a Parallel group screen.
+   * Null means the row is not a Parallel group destination.
+   * When set, takes precedence over mappedTaskId for navigation.
+   */
+  readonly mappedParallelGroupId: import('./ids').ParallelGroupId | null
 }
 
 export type SidebarData = {

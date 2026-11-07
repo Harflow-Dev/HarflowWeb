@@ -1,4 +1,4 @@
-import type { SidebarData, TaskId } from '../model'
+import type { ParallelGroupId, SidebarData, TaskId } from '../model'
 import { Glyph } from './Glyph'
 
 function glyphLabel(glyph: SidebarData['running'][number]['glyph']): string {
@@ -30,7 +30,9 @@ export function TaskSection({
   fill = false,
   coverageIncomplete = false,
   activeTaskId = null,
+  activeParallelGroupId = null,
   onOpenTask,
+  onOpenParallelGroup,
   onUnavailable,
 }: {
   label: string
@@ -40,7 +42,9 @@ export function TaskSection({
   fill?: boolean
   coverageIncomplete?: boolean
   activeTaskId?: TaskId | null
+  activeParallelGroupId?: ParallelGroupId | null
   onOpenTask: (taskId: TaskId) => void
+  onOpenParallelGroup: (groupId: ParallelGroupId) => void
   onUnavailable: (label: string) => void
 }) {
   return (
@@ -56,24 +60,44 @@ export function TaskSection({
       </div>
       <div className="hd-section__list">
         {rows.map((row) => {
-          const mapped = row.mappedTaskId
-          const active = mapped !== null && mapped === activeTaskId
-          if (mapped) {
+          const groupId = row.mappedParallelGroupId
+          const taskId = row.mappedTaskId
+          const groupActive =
+            groupId !== null && groupId === activeParallelGroupId
+          const taskActive =
+            groupId === null && taskId !== null && taskId === activeTaskId
+          const active = groupActive || taskActive
+          const rowClass = active
+            ? done
+              ? 'hd-task-row hd-task-row--done is-active'
+              : 'hd-task-row is-active'
+            : done
+              ? 'hd-task-row hd-task-row--done'
+              : 'hd-task-row'
+
+          if (groupId !== null) {
             return (
               <button
                 key={row.id}
                 type="button"
-                className={
-                  active
-                    ? done
-                      ? 'hd-task-row hd-task-row--done is-active'
-                      : 'hd-task-row is-active'
-                    : done
-                      ? 'hd-task-row hd-task-row--done'
-                      : 'hd-task-row'
-                }
+                className={rowClass}
                 aria-current={active ? 'page' : undefined}
-                onClick={() => onOpenTask(mapped)}
+                onClick={() => onOpenParallelGroup(groupId)}
+              >
+                <Glyph glyph={row.glyph} label={glyphLabel(row.glyph)} />
+                <span className="hd-task-row__title">{row.title}</span>
+                <span className="hd-task-row__meta">{row.meta}</span>
+              </button>
+            )
+          }
+          if (taskId !== null) {
+            return (
+              <button
+                key={row.id}
+                type="button"
+                className={rowClass}
+                aria-current={active ? 'page' : undefined}
+                onClick={() => onOpenTask(taskId)}
               >
                 <Glyph glyph={row.glyph} label={glyphLabel(row.glyph)} />
                 <span className="hd-task-row__title">{row.title}</span>

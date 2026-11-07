@@ -13,6 +13,8 @@ import {
   type TaskChangesQuery,
   type TaskId,
   type TaskLoad,
+  type ParallelGroupId,
+  type ParallelGroupLoad,
   type WorkflowEditorLoad,
   type WorkflowId,
   type WorkflowRunContextLoad,
@@ -29,6 +31,7 @@ import {
   type MockListenerSets,
 } from './mockEngineCore'
 import { scenarioById, type ScenarioDefinition, type ScenarioId } from './scenarios'
+import { parallelGroupLoadFor } from './parallelGroupFixtures'
 import { workflowEditorLoadFor } from './workflowEditorFixtures'
 import { workflowExecutionLoadFor } from './workflowExecutionFixtures'
 import { workflowRunLoadFor } from './workflowRunFixtures'
@@ -46,6 +49,7 @@ export type MockEngineControls = {
   publishNeedsYou(load: NeedsYouLoad): void
   publishWorkflowRun(workflowId: WorkflowId, load: WorkflowRunContextLoad): void
   publishWorkflowEditor(workflowId: WorkflowId, load: WorkflowEditorLoad): void
+  publishParallelGroup(groupId: ParallelGroupId, load: ParallelGroupLoad): void
   resolveHeldStart(outcome?: StartTaskOutcome): void
   readonly startRequestCount: () => number
   readonly lastStartRequest: () => StartTaskRequest | null
@@ -114,6 +118,9 @@ function republishScenario(
   for (const listener of listeners.workflowExecutions) {
     listener.send(workflowExecutionLoadFor(listener.key))
   }
+  for (const listener of listeners.parallelGroups) {
+    listener.send(parallelGroupLoadFor(listener.key))
+  }
 }
 
 export function createMockEngine(
@@ -176,6 +183,11 @@ export function createMockEngine(
     publishWorkflowEditor(workflowId, load) {
       for (const listener of listeners.workflowEditors) {
         if (listener.key === workflowId) listener.send(load)
+      }
+    },
+    publishParallelGroup(groupId, load) {
+      for (const listener of listeners.parallelGroups) {
+        if (listener.key === groupId) listener.send(load)
       }
     },
     publishTaskChanges(query, load) {

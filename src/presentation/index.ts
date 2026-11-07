@@ -67,6 +67,11 @@ export {
   type WorkflowExecutionScreenState,
 } from './workflowExecutionState'
 export { WorkflowExecutionSession } from './workflowExecutionSession'
+export {
+  initialParallelGroupState,
+  type ParallelGroupScreenState,
+} from './parallelGroupState'
+export { ParallelGroupSession } from './parallelGroupSession'
 export { workflowRunScene } from './workflowRunScene'
 export {
   resolveWorkflowRunSelection,

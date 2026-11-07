@@ -3,6 +3,8 @@ import type {
   HarnessesLoad,
   NeedsYouLoad,
   ObservationHandle,
+  ParallelGroupId,
+  ParallelGroupLoad,
   ResourcesLoad,
   StartTaskOutcome,
   StartTaskRequest,
@@ -72,6 +74,16 @@ export type EnginePort = {
   observeWorkflowExecution(
     runId: WorkflowRunId,
     onUpdate: (load: WorkflowRunLoad) => void,
+  ): ObservationHandle
+
+  /**
+   * Read one Parallel group for an explicit group id.
+   * Unmapped ids must yield unavailable — never another group's lanes.
+   * Mock-only — not a public ctl Parallel group protocol.
+   */
+  observeParallelGroup(
+    groupId: ParallelGroupId,
+    onUpdate: (load: ParallelGroupLoad) => void,
   ): ObservationHandle
 
   /**

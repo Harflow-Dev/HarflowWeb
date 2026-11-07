@@ -4,6 +4,7 @@ import type { NewTaskScreenState } from './screenState'
 import type { ResourcesScreenState } from './resourcesState'
 import type { StatisticsScreenState } from './statisticsState'
 import type { TaskScreenState } from './taskState'
+import type { ParallelGroupScreenState } from './parallelGroupState'
 import type { WorkflowEditorScreenState } from './workflowEditorState'
 import type { WorkflowExecutionScreenState } from './workflowExecutionState'
 import type { WorkflowsScreenState } from './workflowsState'
@@ -19,6 +20,7 @@ export type AppRoute =
   | 'task'
   | 'needs-you'
   | 'settings'
+  | 'parallel-group'
 
 export type AppScreenState = {
   readonly route: AppRoute
@@ -32,4 +34,5 @@ export type AppScreenState = {
   readonly needsYou: NeedsYouScreenState
   readonly workflowEditor: WorkflowEditorScreenState
   readonly workflowExecution: WorkflowExecutionScreenState
+  readonly parallelGroup: ParallelGroupScreenState
 }

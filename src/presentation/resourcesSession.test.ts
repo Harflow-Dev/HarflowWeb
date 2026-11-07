@@ -47,6 +47,9 @@ function createCapturingPort(initial: ResourcesLoad = populatedResourcesLoad()):
         },
       }
     },
+    observeParallelGroup() {
+      return noopHandle('parallel-group')
+    },
     observeStatistics() {
       return noopHandle('stats')
     },

@@ -85,14 +85,28 @@ export type WorkflowRunOnDemand = {
 /** Lane status for the read-only Parallel run view. */
 export type WorkflowRunLaneStatus = 'done' | 'running' | 'pending'
 
+/** How a Parallel lane tool head presents its summary. */
+export type WorkflowRunLaneToolSummaryKind = 'ran-code' | 'plain'
+
+/** Icon for a Parallel lane tool head. Defaults to terminal when omitted. */
+export type WorkflowRunLaneToolIcon = 'file' | 'terminal'
+
 /** One body block inside a Parallel lane. */
 export type WorkflowRunLaneBlock =
-  | { readonly kind: 'agent'; readonly runs: readonly InlineRun[] }
+  | {
+      readonly kind: 'agent'
+      readonly runs: readonly InlineRun[]
+      /** Optional findings list rendered under the agent paragraph. */
+      readonly listItems?: readonly (readonly InlineRun[])[]
+    }
   | {
       readonly kind: 'tool'
       readonly id: string
       readonly summary: string
       readonly duration: string
+      readonly icon?: WorkflowRunLaneToolIcon
+      /** Defaults to ran-code (`Ran <code>…</code>`). */
+      readonly summaryKind?: WorkflowRunLaneToolSummaryKind
     }
   | { readonly kind: 'result'; readonly text: string }
   | { readonly kind: 'working'; readonly text: string }

@@ -7,6 +7,7 @@ export type TaskId = string & { readonly __brand: 'TaskId' }
 export type WorkflowId = string & { readonly __brand: 'WorkflowId' }
 export type WorkflowRunId = string & { readonly __brand: 'WorkflowRunId' }
 export type WorkflowNodeId = string & { readonly __brand: 'WorkflowNodeId' }
+export type ParallelGroupId = string & { readonly __brand: 'ParallelGroupId' }
 export type ObservationId = string & { readonly __brand: 'ObservationId' }
 
 export function asRepositoryId(value: string): RepositoryId {
@@ -35,6 +36,10 @@ export function asWorkflowRunId(value: string): WorkflowRunId {
 
 export function asWorkflowNodeId(value: string): WorkflowNodeId {
   return value as WorkflowNodeId
+}
+
+export function asParallelGroupId(value: string): ParallelGroupId {
+  return value as ParallelGroupId
 }
 
 export function asObservationId(value: string): ObservationId {

@@ -125,6 +125,20 @@ function createTestEngine(options?: {
         },
       }
     },
+    observeParallelGroup(_groupId, onUpdate) {
+      queueMicrotask(() =>
+        onUpdate({
+          kind: 'unavailable',
+          message: 'unused',
+        }),
+      )
+      return {
+        id: asObservationId('test-parallel-group'),
+        cancel() {
+          /* no-op */
+        },
+      }
+    },
     observeResources(onUpdate) {
       queueMicrotask(() =>
         onUpdate({

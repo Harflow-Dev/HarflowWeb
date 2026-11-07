@@ -20,6 +20,10 @@ export {
   type LoadWorkflowExecutionUseCase,
 } from './loadWorkflowExecution'
 export {
+  createLoadParallelGroupUseCase,
+  type LoadParallelGroupUseCase,
+} from './loadParallelGroup'
+export {
   createLoadResourcesUseCase,
   type LoadResourcesUseCase,
 } from './loadResources'

@@ -126,4 +126,92 @@ describe('WorkflowExecutionSession', () => {
     expect(session.getState().selectedNodeId).toBeNull()
     expect(session.getState().load.kind).toBe('ready')
   })
+
+  it('clears a selection whose node is gone and does not reopen it', () => {
+    const { engine, saved } = port({ auto: false })
+    const session = sessionFor(engine)
+    session.open(NIGHTLY_AUDIT_RUN_ID)
+    const callback = saved[0]?.send
+    callback?.(workflowExecutionLoadFor(NIGHTLY_AUDIT_RUN_ID))
+    session.selectNode(SECURITY_REVIEWER_NODE_ID)
+    const run = nightlyAuditRun()
+    callback?.({
+      kind: 'ready',
+      run: {
+        ...run,
+        nodes: run.nodes.filter((node) => node.id !== SECURITY_REVIEWER_NODE_ID),
+        onDemand: [],
+      },
+    })
+    expect(session.getState().selectedNodeId).toBeNull()
+    callback?.({ kind: 'ready', run })
+    expect(session.getState().selectedNodeId).toBeNull()
+  })
+
+  it('clears a selection whose inspector is gone and does not reopen it', () => {
+    const { engine, saved } = port({ auto: false })
+    const session = sessionFor(engine)
+    session.open(NIGHTLY_AUDIT_RUN_ID)
+    const callback = saved[0]?.send
+    callback?.(workflowExecutionLoadFor(NIGHTLY_AUDIT_RUN_ID))
+    session.selectNode(SECURITY_REVIEWER_NODE_ID)
+    expect(session.getState().selectedNodeId).toBe(SECURITY_REVIEWER_NODE_ID)
+    const run = nightlyAuditRun()
+    callback?.({
+      kind: 'ready',
+      run: { ...run, onDemand: [] },
+    })
+    expect(session.getState().selectedNodeId).toBeNull()
+    const cleared = session.getState().load
+    expect(cleared.kind).toBe('ready')
+    if (cleared.kind === 'ready') {
+      expect(cleared.run.nodes.some((node) => node.id === SECURITY_REVIEWER_NODE_ID)).toBe(
+        true,
+      )
+      expect(cleared.run.onDemand).toHaveLength(0)
+    }
+    callback?.({
+      kind: 'ready',
+      run: {
+        ...run,
+        onDemand: run.onDemand.map((item) => ({
+          ...item,
+          call: { ...item.call, result: 'Done · restored · 01:12' },
+        })),
+      },
+    })
+    expect(session.getState().selectedNodeId).toBeNull()
+    const restored = session.getState().load
+    expect(restored.kind).toBe('ready')
+    if (restored.kind === 'ready') {
+      expect(restored.run.onDemand[0]?.call.result).toBe('Done · restored · 01:12')
+    }
+  })
+
+  it('keeps the selection and shows changed inspector text', () => {
+    const { engine, saved } = port({ auto: false })
+    const session = sessionFor(engine)
+    session.open(NIGHTLY_AUDIT_RUN_ID)
+    const callback = saved[0]?.send
+    callback?.(workflowExecutionLoadFor(NIGHTLY_AUDIT_RUN_ID))
+    session.selectNode(SECURITY_REVIEWER_NODE_ID)
+    const run = nightlyAuditRun()
+    callback?.({
+      kind: 'ready',
+      run: {
+        ...run,
+        onDemand: run.onDemand.map((item) => ({
+          ...item,
+          call: { ...item.call, result: 'Done · refreshed · 01:40' },
+        })),
+      },
+    })
+    expect(session.getState().selectedNodeId).toBe(SECURITY_REVIEWER_NODE_ID)
+    const updated = session.getState().load
+    expect(updated.kind).toBe('ready')
+    if (updated.kind === 'ready') {
+      expect(updated.run.onDemand[0]?.call.result).toBe('Done · refreshed · 01:40')
+      expect(updated.run.onDemand[0]?.call.result).not.toBe('Done · no advisories · 01:12')
+    }
+  })
 })

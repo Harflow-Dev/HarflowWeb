@@ -6,6 +6,7 @@ import type {
 } from '../model'
 import { workflowRunScene } from '../presentation'
 import { Icon } from './Icon'
+import { RUN_ZOOM_UNAVAILABLE_ID, WORKFLOW_RUN_ZOOM_EXPLANATION } from './workflowRunUnavailable'
 
 const SCALE = 0.7
 
@@ -67,7 +68,44 @@ export function WorkflowRunCanvas({ run, selectedNodeId }: Props) {
           </div>
         </div>
       </div>
+      <Zoom />
       <NodeList run={run} selectedNodeId={selectedNodeId} />
+    </div>
+  )
+}
+
+function Zoom() {
+  return (
+    <div
+      className="hd-zoom"
+      role="group"
+      aria-label="Zoom"
+      style={{ position: 'absolute', right: 'var(--space-4)', bottom: 'var(--space-4)' }}
+    >
+      <p id={RUN_ZOOM_UNAVAILABLE_ID} className="hd-sr">
+        {WORKFLOW_RUN_ZOOM_EXPLANATION}
+      </p>
+      <button
+        type="button"
+        className="hd-btn hd-btn--ghost hd-btn--sm"
+        aria-label="Zoom out"
+        disabled
+        aria-disabled="true"
+        aria-describedby={RUN_ZOOM_UNAVAILABLE_ID}
+      >
+        −
+      </button>
+      <span style={{ padding: '0 6px' }}>70%</span>
+      <button
+        type="button"
+        className="hd-btn hd-btn--ghost hd-btn--sm"
+        aria-label="Zoom in"
+        disabled
+        aria-disabled="true"
+        aria-describedby={RUN_ZOOM_UNAVAILABLE_ID}
+      >
+        +
+      </button>
     </div>
   )
 }

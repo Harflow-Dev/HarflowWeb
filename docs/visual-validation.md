@@ -323,7 +323,9 @@ Observed: title “Nightly dependency audit”, Needs you badge, and
 “Step 2 of 4 · 06:31”. Graph is current. Parallel, Pause, Cancel run, More
 actions, and Revise goal stay disabled. In that capture the standalone
 on-demand nodes were disabled. Security reviewer is selectable in the
-on-demand capture below. Docs checker stays disabled.
+on-demand capture below. Docs checker stays disabled. The canvas now also
+shows a disabled zoom control labelled 70% at its bottom-right. These
+captures were taken before that control.
 The drawn canvas is presentational. A list names every node with its status
 and selected state: Scan lockfiles Done, Draft upgrade plan Done, Open pull
 request Needs you and selected, Notify Pending, Security reviewer Done, and
@@ -341,31 +343,38 @@ and “on HarflowMCP” are adapted to the Needs you request.
 ## Workflow run on-demand — verified 1280×800 captures
 
 Directory:
-`~/.codex/workflows/screenshots/2026-11-06-harflowweb-workflow-run-on-demand/`
+`~/.codex/workflows/screenshots/2026-11-07-harflowweb-workflow-run-on-demand/`
 
 Captured from `/` after Needs you → Open run on Nightly dependency audit,
-then Security reviewer. `sips` reports 1280×800. Appearance is the shared
-session theme. CDP clip of the emulated viewport.
+then Security reviewer. Appearance is the shared session theme. Headless
+Chrome window 1280×800 with device scale 1; `Page.captureScreenshot` of
+that viewport. PNGs are 1280×800.
+
+The earlier folder
+`~/.codex/workflows/screenshots/2026-11-06-harflowweb-workflow-run-on-demand/`
+is invalid. Those PNGs are 1280×800 files whose right edge from about
+x=1150 is a pixel copy of the left sidebar, so Close is hidden and the
+pane is clipped. Live layout at 1280×800 has one `.hd-sidebar` (0–264)
+and Close at 1242–1268. The defect was the capture method, not the app.
 
 | File | Scenario | Viewport / PNG | Appearance / chrome |
 | --- | --- | --- | --- |
 | `01-on-demand-light.png` | workflow-run/on-demand | 1280×800 | light, sidebar expanded |
 | `02-on-demand-dark.png` | workflow-run/on-demand | 1280×800 | dark, sidebar expanded |
 
-Observed: the graph stays visible. Security reviewer is selected in the
-strip (`2 calls · one at a time`). Open pull request is not the selected
-step. The pane is “Security reviewer”, caption “On demand”, with Close.
-The calls are Call 2 · Done · 01:12, highlighted, then Call 1 · Done · 00:48.
-The shown call is Call 2 · Codex · gpt-6-astra · HarflowMCP. The user and
-agent sentences, `uv.lock`, `httpx`, `pydantic`, and
-`pip-audit -r requirements.lock` with duration 0:41 are visible. The result
-is Done · no advisories · 01:12. The composer is visible and disabled.
-Document scrollWidth equals clientWidth (1280) and scrollHeight equals
-clientHeight (800). The pane’s scroll client height equals its scroll height
-(548), so the call text fits without scrolling. Close’s box is 1242–1268 by
-146–172, inside the viewport. No text in the pane extends past the pane’s
-right edge. Light focus is the Light control. Dark focus is the Dark control.
-Docs checker stays disabled. The locked Orchestrator card is not in the strip.
+Observed: one left sidebar. The graph stays visible. Security reviewer is
+selected in the strip (`2 calls · one at a time`). Open pull request is
+not the selected step. The pane is “Security reviewer”, caption “On
+demand”, with Close visible at the pane’s top-right. The calls are
+Call 2 · Done · 01:12, highlighted, then Call 1 · Done · 00:48. The shown
+call is Call 2 · Codex · gpt-6-astra · HarflowMCP. The user and agent
+sentences, `uv.lock`, `httpx`, `pydantic`, and
+`pip-audit -r requirements.lock` with duration 0:41 are visible. The
+result is Done · no advisories · 01:12. The tool row stays collapsed. The
+composer is visible and disabled. A disabled zoom control labelled 70%
+sits at the canvas bottom-right. Document client size is 1280×800. Close’s
+box is 1242–1268 by 146–172. Docs checker stays disabled. The locked
+Orchestrator card is not in the strip.
 
 ## Workflow editor — verified 1280×800 captures
 

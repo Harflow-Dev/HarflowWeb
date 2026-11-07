@@ -1,3 +1,4 @@
+import { useRef, type RefObject } from 'react'
 import type { WorkflowNodeId, WorkflowRunLoad, WorkflowRunNode, WorkflowRunObservation } from '../model'
 import { resolveWorkflowRunSelection, workflowRunOnDemandFor } from '../presentation'
 import { Icon } from './Icon'
@@ -6,9 +7,11 @@ import { WorkflowRunDetail } from './WorkflowRunDetail'
 import { WorkflowRunOnDemandPane } from './WorkflowRunOnDemandPane'
 import {
   RUN_CALL_UNAVAILABLE_ID,
+  RUN_TOOL_UNAVAILABLE_ID,
   RUN_UNAVAILABLE_ID,
   WORKFLOW_RUN_ACTION_EXPLANATION,
   WORKFLOW_RUN_CALL_EXPLANATION,
+  WORKFLOW_RUN_TOOL_EXPLANATION,
 } from './workflowRunUnavailable'
 
 type Props = {
@@ -19,6 +22,7 @@ type Props = {
 
 /** Approved workflow-run graph. Mutations and unapproved node details stay disabled. */
 export function WorkflowRunView({ load, selectedNodeId = null, onSelectNode }: Props) {
+  const reviewerButton = useRef<HTMLButtonElement>(null)
   if (load.kind === 'loading') {
     return <p role="status">Loading workflow run…</p>
   }
@@ -27,6 +31,10 @@ export function WorkflowRunView({ load, selectedNodeId = null, onSelectNode }: P
   }
   const run = load.run
   const display = resolveWorkflowRunSelection(run, selectedNodeId)
+  const closeInspector = () => {
+    onSelectNode?.(null)
+    reviewerButton.current?.focus()
+  }
   return (
     <>
       <p id={RUN_UNAVAILABLE_ID} className="hd-sr">
@@ -34,6 +42,9 @@ export function WorkflowRunView({ load, selectedNodeId = null, onSelectNode }: P
       </p>
       <p id={RUN_CALL_UNAVAILABLE_ID} className="hd-sr">
         {WORKFLOW_RUN_CALL_EXPLANATION}
+      </p>
+      <p id={RUN_TOOL_UNAVAILABLE_ID} className="hd-sr">
+        {WORKFLOW_RUN_TOOL_EXPLANATION}
       </p>
       <div className="hd-topbar">
         <span className="hd-topbar__title">{run.title}</span>
@@ -73,15 +84,13 @@ export function WorkflowRunView({ load, selectedNodeId = null, onSelectNode }: P
       <Standalone
         run={run}
         selectedNodeId={display.nodeId}
+        reviewerButton={reviewerButton}
         {...(onSelectNode ? { onSelectNode } : {})}
       />
       <div className="hd-split">
         <WorkflowRunCanvas run={run} selectedNodeId={display.nodeId} />
         {display.onDemand ? (
-          <WorkflowRunOnDemandPane
-            detail={display.onDemand}
-            onClose={() => onSelectNode?.(null)}
-          />
+          <WorkflowRunOnDemandPane detail={display.onDemand} onClose={closeInspector} />
         ) : (
           <WorkflowRunDetail detail={run.detail} />
         )}
@@ -115,10 +124,12 @@ function DisabledBar({
 function Standalone({
   run,
   selectedNodeId,
+  reviewerButton,
   onSelectNode,
 }: {
   readonly run: WorkflowRunObservation
   readonly selectedNodeId: WorkflowNodeId
+  readonly reviewerButton: RefObject<HTMLButtonElement | null>
   readonly onSelectNode?: (id: WorkflowNodeId | null) => void
 }) {
   const nodes = run.nodes.filter((node) => node.placement === 'standalone')
@@ -129,15 +140,19 @@ function Standalone({
         Outside the workflow path
       </span>
       <div className="hd-standalone__nodes hd-thin-scroll">
-        {nodes.map((node) => (
-          <StandaloneNode
-            key={node.id}
-            node={node}
-            selectable={workflowRunOnDemandFor(run, node.id) !== null}
-            selected={node.id === selectedNodeId}
-            {...(onSelectNode ? { onSelectNode } : {})}
-          />
-        ))}
+        {nodes.map((node) => {
+          const selectable = workflowRunOnDemandFor(run, node.id) !== null
+          return (
+            <StandaloneNode
+              key={node.id}
+              node={node}
+              selectable={selectable}
+              selected={node.id === selectedNodeId}
+              buttonRef={selectable ? reviewerButton : null}
+              {...(onSelectNode ? { onSelectNode } : {})}
+            />
+          )
+        })}
       </div>
     </div>
   )
@@ -147,16 +162,19 @@ function StandaloneNode({
   node,
   selectable,
   selected,
+  buttonRef,
   onSelectNode,
 }: {
   readonly node: WorkflowRunNode
   readonly selectable: boolean
   readonly selected: boolean
+  readonly buttonRef: RefObject<HTMLButtonElement | null> | null
   readonly onSelectNode?: (id: WorkflowNodeId | null) => void
 }) {
   const pressed = selectable && selected
   return (
     <button
+      ref={buttonRef}
       type="button"
       className={`hd-node hd-node--ondemand${node.status === 'idle' ? ' hd-node--idle' : ''}${pressed ? ' is-selected' : ''}`}
       aria-label={standaloneName(node, pressed)}
@@ -164,8 +182,14 @@ function StandaloneNode({
       disabled={!selectable}
       aria-disabled={selectable ? undefined : 'true'}
       aria-describedby={selectable ? undefined : RUN_UNAVAILABLE_ID}
-      onClick={() => {
-        if (selectable) onSelectNode?.(node.id)
+      onClick={(event) => {
+        if (!selectable) return
+        if (selected) {
+          onSelectNode?.(null)
+          event.currentTarget.focus()
+          return
+        }
+        onSelectNode?.(node.id)
       }}
     >
       <div className="hd-node__kind">

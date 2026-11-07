@@ -53,8 +53,9 @@ Approve, reject, and Send stay disabled. The Nightly card’s Open run opens
 `observeWorkflowExecution(runId, …)` for `run-nightly-dependency-audit`.
 That id is not the workflow definition id. An unmapped run id shows
 unavailable and does not borrow the Nightly graph. Leaving that run, including by a mapped sidebar task, cancels its
-observation, so a late callback cannot restore it, and the next Workflows
-click shows the list. The Nightly publish card and the run detail share one
+observation, so a late callback cannot restore it. The next Workflows
+click returns to an editor or launch form that was already open, and shows
+the list only when neither is open. The Nightly publish card and the run detail share one
 snapshot: branch `deps/audit-2026-11-03`, Codex · gpt-6-astra, repository
 HarflowMCP, and the same push-and-open-a-pull-request action. The graph
 specimen’s `audit/2026-11-03`, Codex · gpt-6, and “on HarflowMCP” are adapted
@@ -64,8 +65,9 @@ state: a later observation for the same run keeps it, and closing or opening
 the run returns to Open pull request. An unknown or mismatched node id shows
 that default detail and does not use another node's calls. The strip keeps
 “2 calls · one at a time”; the on-demand specimen's “2 calls” is recorded in
-`docs/provenance.md`. Docs checker, call rows, Open task, and the node
-composer stay unavailable. Parallel and recovery stay unavailable. Mapped Open task only
+`docs/provenance.md`. Docs checker, call rows, Open task, the node
+composer, and the canvas zoom control stay unavailable. The zoom label reads 70%,
+and its buttons use their own explanation rather than the Pause and Cancel text. Parallel and recovery stay unavailable. Mapped Open task only
 navigates. A workflow-list Run button opens that definition’s run form through
 `observeWorkflowRun(workflowId, …)`. The draft is session-local and kept per
 definition id. Switching definitions clears the previous permissions into

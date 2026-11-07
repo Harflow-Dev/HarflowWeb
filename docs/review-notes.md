@@ -40,8 +40,9 @@ grant approvals, answer questions, or touch the task store.
   `deps/audit-2026-11-03`, Codex · gpt-6-astra, HarflowMCP, and the same
   publish action. The graph specimen’s branch, model, and “on HarflowMCP”
   wording are adapted to that request. Leaving the run cancels its
-  observation. The next Workflows click shows the list. Editor and form
-  drafts stay. Every graph node’s status and selected state are in a list.
+  observation. The next Workflows click returns to an editor or launch form
+  that was already open, and shows the list only when neither is open.
+  Editor and form drafts stay. Every graph node’s status and selected state are in a list.
   Unmapped Open task stays disabled. Mapped Open task navigates to that
   task and does not start one. The empty state is complete coverage with zero
   items.

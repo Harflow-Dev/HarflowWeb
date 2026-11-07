@@ -1,6 +1,6 @@
 import type { InlineRun, WorkflowRunOnDemand, WorkflowRunOnDemandCall } from '../model'
 import { Icon } from './Icon'
-import { RUN_CALL_UNAVAILABLE_ID } from './workflowRunUnavailable'
+import { RUN_CALL_UNAVAILABLE_ID, RUN_TOOL_UNAVAILABLE_ID } from './workflowRunUnavailable'
 
 type Props = {
   readonly detail: WorkflowRunOnDemand
@@ -123,7 +123,14 @@ function ShownCall({ call }: { readonly call: WorkflowRunOnDemandCall }) {
         </p>
       </div>
       <div className="hd-tool">
-        <button type="button" className="hd-tool__head">
+        <button
+          type="button"
+          className="hd-tool__head"
+          disabled
+          aria-disabled="true"
+          aria-expanded={false}
+          aria-describedby={RUN_TOOL_UNAVAILABLE_ID}
+        >
           <Icon name="terminal" size="sm" />
           <span className="hd-tool__summary">
             Ran <code>{call.tool.summary}</code>

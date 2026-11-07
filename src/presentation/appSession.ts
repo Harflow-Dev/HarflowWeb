@@ -161,9 +161,7 @@ export class AppSession {
     this.emit()
   }
 
-  closeWorkflowRun(): void {
-    this.workflows.closeRun()
-  }
+  closeWorkflowRun(): void { this.workflows.closeRun() }
 
   setWorkflowRunTask(task: string): void {
     this.workflows.setTask(task)
@@ -191,11 +189,11 @@ export class AppSession {
     this.emit()
   }
 
-  closeWorkflowEditor(): void {
-    this.workflowEditor.close()
-  }
+  closeWorkflowEditor(): void { this.workflowEditor.close() }
 
-  selectWorkflowNode(id: WorkflowNodeId): void { this.workflowEditor.select(id) }
+  selectWorkflowNode(id: WorkflowNodeId): void {
+    this.workflowEditor.select(id)
+  }
 
   selectWorkflowRunNode(id: WorkflowNodeId | null): void { this.workflowExecution.selectNode(id) }
 

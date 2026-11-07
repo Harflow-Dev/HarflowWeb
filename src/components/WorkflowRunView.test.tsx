@@ -19,6 +19,8 @@ import { WorkflowRunView } from './WorkflowRunView'
 import {
   WORKFLOW_RUN_ACTION_EXPLANATION,
   WORKFLOW_RUN_CALL_EXPLANATION,
+  WORKFLOW_RUN_TOOL_EXPLANATION,
+  WORKFLOW_RUN_ZOOM_EXPLANATION,
 } from './workflowRunUnavailable'
 
 afterEach(() => {
@@ -71,9 +73,18 @@ describe('WorkflowRunView', () => {
     const cancel = screen.getByRole('button', { name: 'Cancel run' })
     const parallel = screen.getByRole('button', { name: 'Parallel' })
     const revise = screen.getByRole('button', { name: 'Revise goal…' })
+    const zoom = screen.getByRole('group', { name: 'Zoom' })
+    expect(zoom).toHaveTextContent('70%')
+    const zoomOut = within(zoom).getByRole('button', { name: 'Zoom out' })
+    const zoomIn = within(zoom).getByRole('button', { name: 'Zoom in' })
     for (const control of [approve, reject, pause, cancel, parallel, revise]) {
       expect(control).toBeDisabled()
       expect(control).toHaveAccessibleDescription(WORKFLOW_RUN_ACTION_EXPLANATION)
+    }
+    for (const control of [zoomOut, zoomIn]) {
+      expect(control).toBeDisabled()
+      expect(control).toHaveAccessibleDescription(WORKFLOW_RUN_ZOOM_EXPLANATION)
+      expect(control).not.toHaveAccessibleDescription(WORKFLOW_RUN_ACTION_EXPLANATION)
     }
     await user.click(approve)
     fireEvent.click(reject)
@@ -125,6 +136,9 @@ describe('WorkflowRunView', () => {
       expect(within(pane).getByText(token).tagName).toBe('CODE')
     }
     const audit = within(pane).getByRole('button', { name: /pip-audit -r requirements.lock/ })
+    expect(audit).toBeDisabled()
+    expect(audit).toHaveAttribute('aria-expanded', 'false')
+    expect(audit).toHaveAccessibleDescription(WORKFLOW_RUN_TOOL_EXPLANATION)
     expect(audit).toHaveTextContent('0:41')
     expect(within(audit).getByText('pip-audit -r requirements.lock').tagName).toBe('CODE')
     expect(audit.parentElement?.querySelector('.hd-tool__body')).toBeNull()
@@ -166,9 +180,17 @@ describe('WorkflowRunView', () => {
       expect(control).toHaveAccessibleDescription(WORKFLOW_RUN_CALL_EXPLANATION)
       expect(control).not.toHaveAttribute('href')
     }
+    const zoom = screen.getByRole('group', { name: 'Zoom' })
+    expect(zoom).toHaveTextContent('70%')
+    const zoomOut = within(zoom).getByRole('button', { name: 'Zoom out' })
+    const zoomIn = within(zoom).getByRole('button', { name: 'Zoom in' })
     for (const control of [pause, cancel, parallel, more, docs]) {
       expect(control).toBeDisabled()
       expect(control).toHaveAccessibleDescription(WORKFLOW_RUN_ACTION_EXPLANATION)
+    }
+    for (const control of [zoomOut, zoomIn]) {
+      expect(control).toBeDisabled()
+      expect(control).toHaveAccessibleDescription(WORKFLOW_RUN_ZOOM_EXPLANATION)
     }
     expect(docs).not.toHaveAttribute('aria-pressed')
     await user.click(opens[0]!)
@@ -196,6 +218,69 @@ describe('WorkflowRunView', () => {
     ).toHaveAttribute('aria-pressed', 'false')
     expect(within(steps).getAllByRole('listitem')[2]).toHaveAttribute('aria-current', 'true')
     expect(within(steps).getAllByRole('listitem')[4]).not.toHaveAttribute('aria-current')
+    expect(
+      screen.getByRole('button', {
+        name: 'Security reviewer, on demand node, done, not selected',
+      }),
+    ).toHaveFocus()
+  })
+
+  it('closes the inspector when the selected reviewer is activated again', () => {
+    render(<RunHarness />)
+    const reviewer = screen.getByRole('button', {
+      name: 'Security reviewer, on demand node, done, not selected',
+    })
+    fireEvent.click(reviewer)
+    expect(screen.getByRole('complementary', { name: 'Selected on-demand node' })).toBeInTheDocument()
+    reviewer.blur()
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: 'Security reviewer, on demand node, done, selected',
+      }),
+    )
+    expect(screen.queryByRole('complementary', { name: 'Selected on-demand node' })).not.toBeInTheDocument()
+    const step = screen.getByRole('complementary', { name: 'Selected step' })
+    expect(within(step).getByText('Open pull request')).toBeInTheDocument()
+    expect(within(step).getByRole('group', { name: 'Approval needed' })).toBeInTheDocument()
+    expect(
+      screen.getByRole('button', {
+        name: 'Security reviewer, on demand node, done, not selected',
+      }),
+    ).toHaveFocus()
+  })
+
+  it('shows new inspector text from a same-run update', () => {
+    const run = nightlyAuditRun()
+    const demand = run.onDemand[0]
+    if (!demand) throw new Error('missing inspector')
+    const { rerender } = render(
+      <WorkflowRunView
+        load={{ kind: 'ready', run }}
+        selectedNodeId={SECURITY_REVIEWER_NODE_ID}
+      />,
+    )
+    expect(screen.getByText('Done · no advisories · 01:12')).toBeInTheDocument()
+    rerender(
+      <WorkflowRunView
+        load={{
+          kind: 'ready',
+          run: {
+            ...run,
+            onDemand: [
+              {
+                ...demand,
+                call: { ...demand.call, result: 'Done · refreshed · 01:40' },
+              },
+            ],
+          },
+        }}
+        selectedNodeId={SECURITY_REVIEWER_NODE_ID}
+      />,
+    )
+    expect(
+      screen.getByRole('complementary', { name: 'Selected on-demand node' }),
+    ).toHaveTextContent('Done · refreshed · 01:40')
+    expect(screen.queryByText('Done · no advisories · 01:12')).not.toBeInTheDocument()
   })
 
   it('keeps the inspector when the same run observation changes', () => {

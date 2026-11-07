@@ -95,7 +95,7 @@ export class WorkflowExecutionSession {
     this.publish({
       runId: id,
       load,
-      selectedNodeId: this.state.selectedNodeId,
+      selectedNodeId: selectionStillPresent(this.state.selectedNodeId, load),
     })
   }
 
@@ -104,4 +104,15 @@ export class WorkflowExecutionSession {
     this.state = next
     for (const listener of this.listeners) listener(this.state)
   }
+}
+
+/** Drop a choice the new observation no longer contains. A later return does not restore it. */
+function selectionStillPresent(
+  selected: WorkflowNodeId | null,
+  load: WorkflowRunLoad,
+): WorkflowNodeId | null {
+  if (selected === null || load.kind !== 'ready') return null
+  const node = load.run.nodes.some((item) => item.id === selected)
+  const inspector = load.run.onDemand.some((item) => item.nodeId === selected)
+  return node && inspector ? selected : null
 }

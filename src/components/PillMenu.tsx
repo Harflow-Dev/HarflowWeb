@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import { useId, type ReactNode } from 'react'
 import { Icon, type IconName } from './Icon'
 
 type Props = {
@@ -25,14 +25,16 @@ export function PillMenu({
   onToggle,
   children,
 }: Props) {
+  const panelId = useId()
   const tone = accent ? ' hd-pill--accent' : ''
   return (
     <span style={{ position: 'relative', display: 'inline-flex' }}>
       <button
         type="button"
         className={`hd-pill${tone}${open ? ' is-open' : ''}`}
-        aria-haspopup={fields ? 'dialog' : 'menu'}
+        aria-haspopup={fields ? undefined : 'menu'}
         aria-expanded={open}
+        aria-controls={fields ? panelId : undefined}
         disabled={disabled}
         aria-disabled={disabled || undefined}
         onClick={onToggle}
@@ -43,6 +45,7 @@ export function PillMenu({
       </button>
       {open ? (
         <div
+          id={fields ? panelId : undefined}
           className={fields ? 'hd-menu hd-m04-picker-menu' : 'hd-menu'}
           role={fields ? 'group' : 'menu'}
           aria-label={menuLabel}

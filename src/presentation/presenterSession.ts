@@ -114,17 +114,9 @@ export class PresenterSession {
 
   setOpenMenu(menu: OpenMenu): void {
     if (this.optionsLocked() && menu !== null) return
-    // Design specimen shows harness list + models for the current selection.
-    const harnessMenuPhase =
-      menu === 'harness' && this.state.selectedHarnessId !== null
-        ? 'model'
-        : menu === 'harness'
-          ? 'harness'
-          : this.state.harnessMenuPhase
     this.publish(
       this.withCanSubmit({
         openMenu: menu,
-        harnessMenuPhase,
         optionsOpen: menu === null ? this.state.optionsOpen : false,
       }),
     )
@@ -170,7 +162,6 @@ export class PresenterSession {
         selectedAccess: accessOk
           ? this.state.selectedAccess
           : (harness.accessLevels[0] ?? 'read_only'),
-        harnessMenuPhase: 'model',
       }),
     )
   }
@@ -181,7 +172,6 @@ export class PresenterSession {
       this.withCanSubmit({
         selectedModelId: id,
         openMenu: null,
-        harnessMenuPhase: 'harness',
       }),
     )
   }

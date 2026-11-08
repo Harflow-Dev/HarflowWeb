@@ -21,7 +21,6 @@ function baseState(
     selectedModelId: asModelId('claude-sonnet-5'),
     selectedAccess: 'edit_repo',
     openMenu: null,
-    harnessMenuPhase: 'harness',
     optionsOpen: false,
     effort: DEFAULT_EFFORT,
     turns: DEFAULT_TURNS,

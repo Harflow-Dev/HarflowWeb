@@ -34,7 +34,6 @@ export type NewTaskScreenState = {
   readonly selectedModelId: ModelId | null
   readonly selectedAccess: AccessLevel
   readonly openMenu: OpenMenu
-  readonly harnessMenuPhase: 'harness' | 'model'
   readonly optionsOpen: boolean
   readonly effort: EffortLevel
   readonly turns: string
@@ -56,7 +55,6 @@ export function initialScreenState(
     selectedModelId: null,
     selectedAccess: 'edit_repo',
     openMenu: null,
-    harnessMenuPhase: 'harness',
     optionsOpen: false,
     effort: DEFAULT_EFFORT,
     turns: DEFAULT_TURNS,

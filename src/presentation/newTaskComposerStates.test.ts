@@ -32,7 +32,6 @@ function base(
       selectedModelId: composer.selectedModelId,
       selectedAccess: composer.selectedAccess,
       openMenu: null,
-      harnessMenuPhase: 'harness',
       optionsOpen: false,
       effort: DEFAULT_EFFORT,
       turns: DEFAULT_TURNS,

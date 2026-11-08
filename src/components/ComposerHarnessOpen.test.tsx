@@ -99,6 +99,14 @@ describe('Composer harness-open centered specimen', () => {
 
     const start = screen.getByRole('button', { name: 'Start task' })
     expect(start).toBeDisabled()
+    expect(start).toHaveAttribute(
+      'title',
+      'Choose a qualified harness and model.',
+    )
+    expect(start).toHaveAttribute(
+      'aria-description',
+      'Choose a qualified harness and model.',
+    )
 
     fireEvent.keyDown(document, { key: 'Escape' })
     expect(onCloseOptions).not.toHaveBeenCalled()

@@ -68,11 +68,13 @@ function coerceSelections(
   const selectedRepositoryId = pickRepository(composer, preferred.selectedRepositoryId)
   const selectedHarnessId = pickHarness(composer, preferred.selectedHarnessId)
   const harness =
-    selectedHarnessId === null
-      ? null
-      : findAvailableHarness(composer, selectedHarnessId)
+    selectedHarnessId === null ? null : findHarness(composer, selectedHarnessId)
   const selectedModelId = pickModel(harness, preferred.selectedModelId)
-  const selectedAccess = pickAccess(composer, harness, preferred.selectedAccess)
+  const selectedAccess = pickAccess(
+    composer,
+    harness?.available === true ? harness : null,
+    preferred.selectedAccess,
+  )
   return {
     selectedRepositoryId,
     selectedHarnessId,
@@ -99,8 +101,13 @@ function pickHarness(
   composer: ComposerContext,
   preferred: HarnessId | null,
 ): HarnessId | null {
-  if (preferred !== null && findAvailableHarness(composer, preferred) !== null) {
-    return preferred
+  if (preferred !== null) {
+    const match = findHarness(composer, preferred)
+    if (match?.available === true) return preferred
+    // Keep an observation-selected unavailable harness for gated specimens.
+    if (match !== null && composer.selectedHarnessId === preferred) {
+      return preferred
+    }
   }
   const fallback = composer.selectedHarnessId
   if (fallback !== null && findAvailableHarness(composer, fallback) !== null) {
@@ -144,12 +151,19 @@ function pickAccess(
   return fromHarness ?? 'read_only'
 }
 
+function findHarness(
+  composer: ComposerContext,
+  id: HarnessId,
+): HarnessOption | null {
+  return composer.harnesses.find((h) => h.id === id) ?? null
+}
+
 function findAvailableHarness(
   composer: ComposerContext,
   id: HarnessId,
 ): HarnessOption | null {
-  const harness = composer.harnesses.find((h) => h.id === id)
-  if (harness === undefined || !harness.available) return null
+  const harness = findHarness(composer, id)
+  if (harness === null || !harness.available) return null
   return harness
 }
 

@@ -27,6 +27,7 @@ export {
 } from './screenState'
 export {
   newTaskOptionsAreCustomized,
+  newTaskQualificationHint,
   newTaskStatusMessage,
 } from './newTaskStatus'
 export {

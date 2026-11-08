@@ -111,6 +111,24 @@ body,
   height: 100%;
 }
 
+/* Design 19365d9 sidebar/centered-minimum frame (1000×620). */
+.hw-preview__app--minimum {
+  width: 1000px;
+  height: 620px;
+  max-width: 100%;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  margin: var(--space-4);
+  align-self: start;
+}
+
+.hw-preview__app--minimum .hw-root,
+.hw-preview__app--minimum .hd-app {
+  height: 100%;
+  min-height: 0;
+}
+
 @media (max-width: 900px) {
   .hw-preview {
     grid-template-columns: 1fr;
@@ -188,12 +206,48 @@ body,
   flex-wrap: wrap;
 }
 
-/* Centered New task composer — HarflowDesign 9d64bfd amendment. */
+/*
+ * Sidebar body scroll — Design 19365d9 redraw: nav + Running + Recent scroll
+ * together; header and Settings/appearance footer stay fixed.
+ */
+.hw-sidebar-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--text-tertiary) 72%, transparent)
+    transparent;
+}
+
+.hw-sidebar-scroll::-webkit-scrollbar {
+  width: 6px;
+  background: transparent;
+}
+
+.hw-sidebar-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.hw-sidebar-scroll::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--text-tertiary) 72%, transparent);
+  border-radius: 999px;
+}
+
+.hd-sidebar > .hd-sidebar__top,
+.hd-sidebar > .hd-sidebar__foot {
+  flex-shrink: 0;
+}
+
+/* Centered New task composer — HarflowDesign 9d64bfd amendment / 19365d9 redraw. */
 .hw-compose-area {
   display: flex;
   flex-direction: column;
   align-items: center;
   padding: var(--space-6);
+}
+
+.hw-preview__app--minimum .hw-compose-area {
+  padding-top: var(--space-6);
 }
 
 .hw-compose-group {

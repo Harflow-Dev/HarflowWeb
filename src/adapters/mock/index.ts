@@ -1,5 +1,6 @@
 export { createControllablePromise, type ControllablePromise } from './controllable'
 export {
+  checkingComposer,
   emptySidebar,
   MOCK_ACCESS,
   MOCK_HARNESSES,
@@ -7,11 +8,14 @@ export {
   partialSidebar,
   populatedComposer,
   populatedSidebar,
+  unavailableHarnessComposer,
+  unqualifiedComposer,
 } from './fixtures'
 export { createMockEngine, type MockEngineControls } from './mockEngine'
 export {
   SCENARIOS,
   scenarioById,
+  type NewTaskScenarioSeed,
   type ScenarioDefinition,
   type ScenarioId,
 } from './scenarios'

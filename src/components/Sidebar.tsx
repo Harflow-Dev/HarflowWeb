@@ -78,39 +78,40 @@ export function Sidebar({
           <Icon name="sidebar" />
         </button>
       </div>
-      <nav className="hd-nav" aria-label="Main">
-        {NAV.map((item) => (
-          <ExpandedNavItem
-            key={item.id}
-            item={item}
-            activeRoute={activeRoute}
-            needsYou={needsYou}
-            onNavigate={onNavigate}
-          />
-        ))}
-      </nav>
-      <TaskSection
-        label="Running"
-        count={runningCount}
-        rows={sidebar?.running ?? []}
-        activeTaskId={taskActiveId}
-        activeParallelGroupId={groupActiveId}
-        onOpenTask={onOpenTask}
-        onOpenParallelGroup={onOpenParallelGroup}
-        onUnavailable={onUnavailable}
-      />
-      <TaskSection
-        label="Recent work"
-        rows={sidebar?.recent ?? []}
-        done
-        coverageIncomplete={sidebar?.coverageIncomplete ?? false}
-        fill
-        activeTaskId={taskActiveId}
-        activeParallelGroupId={groupActiveId}
-        onOpenTask={onOpenTask}
-        onOpenParallelGroup={onOpenParallelGroup}
-        onUnavailable={onUnavailable}
-      />
+      <div className="hw-sidebar-scroll">
+        <nav className="hd-nav" aria-label="Main">
+          {NAV.map((item) => (
+            <ExpandedNavItem
+              key={item.id}
+              item={item}
+              activeRoute={activeRoute}
+              needsYou={needsYou}
+              onNavigate={onNavigate}
+            />
+          ))}
+        </nav>
+        <TaskSection
+          label="Running"
+          count={runningCount}
+          rows={sidebar?.running ?? []}
+          activeTaskId={taskActiveId}
+          activeParallelGroupId={groupActiveId}
+          onOpenTask={onOpenTask}
+          onOpenParallelGroup={onOpenParallelGroup}
+          onUnavailable={onUnavailable}
+        />
+        <TaskSection
+          label="Recent work"
+          rows={sidebar?.recent ?? []}
+          done
+          coverageIncomplete={sidebar?.coverageIncomplete ?? false}
+          activeTaskId={taskActiveId}
+          activeParallelGroupId={groupActiveId}
+          onOpenTask={onOpenTask}
+          onOpenParallelGroup={onOpenParallelGroup}
+          onUnavailable={onUnavailable}
+        />
+      </div>
       <div className="hd-sidebar__foot">
         <button
           type="button"

@@ -12,6 +12,8 @@ export function withNewTaskCanSubmit(
   const blocked =
     merged.submission.kind === 'pending' || merged.submission.kind === 'unknown'
   const context = merged.context
+  const qualified =
+    context.kind === 'ready' && context.composer.qualification === 'ready'
   const validSelections =
     context.kind === 'ready' &&
     selectionsAreSubmittable(context.composer, {
@@ -34,6 +36,7 @@ export function withNewTaskCanSubmit(
       !blocked &&
       isSubmittablePrompt(merged.prompt) &&
       context.kind === 'ready' &&
+      qualified &&
       validSelections &&
       optionsOk,
   }

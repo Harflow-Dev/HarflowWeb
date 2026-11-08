@@ -77,6 +77,15 @@ export const MOCK_HARNESSES: readonly HarnessOption[] = [
     models: [],
     accessLevels: ['read_only'],
   },
+  {
+    id: asHarnessId('unavailable'),
+    label: 'Unavailable harness',
+    available: false,
+    unavailableReason: 'Not available',
+    defaultModelId: asModelId('unavailable-default'),
+    models: [{ id: asModelId('unavailable-default'), label: 'Default' }],
+    accessLevels: ['read_only'],
+  },
 ]
 
 export const MOCK_ACCESS: readonly AccessOption[] = [
@@ -115,6 +124,31 @@ export function populatedComposer(): ComposerContext {
     selectedHarnessId: asHarnessId('claude'),
     selectedModelId: asModelId('opus-5.5'),
     selectedAccess: 'edit_repo',
+    qualification: 'ready',
+  }
+}
+
+/** Harness options still being discovered — Start stays disabled. */
+export function checkingComposer(): ComposerContext {
+  return { ...populatedComposer(), qualification: 'checking' }
+}
+
+/** No qualified harness — Start stays disabled with the drawn explanation. */
+export function unqualifiedComposer(): ComposerContext {
+  return { ...populatedComposer(), qualification: 'unqualified' }
+}
+
+/**
+ * Specimen centered-harness-open: unavailable harness selected and disabled.
+ * Qualification is unqualified so Start stays gated.
+ */
+export function unavailableHarnessComposer(): ComposerContext {
+  return {
+    ...populatedComposer(),
+    selectedHarnessId: asHarnessId('unavailable'),
+    selectedModelId: asModelId('unavailable-default'),
+    selectedAccess: 'read_only',
+    qualification: 'unqualified',
   }
 }
 

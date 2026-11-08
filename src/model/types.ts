@@ -77,6 +77,12 @@ export type SidebarData = {
   readonly coverageNote: string | null
 }
 
+/**
+ * Observation-reported composer readiness for Start.
+ * checking = harness options still being discovered; unqualified = none ready.
+ */
+export type ComposerQualification = 'checking' | 'ready' | 'unqualified'
+
 export type ComposerContext = {
   readonly repositories: readonly RepositoryOption[]
   readonly harnesses: readonly HarnessOption[]
@@ -85,6 +91,7 @@ export type ComposerContext = {
   readonly selectedHarnessId: HarnessId | null
   readonly selectedModelId: ModelId | null
   readonly selectedAccess: AccessLevel
+  readonly qualification: ComposerQualification
 }
 
 export type ContextLoad =

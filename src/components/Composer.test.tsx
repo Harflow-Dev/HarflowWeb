@@ -43,6 +43,7 @@ function composerProps(overrides: Override = {}) {
     selectedAccess: composer.selectedAccess,
     openMenu: null,
     harnessMenuPhase: 'harness' as const,
+    qualificationHint: null,
     optionsOpen: overrides.optionsOpen ?? false,
     optionsCustomized:
       (overrides.effort ?? DEFAULT_EFFORT) !== DEFAULT_EFFORT ||
@@ -52,6 +53,7 @@ function composerProps(overrides: Override = {}) {
     approvals: DEFAULT_APPROVALS,
     effortOptions: EFFORT_OPTIONS,
     permissionPreview: accessPermissionPreview(composer.selectedAccess),
+    startBlockedReason: null,
     onPrompt: overrides.onPrompt ?? vi.fn(),
     onOpenMenu: vi.fn(),
     onSelectRepository: vi.fn(),

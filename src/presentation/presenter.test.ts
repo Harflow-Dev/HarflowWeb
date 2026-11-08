@@ -634,6 +634,7 @@ describe('NewTaskPresenter', () => {
       selectedHarnessId: asHarnessId('claude'),
       selectedModelId: asModelId('opus-5.5'),
       selectedAccess: 'edit_repo',
+      qualification: 'ready',
     }
     publish(readyWith(narrowed))
 
@@ -663,6 +664,7 @@ describe('NewTaskPresenter', () => {
       selectedHarnessId: asHarnessId('opencode'),
       selectedModelId: asModelId('claude-sonnet-5'),
       selectedAccess: 'edit_repo',
+      qualification: 'ready',
     }
     publish(readyWith(opencodeOnly))
 

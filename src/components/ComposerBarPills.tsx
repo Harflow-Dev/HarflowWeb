@@ -20,6 +20,7 @@ type Props = {
   readonly selectedAccess: AccessLevel
   readonly openMenu: OpenMenu
   readonly harnessMenuPhase: 'harness' | 'model'
+  readonly qualificationHint: string | null
   readonly locked: boolean
   readonly onOpenMenu: (menu: OpenMenu) => void
   readonly onSelectRepository: (id: RepositoryId) => void
@@ -48,6 +49,7 @@ export function ComposerBarPills(props: Props) {
         selectedHarnessId={props.selectedHarnessId}
         selectedModelId={props.selectedModelId}
         harnessMenuPhase={props.harnessMenuPhase}
+        qualificationHint={props.qualificationHint}
         disabled={props.locked}
         onToggle={() =>
           props.onOpenMenu(props.openMenu === 'harness' ? null : 'harness')

@@ -13,6 +13,9 @@ import type {
   WorkflowsLoad,
 } from '../../model'
 import { SCENARIOS } from './scenarioCatalog'
+import type { NewTaskScenarioSeed } from './scenarioSeed'
+
+export type { NewTaskScenarioSeed } from './scenarioSeed'
 
 export type StatisticsScenario =
   | 'default'
@@ -51,6 +54,15 @@ export type ScenarioId =
   | 'task-failed'
   | 'task-done'
   | 'needs-you-empty'
+  | 'composer-loading'
+  | 'composer-unqualified'
+  | 'composer-invalid'
+  | 'composer-starting'
+  | 'composer-refused'
+  | 'composer-options-closed'
+  | 'composer-harness-open'
+  | 'sidebar-collapsed'
+  | 'sidebar-minimum'
 
 export type ScenarioDefinition = {
   readonly id: ScenarioId
@@ -66,6 +78,7 @@ export type ScenarioDefinition = {
   readonly needsYou: NeedsYouLoad | 'defer'
   readonly startOutcome: StartTaskOutcome
   readonly holdStart: boolean
+  readonly seed?: NewTaskScenarioSeed
 }
 
 export { SCENARIOS }

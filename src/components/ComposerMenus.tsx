@@ -63,6 +63,7 @@ type HarnessProps = {
   readonly selectedHarnessId: HarnessId | null
   readonly selectedModelId: ModelId | null
   readonly harnessMenuPhase: 'harness' | 'model'
+  readonly qualificationHint: string | null
   readonly disabled?: boolean
   readonly onToggle: () => void
   readonly onSelectHarness: (id: HarnessId) => void
@@ -73,7 +74,10 @@ export function HarnessMenu(props: HarnessProps) {
   const harness = props.harnesses.find((h) => h.id === props.selectedHarnessId)
   const model = harness?.models.find((m) => m.id === props.selectedModelId)
   const label =
-    harness && model ? `${shortHarness(harness.label)} · ${model.label}` : 'Harness'
+    harness && model
+      ? `${shortHarness(harness.label)} · ${model.label}`
+      : harness?.label ?? 'Harness'
+  const hintId = 'hw-harness-qualification-hint'
   return (
     <PillMenu
       open={props.open}
@@ -92,12 +96,19 @@ export function HarnessMenu(props: HarnessProps) {
           onSelect={props.onSelectHarness}
         />
       ))}
-      {harness && props.harnessMenuPhase === 'model' ? (
+      {harness &&
+      harness.available &&
+      props.harnessMenuPhase === 'model' ? (
         <ModelChoices
           harness={harness}
           selectedModelId={props.selectedModelId}
           onSelectModel={props.onSelectModel}
         />
+      ) : null}
+      {props.qualificationHint !== null ? (
+        <span className="hd-field__hint" id={hintId} role="note">
+          {props.qualificationHint}
+        </span>
       ) : null}
     </PillMenu>
   )

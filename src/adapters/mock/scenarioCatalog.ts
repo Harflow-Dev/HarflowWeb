@@ -2,6 +2,7 @@ import { asTaskId } from '../../model'
 import { emptySidebar, partialSidebar } from './fixtures'
 import { emptyNeedsYouLoad } from './needsYouFixtures'
 import { accepted, base, readyContext } from './scenarioBase'
+import { CENTERED_SCENARIOS } from './scenarioCatalogCentered'
 import type { ScenarioDefinition } from './scenarios'
 import { statisticsLoadFor } from './statisticsFixtures'
 import { taskLoadFor } from './taskFixtures'
@@ -177,4 +178,5 @@ export const SCENARIOS: readonly ScenarioDefinition[] = [
     startOutcome: accepted,
     holdStart: false,
   }),
+  ...CENTERED_SCENARIOS,
 ]

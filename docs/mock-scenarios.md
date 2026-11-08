@@ -12,15 +12,24 @@ populated fixture and shows a single “Mock engine” badge.
 
 | Scenario | What it shows |
 | --- | --- |
-| Populated | Design-aligned new-task (centered grow-to-cap composer and + task options) + workflows + resources + statistics + mapped running-task fixtures |
+| Populated | Design-aligned new-task (centered grow-to-cap composer and + task options) ≈ `new-task/centered-empty` + workflows + resources + statistics + mapped running-task fixtures |
 | Empty sidebar | Ready composer; empty Running/Recent |
-| Context loading | Proposal status (not design-approved) |
+| Context loading | Proposal status (not design-approved) — whole context still loading |
 | Context unavailable | Proposal status (not design-approved) |
 | Partial sidebar | Incomplete coverage note (proposal) |
 | Submit accepted | Outcome ≈ `ctl-launch-run-accepted` |
 | Submit refused | Outcome ≈ `ctl-launch-run-refused`; draft kept |
 | Submit unknown | Outcome ≈ `ctl-launch-run-unknown`; draft kept; Start and selections locked; no second launch; no Review Recent work navigation |
 | Stale response | Holds start; remount/dispose, then “Resolve held start” — late accept ignored |
+| Composer loading | Design `new-task/centered-loading` — observation `qualification: checking` |
+| Composer unqualified | Design `new-task/centered-unqualified` — `qualification: unqualified` |
+| Composer invalid | Design `new-task/centered-invalid` — turns `0`, Task options open |
+| Composer starting | Design `new-task/centered-starting` — held in-flight Start; Resolve held start |
+| Composer refused | Design `new-task/centered-refused` — refuse code+reason; draft kept |
+| Composer options closed | Design `new-task/centered-options-closed` — effort high, options collapsed |
+| Composer harness open | Design `new-task/centered-harness-open` — Unavailable harness selected+disabled; hint in menu |
+| Sidebar collapsed | Design `sidebar/centered-collapsed` |
+| Sidebar minimum | Design `sidebar/centered-minimum` — preview frame 1000×620 |
 | Workflows list | Approved `workflows/list` definition rows |
 | Workflows empty | Approved `workflows/empty` specimen |
 | Resources slots | Approved `resources/slots` harness cards + waiting list |
@@ -40,12 +49,15 @@ Codex, and Opencode lanes from Design `parallel-group/lanes` (HarflowDesign
 borrow another fixture. Leaving the group cancels its observation; reopening
 loads again. View prompt, Cancel all, lane actions, tool heads, and lane
 composers stay disabled. On New task the composer matches the M04 centered
-amendment: one-line prompt that grows to six lines, visual status line (live
-announcements stay in `StatusRegion`), and a `+` Task options control for
-effort, turn limit, and approvals. Escape returns focus to `+`; outside click
-closes without that focus move. Invalid options outrank a prior accepted or
-refused message. Those options gate Start in the mock and are not added to the
-start request. Draft text, selections, pending launch outcomes, the
+amendment and the 19365d9 redraw: one-line prompt that grows to six lines,
+visual status line (live announcements stay in `StatusRegion`), and a `+` Task
+options control for effort, turn limit, and approvals. Escape returns focus to
+`+` for options only — it does not close repository/harness/access pickers.
+Outside click closes options without that focus move. Qualification
+(`checking` / `unqualified`) and invalid options outrank a prior accepted or
+refused message. Refused copy is `Start was refused (${code}): ${reason}`.
+Those options gate Start in the mock and are not added to the start request.
+The expanded sidebar scrolls nav + Running + Recent as one body. Draft text, selections, pending launch outcomes, the
 selected statistics range, theme, and sidebar collapse are preserved across
 pages; navigation never starts or repeats a task. Changing the statistics range
 requests that range through `observeStatistics(range, …)` and cancels the prior

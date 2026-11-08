@@ -1,4 +1,8 @@
-import { asTaskId, type ContextLoad } from '../../model'
+import {
+  asTaskId,
+  type ComposerContext,
+  type ContextLoad,
+} from '../../model'
 import { populatedComposer, populatedSidebar } from './fixtures'
 import { populatedHarnessesLoad } from './harnessFixtures'
 import { waitingNeedsYouLoad } from './needsYouFixtures'
@@ -53,6 +57,7 @@ export function base(
         | 'taskChanges'
         | 'harnesses'
         | 'needsYou'
+        | 'seed'
       >
     >,
 ): ScenarioDefinition {
@@ -65,5 +70,16 @@ export function base(
     harnesses,
     needsYou,
     ...partial,
+  }
+}
+
+export function readyWithComposer(
+  composer: ComposerContext,
+  sidebar = populatedSidebar(),
+): ContextLoad {
+  return {
+    kind: 'ready',
+    composer,
+    sidebar,
   }
 }

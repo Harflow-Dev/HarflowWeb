@@ -38,6 +38,36 @@ function baseState(
 }
 
 describe('newTaskStatusMessage', () => {
+  it('maps refused outcomes to code and reason', () => {
+    expect(
+      newTaskStatusMessage(
+        baseState({
+          prompt: 'Keep me',
+          submission: {
+            kind: 'refused',
+            code: 'invalid_params',
+            reason: 'fixture refusal',
+          },
+        }),
+      ),
+    ).toBe('Start was refused (invalid_params): fixture refusal')
+  })
+
+  it('shows qualification hint when observation is not ready', () => {
+    expect(
+      newTaskStatusMessage(
+        baseState({
+          prompt: 'Review the delivery queue',
+          context: {
+            kind: 'ready',
+            composer: { ...populatedComposer(), qualification: 'checking' },
+            sidebar: populatedSidebar(),
+          },
+        }),
+      ),
+    ).toBe('Choose a qualified harness and model.')
+  })
+
   it('prefers a current options problem over a prior accepted outcome', () => {
     expect(
       newTaskStatusMessage(

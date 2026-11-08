@@ -12,7 +12,7 @@ import type { ApprovalsMode, EffortLevel } from '../presentation/taskOptions'
 import { ComposerBar } from './ComposerBar'
 import { ComposerPrompt } from './ComposerPrompt'
 
-type Props = {
+export type ComposerProps = {
   readonly prompt: string
   readonly canSubmit: boolean
   readonly pending: boolean
@@ -26,6 +26,7 @@ type Props = {
   readonly selectedAccess: AccessLevel
   readonly openMenu: OpenMenu
   readonly harnessMenuPhase: 'harness' | 'model'
+  readonly qualificationHint: string | null
   readonly optionsOpen: boolean
   readonly optionsCustomized: boolean
   readonly effort: EffortLevel
@@ -33,6 +34,7 @@ type Props = {
   readonly approvals: ApprovalsMode
   readonly effortOptions: readonly EffortLevel[]
   readonly permissionPreview: string
+  readonly startBlockedReason: string | null
   readonly onPrompt: (value: string) => void
   readonly onOpenMenu: (menu: OpenMenu) => void
   readonly onSelectRepository: (id: RepositoryId) => void
@@ -47,7 +49,17 @@ type Props = {
   readonly onSubmit: () => void
 }
 
-export function Composer(props: Props) {
+function toBarProps(props: ComposerProps) {
+  const {
+    prompt: _prompt,
+    onPrompt: _onPrompt,
+    onSubmit: _onSubmit,
+    ...bar
+  } = props
+  return bar
+}
+
+export function Composer(props: ComposerProps) {
   return (
     <form
       className="hd-composer hw-composer"
@@ -63,37 +75,7 @@ export function Composer(props: Props) {
         onPrompt={props.onPrompt}
         onSubmit={props.onSubmit}
       />
-      <ComposerBar
-        canSubmit={props.canSubmit}
-        pending={props.pending}
-        locked={props.locked}
-        repositories={props.repositories}
-        harnesses={props.harnesses}
-        accessOptions={props.accessOptions}
-        selectedRepositoryId={props.selectedRepositoryId}
-        selectedHarnessId={props.selectedHarnessId}
-        selectedModelId={props.selectedModelId}
-        selectedAccess={props.selectedAccess}
-        openMenu={props.openMenu}
-        harnessMenuPhase={props.harnessMenuPhase}
-        optionsOpen={props.optionsOpen}
-        optionsCustomized={props.optionsCustomized}
-        effort={props.effort}
-        turns={props.turns}
-        approvals={props.approvals}
-        effortOptions={props.effortOptions}
-        permissionPreview={props.permissionPreview}
-        onOpenMenu={props.onOpenMenu}
-        onSelectRepository={props.onSelectRepository}
-        onSelectHarness={props.onSelectHarness}
-        onSelectModel={props.onSelectModel}
-        onSelectAccess={props.onSelectAccess}
-        onToggleOptions={props.onToggleOptions}
-        onCloseOptions={props.onCloseOptions}
-        onEffort={props.onEffort}
-        onTurns={props.onTurns}
-        onApprovals={props.onApprovals}
-      />
+      <ComposerBar {...toBarProps(props)} />
     </form>
   )
 }

@@ -26,6 +26,7 @@ type Props = {
   readonly selectedAccess: AccessLevel
   readonly openMenu: OpenMenu
   readonly harnessMenuPhase: 'harness' | 'model'
+  readonly qualificationHint: string | null
   readonly optionsOpen: boolean
   readonly optionsCustomized: boolean
   readonly effort: EffortLevel
@@ -33,6 +34,7 @@ type Props = {
   readonly approvals: ApprovalsMode
   readonly effortOptions: readonly EffortLevel[]
   readonly permissionPreview: string
+  readonly startBlockedReason: string | null
   readonly onOpenMenu: (menu: OpenMenu) => void
   readonly onSelectRepository: (id: RepositoryId) => void
   readonly onSelectHarness: (id: HarnessId) => void
@@ -79,6 +81,9 @@ export function ComposerBar(props: Props) {
         selectedAccess={props.selectedAccess}
         openMenu={props.openMenu}
         harnessMenuPhase={props.harnessMenuPhase}
+        qualificationHint={
+          props.openMenu === 'harness' ? props.qualificationHint : null
+        }
         locked={props.locked}
         onOpenMenu={openMenu}
         onSelectRepository={props.onSelectRepository}
@@ -87,7 +92,10 @@ export function ComposerBar(props: Props) {
         onSelectAccess={props.onSelectAccess}
       />
       <span className="hd-composer__spacer" />
-      <ComposerStartButton canSubmit={props.canSubmit} />
+      <ComposerStartButton
+        canSubmit={props.canSubmit}
+        blockedReason={props.startBlockedReason}
+      />
     </div>
   )
 }

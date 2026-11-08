@@ -27,7 +27,6 @@ export function TaskSection({
   count,
   rows,
   done = false,
-  fill = false,
   coverageIncomplete = false,
   activeTaskId = null,
   activeParallelGroupId = null,
@@ -39,7 +38,6 @@ export function TaskSection({
   count?: number
   rows: SidebarData['running']
   done?: boolean
-  fill?: boolean
   coverageIncomplete?: boolean
   activeTaskId?: TaskId | null
   activeParallelGroupId?: ParallelGroupId | null
@@ -48,10 +46,7 @@ export function TaskSection({
   onUnavailable: (label: string) => void
 }) {
   return (
-    <section
-      className={fill ? 'hd-section hd-section--fill' : 'hd-section'}
-      aria-label={label}
-    >
+    <section className="hd-section" aria-label={label}>
       <div className="hd-section__head">
         {label}{' '}
         {count !== undefined && count > 0 ? (

@@ -3,6 +3,7 @@ import type { AppPresenter } from '../presentation'
 import type { NewTaskScreenState } from '../presentation'
 import {
   newTaskOptionsAreCustomized,
+  newTaskQualificationHint,
   newTaskStatusMessage,
 } from '../presentation/newTaskStatus'
 import {
@@ -20,6 +21,8 @@ export function NewTaskMain({ presenter, state }: Props) {
   const ready = state.context.kind === 'ready' ? state.context : null
   const locked =
     state.submission.kind === 'pending' || state.submission.kind === 'unknown'
+  const statusMessage = ready ? newTaskStatusMessage(state) : null
+  const qualificationHint = newTaskQualificationHint(state)
   return (
     <>
       <div className="hd-topbar">
@@ -45,6 +48,7 @@ export function NewTaskMain({ presenter, state }: Props) {
               selectedAccess={state.selectedAccess}
               openMenu={state.openMenu}
               harnessMenuPhase={state.harnessMenuPhase}
+              qualificationHint={qualificationHint}
               optionsOpen={state.optionsOpen}
               optionsCustomized={newTaskOptionsAreCustomized(state)}
               effort={state.effort}
@@ -52,6 +56,7 @@ export function NewTaskMain({ presenter, state }: Props) {
               approvals={state.approvals}
               effortOptions={EFFORT_OPTIONS}
               permissionPreview={accessPermissionPreview(state.selectedAccess)}
+              startBlockedReason={state.canSubmit ? null : statusMessage}
               onPrompt={(value) => presenter.setPrompt(value)}
               onOpenMenu={(menu) => presenter.setOpenMenu(menu)}
               onSelectRepository={(id) => presenter.selectRepository(id)}
@@ -77,9 +82,7 @@ export function NewTaskMain({ presenter, state }: Props) {
             </p>
           )}
           {/* Visual status only — StatusRegion is the sole live region. */}
-          <div className="hw-compose-status">
-            {ready ? newTaskStatusMessage(state) : null}
-          </div>
+          <div className="hw-compose-status">{statusMessage}</div>
           <p className="caption hd-faint hw-compose-help">
             Press <span className="hd-kbd">↵</span> to start. Choices are
             remembered per repository.

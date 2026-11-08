@@ -554,6 +554,29 @@ approved specimen and were not captured as specimens.
 - Completed-task omits Stop, failure banner, and Retry; follow-up send stays
   disabled; right pane is not present (out of scope for this assignment).
 
+## Centered composer + sidebar redraw (Design 19365d9) — inspection checklist
+
+Pinned commit: HarflowDesign `19365d9377ab8993350ec8655181094a8e1ec01a`.
+Preview scenarios under `/preview` (mock-only). Check each state in light and
+dark. Compare against a local HTTP server serving that commit’s `v2/index.html`
+(do not use a later Design HEAD).
+
+| Design route | Preview scenario | What to confirm |
+| --- | --- | --- |
+| `new-task/centered-empty` | Populated | Centered greeting/composer/status; empty draft; Start disabled |
+| `new-task/centered-loading` | Composer loading | Status “Choose a qualified harness and model.”; Start disabled |
+| `new-task/centered-unqualified` | Composer unqualified | Same qualification copy; Start disabled |
+| `new-task/centered-invalid` | Composer invalid | Options open; turns `0`; validation covers greeting at minimum |
+| `new-task/centered-starting` | Composer starting | “Starting task…”; Start disabled; no second submit until resolve |
+| `new-task/centered-refused` | Composer refused | Refuse shows code+reason; draft preserved |
+| `new-task/centered-options-closed` | Composer options closed | Customized dot; options collapsed |
+| `new-task/centered-harness-open` | Composer harness open | Unavailable harness selected+disabled; hint in menu; Escape leaves picker open |
+| `sidebar/centered-collapsed` | Sidebar collapsed | Rail only; expand + route aria-current |
+| `sidebar/centered-minimum` | Sidebar minimum | 1000×620 preview frame; single sidebar scroll body |
+
+Hosted `https://design.harflow.dev/v2` may be newer than `19365d9`; citations
+remain the immutable commit above.
+
 ## Limitations
 
 - Pixel fidelity to native materials is not claimed.

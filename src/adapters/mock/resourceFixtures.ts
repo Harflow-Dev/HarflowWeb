@@ -14,48 +14,54 @@ import {
   type ResourceWaitingTask,
 } from '../../model'
 
-function installedCards(): readonly ResourceHarnessCard[] {
+function claudeInstalledCard(): ResourceHarnessCard {
+  return {
+    kind: 'installed',
+    harnessId: asHarnessId('claude'),
+    label: 'Claude Code',
+    capacity: 3,
+    used: 2,
+    waitingCount: 0,
+    holders: [
+      {
+        id: 'hold-claude-1',
+        title: 'Fix flaky slot release test',
+        meta: '04:12',
+      },
+      {
+        id: 'hold-claude-2',
+        title: 'Add retry budget to delivery queue',
+        meta: '11:40',
+      },
+    ],
+  }
+}
+
+function codexInstalledCard(): ResourceHarnessCard {
+  return {
+    kind: 'installed',
+    harnessId: asHarnessId('codex'),
+    label: 'Codex',
+    capacity: 2,
+    used: 2,
+    waitingCount: 1,
+    holders: [
+      {
+        id: 'hold-codex-1',
+        title: 'Nightly dependency audit: Open pull request',
+        meta: '32:05',
+      },
+      {
+        id: 'hold-codex-2',
+        title: 'Review: Electron preload bridge',
+        meta: '06:31',
+      },
+    ],
+  }
+}
+
+function openInstalledCards(): readonly ResourceHarnessCard[] {
   return [
-    {
-      kind: 'installed',
-      harnessId: asHarnessId('claude'),
-      label: 'Claude Code',
-      capacity: 3,
-      used: 2,
-      waitingCount: 0,
-      holders: [
-        {
-          id: 'hold-claude-1',
-          title: 'Fix flaky slot release test',
-          meta: '04:12',
-        },
-        {
-          id: 'hold-claude-2',
-          title: 'Add retry budget to delivery queue',
-          meta: '11:40',
-        },
-      ],
-    },
-    {
-      kind: 'installed',
-      harnessId: asHarnessId('codex'),
-      label: 'Codex',
-      capacity: 2,
-      used: 2,
-      waitingCount: 1,
-      holders: [
-        {
-          id: 'hold-codex-1',
-          title: 'Nightly dependency audit: Open pull request',
-          meta: '32:05',
-        },
-        {
-          id: 'hold-codex-2',
-          title: 'Review: Electron preload bridge',
-          meta: '06:31',
-        },
-      ],
-    },
     {
       kind: 'installed',
       harnessId: asHarnessId('opencode'),
@@ -86,6 +92,10 @@ function installedCards(): readonly ResourceHarnessCard[] {
       label: 'Antigravity',
     },
   ]
+}
+
+function installedCards(): readonly ResourceHarnessCard[] {
+  return [claudeInstalledCard(), codexInstalledCard(), ...openInstalledCards()]
 }
 
 function waitingRows(): readonly ResourceWaitingTask[] {

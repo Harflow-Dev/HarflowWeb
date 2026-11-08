@@ -1,40 +1,35 @@
 import type { EnginePort } from '../../application'
-import {
-  asTaskId,
-  type ContextLoad,
-  type HarnessesLoad,
-  type NeedsYouLoad,
-  type ResourcesLoad,
-  type StartTaskOutcome,
-  type StartTaskRequest,
-  type StatisticsLoad,
-  type StatisticsRangeId,
-  type TaskChangesLoad,
-  type TaskChangesQuery,
-  type TaskId,
-  type TaskLoad,
-  type ParallelGroupId,
-  type ParallelGroupLoad,
-  type WorkflowEditorLoad,
-  type WorkflowId,
-  type WorkflowRunContextLoad,
-  type WorkflowsLoad,
+import type {
+  ContextLoad,
+  HarnessesLoad,
+  NeedsYouLoad,
+  ParallelGroupId,
+  ParallelGroupLoad,
+  ResourcesLoad,
+  StartTaskOutcome,
+  StartTaskRequest,
+  StatisticsLoad,
+  StatisticsRangeId,
+  TaskChangesLoad,
+  TaskChangesQuery,
+  TaskId,
+  TaskLoad,
+  WorkflowEditorLoad,
+  WorkflowId,
+  WorkflowRunContextLoad,
+  WorkflowsLoad,
 } from '../../model'
 import {
   buildMockEnginePort,
   createHeldStartTracker,
   createListenerSets,
-  resolveStatisticsLoad,
-  resolveTaskChangesLoad,
-  resolveTaskLoad,
-  taskChangesKey,
-  type MockListenerSets,
 } from './mockEngineCore'
-import { scenarioById, type ScenarioDefinition, type ScenarioId } from './scenarios'
-import { parallelGroupLoadFor } from './parallelGroupFixtures'
-import { workflowEditorLoadFor } from './workflowEditorFixtures'
-import { workflowExecutionLoadFor } from './workflowExecutionFixtures'
-import { workflowRunLoadFor } from './workflowRunFixtures'
+import {
+  catalogPublishers,
+  republishScenario,
+  surfacePublishers,
+} from './mockEnginePublish'
+import { scenarioById, type ScenarioId } from './scenarios'
 
 export type MockEngineControls = {
   readonly engine: EnginePort
@@ -53,74 +48,6 @@ export type MockEngineControls = {
   resolveHeldStart(outcome?: StartTaskOutcome): void
   readonly startRequestCount: () => number
   readonly lastStartRequest: () => StartTaskRequest | null
-}
-
-function queryFromChangesKey(key: string): TaskChangesQuery {
-  const sep = key.indexOf('\0')
-  return {
-    taskId: asTaskId(key.slice(0, sep)),
-    selectedPath: key.slice(sep + 1) === '' ? null : key.slice(sep + 1),
-  }
-}
-
-function republishScenario(
-  scenario: ScenarioDefinition,
-  listeners: MockListenerSets,
-): void {
-  for (const listener of listeners.context) {
-    listener(
-      scenario.context === 'defer' ? { kind: 'loading' } : scenario.context,
-    )
-  }
-  for (const listener of listeners.workflows) {
-    listener(
-      scenario.workflows === 'defer'
-        ? { kind: 'loading' }
-        : scenario.workflows,
-    )
-  }
-  for (const listener of listeners.resources) {
-    listener(
-      scenario.resources === 'defer'
-        ? { kind: 'loading' }
-        : scenario.resources,
-    )
-  }
-  for (const listener of listeners.statistics) {
-    listener.send(resolveStatisticsLoad(scenario, listener.key))
-  }
-  for (const listener of listeners.tasks) {
-    listener.send(resolveTaskLoad(scenario, listener.key))
-  }
-  for (const listener of listeners.taskChanges) {
-    listener.send(
-      resolveTaskChangesLoad(scenario, queryFromChangesKey(listener.key)),
-    )
-  }
-  for (const listener of listeners.harnesses) {
-    listener(
-      scenario.harnesses === 'defer'
-        ? { kind: 'loading' }
-        : scenario.harnesses,
-    )
-  }
-  for (const listener of listeners.needsYou) {
-    listener(
-      scenario.needsYou === 'defer' ? { kind: 'loading' } : scenario.needsYou,
-    )
-  }
-  for (const listener of listeners.workflowRuns) {
-    listener.send(workflowRunLoadFor(listener.key))
-  }
-  for (const listener of listeners.workflowEditors) {
-    listener.send(workflowEditorLoadFor(listener.key))
-  }
-  for (const listener of listeners.workflowExecutions) {
-    listener.send(workflowExecutionLoadFor(listener.key))
-  }
-  for (const listener of listeners.parallelGroups) {
-    listener.send(parallelGroupLoadFor(listener.key))
-  }
 }
 
 export function createMockEngine(
@@ -150,52 +77,8 @@ export function createMockEngine(
       held.take()
       republishScenario(scenario, listeners)
     },
-    publishContext(load) {
-      for (const listener of listeners.context) listener(load)
-    },
-    publishWorkflows(load) {
-      for (const listener of listeners.workflows) listener(load)
-    },
-    publishResources(load) {
-      for (const listener of listeners.resources) listener(load)
-    },
-    publishStatistics(range, load) {
-      for (const listener of listeners.statistics) {
-        if (listener.key === range) listener.send(load)
-      }
-    },
-    publishTask(taskId, load) {
-      for (const listener of listeners.tasks) {
-        if (listener.key === taskId) listener.send(load)
-      }
-    },
-    publishHarnesses(load) {
-      for (const listener of listeners.harnesses) listener(load)
-    },
-    publishNeedsYou(load) {
-      for (const listener of listeners.needsYou) listener(load)
-    },
-    publishWorkflowRun(workflowId, load) {
-      for (const listener of listeners.workflowRuns) {
-        if (listener.key === workflowId) listener.send(load)
-      }
-    },
-    publishWorkflowEditor(workflowId, load) {
-      for (const listener of listeners.workflowEditors) {
-        if (listener.key === workflowId) listener.send(load)
-      }
-    },
-    publishParallelGroup(groupId, load) {
-      for (const listener of listeners.parallelGroups) {
-        if (listener.key === groupId) listener.send(load)
-      }
-    },
-    publishTaskChanges(query, load) {
-      const key = taskChangesKey(query)
-      for (const listener of listeners.taskChanges) {
-        if (listener.key === key) listener.send(load)
-      }
-    },
+    ...catalogPublishers(listeners),
+    ...surfacePublishers(listeners),
     resolveHeldStart(outcome) {
       held.take()?.resolve(outcome ?? scenario.startOutcome)
     },

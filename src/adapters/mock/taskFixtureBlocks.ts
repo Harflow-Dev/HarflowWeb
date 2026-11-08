@@ -45,94 +45,102 @@ function slotReleaseOpening(): readonly TranscriptBlock[] {
   ]
 }
 
-function slotReleaseDiagnosis(): readonly TranscriptBlock[] {
-  return [
-    {
-      kind: 'agent',
-      id: 'a2',
-      segments: [
-        {
-          kind: 'paragraph',
-          runs: [
-            t('Found a likely cause. '),
-            c('SlotPool.release()'),
-            t(' in '),
-            c('harflow_mcp/slots.py'),
-            t(
-              ' sets the slot free and then notifies waiters outside the lock, so a waiter can wake, see the old count and go back to sleep. The test only passes when the notification lands first.',
-            ),
-          ],
-        },
-        {
-          kind: 'paragraph',
-          runs: [t("I'll reproduce it before changing anything.")],
-        },
-      ],
-    },
-    {
-      kind: 'tool',
-      id: 'tool-pytest',
-      icon: 'terminal',
-      summary: [
-        { kind: 'text', value: 'Ran ' },
-        {
-          kind: 'code',
-          value: 'pytest tests/test_slots.py -k release --count 20',
-        },
-      ],
-      meta: '0:41',
-      bodyLines: [
-        {
-          boldPrefix: 'FAILED',
-          text: 'FAILED tests/test_slots.py::test_release_frees_slot[7] - AssertionError: waiter still blocked',
-        },
-        {
-          boldPrefix: 'FAILED',
-          text: 'FAILED tests/test_slots.py::test_release_frees_slot[15] - AssertionError: waiter still blocked',
-        },
-        {
-          boldPrefix: null,
-          text: '2 failed, 18 passed in 38.52s',
-        },
-      ],
-      initiallyExpanded: true,
-    },
-  ]
+function slotReleaseCause(): TranscriptBlock {
+  return {
+    kind: 'agent',
+    id: 'a2',
+    segments: [
+      {
+        kind: 'paragraph',
+        runs: [
+          t('Found a likely cause. '),
+          c('SlotPool.release()'),
+          t(' in '),
+          c('harflow_mcp/slots.py'),
+          t(
+            ' sets the slot free and then notifies waiters outside the lock, so a waiter can wake, see the old count and go back to sleep. The test only passes when the notification lands first.',
+          ),
+        ],
+      },
+      {
+        kind: 'paragraph',
+        runs: [t("I'll reproduce it before changing anything.")],
+      },
+    ],
+  }
 }
 
-function slotReleaseFix(): readonly TranscriptBlock[] {
-  return [
-    {
-      kind: 'agent',
-      id: 'a3',
-      segments: [
-        {
-          kind: 'paragraph',
-          runs: [
+function slotReleaseReproduction(): TranscriptBlock {
+  return {
+    kind: 'tool',
+    id: 'tool-pytest',
+    icon: 'terminal',
+    summary: [
+      { kind: 'text', value: 'Ran ' },
+      {
+        kind: 'code',
+        value: 'pytest tests/test_slots.py -k release --count 20',
+      },
+    ],
+    meta: '0:41',
+    bodyLines: [
+      {
+        boldPrefix: 'FAILED',
+        text: 'FAILED tests/test_slots.py::test_release_frees_slot[7] - AssertionError: waiter still blocked',
+      },
+      {
+        boldPrefix: 'FAILED',
+        text: 'FAILED tests/test_slots.py::test_release_frees_slot[15] - AssertionError: waiter still blocked',
+      },
+      {
+        boldPrefix: null,
+        text: '2 failed, 18 passed in 38.52s',
+      },
+    ],
+    initiallyExpanded: true,
+  }
+}
+
+function slotReleaseDiagnosis(): readonly TranscriptBlock[] {
+  return [slotReleaseCause(), slotReleaseReproduction()]
+}
+
+function slotReleasePlan(): TranscriptBlock {
+  return {
+    kind: 'agent',
+    id: 'a3',
+    segments: [
+      {
+        kind: 'paragraph',
+        runs: [
+          t(
+            'Reproduced: 2 failures in 20 runs. The fix is to update the count and notify under the same lock:',
+          ),
+        ],
+      },
+      {
+        kind: 'list',
+        items: [
+          [
+            t('move '),
+            c('notify_all()'),
+            t(' inside the '),
+            c('with self._lock'),
+            t(' block'),
+          ],
+          [
             t(
-              'Reproduced: 2 failures in 20 runs. The fix is to update the count and notify under the same lock:',
+              're-check the free count in the waiter loop instead of trusting the wake-up',
             ),
           ],
-        },
-        {
-          kind: 'list',
-          items: [
-            [
-              t('move '),
-              c('notify_all()'),
-              t(' inside the '),
-              c('with self._lock'),
-              t(' block'),
-            ],
-            [
-              t(
-                're-check the free count in the waiter loop instead of trusting the wake-up',
-              ),
-            ],
-          ],
-        },
-      ],
-    },
+        ],
+      },
+    ],
+  }
+}
+
+function slotReleaseApplied(): readonly TranscriptBlock[] {
+  return [
     {
       kind: 'tool',
       id: 'tool-edit',
@@ -155,6 +163,10 @@ function slotReleaseFix(): readonly TranscriptBlock[] {
       label: 'Running tests…',
     },
   ]
+}
+
+function slotReleaseFix(): readonly TranscriptBlock[] {
+  return [slotReleasePlan(), ...slotReleaseApplied()]
 }
 
 export function slotReleaseBlocks(): readonly TranscriptBlock[] {

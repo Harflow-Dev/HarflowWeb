@@ -52,45 +52,46 @@ const NIGHTLY_TASK =
 
 const NIGHTLY_GOAL = 'A pull request that names each outdated package.'
 
-function permissions(
-  workflow: 'release' | 'nightly',
-): readonly WorkflowPermissionSet[] {
+function releasePermissions(): readonly WorkflowPermissionSet[] {
   const mcp = asRepositoryId('repo-mcp')
   const mac = asRepositoryId('repo-mac')
-  if (workflow === 'release') {
-    return [
-      {
-        repositoryId: mcp,
-        overrideId: 'saved',
-        facts: [
-          {
-            id: 'release-mcp-claude',
-            participant: 'Claude Code',
-            accessLabel: 'Can edit this repo',
-            limitLabel: 'Network: not controlled',
-          },
-          {
-            id: 'release-mcp-codex',
-            participant: 'Codex',
-            accessLabel: 'Read-only',
-            limitLabel: 'Sandboxed',
-          },
-        ],
-      },
-      {
-        repositoryId: mac,
-        overrideId: 'saved',
-        facts: [
-          {
-            id: 'release-mac-codex',
-            participant: 'Codex',
-            accessLabel: 'Read-only',
-            limitLabel: 'Network: not controlled',
-          },
-        ],
-      },
-    ]
-  }
+  return [
+    {
+      repositoryId: mcp,
+      overrideId: 'saved',
+      facts: [
+        {
+          id: 'release-mcp-claude',
+          participant: 'Claude Code',
+          accessLabel: 'Can edit this repo',
+          limitLabel: 'Network: not controlled',
+        },
+        {
+          id: 'release-mcp-codex',
+          participant: 'Codex',
+          accessLabel: 'Read-only',
+          limitLabel: 'Sandboxed',
+        },
+      ],
+    },
+    {
+      repositoryId: mac,
+      overrideId: 'saved',
+      facts: [
+        {
+          id: 'release-mac-codex',
+          participant: 'Codex',
+          accessLabel: 'Read-only',
+          limitLabel: 'Network: not controlled',
+        },
+      ],
+    },
+  ]
+}
+
+function nightlyPermissions(): readonly WorkflowPermissionSet[] {
+  const mcp = asRepositoryId('repo-mcp')
+  const mac = asRepositoryId('repo-mac')
   return [
     {
       repositoryId: mcp,
@@ -123,6 +124,13 @@ function permissions(
       ],
     },
   ]
+}
+
+function permissions(
+  workflow: 'release' | 'nightly',
+): readonly WorkflowPermissionSet[] {
+  if (workflow === 'release') return releasePermissions()
+  return nightlyPermissions()
 }
 
 function context(

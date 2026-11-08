@@ -18,67 +18,84 @@ const CLAUDE_APPROVALS = {
  * The server path is fixture copy, not a lookup on this computer.
  * Antigravity registration stays unknown: absence is not "not registered".
  */
+function claudeCodeHarness(): SettingsHarnessFact {
+  return fact({
+    id: 'claude-code',
+    label: 'Claude Code',
+    hint: null,
+    install: { kind: 'installed' },
+    registration: { kind: 'registered' },
+    qualification: { kind: 'ready', label: 'Ready' },
+    approvals: CLAUDE_APPROVALS,
+    actions: ['mcp-approvals', 'remove'],
+  })
+}
+
+function codexHarness(): SettingsHarnessFact {
+  return fact({
+    id: 'codex',
+    label: 'Codex',
+    hint: null,
+    install: { kind: 'update-available' },
+    registration: { kind: 'registered' },
+    qualification: {
+      kind: 'attention',
+      label: 'Codex needs sign-in: run codex login, then refresh.',
+    },
+    approvals: null,
+    actions: ['update'],
+  })
+}
+
+function readyInstalledHarnesses(): readonly SettingsHarnessFact[] {
+  return [
+    fact({
+      id: 'opencode',
+      label: 'Opencode',
+      hint: null,
+      install: { kind: 'installed' },
+      registration: { kind: 'registered' },
+      qualification: { kind: 'ready', label: 'Ready' },
+      approvals: null,
+      actions: ['remove'],
+    }),
+    fact({
+      id: 'mistral-vibe',
+      label: 'Mistral Vibe',
+      hint: null,
+      install: { kind: 'installed' },
+      registration: { kind: 'registered' },
+      qualification: { kind: 'ready', label: 'Ready' },
+      approvals: null,
+      actions: ['remove'],
+    }),
+  ]
+}
+
+function antigravityHarness(): SettingsHarnessFact {
+  return fact({
+    id: 'antigravity',
+    label: 'Antigravity',
+    hint: 'Install Antigravity, then refresh.',
+    install: { kind: 'not-found', label: 'Not found on PATH' },
+    registration: { kind: 'unknown' },
+    qualification: {
+      kind: 'not-qualified',
+      label: 'Antigravity was not found on PATH. Install it, then refresh.',
+    },
+    approvals: null,
+    actions: [],
+  })
+}
+
 export function populatedHarnessesObservation(): HarnessesObservation {
   return {
     server: { kind: 'registered', serverLabel: SPECIMEN_SERVER },
     harnesses: [
-      fact({
-        id: 'claude-code',
-        label: 'Claude Code',
-        hint: null,
-        install: { kind: 'installed' },
-        registration: { kind: 'registered' },
-        qualification: { kind: 'ready', label: 'Ready' },
-        approvals: CLAUDE_APPROVALS,
-        actions: ['mcp-approvals', 'remove'],
-      }),
-      fact({
-        id: 'codex',
-        label: 'Codex',
-        hint: null,
-        install: { kind: 'update-available' },
-        registration: { kind: 'registered' },
-        qualification: {
-          kind: 'attention',
-          label: 'Codex needs sign-in: run codex login, then refresh.',
-        },
-        approvals: null,
-        actions: ['update'],
-      }),
-      fact({
-        id: 'opencode',
-        label: 'Opencode',
-        hint: null,
-        install: { kind: 'installed' },
-        registration: { kind: 'registered' },
-        qualification: { kind: 'ready', label: 'Ready' },
-        approvals: null,
-        actions: ['remove'],
-      }),
-      fact({
-        id: 'mistral-vibe',
-        label: 'Mistral Vibe',
-        hint: null,
-        install: { kind: 'installed' },
-        registration: { kind: 'registered' },
-        qualification: { kind: 'ready', label: 'Ready' },
-        approvals: null,
-        actions: ['remove'],
-      }),
-      fact({
-        id: 'antigravity',
-        label: 'Antigravity',
-        hint: 'Install Antigravity, then refresh.',
-        install: { kind: 'not-found', label: 'Not found on PATH' },
-        registration: { kind: 'unknown' },
-        qualification: {
-          kind: 'not-qualified',
-          label:
-            'Antigravity was not found on PATH. Install it, then refresh.',
-        },
-        approvals: null,
-        actions: [],
-      }),
+      claudeCodeHarness(),
+      codexHarness(),
+      ...readyInstalledHarnesses(),
+      antigravityHarness(),
     ],
   }
 }

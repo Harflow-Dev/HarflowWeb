@@ -41,7 +41,7 @@ function retryBudgetOpening(): readonly TranscriptBlock[] {
   ]
 }
 
-function retryBudgetEdits(): readonly TranscriptBlock[] {
+function retryBudgetFileEdits(): readonly TranscriptBlock[] {
   return [
     {
       kind: 'tool',
@@ -73,28 +73,35 @@ function retryBudgetEdits(): readonly TranscriptBlock[] {
       bodyLines: null,
       initiallyExpanded: false,
     },
-    {
-      kind: 'tool',
-      id: 'tool-pytest-queue',
-      icon: 'terminal',
-      summary: [
-        { kind: 'text', value: 'Ran ' },
-        c('pytest tests/test_delivery_queue.py'),
-      ],
-      meta: '0:27',
-      bodyLines: [
-        {
-          boldPrefix: 'tests/test_delivery_queue.py',
-          text: 'tests/test_delivery_queue.py ........... [100%]',
-        },
-        {
-          boldPrefix: null,
-          text: '11 passed in 2.04s',
-        },
-      ],
-      initiallyExpanded: true,
-    },
   ]
+}
+
+function retryBudgetPytest(): TranscriptBlock {
+  return {
+    kind: 'tool',
+    id: 'tool-pytest-queue',
+    icon: 'terminal',
+    summary: [
+      { kind: 'text', value: 'Ran ' },
+      c('pytest tests/test_delivery_queue.py'),
+    ],
+    meta: '0:27',
+    bodyLines: [
+      {
+        boldPrefix: 'tests/test_delivery_queue.py',
+        text: 'tests/test_delivery_queue.py ........... [100%]',
+      },
+      {
+        boldPrefix: null,
+        text: '11 passed in 2.04s',
+      },
+    ],
+    initiallyExpanded: true,
+  }
+}
+
+function retryBudgetEdits(): readonly TranscriptBlock[] {
+  return [...retryBudgetFileEdits(), retryBudgetPytest()]
 }
 
 export function retryBudgetCompletedBlocks(): readonly TranscriptBlock[] {

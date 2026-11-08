@@ -36,6 +36,74 @@ const PUBLISH = NIGHTLY_PUBLISH_SNAPSHOT
 const PUBLISH_COMMAND = `git push origin ${PUBLISH.branch}
 gh pr create --repo ${PUBLISH.remote} --title "${PUBLISH.pullRequestTitle}"`
 
+function nightlyAuditNodes(): WorkflowRunObservation['nodes'] {
+  return [
+    path(SCAN, 'Scan lockfiles', 'Claude · Worker', 'Done 01:48', 'done', 14),
+    path(DRAFT, 'Draft upgrade plan', 'Claude · Worker', 'Done 03:02', 'done', 210),
+    path(OPEN_PR, 'Open pull request', 'Codex · Worker', 'Needs you 01:41', 'needs-you', 406),
+    path(NOTIFY, 'Notify', 'Codex · Worker', 'Pending', 'pending', 602),
+    {
+      id: SECURITY_REVIEWER_NODE_ID,
+      placement: 'standalone',
+      title: 'Security reviewer',
+      kindLabel: 'On demand',
+      meta: '2 calls · one at a time',
+      status: 'done',
+      frame: null,
+    },
+    {
+      id: asWorkflowNodeId('run-docs-checker'),
+      placement: 'standalone',
+      title: 'Docs checker',
+      kindLabel: 'On demand',
+      meta: 'Not called',
+      status: 'idle',
+      frame: null,
+    },
+  ]
+}
+
+function nightlyAuditEdges(): WorkflowRunObservation['edges'] {
+  return [
+    { id: 'run-scan-draft', from: SCAN, to: DRAFT, active: false },
+    { id: 'run-draft-pr', from: DRAFT, to: OPEN_PR, active: false },
+    { id: 'run-pr-notify', from: OPEN_PR, to: NOTIFY, active: true },
+  ]
+}
+
+function nightlyAuditDetail(): WorkflowRunObservation['detail'] {
+  return {
+    title: 'Open pull request',
+    statusLabel: 'Needs you',
+    goal: 'Upgrade the three vulnerable dependencies with all tests passing, and open one pull request with the lockfile changes.',
+    assessment: 'Assessment: in progress',
+    agent: `${NIGHTLY_REQUESTER_MODEL} · ${PUBLISH.repository}`,
+    message:
+      'The upgrade plan changes 3 packages: httpx, pydantic and pytest. The lockfile is updated on the branch.',
+    tools: [
+      {
+        id: 'run-tool-switch',
+        summary: `git switch -c ${PUBLISH.branch}`,
+        duration: '0:01',
+        output: null,
+      },
+      {
+        id: 'run-tool-pytest',
+        summary: 'pytest -q',
+        duration: '1:12',
+        output: '812 passed in 71.40s',
+      },
+    ],
+    approval: {
+      title: 'Publish changes',
+      source: NIGHTLY_REQUESTER_MODEL,
+      body: PUBLISH.publishAction,
+      command: PUBLISH_COMMAND,
+      access: PUBLISH.runAccess,
+    },
+  }
+}
+
 export function nightlyAuditRun(): WorkflowRunObservation {
   return {
     runId: NIGHTLY_AUDIT_RUN_ID,
@@ -47,65 +115,9 @@ export function nightlyAuditRun(): WorkflowRunObservation {
     boardWidth: 790,
     boardHeight: 620,
     selectedNodeId: OPEN_PR,
-    nodes: [
-      path(SCAN, 'Scan lockfiles', 'Claude · Worker', 'Done 01:48', 'done', 14),
-      path(DRAFT, 'Draft upgrade plan', 'Claude · Worker', 'Done 03:02', 'done', 210),
-      path(OPEN_PR, 'Open pull request', 'Codex · Worker', 'Needs you 01:41', 'needs-you', 406),
-      path(NOTIFY, 'Notify', 'Codex · Worker', 'Pending', 'pending', 602),
-      {
-        id: SECURITY_REVIEWER_NODE_ID,
-        placement: 'standalone',
-        title: 'Security reviewer',
-        kindLabel: 'On demand',
-        meta: '2 calls · one at a time',
-        status: 'done',
-        frame: null,
-      },
-      {
-        id: asWorkflowNodeId('run-docs-checker'),
-        placement: 'standalone',
-        title: 'Docs checker',
-        kindLabel: 'On demand',
-        meta: 'Not called',
-        status: 'idle',
-        frame: null,
-      },
-    ],
-    edges: [
-      { id: 'run-scan-draft', from: SCAN, to: DRAFT, active: false },
-      { id: 'run-draft-pr', from: DRAFT, to: OPEN_PR, active: false },
-      { id: 'run-pr-notify', from: OPEN_PR, to: NOTIFY, active: true },
-    ],
-    detail: {
-      title: 'Open pull request',
-      statusLabel: 'Needs you',
-      goal: 'Upgrade the three vulnerable dependencies with all tests passing, and open one pull request with the lockfile changes.',
-      assessment: 'Assessment: in progress',
-      agent: `${NIGHTLY_REQUESTER_MODEL} · ${PUBLISH.repository}`,
-      message:
-        'The upgrade plan changes 3 packages: httpx, pydantic and pytest. The lockfile is updated on the branch.',
-      tools: [
-        {
-          id: 'run-tool-switch',
-          summary: `git switch -c ${PUBLISH.branch}`,
-          duration: '0:01',
-          output: null,
-        },
-        {
-          id: 'run-tool-pytest',
-          summary: 'pytest -q',
-          duration: '1:12',
-          output: '812 passed in 71.40s',
-        },
-      ],
-      approval: {
-        title: 'Publish changes',
-        source: NIGHTLY_REQUESTER_MODEL,
-        body: PUBLISH.publishAction,
-        command: PUBLISH_COMMAND,
-        access: PUBLISH.runAccess,
-      },
-    },
+    nodes: nightlyAuditNodes(),
+    edges: nightlyAuditEdges(),
+    detail: nightlyAuditDetail(),
     onDemand: [securityReviewerOnDemand()],
     parallel: nightlyParallel(),
   }

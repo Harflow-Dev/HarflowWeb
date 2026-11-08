@@ -5,6 +5,7 @@ import {
   type ParallelGroupLoad,
   type ParallelGroupObservation,
   type WorkflowRunLane,
+  type WorkflowRunLaneBlock,
 } from '../../model'
 
 /**
@@ -19,6 +20,69 @@ export const PRELOAD_PARALLEL_GROUP_ID = asParallelGroupId(
   'parallel-group-preload-bridge',
 )
 
+function claudeCodeOpeningBlocks(): readonly WorkflowRunLaneBlock[] {
+  return [
+    {
+      kind: 'agent',
+      runs: [
+        {
+          kind: 'text',
+          value: 'Reviewing the preload bridge in ',
+        },
+        { kind: 'code', value: 'src/preload/bridge.ts' },
+        {
+          kind: 'text',
+          value: '. Starting with what the renderer can reach through ',
+        },
+        { kind: 'code', value: 'contextBridge' },
+        { kind: 'text', value: '.' },
+      ],
+    },
+    {
+      kind: 'tool',
+      id: 'pg-read-6',
+      summary: 'Read 6 files',
+      duration: '0:09',
+      icon: 'file',
+      summaryKind: 'plain',
+    },
+  ]
+}
+
+function claudeCodeFindingBlocks(): readonly WorkflowRunLaneBlock[] {
+  return [
+    {
+      kind: 'agent',
+      runs: [
+        { kind: 'code', value: 'exposeInMainWorld' },
+        {
+          kind: 'text',
+          value: ' hands the renderer the raw ',
+        },
+        { kind: 'code', value: 'ipcRenderer.invoke' },
+        {
+          kind: 'text',
+          value: ', so any channel name is callable. The allow-list in ',
+        },
+        { kind: 'code', value: 'channels.ts' },
+        { kind: 'text', value: ' is never applied here.' },
+      ],
+    },
+    {
+      kind: 'tool',
+      id: 'pg-rg-ipc',
+      summary: 'rg "ipcRenderer" src/preload',
+      duration: '0:02',
+      icon: 'terminal',
+      summaryKind: 'ran-code',
+    },
+    {
+      kind: 'working',
+      text: 'Reading src/preload/bridge.ts…',
+    },
+  ]
+}
+
 function claudeCodeLane(): WorkflowRunLane {
   return {
     id: 'lane-claude-code',
@@ -27,63 +91,36 @@ function claudeCodeLane(): WorkflowRunLane {
     status: 'running',
     statusMeta: 'Running 03:24',
     composerName: 'Claude Code',
-    blocks: [
-      {
-        kind: 'agent',
-        runs: [
-          {
-            kind: 'text',
-            value: 'Reviewing the preload bridge in ',
-          },
-          { kind: 'code', value: 'src/preload/bridge.ts' },
+    blocks: [...claudeCodeOpeningBlocks(), ...claudeCodeFindingBlocks()],
+  }
+}
+
+function codexFindings(): WorkflowRunLaneBlock[] {
+  return [
+    {
+      kind: 'agent',
+      runs: [{ kind: 'text', value: 'Three findings:' }],
+      listItems: [
+        [
+          { kind: 'text', value: 'the bridge exposes ' },
+          { kind: 'code', value: 'ipcRenderer.invoke' },
+          { kind: 'text', value: ' without a channel check' },
+        ],
+        [
+          { kind: 'code', value: 'sandbox' },
+          { kind: 'text', value: ' is off for the settings window' },
+        ],
+        [
           {
             kind: 'text',
             value:
-              '. Starting with what the renderer can reach through ',
+              'reply payloads from main are not validated before they reach the renderer',
           },
-          { kind: 'code', value: 'contextBridge' },
-          { kind: 'text', value: '.' },
         ],
-      },
-      {
-        kind: 'tool',
-        id: 'pg-read-6',
-        summary: 'Read 6 files',
-        duration: '0:09',
-        icon: 'file',
-        summaryKind: 'plain',
-      },
-      {
-        kind: 'agent',
-        runs: [
-          { kind: 'code', value: 'exposeInMainWorld' },
-          {
-            kind: 'text',
-            value: ' hands the renderer the raw ',
-          },
-          { kind: 'code', value: 'ipcRenderer.invoke' },
-          {
-            kind: 'text',
-            value: ', so any channel name is callable. The allow-list in ',
-          },
-          { kind: 'code', value: 'channels.ts' },
-          { kind: 'text', value: ' is never applied here.' },
-        ],
-      },
-      {
-        kind: 'tool',
-        id: 'pg-rg-ipc',
-        summary: 'rg "ipcRenderer" src/preload',
-        duration: '0:02',
-        icon: 'terminal',
-        summaryKind: 'ran-code',
-      },
-      {
-        kind: 'working',
-        text: 'Reading src/preload/bridge.ts…',
-      },
-    ],
-  }
+      ],
+    },
+    { kind: 'result', text: 'Done · 3 findings · 04:51' },
+  ]
 }
 
 function codexLane(): WorkflowRunLane {
@@ -113,29 +150,7 @@ function codexLane(): WorkflowRunLane {
         icon: 'file',
         summaryKind: 'plain',
       },
-      {
-        kind: 'agent',
-        runs: [{ kind: 'text', value: 'Three findings:' }],
-        listItems: [
-          [
-            { kind: 'text', value: 'the bridge exposes ' },
-            { kind: 'code', value: 'ipcRenderer.invoke' },
-            { kind: 'text', value: ' without a channel check' },
-          ],
-          [
-            { kind: 'code', value: 'sandbox' },
-            { kind: 'text', value: ' is off for the settings window' },
-          ],
-          [
-            {
-              kind: 'text',
-              value:
-                'reply payloads from main are not validated before they reach the renderer',
-            },
-          ],
-        ],
-      },
-      { kind: 'result', text: 'Done · 3 findings · 04:51' },
+      ...codexFindings(),
     ],
   }
 }

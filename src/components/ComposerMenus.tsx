@@ -7,6 +7,7 @@ import type {
   RepositoryId,
   RepositoryOption,
 } from '../model'
+import { HarnessChoice, ModelChoices } from './ComposerHarnessMenu'
 import { Icon } from './Icon'
 import { PillMenu } from './PillMenu'
 
@@ -84,58 +85,19 @@ export function HarnessMenu(props: HarnessProps) {
     >
       <div className="hd-menu__label">Harness</div>
       {props.harnesses.map((item) => (
-        <button
+        <HarnessChoice
           key={item.id}
-          type="button"
-          className="hd-menu__item"
-          role="menuitem"
-          disabled={!item.available}
-          aria-disabled={!item.available}
-          style={item.available ? undefined : { opacity: 0.5, cursor: 'default' }}
-          onClick={() => {
-            if (item.available) props.onSelectHarness(item.id)
-          }}
-        >
-          <Icon name="harness" />
-          <span className="hd-menu__item-body">
-            <span>{item.label}</span>
-            <span className="hd-menu__item-hint">
-              {item.available
-                ? (item.models.find((m) => m.id === item.defaultModelId)?.label ??
-                  'Default model')
-                : (item.unavailableReason ?? 'Unavailable')}
-            </span>
-          </span>
-          {item.id === props.selectedHarnessId ? (
-            <span className="hd-menu__check">
-              <Icon name="check" />
-            </span>
-          ) : null}
-        </button>
+          item={item}
+          selected={item.id === props.selectedHarnessId}
+          onSelect={props.onSelectHarness}
+        />
       ))}
       {harness && props.harnessMenuPhase === 'model' ? (
-        <>
-          <div className="hd-menu__sep" />
-          <div className="hd-menu__label">Model for {harness.label}</div>
-          {harness.models.map((item) => (
-            <button
-              key={item.id}
-              type="button"
-              className="hd-menu__item"
-              role="menuitem"
-              onClick={() => props.onSelectModel(item.id)}
-            >
-              <span className="hd-menu__item-body">
-                <span>{item.label}</span>
-              </span>
-              {item.id === props.selectedModelId ? (
-                <span className="hd-menu__check">
-                  <Icon name="check" />
-                </span>
-              ) : null}
-            </button>
-          ))}
-        </>
+        <ModelChoices
+          harness={harness}
+          selectedModelId={props.selectedModelId}
+          onSelectModel={props.onSelectModel}
+        />
       ) : null}
     </PillMenu>
   )

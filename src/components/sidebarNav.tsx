@@ -1,34 +1,8 @@
 import type { Appearance, NeedsYouBadge } from '../model'
 import type { AppRoute } from '../presentation'
-import { Icon, type IconName } from './Icon'
+import { Icon } from './Icon'
+import { NAV, isAppRoute } from './sidebarNavConfig'
 import { ThemeToggle } from './ThemeToggle'
-
-export type NavId = AppRoute | 'needs-you'
-
-export const NAV: readonly {
-  id: NavId
-  label: string
-  icon: IconName
-  kbd?: string
-}[] = [
-  { id: 'new-task', label: 'New task', icon: 'plus', kbd: '⌘N' },
-  { id: 'needs-you', label: 'Needs you', icon: 'hand' },
-  { id: 'workflows', label: 'Workflows', icon: 'workflow' },
-  { id: 'resources', label: 'Resources', icon: 'gauge' },
-  { id: 'statistics', label: 'Statistics', icon: 'chart' },
-]
-
-export function isAppRoute(id: NavId): id is AppRoute {
-  return (
-    id === 'new-task' ||
-    id === 'needs-you' ||
-    id === 'workflows' ||
-    id === 'resources' ||
-    id === 'statistics' ||
-    id === 'settings' ||
-    id === 'task'
-  )
-}
 
 function needsYouVisible(
   badge: NeedsYouBadge,

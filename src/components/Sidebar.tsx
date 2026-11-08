@@ -7,7 +7,8 @@ import type {
 } from '../model'
 import type { AppRoute } from '../presentation'
 import { Icon } from './Icon'
-import { CollapsedRail, ExpandedNavItem, NAV } from './sidebarNav'
+import { CollapsedRail, ExpandedNavItem } from './sidebarNav'
+import { NAV } from './sidebarNavConfig'
 import { TaskSection } from './sidebarSections'
 import { ThemeToggle } from './ThemeToggle'
 

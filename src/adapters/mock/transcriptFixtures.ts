@@ -3,7 +3,12 @@
  * (v2/scripts/d2b-proposal.js createState + screens-transcript.js).
  * Mock-only — not a public ctl transcript protocol.
  */
-import { asTaskId, type TaskObservation, type TranscriptObservation } from '../../model'
+import {
+  asTaskId,
+  TRANSCRIPT_REQUEST_TEXT,
+  type TaskObservation,
+  type TranscriptObservation,
+} from '../../model'
 import {
   observationFields,
   type TranscriptMount,
@@ -29,6 +34,7 @@ export function transcriptObservationFor(
   const fields = observationFields(mount)
   return {
     ...fields,
+    assignmentText: TRANSCRIPT_REQUEST_TEXT,
     requestMaxBytes: 64,
     sourceEpoch: 'mock-source-a',
     windowEpoch: 0,
@@ -51,11 +57,11 @@ export function transcriptTaskObservation(
     title: 'Fix slot release test',
     statusBadge: running ? 'Running' : 'Done',
     headerMeta: 'Codex · HarflowMCP',
-    blocks: [] as const,
     followUpPlaceholder: running
       ? 'Send a follow-up. It is delivered after the current turn.'
       : 'Continue this task',
     transcript,
+    detailsPane: 'events' as const,
   }
   if (running) return { ...base, status: 'running' }
   return {

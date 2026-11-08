@@ -39,6 +39,7 @@ export type TranscriptRowType =
   | 'tool_result'
   | 'unsupported'
 
+/** One captured activity row. Content is observation-owned (mock fixtures). */
 export type TranscriptRow = {
   readonly id: string
   readonly sourceEpoch: string
@@ -46,6 +47,13 @@ export type TranscriptRow = {
   readonly occurrence: number
   readonly seq: number
   readonly type: TranscriptRowType
+  /** Stable scroll-anchor identity (`data-row`), independent of array index. */
+  readonly anchorId: string
+  readonly title: string
+  readonly body: string
+  readonly toolSummary?: string
+  readonly toolBody?: string
+  readonly disclosure?: string
 }
 
 export type NormalizedEventRecord = {
@@ -66,6 +74,8 @@ export type NormalizedEventRecord = {
 
 export type TranscriptObservation = {
   readonly request: TranscriptRequestKind
+  /** Full assignment text when the request read succeeds. */
+  readonly assignmentText: string
   /** Bytes shown for truncated/unverified prefixes (specimen 64→128). */
   readonly requestMaxBytes: number
   readonly history: TranscriptHistoryKind
@@ -88,3 +98,12 @@ export type TranscriptObservation = {
 /** Full original assignment text from the Design specimen. */
 export const TRANSCRIPT_REQUEST_TEXT =
   'Find and fix the slot release race. Keep notification under the lock. Add a deterministic regression. Preserve unrelated edits. Report the exact focused validation result and any remaining uncertainty before concluding.'
+
+export const TRANSCRIPT_TOOL_BODY = `Mock focused regression
+Arrange: hold the release lock
+Start a waiting consumer
+Release and notify under the lock
+Assert: consumer observes the free slot
+Result: deterministic race reproduced
+Patch: notification moved under lock
+Result after patch: focused regression passed`

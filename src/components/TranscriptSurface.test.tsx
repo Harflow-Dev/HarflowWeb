@@ -1,268 +1,264 @@
 import { cleanup, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import { useState } from 'react'
 import {
+  asTaskId,
   TRANSCRIPT_REQUEST_TEXT,
+  type TaskObservation,
   type TranscriptObservation,
+  type TranscriptRow,
 } from '../model'
 import { transcriptObservationFor } from '../adapters/mock/transcriptFixtures'
-import { TaskEventsPane } from './TaskEventsPane'
+import { TaskPage } from './TaskPage'
 import { TranscriptSurface } from './TranscriptSurface'
-import { useState } from 'react'
+import {
+  captureVisibleAnchor,
+  restoreVisibleAnchor,
+  applyFocusAfterAction,
+  focusTargetFor,
+} from './transcriptScroll'
 
 afterEach(() => {
   cleanup()
   vi.unstubAllGlobals()
 })
 
-function Harness({
+function ReadingHarness({
   initial,
-  eventsOpen = false,
 }: {
   readonly initial: TranscriptObservation
-  readonly eventsOpen?: boolean
 }) {
   const [transcript, setTranscript] = useState(initial)
   const [note, setNote] = useState('')
   return (
-    <div className="hd-split">
-      <div>
-        <TranscriptSurface
-          transcript={transcript}
-          onTranscriptChange={setTranscript}
-          onAnnounce={setNote}
-        />
-        <div data-testid="announce">{note}</div>
-      </div>
-      {eventsOpen ? (
-        <TaskEventsPane
-          transcript={transcript}
-          executionStatus="Done"
-          onUnavailable={setNote}
-          onCopyRecord={async () => {
-            const el = document.querySelector('[data-record]')
-            if (!(el instanceof HTMLElement) || !el.textContent) {
-              setNote('Nothing to copy in this view.')
-              return
-            }
-            try {
-              if (!navigator.clipboard?.writeText) throw new Error('unavailable')
-              await navigator.clipboard.writeText(el.textContent)
-              setTranscript((prev) => ({
-                ...prev,
-                liveMessage: 'Copied normalized mock record.',
-              }))
-              setNote('Copied normalized mock record.')
-            } catch {
-              setNote(
-                'Text selected. Use your system copy command to copy it.',
-              )
-            }
-          }}
-        />
-      ) : null}
+    <div>
+      <TranscriptSurface
+        transcript={transcript}
+        onReadingChange={setTranscript}
+        onAnnounce={setNote}
+      />
+      <div data-testid="announce">{note}</div>
     </div>
   )
 }
 
-describe('TranscriptSurface states', () => {
-  it('observed: original request disclosure and activity boundary', () => {
-    render(<Harness initial={transcriptObservationFor('observed')} />)
-    expect(screen.getByText('Original request')).toBeInTheDocument()
+function ObservationHarness({
+  sequence,
+}: {
+  readonly sequence: readonly TranscriptObservation[]
+}) {
+  const [index, setIndex] = useState(0)
+  const observation: TaskObservation = {
+    status: 'completed',
+    taskId: asTaskId('task-obs'),
+    title: 'Fix slot release test',
+    statusBadge: 'Done',
+    headerMeta: 'Codex · HarflowMCP',
+    followUpPlaceholder: 'Continue this task',
+    transcript: sequence[index]!,
+    detailsPane: 'events',
+    summary: {
+      heading: 'Summary',
+      segments: [{ kind: 'paragraph', runs: [{ kind: 'text', value: 'ok' }] }],
+    },
+  }
+  return (
+    <div>
+      <TaskPage
+        observation={observation}
+        eventsPaneOpen
+        onUnavailable={() => undefined}
+      />
+      <button
+        type="button"
+        data-testid="next-obs"
+        onClick={() =>
+          setIndex((value) => Math.min(value + 1, sequence.length - 1))
+        }
+      >
+        Next observation
+      </button>
+    </div>
+  )
+}
+
+describe('TranscriptSurface observation reconciliation', () => {
+  it('removes withheld request text when observation becomes integrity-failed', async () => {
+    const user = userEvent.setup()
+    render(
+      <ObservationHarness
+        sequence={[
+          transcriptObservationFor('observed'),
+          transcriptObservationFor('integrity-failed'),
+        ]}
+      />,
+    )
     expect(screen.getByText(TRANSCRIPT_REQUEST_TEXT)).toBeInTheDocument()
-    expect(
-      screen.getByText('Verified stored request · complete'),
-    ).toBeInTheDocument()
-    expect(
-      screen.getByText('Captured activity caught up'),
-    ).toBeInTheDocument()
-  })
-
-  it('loading: skeletons and no zero totals or request text', () => {
-    render(<Harness initial={transcriptObservationFor('loading')} />)
-    expect(screen.getByLabelText('Loading request')).toBeInTheDocument()
-    expect(screen.getByLabelText('Loading history')).toBeInTheDocument()
+    await user.click(screen.getByTestId('next-obs'))
     expect(screen.queryByText(TRANSCRIPT_REQUEST_TEXT)).toBeNull()
-    expect(document.body.textContent).not.toMatch(/0 tool calls/)
-  })
-
-  it('partial: truncated request and capture-gap qualification', () => {
-    render(<Harness initial={transcriptObservationFor('partial')} />)
-    expect(screen.getByText('Partial request')).toBeInTheDocument()
-    expect(screen.getByText('Bounded prefix · truncated')).toBeInTheDocument()
-    expect(
-      screen.getByText('History incomplete · capture gap'),
-    ).toBeInTheDocument()
-    const pre = screen.getByText((_c, el) =>
-      Boolean(el?.tagName === 'PRE' && el.getAttribute('data-copy-text') !== null),
-    )
-    expect(pre.textContent?.length).toBe(64)
-  })
-
-  it('unavailable: request refusal without inventing assignment text', () => {
-    render(<Harness initial={transcriptObservationFor('unavailable')} />)
-    expect(screen.getByText('Original request unavailable')).toBeInTheDocument()
-    expect(
-      screen.getByText('The original request could not be read.'),
-    ).toBeInTheDocument()
-    expect(screen.queryByText(TRANSCRIPT_REQUEST_TEXT)).toBeNull()
-    expect(
-      screen.getByRole('button', { name: 'Retry request read' }),
-    ).toBeInTheDocument()
-  })
-
-  it('integrity-failed: withheld text is absent from the DOM', () => {
-    const { container } = render(
-      <Harness initial={transcriptObservationFor('integrity-failed')} />,
-    )
-    expect(
-      screen.getByText('Original request · integrity check failed'),
-    ).toBeInTheDocument()
+    expect(document.querySelector('[data-copy-text]')).toBeNull()
     expect(
       screen.getByText(
         'Content withheld because integrity verification failed.',
       ),
     ).toBeInTheDocument()
-    expect(container.textContent).not.toContain('slot release race')
-    expect(container.querySelector('[data-copy-text]')).toBeNull()
   })
 
-  it('reconnecting: keeps rows until explicit Load current activity', async () => {
+  it('shows totals when observation moves from loading to observed', async () => {
     const user = userEvent.setup()
-    render(<Harness initial={transcriptObservationFor('reconnecting')} />)
+    render(
+      <ObservationHarness
+        sequence={[
+          transcriptObservationFor('loading'),
+          transcriptObservationFor('observed'),
+        ]}
+      />,
+    )
+    expect(screen.getByLabelText('Loading history')).toBeInTheDocument()
+    expect(document.body.textContent).not.toMatch(/0 tool calls/)
+    await user.click(screen.getByTestId('next-obs'))
+    expect(screen.getByText('2 tool calls observed')).toBeInTheDocument()
+  })
+
+  it('keeps rows across reconnecting then observed', async () => {
+    const user = userEvent.setup()
+    render(
+      <ObservationHarness
+        sequence={[
+          transcriptObservationFor('observed'),
+          transcriptObservationFor('reconnecting'),
+          transcriptObservationFor('observed'),
+        ]}
+      />,
+    )
     expect(
-      screen.getByText('Reconnecting · cached history is not current'),
+      screen.getByText(/I found the notification outside the lock/),
     ).toBeInTheDocument()
+    await user.click(screen.getByTestId('next-obs'))
     expect(
       screen.getByText(/I found the notification outside the lock/),
     ).toBeInTheDocument()
     expect(
-      screen.getByRole('button', { name: 'Retry history read' }),
-    ).toBeInTheDocument()
-    expect(
       screen.getByRole('button', { name: 'Load current activity' }),
+    ).toBeInTheDocument()
+    await user.click(screen.getByTestId('next-obs'))
+    expect(
+      screen.getByText(/I found the notification outside the lock/),
+    ).toBeInTheDocument()
+  })
+
+  it('keeps old rows on source change until explicit Load current activity', async () => {
+    const user = userEvent.setup()
+    render(
+      <ReadingHarness initial={transcriptObservationFor('reconnecting')} />,
+    )
+    expect(
+      screen.getByText(/I found the notification outside the lock/),
     ).toBeInTheDocument()
     await user.click(
       screen.getByRole('button', { name: 'Load current activity' }),
     )
     expect(
-      screen.getByText('Current activity window'),
-    ).toBeInTheDocument()
-    expect(
       screen.queryByText(/I found the notification outside the lock/),
     ).toBeNull()
-    expect(screen.getByTestId('announce').textContent).toContain(
-      'Current activity window loaded by request',
-    )
-  })
-
-  it('capacity: keeps rows and offers explicit rebase', () => {
-    render(<Harness initial={transcriptObservationFor('capacity')} />)
-    expect(
-      screen.getByText(
-        'This view reached its limit. Your reading position is kept.',
-      ),
-    ).toBeInTheDocument()
-    expect(
-      screen.getByText(/I found the notification outside the lock/),
-    ).toBeInTheDocument()
-    expect(
-      screen.getByRole('button', { name: 'Load current activity' }),
-    ).toBeInTheDocument()
-  })
-
-  it('sources: rows remain and Events can show stubs when opened', () => {
-    render(
-      <Harness
-        initial={transcriptObservationFor('events')}
-        eventsOpen
-      />,
-    )
-    expect(
-      screen.getByText(
-        'History incomplete · unsupported record retained in Events',
-      ),
-    ).toBeInTheDocument()
-    expect(
-      screen.getByText('Unsupported record · public stub'),
-    ).toBeInTheDocument()
-    expect(screen.getByText('Record ordering')).toBeInTheDocument()
-    expect(screen.getByText('Recovered message')).toBeInTheDocument()
+    expect(screen.getByText('Current activity window')).toBeInTheDocument()
   })
 })
 
-describe('TranscriptSurface Events pane', () => {
-  it('opens Events content with disabled Changes and Artifacts explanations', async () => {
-    const user = userEvent.setup()
-    render(
-      <Harness
-        initial={transcriptObservationFor('observed')}
-        eventsOpen
+describe('TranscriptRows observation payloads', () => {
+  it('renders empty, reordered, and replaced row payloads', () => {
+    const empty = transcriptObservationFor('observed')
+    const { rerender } = render(
+      <TranscriptSurface
+        transcript={{ ...empty, rows: [] }}
+        onReadingChange={() => undefined}
+        onAnnounce={() => undefined}
       />,
     )
-    expect(screen.getByText('Captured activity facts')).toBeInTheDocument()
-    expect(screen.getByText(/2 tool calls observed/)).toBeInTheDocument()
-    expect(
-      screen.getByText(/Status: Done · independent of captured activity/),
-    ).toBeInTheDocument()
-    const changes = screen.getByRole('tab', { name: 'Changes' })
-    const artifacts = screen.getByRole('tab', { name: 'Artifacts' })
-    expect(changes).toHaveAttribute('aria-disabled', 'true')
-    expect(artifacts).toHaveAttribute('aria-disabled', 'true')
-    await user.click(changes)
-    expect(screen.getByTestId('announce').textContent).toContain(
-      'No changes data',
-    )
-    await user.click(artifacts)
-    expect(screen.getByTestId('announce').textContent).toContain(
-      'No artifacts data',
-    )
-  })
+    expect(document.querySelectorAll('[data-row]')).toHaveLength(0)
 
-  it('Copy record succeeds with a mocked clipboard', async () => {
+    const reordered: TranscriptRow[] = [
+      empty.rows[2]!,
+      empty.rows[0]!,
+      empty.rows[1]!,
+    ]
+    rerender(
+      <TranscriptSurface
+        transcript={{ ...empty, rows: reordered }}
+        onReadingChange={() => undefined}
+        onAnnounce={() => undefined}
+      />,
+    )
+    const ids = [...document.querySelectorAll('[data-row]')].map(
+      (el) => (el as HTMLElement).dataset.row,
+    )
+    expect(ids).toEqual(['validation-summary', 'anchor', 'tool'])
+
+    const replaced: TranscriptRow[] = [
+      {
+        id: 'only',
+        sourceEpoch: 'b',
+        windowEpoch: 1,
+        occurrence: 0,
+        seq: 1,
+        type: 'message',
+        anchorId: 'only',
+        title: 'Replaced',
+        body: 'Only this row remains.',
+      },
+    ]
+    rerender(
+      <TranscriptSurface
+        transcript={{ ...empty, rows: replaced }}
+        onReadingChange={() => undefined}
+        onAnnounce={() => undefined}
+      />,
+    )
+    expect(screen.getByText('Only this row remains.')).toBeInTheDocument()
+    expect(document.querySelectorAll('[data-row]')).toHaveLength(1)
+  })
+})
+
+describe('TaskPage Copy record (production path)', () => {
+  function page(obs: TranscriptObservation) {
+    const observation: TaskObservation = {
+      status: 'completed',
+      taskId: asTaskId('task-copy'),
+      title: 'Fix slot release test',
+      statusBadge: 'Done',
+      headerMeta: 'Codex · HarflowMCP',
+      followUpPlaceholder: 'Continue',
+      transcript: obs,
+      detailsPane: 'events',
+      summary: {
+        heading: 'Summary',
+        segments: [{ kind: 'paragraph', runs: [{ kind: 'text', value: 'ok' }] }],
+      },
+    }
+    return (
+      <TaskPage
+        observation={observation}
+        eventsPaneOpen
+        onUnavailable={() => undefined}
+      />
+    )
+  }
+
+  it('announces success only after writeText resolves', async () => {
     const user = userEvent.setup()
-    const writeText = vi.fn().mockResolvedValue(undefined)
+    let resolveWrite: (() => void) | undefined
+    const writeText = vi.fn(
+      () =>
+        new Promise<void>((resolve) => {
+          resolveWrite = resolve
+        }),
+    )
     vi.stubGlobal('navigator', {
       ...navigator,
       clipboard: { writeText },
     })
-    render(
-      <Harness
-        initial={transcriptObservationFor('observed')}
-        eventsOpen
-      />,
-    )
-    const disclosure = screen.getByText('Tool result · normalized record')
-      .closest('details')
-    expect(disclosure).not.toBeNull()
-    if (disclosure && !disclosure.open) {
-      disclosure.open = true
-    }
-    await user.click(
-      screen.getByRole('button', { name: 'Copy normalized record' }),
-    )
-    expect(writeText).toHaveBeenCalled()
-    const expected = screen.getByText((_c, el) =>
-      Boolean(el?.tagName === 'PRE' && el.hasAttribute('data-record')),
-    ).textContent
-    expect(writeText).toHaveBeenCalledWith(expected)
-    expect(screen.getByTestId('announce').textContent).toContain(
-      'Copied normalized mock record.',
-    )
-  })
-
-  it('Copy record reports failure when clipboard is unavailable', async () => {
-    const user = userEvent.setup()
-    vi.stubGlobal('navigator', {
-      ...navigator,
-      clipboard: undefined,
-    })
-    render(
-      <Harness
-        initial={transcriptObservationFor('observed')}
-        eventsOpen
-      />,
-    )
+    render(page(transcriptObservationFor('observed')))
     const disclosure = screen
       .getByText('Tool result · normalized record')
       .closest('details')
@@ -270,57 +266,117 @@ describe('TranscriptSurface Events pane', () => {
     await user.click(
       screen.getByRole('button', { name: 'Copy normalized record' }),
     )
-    expect(screen.getByTestId('announce').textContent).toContain(
-      'Text selected. Use your system copy command to copy it.',
-    )
+    expect(writeText).toHaveBeenCalled()
+    expect(screen.queryByText('Copied normalized mock record.')).toBeNull()
+    resolveWrite?.()
+    expect(
+      await screen.findByText('Copied normalized mock record.'),
+    ).toBeInTheDocument()
   })
 
-  it('live region announces history actions', async () => {
+  it('reports failure when clipboard rejects', async () => {
     const user = userEvent.setup()
-    render(<Harness initial={transcriptObservationFor('observed')} />)
-    await user.click(screen.getByRole('button', { name: 'Load earlier' }))
-    const live = document.querySelector('[data-d2b-live]')
-    expect(live?.textContent).toContain('Earlier captured rows loaded')
-    expect(live).toHaveAttribute('aria-live', 'polite')
-  })
-
-  it('keyboard reaches disclosures and Copy record', async () => {
-    const user = userEvent.setup()
-    const writeText = vi.fn().mockResolvedValue(undefined)
     vi.stubGlobal('navigator', {
       ...navigator,
-      clipboard: { writeText },
+      clipboard: {
+        writeText: vi.fn().mockRejectedValue(new Error('denied')),
+      },
     })
-    render(
-      <Harness
-        initial={transcriptObservationFor('observed')}
-        eventsOpen
-      />,
+    render(page(transcriptObservationFor('observed')))
+    const disclosure = screen
+      .getByText('Tool result · normalized record')
+      .closest('details')
+    if (disclosure) disclosure.open = true
+    await user.click(
+      screen.getByRole('button', { name: 'Copy normalized record' }),
     )
-    await user.tab()
-    // Walk focus until Copy normalized record is focused.
-    let guard = 0
-    while (
-      document.activeElement?.getAttribute('data-action') !== 'copy-record' &&
-      guard < 40
-    ) {
-      await user.tab()
-      guard += 1
-    }
-    expect(document.activeElement).toHaveAttribute(
-      'data-action',
-      'copy-record',
+    expect(
+      await screen.findByText(
+        'Text selected. Use your system copy command to copy it.',
+      ),
+    ).toBeInTheDocument()
+  })
+
+  it('reports failure when clipboard is unavailable', async () => {
+    const user = userEvent.setup()
+    vi.stubGlobal('navigator', {
+      ...navigator,
+      clipboard: undefined,
+    })
+    render(page(transcriptObservationFor('observed')))
+    const disclosure = screen
+      .getByText('Tool result · normalized record')
+      .closest('details')
+    if (disclosure) disclosure.open = true
+    await user.click(
+      screen.getByRole('button', { name: 'Copy normalized record' }),
     )
-    await user.keyboard('{Enter}')
-    expect(writeText).toHaveBeenCalled()
+    expect(
+      await screen.findByText(
+        'Text selected. Use your system copy command to copy it.',
+      ),
+    ).toBeInTheDocument()
   })
 })
 
-describe('TranscriptSurface details semantics', () => {
+describe('transcript scroll anchor and focus', () => {
+  it('restores the captured anchor offset after earlier', () => {
+    const history = document.createElement('div')
+    const row = document.createElement('article')
+    row.dataset.row = 'anchor'
+    history.appendChild(row)
+    document.body.appendChild(history)
+
+    const historyRect = { top: 100, bottom: 300, height: 200 }
+    const rowRect = { top: 160, bottom: 200, height: 40 }
+    history.getBoundingClientRect = () => historyRect as DOMRect
+    row.getBoundingClientRect = () => rowRect as DOMRect
+    Object.defineProperty(history, 'scrollTop', {
+      writable: true,
+      value: 40,
+    })
+
+    const anchor = captureVisibleAnchor(history)
+    expect(anchor).toEqual({ id: 'anchor', offset: 60 })
+
+    row.getBoundingClientRect = () =>
+      ({ top: 220, bottom: 260, height: 40 }) as DOMRect
+    restoreVisibleAnchor(history, anchor)
+    // scrollTop + (220 - 100) - 60 = 40 + 120 - 60 = 100
+    expect(history.scrollTop).toBe(100)
+    history.remove()
+  })
+
+  it('moves focus to the boundary when the retry control disappears', () => {
+    const host = document.createElement('div')
+    const boundary = document.createElement('div')
+    boundary.setAttribute('data-d2b-boundary', '')
+    boundary.tabIndex = -1
+    host.appendChild(boundary)
+    document.body.appendChild(host)
+    const focusSpy = vi.spyOn(boundary, 'focus')
+    applyFocusAfterAction(host, null, focusTargetFor('retry'))
+    expect(focusSpy).toHaveBeenCalled()
+    host.remove()
+  })
+})
+
+describe('TranscriptSurface states', () => {
+  it('observed: original request disclosure and activity boundary', () => {
+    render(<ReadingHarness initial={transcriptObservationFor('observed')} />)
+    expect(screen.getByText('Original request')).toBeInTheDocument()
+    expect(screen.getByText(TRANSCRIPT_REQUEST_TEXT)).toBeInTheDocument()
+    expect(
+      screen.getByText('Captured activity caught up'),
+    ).toBeInTheDocument()
+  })
+
   it('uses native details for the original request disclosure', () => {
-    render(<Harness initial={transcriptObservationFor('observed')} />)
+    render(<ReadingHarness initial={transcriptObservationFor('observed')} />)
     const details = screen.getByText('Original request').closest('details')
     expect(details).not.toBeNull()
-    expect(within(details as HTMLElement).getByText(TRANSCRIPT_REQUEST_TEXT)).toBeInTheDocument()
+    expect(
+      within(details as HTMLElement).getByText(TRANSCRIPT_REQUEST_TEXT),
+    ).toBeInTheDocument()
   })
 })

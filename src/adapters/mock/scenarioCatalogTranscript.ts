@@ -1,18 +1,47 @@
+import { resolveScenarioRoute, TRANSCRIPT_BASES } from './scenarioRoute'
 import { TRANSCRIPT_TASK_IDS } from './transcriptFixtures'
 import { accepted, base, readyContext } from './scenarioBase'
 import type { ScenarioDefinition, ScenarioId } from './scenarios'
+import type { TranscriptMount } from './transcriptFixtureState'
+
+const MOUNT_BY_BASE: Record<
+  (typeof TRANSCRIPT_BASES)[number],
+  TranscriptMount
+> = {
+  'transcript-observed': 'observed',
+  'transcript-loading': 'loading',
+  'transcript-partial': 'partial',
+  'transcript-unavailable': 'unavailable',
+  'transcript-integrity-failed': 'integrity-failed',
+  'transcript-reconnecting': 'reconnecting',
+  'transcript-capacity': 'capacity',
+  'transcript-sources': 'events',
+}
+
+const LABELS: Record<(typeof TRANSCRIPT_BASES)[number], string> = {
+  'transcript-observed': 'Transcript observed',
+  'transcript-loading': 'Transcript loading',
+  'transcript-partial': 'Transcript partial',
+  'transcript-unavailable': 'Transcript unavailable',
+  'transcript-integrity-failed': 'Transcript integrity failed',
+  'transcript-reconnecting': 'Transcript reconnecting',
+  'transcript-capacity': 'Transcript capacity',
+  'transcript-sources': 'Transcript sources',
+}
 
 function transcriptScenario(
   id: ScenarioId,
-  mount: keyof typeof TRANSCRIPT_TASK_IDS,
-  label: string,
-  description: string,
-  eventsPaneOpen = false,
+  eventsPaneOpen: boolean,
 ): ScenarioDefinition {
+  const resolved = resolveScenarioRoute(id)
+  const baseId = (resolved?.transcriptBase ?? id) as (typeof TRANSCRIPT_BASES)[number]
+  const mount = MOUNT_BY_BASE[baseId]
   return base({
     id,
-    label,
-    description,
+    label: eventsPaneOpen ? `${LABELS[baseId]} · Events` : LABELS[baseId],
+    description: eventsPaneOpen
+      ? `Design task/${baseId}/events — Events pane open at load.`
+      : `Design task/${baseId} (Design 854caae).`,
     context: readyContext(),
     startOutcome: accepted,
     holdStart: false,
@@ -23,61 +52,24 @@ function transcriptScenario(
   })
 }
 
-/** Design 854caae task/transcript-* preview scenarios. */
+/** Design 854caae task/transcript-* preview scenarios (closed + /events). */
 export const TRANSCRIPT_SCENARIOS: readonly ScenarioDefinition[] = [
-  transcriptScenario(
-    'transcript-observed',
-    'observed',
-    'Transcript observed',
-    'Design task/transcript-observed (Design 854caae).',
-  ),
-  transcriptScenario(
-    'transcript-loading',
-    'loading',
-    'Transcript loading',
-    'Design task/transcript-loading (Design 854caae).',
-  ),
-  transcriptScenario(
-    'transcript-partial',
-    'partial',
-    'Transcript partial',
-    'Design task/transcript-partial (Design 854caae).',
-  ),
-  transcriptScenario(
-    'transcript-unavailable',
-    'unavailable',
-    'Transcript unavailable',
-    'Design task/transcript-unavailable (Design 854caae).',
-  ),
-  transcriptScenario(
-    'transcript-integrity-failed',
-    'integrity-failed',
-    'Transcript integrity failed',
-    'Design task/transcript-integrity-failed (Design 854caae).',
-  ),
-  transcriptScenario(
-    'transcript-reconnecting',
-    'reconnecting',
-    'Transcript reconnecting',
-    'Design task/transcript-reconnecting (Design 854caae).',
-  ),
-  transcriptScenario(
-    'transcript-capacity',
-    'capacity',
-    'Transcript capacity',
-    'Design task/transcript-capacity (Design 854caae).',
-  ),
-  transcriptScenario(
-    'transcript-sources',
-    'events',
-    'Transcript sources',
-    'Design task/transcript-sources (Design 854caae).',
-  ),
-  transcriptScenario(
-    'transcript-observed-events',
-    'observed',
-    'Transcript observed · Events',
-    'Design task/transcript-observed/events — Events pane open at load.',
-    true,
+  ...TRANSCRIPT_BASES.map((id) => transcriptScenario(id, false)),
+  ...TRANSCRIPT_BASES.map((id) =>
+    transcriptScenario(`${id}/events` as ScenarioId, true),
   ),
 ]
+
+/** Resolve a catalog or design route, including the `/events` suffix. */
+export function transcriptScenarioFromRoute(
+  raw: string,
+): ScenarioDefinition | null {
+  const resolved = resolveScenarioRoute(raw)
+  if (!resolved?.transcriptBase) return null
+  return transcriptScenario(
+    (resolved.eventsPaneOpen
+      ? `${resolved.transcriptBase}/events`
+      : resolved.transcriptBase) as ScenarioId,
+    resolved.eventsPaneOpen,
+  )
+}

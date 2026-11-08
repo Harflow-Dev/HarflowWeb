@@ -1,3 +1,4 @@
+import { useLayoutEffect, useRef } from 'react'
 import type { TranscriptObservation } from '../model'
 import {
   activityView,
@@ -7,25 +8,43 @@ import {
   transitionTranscript,
   type TranscriptAction,
 } from '../presentation/transcriptTransition'
+import {
+  applyFocusAfterAction,
+  captureVisibleAnchor,
+  focusTargetFor,
+  restoreVisibleAnchor,
+  type VisibleAnchor,
+} from './transcriptScroll'
 import { TranscriptBoundary } from './TranscriptBoundary'
 import { TranscriptRequest } from './TranscriptRequest'
 import { TranscriptRows } from './TranscriptRows'
 
 type Props = {
   readonly transcript: TranscriptObservation
-  readonly onTranscriptChange: (next: TranscriptObservation) => void
+  readonly onReadingChange: (next: TranscriptObservation) => void
   readonly onAnnounce: (message: string) => void
+}
+
+type PendingRestore = {
+  readonly anchor: VisibleAnchor | null
+  readonly scrollTop: number
+  readonly action: TranscriptAction
+  readonly message: string
 }
 
 /**
  * Request disclosure, boundary, rows and live region for Design 854caae
- * transcript states. Local actions never invent observation progress.
+ * transcript states. Local reading actions preserve scroll anchor and focus.
  */
 export function TranscriptSurface({
   transcript,
-  onTranscriptChange,
+  onReadingChange,
   onAnnounce,
 }: Props) {
+  const hostRef = useRef<HTMLDivElement>(null)
+  const historyRef = useRef<HTMLDivElement>(null)
+  const pendingRestore = useRef<PendingRestore | null>(null)
+
   const request = requestView(transcript)
   const activity = activityView(transcript)
   const canReadMore =
@@ -37,30 +56,59 @@ export function TranscriptSurface({
       transcript.request === 'unverified') &&
     transcript.requestMaxBytes === 128
 
-  function apply(action: TranscriptAction): void {
-    const next = transitionTranscript(transcript, action)
-    onTranscriptChange(next)
-    if (next.liveMessage) onAnnounce(next.liveMessage)
-  }
+  useLayoutEffect(() => {
+    const pending = pendingRestore.current
+    if (!pending) return
+    pendingRestore.current = null
+    const history = historyRef.current
+    const host = hostRef.current
+    if (!host) return
+    if (pending.action === 'earlier') {
+      restoreVisibleAnchor(
+        history,
+        pending.anchor,
+        onAnnounce,
+        onAnnounce,
+        pending.message,
+      )
+    } else if (pending.action === 'rebase') {
+      if (history) history.scrollTop = 0
+    } else if (pending.action === 'new') {
+      if (history) history.scrollTop = history.scrollHeight
+    } else if (history) {
+      history.scrollTop = pending.scrollTop
+    }
+    applyFocusAfterAction(host, history, focusTargetFor(pending.action))
+    if (pending.message) onAnnounce(pending.message)
+  })
 
-  function announceLocal(message: string): void {
-    onTranscriptChange({ ...transcript, liveMessage: message })
-    onAnnounce(message)
+  function apply(action: TranscriptAction): void {
+    const history = historyRef.current
+    const anchor = captureVisibleAnchor(history)
+    const scrollTop = history?.scrollTop ?? 0
+    const next = transitionTranscript(transcript, action)
+    pendingRestore.current = {
+      anchor,
+      scrollTop,
+      action,
+      message: next.liveMessage,
+    }
+    onReadingChange(next)
   }
 
   async function copyText(
-    selector: '[data-copy-text]' | '[data-record]',
+    selector: '[data-copy-text]',
     success: string,
   ): Promise<void> {
-    const el = document.querySelector(selector)
+    const el = hostRef.current?.querySelector(selector)
     if (!(el instanceof HTMLElement) || !el.textContent) {
-      announceLocal('Nothing to copy in this view.')
+      onAnnounce('Nothing to copy in this view.')
       return
     }
     try {
       if (!navigator.clipboard?.writeText) throw new Error('unavailable')
       await navigator.clipboard.writeText(el.textContent)
-      announceLocal(success)
+      onAnnounce(success)
     } catch {
       const selection = window.getSelection()
       const range = document.createRange()
@@ -68,12 +116,12 @@ export function TranscriptSurface({
       selection?.removeAllRanges()
       selection?.addRange(range)
       el.focus()
-      announceLocal('Text selected. Use your system copy command to copy it.')
+      onAnnounce('Text selected. Use your system copy command to copy it.')
     }
   }
 
   return (
-    <>
+    <div className="hd-tr-host" ref={hostRef} style={{ display: 'contents' }}>
       <TranscriptRequest
         view={request}
         canReadMore={canReadMore}
@@ -88,6 +136,7 @@ export function TranscriptSurface({
         onRetry={() => apply('retry-request')}
       />
       <div
+        ref={historyRef}
         className="hd-scroll hd-d2b-history"
         tabIndex={0}
         aria-label="Captured transcript"
@@ -115,6 +164,6 @@ export function TranscriptSurface({
       >
         {transcript.liveMessage}
       </div>
-    </>
+    </div>
   )
 }

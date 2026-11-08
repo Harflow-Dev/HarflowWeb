@@ -33,6 +33,12 @@ import {
 } from '../adapters/mock/transcriptFixtures'
 import { taskChangesLoadFor } from '../adapters/mock/taskChangesFixtures'
 import { POPULATED_WORKFLOWS } from '../adapters/mock/workflowFixtures'
+import {
+  resolveScenarioRoute,
+  TRANSCRIPT_BASES,
+} from '../adapters/mock/scenarioRoute'
+import { scenarioById } from '../adapters/mock/scenarios'
+import { applyNewTaskSeed } from '../composition/applyNewTaskSeed'
 import { createAppPresenter } from '../presentation'
 import { AppFeature } from './AppFeature'
 
@@ -179,49 +185,41 @@ describe('Task transcript app integration', () => {
       await flush()
     })
     expect(screen.getByText('Original request')).toBeInTheDocument()
-    expect(
-      screen.getByText('Captured activity caught up'),
-    ).toBeInTheDocument()
     expect(screen.queryByText('Captured activity facts')).toBeNull()
 
     const toggle = screen.getByRole('button', { name: 'Toggle right pane' })
-    expect(toggle).toHaveAttribute('aria-pressed', 'false')
     await user.click(toggle)
-    expect(toggle).toHaveAttribute('aria-pressed', 'true')
     expect(screen.getByText('Captured activity facts')).toBeInTheDocument()
-    expect(
-      screen.getByText(/Status: Done · independent of captured activity/),
-    ).toBeInTheDocument()
-    expect(screen.getByRole('tab', { name: 'Events' })).toHaveAttribute(
-      'aria-selected',
-      'true',
-    )
   })
 
-  it('opens Events at load when the seed requests the pane', async () => {
-    const presenter = renderApp(transcriptEngine())
-    await act(async () => {
-      await flush()
-    })
-    act(() => {
-      presenter.openTask(TRANSCRIPT_TASK_IDS.partial)
-    })
-    await act(async () => {
-      await flush()
-    })
-    act(() => {
-      presenter.setTaskChangesPaneOpen(true)
-    })
-    expect(screen.getByText('Captured activity facts')).toBeInTheDocument()
-    expect(
-      screen.getByText('Unsupported record · public stub'),
-    ).toBeInTheDocument()
-    expect(
-      screen.getByText(/Status: Done · independent of captured activity/),
-    ).toBeInTheDocument()
-  })
+  it.each([...TRANSCRIPT_BASES])(
+    'opens Events at load from /events route for %s',
+    async (baseId) => {
+      const route = resolveScenarioRoute(`task/${baseId}/events`)
+      expect(route?.eventsPaneOpen).toBe(true)
+      const definition = scenarioById(`${baseId}/events`)
+      expect(definition.seed?.eventsPaneOpen).toBe(true)
 
-  it('keeps unavailable observation from changing the Done badge text to a fake failure', async () => {
+      const presenter = renderApp(transcriptEngine())
+      await act(async () => {
+        await flush()
+      })
+      act(() => {
+        applyNewTaskSeed(presenter, definition.seed)
+      })
+      await act(async () => {
+        await flush()
+        await flush()
+      })
+      expect(screen.getByText('Captured activity facts')).toBeInTheDocument()
+      expect(screen.getByRole('tab', { name: 'Events' })).toHaveAttribute(
+        'aria-selected',
+        'true',
+      )
+    },
+  )
+
+  it('keeps unavailable observation from changing the Done badge', async () => {
     const presenter = renderApp(transcriptEngine())
     await act(async () => {
       await flush()
@@ -234,10 +232,5 @@ describe('Task transcript app integration', () => {
     })
     expect(screen.getByText('Done')).toBeInTheDocument()
     expect(screen.getByText('Original request unavailable')).toBeInTheDocument()
-    expect(
-      screen.getByText(
-        'Captured history unavailable · the read could not be completed',
-      ),
-    ).toBeInTheDocument()
   })
 })

@@ -45,11 +45,8 @@ export function requestView(obs: TranscriptObservation): RequestView {
   const full = kind === 'sidecar' || kind === 'inline'
   const withheld =
     kind === 'loading' || kind === 'unavailable' || kind === 'integrity-failed'
-  const text = withheld
-    ? ''
-    : full
-      ? TRANSCRIPT_REQUEST_TEXT
-      : TRANSCRIPT_REQUEST_TEXT.slice(0, obs.requestMaxBytes)
+  const source = obs.assignmentText || TRANSCRIPT_REQUEST_TEXT
+  const text = withheld ? '' : full ? source : source.slice(0, obs.requestMaxBytes)
   return {
     title: requestTitle(kind),
     text,

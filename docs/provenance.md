@@ -75,9 +75,9 @@
   source change requires explicit “Load current activity”; capacity and
   reconnect keep cached rows/position. Events pane: task snapshot, captured
   activity totals, normalized Copy record, Recovered message, Record ordering;
-  Changes and Artifacts disabled with explanations. Superseded
-  `task/activity-*` (and prior `task/running` / `task/done` as transcript
-  layout targets) stay as legacy block fixtures for mapped sidebar rows only.
+  Changes and Artifacts disabled with explanations. Mapped running / failed /
+  done sidebar fixtures use the same transcript surface; `/events` on a
+  transcript route opens Events at load.
 - States implemented:
   - `new-task/centered-empty` (and prior `new-task/default`) light/dark
   - `new-task/centered-loading`, `centered-unqualified`, `centered-invalid`,
@@ -94,19 +94,19 @@
   - `statistics/overview/light` and `/dark` (range selector retained; 7-day and
     30-day populated fixtures; All time selects retained-history incomplete
     coverage rather than inventing all-time totals)
-  - `task/running/light` and `/dark` (slim header, legacy block transcript,
-    expandable tools, running indication, follow-up composer shell —
-    send/stop unavailable; no right pane for this legacy mapped fixture)
-  - `task/failed/light` and `/dark` (failed badge, diagnostic transcript, failure
+  - `task/running/light` and `/dark` (slim header, transcript surface rows,
+    expandable tool disclosures, follow-up composer shell — send/stop
+    unavailable; no right pane for this mapped fixture)
+  - `task/failed/light` and `/dark` (failed badge, transcript surface, failure
     banner; Retry / Copy resume command / follow-up send unavailable; no
     right pane or generated shell commands)
-  - `task/done/light` and `/dark` legacy block transcript + summary + **read-only
+  - `task/done/light` and `/dark` transcript surface + summary + **read-only
     Changes pane** (done badge, Summary section, follow-up send unavailable;
     Changes open/close with fixture file rows and selected diff)
   - `task/transcript-observed`, `transcript-loading`, `transcript-partial`,
     `transcript-unavailable`, `transcript-integrity-failed`,
     `transcript-reconnecting`, `transcript-capacity`, `transcript-sources`
-    light/dark (mock scenarios; Events closed and `/events` open)
+    light/dark (mock scenarios; Events closed and `/events` open for each)
     Artifacts and Events tabs remain explicitly unavailable. The specimen’s
     Artifacts/Events destinations and any edit/download/apply actions are not
     implemented.

@@ -10,7 +10,7 @@ import {
 } from './taskFixtures'
 
 describe('taskFixtures', () => {
-  it('maps slot-release specimen text literally', () => {
+  it('maps slot-release specimen text on the transcript surface', () => {
     const load = taskLoadFor(SLOT_RELEASE_TASK_ID)
     expect(load.kind).toBe('ready')
     if (load.kind !== 'ready') return
@@ -18,20 +18,18 @@ describe('taskFixtures', () => {
     expect(load.observation.taskId).toBe(SLOT_RELEASE_TASK_ID)
     expect(load.observation.title).toBe('Fix flaky slot release test')
     expect(load.observation.statusBadge).toBe('Running 04:12')
-    const user = load.observation.blocks.find((b) => b.kind === 'user')
-    expect(user?.kind === 'user' && user.text).toContain(
+    expect(load.observation.transcript.assignmentText).toContain(
       'without adding sleeps',
     )
-    const pytest = load.observation.blocks.find((b) => b.id === 'tool-pytest')
-    expect(pytest?.kind).toBe('tool')
-    if (pytest?.kind === 'tool') {
-      expect(pytest.initiallyExpanded).toBe(true)
-      expect(pytest.bodyLines?.[0]?.text).toContain('FAILED')
-      expect(pytest.bodyLines?.[0]?.boldPrefix).toBe('FAILED')
-    }
-    expect(load.observation.blocks.some((b) => b.kind === 'working')).toBe(
-      true,
+    const pytest = load.observation.transcript.rows.find(
+      (row) => row.disclosure === 'tool-pytest',
     )
+    expect(pytest?.toolBody).toContain('FAILED')
+    expect(
+      load.observation.transcript.rows.some((row) =>
+        row.body.includes('Running tests…'),
+      ),
+    ).toBe(true)
   })
 
   it('keeps HTML-like preload text as plain fixture values', () => {
@@ -39,17 +37,14 @@ describe('taskFixtures', () => {
     expect(load.kind).toBe('ready')
     if (load.kind !== 'ready') return
     expect(load.observation.status).toBe('running')
-    const user = load.observation.blocks.find((b) => b.kind === 'user')
-    expect(user?.kind === 'user' && user.text).toContain(
+    expect(load.observation.transcript.assignmentText).toContain(
       '<script>alert("x")</script>',
     )
-    const agent = load.observation.blocks.find((b) => b.kind === 'agent')
-    expect(agent?.kind).toBe('agent')
-    if (agent?.kind !== 'agent') return
-    const segment = agent.segments[0]
-    expect(segment?.kind).toBe('paragraph')
-    if (segment?.kind !== 'paragraph') return
-    expect(segment.runs.some((r) => r.value.includes('<img'))).toBe(true)
+    expect(
+      load.observation.transcript.rows.some((row) =>
+        row.body.includes('<img'),
+      ),
+    ).toBe(true)
   })
 
   it('maps the failed events-reader specimen without running chrome fields', () => {
@@ -60,9 +55,11 @@ describe('taskFixtures', () => {
     expect(load.observation.taskId).toBe(EVENTS_READER_FAILED_TASK_ID)
     expect(load.observation.title).toBe('Migrate events.jsonl reader')
     expect(load.observation.statusBadge).toBe('Failed 07:48')
-    expect(load.observation.blocks.some((b) => b.kind === 'working')).toBe(
-      false,
-    )
+    expect(
+      load.observation.transcript.rows.some((row) =>
+        row.body.includes('Running tests…'),
+      ),
+    ).toBe(false)
     if (load.observation.status !== 'failed') return
     expect(load.observation.failure.title).toBe(
       'Task failed: the harness exited with code 1',
@@ -84,20 +81,11 @@ describe('taskFixtures', () => {
     expect(load.observation.title).toBe('Add retry budget to delivery queue')
     expect(load.observation.statusBadge).toBe('Done 21:04')
     expect(load.observation.headerMeta).toBe('Claude · Opus 5.5 · HarflowWeb')
-    expect(load.observation.blocks.some((b) => b.kind === 'working')).toBe(
-      false,
-    )
+    expect(load.observation.detailsPane).toBe('changes')
     if (load.observation.status !== 'completed') return
     expect(load.observation.summary.heading).toBe('Summary')
     expect(load.observation.summary.segments[0]?.kind).toBe('paragraph')
     expect(load.observation.followUpPlaceholder).toBe('Continue this task')
-    const pytest = load.observation.blocks.find(
-      (b) => b.id === 'tool-pytest-queue',
-    )
-    expect(pytest?.kind).toBe('tool')
-    if (pytest?.kind === 'tool') {
-      expect(pytest.bodyLines?.[1]?.text).toBe('11 passed in 2.04s')
-    }
   })
 
   it('returns unavailable for unmapped synthetic launch ids', () => {

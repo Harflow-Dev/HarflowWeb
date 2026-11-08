@@ -5,6 +5,7 @@ import { transitionTranscript } from './transcriptTransition'
 function base(overrides: Partial<TranscriptObservation> = {}): TranscriptObservation {
   return {
     request: 'sidecar',
+    assignmentText: 'Assignment',
     requestMaxBytes: 64,
     history: 'observed',
     summaryCoverage: 'observed',
@@ -20,6 +21,9 @@ function base(overrides: Partial<TranscriptObservation> = {}): TranscriptObserva
         occurrence: 0,
         seq: 7,
         type: 'message',
+        anchorId: 'anchor',
+        title: 'Codex',
+        body: 'First',
       },
       {
         id: 'row-b',
@@ -28,6 +32,12 @@ function base(overrides: Partial<TranscriptObservation> = {}): TranscriptObserva
         occurrence: 1,
         seq: 8,
         type: 'tool_result',
+        anchorId: 'tool',
+        title: 'Codex',
+        body: '',
+        toolSummary: 'Ran tool',
+        toolBody: 'out',
+        disclosure: 'tool-1',
       },
     ],
     olderLoaded: false,

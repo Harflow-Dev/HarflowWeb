@@ -18,57 +18,13 @@ export type AgentList = {
 
 export type AgentSegment = AgentParagraph | AgentList
 
-export type ToolSummaryPart =
-  | { readonly kind: 'text'; readonly value: string }
-  | { readonly kind: 'code'; readonly value: string }
-  | { readonly kind: 'added'; readonly value: string }
-  | { readonly kind: 'removed'; readonly value: string }
-
-export type ToolBodyLine = {
-  /**
-   * Exact leading substring rendered with emphasis (e.g. FAILED or a path).
-   * Null means the whole line is plain text.
-   */
-  readonly boldPrefix: string | null
-  readonly text: string
-}
-
-export type ToolIcon = 'file' | 'terminal' | 'pencil'
-
-export type TranscriptBlock =
-  | {
-      readonly kind: 'user'
-      readonly id: string
-      /** Literal plain text; render with pre-wrap, never as HTML. */
-      readonly text: string
-    }
-  | {
-      readonly kind: 'agent'
-      readonly id: string
-      readonly segments: readonly AgentSegment[]
-    }
-  | {
-      readonly kind: 'tool'
-      readonly id: string
-      readonly icon: ToolIcon
-      readonly summary: readonly ToolSummaryPart[]
-      readonly meta: string
-      readonly bodyLines: readonly ToolBodyLine[] | null
-      readonly initiallyExpanded: boolean
-    }
-  | {
-      readonly kind: 'working'
-      readonly id: string
-      readonly label: string
-    }
-
 export type TaskFailureExplanation = {
   readonly title: string
   readonly intro: string
   readonly lastError: string
 }
 
-/** Approved summary section inside the transcript — fixture evidence only. */
+/** Approved summary section — fixture evidence only. */
 export type TaskSummary = {
   readonly heading: string
   readonly segments: readonly AgentSegment[]
@@ -79,14 +35,14 @@ type TaskObservationBase = {
   readonly title: string
   readonly statusBadge: string
   readonly headerMeta: string
-  readonly blocks: readonly TranscriptBlock[]
   readonly followUpPlaceholder: string
+  /** Design 854caae transcript surface (request, boundary, rows, live). */
+  readonly transcript: TranscriptObservation
   /**
-   * When set, the task screen renders the Design 854caae transcript surface
-   * (request disclosure, boundary, rows, live region, Events pane) instead of
-   * the superseded block-only layout.
+   * Which right-pane surface this observation supports.
+   * Transcript redraws use Events; completed Changes fixture uses Changes.
    */
-  readonly transcript: TranscriptObservation | null
+  readonly detailsPane: 'events' | 'changes' | null
 }
 
 /**

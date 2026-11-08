@@ -1,4 +1,5 @@
-import type { TranscriptObservation, TranscriptRow } from '../model'
+import type { TranscriptObservation } from '../model'
+import { SPECIMEN_ROW_FACTORY } from './transcriptRowBuilders'
 
 export type TranscriptAction =
   | 'earlier'
@@ -8,7 +9,9 @@ export type TranscriptAction =
   | 'rebase'
   | 'read-more'
 
-/** Pure specimen transitions for transcript history actions. */
+const rows = SPECIMEN_ROW_FACTORY
+
+/** Pure specimen transitions for local reading actions. */
 export function transitionTranscript(
   state: TranscriptObservation,
   action: TranscriptAction,
@@ -38,18 +41,10 @@ function readMore(state: TranscriptObservation): TranscriptObservation {
 
 function loadEarlier(state: TranscriptObservation): TranscriptObservation {
   if (state.olderLoaded) return state
-  const earlier: TranscriptRow = {
-    id: 'row-earlier',
-    sourceEpoch: state.sourceEpoch,
-    windowEpoch: state.windowEpoch,
-    occurrence: -1,
-    seq: 5,
-    type: 'message',
-  }
   return {
     ...state,
     olderLoaded: true,
-    rows: [earlier, ...state.rows],
+    rows: [rows.earlier(state.sourceEpoch, state.windowEpoch), ...state.rows],
     history: state.history === 'observed' ? 'drained' : state.history,
     liveMessage: 'Earlier captured rows loaded. Reading position retained.',
   }
@@ -57,18 +52,10 @@ function loadEarlier(state: TranscriptObservation): TranscriptObservation {
 
 function showNew(state: TranscriptObservation): TranscriptObservation {
   if (state.freshShown) return state
-  const next: TranscriptRow = {
-    id: 'row-new',
-    sourceEpoch: state.sourceEpoch,
-    windowEpoch: state.windowEpoch,
-    occurrence: 3,
-    seq: 10,
-    type: 'message',
-  }
   return {
     ...state,
     freshShown: true,
-    rows: [...state.rows, next],
+    rows: [...state.rows, rows.fresh(state.sourceEpoch, state.windowEpoch)],
     liveMessage: 'New captured activity shown by request.',
   }
 }
@@ -111,16 +98,7 @@ function rebaseCurrent(state: TranscriptObservation): TranscriptObservation {
       state.pendingSourceEpoch !== null
         ? 'unavailable'
         : state.summaryCoverage,
-    rows: [
-      {
-        id: 'row-current',
-        sourceEpoch,
-        windowEpoch,
-        occurrence: 0,
-        seq: 1,
-        type: 'message',
-      },
-    ],
+    rows: [rows.current(sourceEpoch, windowEpoch)],
     liveMessage:
       'Current activity window loaded by request. Earlier coverage is unknown.',
   }

@@ -45,7 +45,7 @@ populated fixture and shows a single “Mock engine” badge.
 | Transcript reconnecting | Design `task/transcript-reconnecting` |
 | Transcript capacity | Design `task/transcript-capacity` |
 | Transcript sources | Design `task/transcript-sources` |
-| Transcript observed · Events | Same as observed with Events open at load (`/events`) |
+| Transcript · Events | Any of the eight with `/events` (hash `#task/transcript-*/events` or scenario id `transcript-*/events`) opens Events at load |
 | Needs you empty | Approved `needs-you/empty` specimen. Populated scenarios use `needs-you/waiting` |
 
 Sidebar navigation between **New task**, **Workflows**, **Resources**,

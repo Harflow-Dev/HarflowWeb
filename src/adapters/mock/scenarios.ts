@@ -13,6 +13,7 @@ import type {
   WorkflowsLoad,
 } from '../../model'
 import { SCENARIOS } from './scenarioCatalog'
+import { resolveScenarioRoute } from './scenarioRoute'
 import type { NewTaskScenarioSeed } from './scenarioSeed'
 
 export type { NewTaskScenarioSeed } from './scenarioSeed'
@@ -71,7 +72,14 @@ export type ScenarioId =
   | 'transcript-reconnecting'
   | 'transcript-capacity'
   | 'transcript-sources'
-  | 'transcript-observed-events'
+  | 'transcript-observed/events'
+  | 'transcript-loading/events'
+  | 'transcript-partial/events'
+  | 'transcript-unavailable/events'
+  | 'transcript-integrity-failed/events'
+  | 'transcript-reconnecting/events'
+  | 'transcript-capacity/events'
+  | 'transcript-sources/events'
 
 export type ScenarioDefinition = {
   readonly id: ScenarioId
@@ -92,10 +100,19 @@ export type ScenarioDefinition = {
 
 export { SCENARIOS }
 
-export function scenarioById(id: ScenarioId): ScenarioDefinition {
+export function scenarioById(id: ScenarioId | string): ScenarioDefinition {
   const found = SCENARIOS.find((s) => s.id === id)
-  if (!found) {
-    throw new Error(`Unknown scenario: ${id}`)
+  if (found) return found
+  // Design-style task/transcript-*/events refs resolve onto catalog rows.
+  const resolved = resolveScenarioRoute(id)
+  if (resolved?.transcriptBase) {
+    const key = (
+      resolved.eventsPaneOpen
+        ? `${resolved.transcriptBase}/events`
+        : resolved.transcriptBase
+    ) as ScenarioId
+    const match = SCENARIOS.find((s) => s.id === key)
+    if (match) return match
   }
-  return found
+  throw new Error(`Unknown scenario: ${id}`)
 }

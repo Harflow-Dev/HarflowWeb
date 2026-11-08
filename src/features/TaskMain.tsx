@@ -26,11 +26,10 @@ export function TaskMain({
   const title = resolveTitle(state, sidebar)
   const ready =
     state.load.kind === 'ready' ? state.load.observation : null
-  const usesEvents =
-    ready?.transcript !== null && ready?.transcript !== undefined
+  const usesEvents = ready?.detailsPane === 'events'
+  const usesChanges = ready?.detailsPane === 'changes'
   const showPane = state.changesPaneOpen
-  const showToggle =
-    usesEvents || ready?.status === 'completed' || showPane
+  const showToggle = usesEvents || usesChanges || showPane
 
   const topbar = (
     <div className="hd-topbar">
@@ -109,7 +108,7 @@ export function TaskMain({
           onUnavailable={onUnavailable}
         />,
       )}
-      {showPane ? (
+      {showPane && usesChanges ? (
         <TaskChangesPane
           load={state.changesLoad}
           files={state.changesFiles}

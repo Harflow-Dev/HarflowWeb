@@ -1,16 +1,16 @@
 /**
- * Deterministic task transcript fixtures from HarflowDesign
- * 3643d083… v2/scripts/screens-task.js (running / failed / done).
+ * Mapped task fixtures on the Design 854caae transcript surface.
  * Mock-only presentation — not a public ctl transcript protocol.
  */
 import { asTaskId } from '../../model'
 import type { TaskLoad, TaskObservation } from '../../model'
 import {
-  retryBudgetCompletedBlocks,
-  retryBudgetSummary,
-} from './taskCompletedBlocks'
-import { eventsReaderFailedBlocks } from './taskFailedBlocks'
-import { preloadBlocks, slotReleaseBlocks } from './taskFixtureBlocks'
+  eventsReaderFailedTranscript,
+  preloadTranscript,
+  retryBudgetDoneTranscript,
+  slotReleaseTranscript,
+} from './mappedTaskTranscripts'
+import { retryBudgetSummary } from './taskSummaryFixture'
 import {
   TRANSCRIPT_TASK_IDS,
   transcriptTaskObservation,
@@ -36,10 +36,10 @@ export function slotReleaseObservation(): TaskObservation {
     title: 'Fix flaky slot release test',
     statusBadge: 'Running 04:12',
     headerMeta: 'Claude · Opus 5.5 · HarflowMCP',
-    blocks: slotReleaseBlocks(),
     followUpPlaceholder:
       'Send a follow-up. It is delivered after the current turn.',
-    transcript: null,
+    transcript: slotReleaseTranscript(),
+    detailsPane: null,
   }
 }
 
@@ -50,10 +50,10 @@ export function preloadObservation(): TaskObservation {
     title: 'Review preload bridge',
     statusBadge: 'Running 01:03',
     headerMeta: 'Claude · Opus 5.5 · HarflowMCP',
-    blocks: preloadBlocks(),
     followUpPlaceholder:
       'Send a follow-up. It is delivered after the current turn.',
-    transcript: null,
+    transcript: preloadTranscript(),
+    detailsPane: null,
   }
 }
 
@@ -64,7 +64,6 @@ export function eventsReaderFailedObservation(): TaskObservation {
     title: 'Migrate events.jsonl reader',
     statusBadge: 'Failed 07:48',
     headerMeta: 'Claude · Opus 5.5 · HarflowMCP',
-    blocks: eventsReaderFailedBlocks(),
     followUpPlaceholder: 'Tell the agent how to continue',
     failure: {
       title: 'Task failed: the harness exited with code 1',
@@ -72,7 +71,8 @@ export function eventsReaderFailedObservation(): TaskObservation {
       lastError:
         'json.decoder.JSONDecodeError: Unterminated string starting at: line 1 column 38',
     },
-    transcript: null,
+    transcript: eventsReaderFailedTranscript(),
+    detailsPane: null,
   }
 }
 
@@ -83,10 +83,10 @@ export function retryBudgetCompletedObservation(): TaskObservation {
     title: 'Add retry budget to delivery queue',
     statusBadge: 'Done 21:04',
     headerMeta: 'Claude · Opus 5.5 · HarflowWeb',
-    blocks: retryBudgetCompletedBlocks(),
     followUpPlaceholder: 'Continue this task',
     summary: retryBudgetSummary(),
-    transcript: null,
+    transcript: retryBudgetDoneTranscript(),
+    detailsPane: 'changes',
   }
 }
 

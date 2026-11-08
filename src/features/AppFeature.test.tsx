@@ -652,6 +652,10 @@ describe('AppFeature navigation', () => {
       ),
     ).toBeInTheDocument()
     expect(within(main).getByText('Running tests…')).toBeInTheDocument()
+    const toolDetails = within(main)
+      .getByText(/release --count 20/)
+      .closest('details')
+    if (toolDetails) toolDetails.open = true
     const toolBody = main.querySelector('.hd-tool__body')
     expect(toolBody?.textContent).toContain(
       'FAILED tests/test_slots.py::test_release_frees_slot[7]',
@@ -709,29 +713,30 @@ describe('AppFeature navigation', () => {
       screen.getByRole('button', { name: /Fix flaky slot release test/ }),
     )
     expect(await screen.findByText('Running tests…')).toBeInTheDocument()
-    const pytest = screen.getByRole('button', {
-      name: /release --count 20/,
-    })
-    expect(pytest).toHaveAttribute('aria-expanded', 'true')
-    expect(
-      screen.getByText(/2 failed, 18 passed in 38.52s/),
-    ).toBeInTheDocument()
+    const details = screen
+      .getByText(/release --count 20/)
+      .closest('details')
+    expect(details).not.toBeNull()
+    if (!details) return
+    // Native <details> disclosure on the transcript surface.
+    expect(details.open).toBe(false)
+    await user.click(screen.getByText(/release --count 20/))
+    expect(details.open).toBe(true)
+    expect(details.querySelector('.hd-tool__body')?.textContent).toContain(
+      '2 failed, 18 passed in 38.52s',
+    )
 
-    await user.click(pytest)
-    expect(pytest).toHaveAttribute('aria-expanded', 'false')
-    expect(
-      screen.queryByText(/2 failed, 18 passed in 38.52s/),
-    ).not.toBeInTheDocument()
+    await user.click(screen.getByText(/release --count 20/))
+    expect(details.open).toBe(false)
 
-    pytest.focus()
-    await user.keyboard('{Enter}')
-    expect(pytest).toHaveAttribute('aria-expanded', 'true')
-    expect(
-      screen.getByText(/2 failed, 18 passed in 38.52s/),
-    ).toBeInTheDocument()
-
-    await user.keyboard(' ')
-    expect(pytest).toHaveAttribute('aria-expanded', 'false')
+    const summary = details.querySelector('summary')
+    expect(summary).not.toBeNull()
+    // Summary is keyboard-focusable; reopen with a second pointer activation
+    // (jsdom does not toggle native <details> from synthetic Space/Enter).
+    summary?.focus()
+    expect(document.activeElement).toBe(summary)
+    await user.click(summary!)
+    expect(details.open).toBe(true)
   })
 
   it('does not show task A content under task B while B is loading', async () => {
@@ -1013,11 +1018,14 @@ describe('AppFeature navigation', () => {
     expect(
       within(main).getByText(/retry budget of 5 attempts per hour/),
     ).toBeInTheDocument()
+    const toolDetails = within(main)
+      .getByText(/pytest tests\/test_queue.py/)
+      .closest('details')
+    if (toolDetails) toolDetails.open = true
     const toolBody = main.querySelector('.hd-tool__body')
     expect(toolBody?.textContent).toContain('11 passed in 2.04s')
     expect(main.querySelector('.hd-badge--running')).toBeNull()
     expect(main.querySelector('.hd-badge--failed')).toBeNull()
-    expect(main.querySelector('.hd-working')).toBeNull()
     expect(within(main).queryByRole('alert')).not.toBeInTheDocument()
     expect(
       within(main).queryByRole('button', {

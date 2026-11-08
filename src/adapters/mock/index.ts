@@ -20,6 +20,11 @@ export {
   type ScenarioId,
 } from './scenarios'
 export {
+  resolveScenarioRoute,
+  TRANSCRIPT_BASES,
+  type ResolvedScenarioRoute,
+} from './scenarioRoute'
+export {
   populatedResourcesLoad,
   populatedResourcesObservation,
 } from './resourceFixtures'

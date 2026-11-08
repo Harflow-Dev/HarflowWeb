@@ -1,4 +1,5 @@
 import type { TranscriptObservation } from '../../model'
+import { specimenRows } from './transcriptRowFixtures'
 
 export type TranscriptMount =
   | 'observed'
@@ -40,38 +41,6 @@ export const RECORD_ORDERING = [
   { kind: 'future_kind', seq: 7 },
   { kind: 'assistant_text', seq: 6 },
 ] as const
-
-export function baseRows(
-  mount: TranscriptMount,
-): TranscriptObservation['rows'] {
-  if (mount === 'loading' || mount === 'unavailable') return []
-  return [
-    {
-      id: 'row-a',
-      sourceEpoch: 'mock-source-a',
-      windowEpoch: 0,
-      occurrence: 0,
-      seq: 7,
-      type: 'message',
-    },
-    {
-      id: 'row-b',
-      sourceEpoch: 'mock-source-a',
-      windowEpoch: 0,
-      occurrence: 1,
-      seq: mount === 'events' ? 7 : 8,
-      type: mount === 'events' ? 'unsupported' : 'tool_result',
-    },
-    {
-      id: 'row-c',
-      sourceEpoch: 'mock-source-a',
-      windowEpoch: 0,
-      occurrence: 2,
-      seq: mount === 'events' ? 6 : 9,
-      type: 'message',
-    },
-  ]
-}
 
 export function requestKindFor(
   mount: TranscriptMount,
@@ -126,7 +95,7 @@ export function observationFields(
     ].includes(mount),
     // Reconnecting covers reconnect + source change without a catalog control.
     pendingSourceEpoch: mount === 'reconnecting' ? 'mock-source-b' : null,
-    rows: baseRows(mount),
+    rows: specimenRows(mount),
     normalizedRecord: showRecords ? NORMALIZED_RECORD : null,
     stubRecord: showExtra ? STUB_RECORD : null,
     ordering: showExtra ? [...RECORD_ORDERING] : [],

@@ -595,7 +595,7 @@ Check each state in light and dark, Events closed and open (`/events`).
 | `task/transcript-reconnecting` | Transcript reconnecting | Cached rows kept; Retry; Load current activity for source change |
 | `task/transcript-capacity` | Transcript capacity | Limit notice; rows/position kept; qualified totals may remain |
 | `task/transcript-sources` | Transcript sources | Normalized record, stub, ordering, Recovered message |
-| `…/events` | Transcript observed · Events | Pane open at load; Changes/Artifacts disabled with explanation |
+| `…/events` (all eight) | scenario id `transcript-*/events` | Pane open at load via route suffix; Changes/Artifacts disabled with explanation |
 
 Honesty: Copy record copies exact normalized JSON (mocked clipboard in tests);
 never claim success without a copy. Live region (`aria-live=polite`) announces

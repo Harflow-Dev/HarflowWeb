@@ -41,24 +41,27 @@
   are not sent on `startTask`. The plus control itself comes from HarflowDesign
   `bd5d349b9a4e068752fc071baf25782db0746a34`.
 - Centered composer + sidebar redraw (owner-approved 2026-11-08), mock-only:
-  HarflowDesign `19365d9377ab8993350ec8655181094a8e1ec01a`
-  (`v2/docs/decisions/README.md` records approval),
-  `v2/scripts/m04-proposal.js`, `v2/styles/m04-proposal.css`. Pinned routes:
-  `new-task/centered-empty`, `centered-loading`, `centered-unqualified`,
-  `centered-invalid`, `centered-starting`, `centered-refused`,
-  `centered-options-closed`, `centered-harness-open`, and sidebar
-  `sidebar/centered-collapsed`, `sidebar/centered-minimum`
-  (`sidebar/expanded` and `sidebar/centered-expanded` redirect to
-  `new-task/centered-empty` in Design). Qualification
+  HarflowDesign `854caae4d474536f84e6e911ff96d48c4ada008b`
+  (frames identical to `19365d9`; `854caae` always disables the Unavailable
+  harness option in `new-task/centered-harness-open` — see
+  `v2/docs/decisions/README.md`), `v2/scripts/m04-proposal.js`,
+  `v2/styles/m04-proposal.css`. Pinned routes: `new-task/centered-empty`,
+  `centered-loading`, `centered-unqualified`, `centered-invalid`,
+  `centered-starting`, `centered-refused`, `centered-options-closed`,
+  `centered-harness-open`, and sidebar `sidebar/centered-collapsed`,
+  `sidebar/centered-minimum` (`sidebar/expanded` and `sidebar/centered-expanded`
+  redirect to `new-task/centered-empty` in Design). Qualification
   (`checking` | `ready` | `unqualified`) is observation-owned on
-  `ComposerContext`; Start stays disabled with “Choose a qualified harness and
-  model.” when not ready. `centered-harness-open` selects the fixture
-  “Unavailable harness” (disabled) with that hint inside the open menu; Escape
-  closes Task options only, not pickers. Refused status maps
-  `Start was refused (${code}): ${reason}` from the ctl refuse outcome (brief
-  authority over the specimen’s generic refuse line). Sidebar body
-  (nav + Running + Recent) scrolls as one region; header and Settings/theme
-  footer stay fixed. Minimum frame is the preview `1000×620` chrome.
+  `ComposerContext` and drives the Task options caption; Start stays disabled
+  with “Choose a qualified harness and model.” when not ready.
+  `centered-harness-open` uses the centred pill picker with labelled Harness and
+  Model selects; “Unavailable harness” is selected and always disabled; the
+  hint is linked with `aria-describedby`. Escape closes Task options only, not
+  pickers. Refused status maps `Start was refused (${code}): ${reason}` from
+  the ctl refuse outcome (brief authority over the specimen’s generic refuse
+  line). Sidebar body (nav + Running + Recent) scrolls as one region; header
+  and Settings/theme footer stay fixed. Minimum frame is the preview `1000×620`
+  chrome.
 - States implemented:
   - `new-task/centered-empty` (and prior `new-task/default`) light/dark
   - `new-task/centered-loading`, `centered-unqualified`, `centered-invalid`,

@@ -554,12 +554,13 @@ approved specimen and were not captured as specimens.
 - Completed-task omits Stop, failure banner, and Retry; follow-up send stays
   disabled; right pane is not present (out of scope for this assignment).
 
-## Centered composer + sidebar redraw (Design 19365d9) — inspection checklist
+## Centered composer + sidebar redraw (Design 854caae) — inspection checklist
 
-Pinned commit: HarflowDesign `19365d9377ab8993350ec8655181094a8e1ec01a`.
-Preview scenarios under `/preview` (mock-only). Check each state in light and
-dark. Compare against a local HTTP server serving that commit’s `v2/index.html`
-(do not use a later Design HEAD).
+Pinned commit: HarflowDesign `854caae4d474536f84e6e911ff96d48c4ada008b`
+(app frames identical to `19365d9`; Unavailable harness always disabled in
+`centered-harness-open`). Preview scenarios under `/preview` (mock-only). Check
+each state in light and dark. Compare against a local HTTP server serving that
+commit’s `v2/index.html` (do not use a later Design HEAD).
 
 | Design route | Preview scenario | What to confirm |
 | --- | --- | --- |
@@ -570,11 +571,11 @@ dark. Compare against a local HTTP server serving that commit’s `v2/index.html
 | `new-task/centered-starting` | Composer starting | “Starting task…”; Start disabled; no second submit until resolve |
 | `new-task/centered-refused` | Composer refused | Refuse shows code+reason; draft preserved |
 | `new-task/centered-options-closed` | Composer options closed | Customized dot; options collapsed |
-| `new-task/centered-harness-open` | Composer harness open | Unavailable harness selected+disabled; hint in menu; Escape leaves picker open |
+| `new-task/centered-harness-open` | Composer harness open | Labelled Harness/Model selects; Unavailable selected+always disabled; `aria-describedby` hint; Escape leaves picker open |
 | `sidebar/centered-collapsed` | Sidebar collapsed | Rail only; expand + route aria-current |
 | `sidebar/centered-minimum` | Sidebar minimum | 1000×620 preview frame; single sidebar scroll body |
 
-Hosted `https://design.harflow.dev/v2` may be newer than `19365d9`; citations
+Hosted `https://design.harflow.dev/v2` may be newer than `854caae`; citations
 remain the immutable commit above.
 
 ## Limitations

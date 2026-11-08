@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { unavailableHarnessComposer } from '../adapters/mock/fixtures'
 import {
@@ -14,8 +14,12 @@ afterEach(() => {
   cleanup()
 })
 
+function optionLabels(select: HTMLSelectElement): string[] {
+  return [...select.options].map((option) => option.textContent ?? '')
+}
+
 describe('Composer harness-open centered specimen', () => {
-  it('shows unavailable harness selected, disabled, with qualification hint', () => {
+  it('renders labelled selects, disabled unavailable, hint, and keeps Escape open', () => {
     const composer = unavailableHarnessComposer()
     const onCloseOptions = vi.fn()
     const onOpenMenu = vi.fn()
@@ -34,7 +38,6 @@ describe('Composer harness-open centered specimen', () => {
           selectedModelId={composer.selectedModelId}
           selectedAccess={composer.selectedAccess}
           openMenu="harness"
-          harnessMenuPhase="harness"
           qualificationHint="Choose a qualified harness and model."
           optionsOpen={false}
           optionsCustomized={false}
@@ -44,6 +47,7 @@ describe('Composer harness-open centered specimen', () => {
           effortOptions={EFFORT_OPTIONS}
           permissionPreview={accessPermissionPreview(composer.selectedAccess)}
           startBlockedReason="Choose a qualified harness and model."
+          qualification="unqualified"
           onPrompt={vi.fn()}
           onOpenMenu={onOpenMenu}
           onSelectRepository={vi.fn()}
@@ -60,26 +64,47 @@ describe('Composer harness-open centered specimen', () => {
       </div>,
     )
 
-    expect(
-      screen.getByRole('button', { name: /Unavailable harness/ }),
-    ).toBeInTheDocument()
-    const unavailable = screen.getByRole('menuitem', {
-      name: /Unavailable harness/,
-    })
-    expect(unavailable).toBeDisabled()
-    expect(
-      screen.getByText('Choose a qualified harness and model.'),
-    ).toBeInTheDocument()
-    const start = screen.getByRole('button', { name: 'Start task' })
-    expect(start).toBeDisabled()
-    expect(start).toHaveAttribute(
-      'title',
+    const panel = screen.getByRole('group', { name: 'Harness and model' })
+    const selects = within(panel).getAllByRole('combobox')
+    expect(selects).toHaveLength(2)
+    const harness = selects[0] as HTMLSelectElement
+    const model = selects[1] as HTMLSelectElement
+    expect(harness).toHaveAccessibleName(/Harness/)
+    expect(model).toHaveAccessibleName(/^Model$/)
+
+    expect(optionLabels(harness)).toEqual([
+      'Claude Code',
+      'Codex',
+      'Mistral Vibe',
+      'Unavailable harness',
+    ])
+    expect(optionLabels(model)).toEqual([
+      'Default',
+      'Opus 5.5',
+      'Sonnet 5.5',
+    ])
+    expect(harness).toHaveDisplayValue('Unavailable harness')
+    expect(model).toHaveDisplayValue('Default')
+    const unavailable = [...harness.options].find(
+      (option) => option.textContent === 'Unavailable harness',
+    )
+    expect(unavailable?.disabled).toBe(true)
+    expect(harness).toHaveAttribute(
+      'aria-describedby',
+      'm04-harness-hint',
+    )
+    expect(document.getElementById('m04-harness-hint')).toHaveTextContent(
       'Choose a qualified harness and model.',
     )
+
+    const start = screen.getByRole('button', { name: 'Start task' })
+    expect(start).toBeDisabled()
 
     fireEvent.keyDown(document, { key: 'Escape' })
     expect(onCloseOptions).not.toHaveBeenCalled()
     expect(onOpenMenu).not.toHaveBeenCalled()
-    expect(screen.getByRole('menu', { name: 'Harness and model' })).toBeInTheDocument()
+    expect(
+      screen.getByRole('group', { name: 'Harness and model' }),
+    ).toBeInTheDocument()
   })
 })

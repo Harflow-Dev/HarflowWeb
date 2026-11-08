@@ -49,7 +49,7 @@ Codex, and Opencode lanes from Design `parallel-group/lanes` (HarflowDesign
 borrow another fixture. Leaving the group cancels its observation; reopening
 loads again. View prompt, Cancel all, lane actions, tool heads, and lane
 composers stay disabled. On New task the composer matches the M04 centered
-amendment and the 19365d9 redraw: one-line prompt that grows to six lines,
+amendment and the 854caae redraw: one-line prompt that grows to six lines,
 visual status line (live announcements stay in `StatusRegion`), and a `+` Task
 options control for effort, turn limit, and approvals. Escape returns focus to
 `+` for options only — it does not close repository/harness/access pickers.

@@ -1,3 +1,4 @@
+import type { ComposerQualification } from '../model'
 import type { ApprovalsMode, EffortLevel } from '../presentation/taskOptions'
 import { ComposerTaskOptionsCaptions } from './ComposerTaskOptionsCaptions'
 
@@ -8,6 +9,7 @@ type Props = {
   readonly approvals: ApprovalsMode
   readonly effortOptions: readonly EffortLevel[]
   readonly permissionPreview: string
+  readonly qualification: ComposerQualification
   readonly onEffort: (value: EffortLevel) => void
   readonly onTurns: (value: string) => void
   readonly onApprovals: (value: ApprovalsMode) => void
@@ -56,7 +58,10 @@ export function ComposerTaskOptionsFields(props: Props) {
           </select>
         </label>
       </div>
-      <ComposerTaskOptionsCaptions permissionPreview={props.permissionPreview} />
+      <ComposerTaskOptionsCaptions
+        permissionPreview={props.permissionPreview}
+        qualification={props.qualification}
+      />
     </>
   )
 }

@@ -139,14 +139,50 @@ export function unqualifiedComposer(): ComposerContext {
 }
 
 /**
- * Specimen centered-harness-open: unavailable harness selected and disabled.
- * Qualification is unqualified so Start stays gated.
+ * Specimen centered-harness-open (Design 854caae): labelled Harness/Model
+ * selects with Unavailable harness selected and always disabled.
  */
 export function unavailableHarnessComposer(): ComposerContext {
+  const claude: HarnessOption = {
+    id: asHarnessId('claude'),
+    label: 'Claude Code',
+    available: true,
+    unavailableReason: null,
+    defaultModelId: asModelId('claude-default'),
+    models: [
+      { id: asModelId('claude-default'), label: 'Default' },
+      { id: asModelId('opus-5.5'), label: 'Opus 5.5' },
+      { id: asModelId('sonnet-5.5'), label: 'Sonnet 5.5' },
+    ],
+    accessLevels: ['read_only', 'edit_repo', 'publish'],
+  }
+  const codex = MOCK_HARNESSES.find((h) => h.id === asHarnessId('codex'))
+  const vibe = MOCK_HARNESSES.find((h) => h.id === asHarnessId('vibe'))
+  if (codex === undefined || vibe === undefined) {
+    throw new Error('centered harness-open fixture requires Codex and Vibe')
+  }
+  const unavailable: HarnessOption = {
+    id: asHarnessId('unavailable'),
+    label: 'Unavailable harness',
+    available: false,
+    unavailableReason: 'Not available',
+    // Specimen Model select shows Claude Code's labels with Default selected
+    // while Unavailable harness remains the selected, disabled Harness option.
+    defaultModelId: asModelId('claude-default'),
+    models: [
+      { id: asModelId('claude-default'), label: 'Default' },
+      { id: asModelId('opus-5.5'), label: 'Opus 5.5' },
+      { id: asModelId('sonnet-5.5'), label: 'Sonnet 5.5' },
+    ],
+    accessLevels: ['read_only'],
+  }
   return {
-    ...populatedComposer(),
+    repositories: MOCK_REPOSITORIES,
+    harnesses: [claude, codex, vibe, unavailable],
+    accessOptions: MOCK_ACCESS,
+    selectedRepositoryId: asRepositoryId('repo-mcp'),
     selectedHarnessId: asHarnessId('unavailable'),
-    selectedModelId: asModelId('unavailable-default'),
+    selectedModelId: asModelId('claude-default'),
     selectedAccess: 'read_only',
     qualification: 'unqualified',
   }

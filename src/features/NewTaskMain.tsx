@@ -47,7 +47,6 @@ export function NewTaskMain({ presenter, state }: Props) {
               selectedModelId={state.selectedModelId}
               selectedAccess={state.selectedAccess}
               openMenu={state.openMenu}
-              harnessMenuPhase={state.harnessMenuPhase}
               qualificationHint={qualificationHint}
               optionsOpen={state.optionsOpen}
               optionsCustomized={newTaskOptionsAreCustomized(state)}
@@ -57,6 +56,7 @@ export function NewTaskMain({ presenter, state }: Props) {
               effortOptions={EFFORT_OPTIONS}
               permissionPreview={accessPermissionPreview(state.selectedAccess)}
               startBlockedReason={state.canSubmit ? null : statusMessage}
+              qualification={ready.composer.qualification}
               onPrompt={(value) => presenter.setPrompt(value)}
               onOpenMenu={(menu) => presenter.setOpenMenu(menu)}
               onSelectRepository={(id) => presenter.selectRepository(id)}

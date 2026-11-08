@@ -7,7 +7,7 @@ import type {
   RepositoryId,
   RepositoryOption,
 } from '../model'
-import { HarnessChoice, ModelChoices } from './ComposerHarnessMenu'
+import { ComposerHarnessFields } from './ComposerHarnessFields'
 import { Icon } from './Icon'
 import { PillMenu } from './PillMenu'
 
@@ -62,7 +62,6 @@ type HarnessProps = {
   readonly harnesses: readonly HarnessOption[]
   readonly selectedHarnessId: HarnessId | null
   readonly selectedModelId: ModelId | null
-  readonly harnessMenuPhase: 'harness' | 'model'
   readonly qualificationHint: string | null
   readonly disabled?: boolean
   readonly onToggle: () => void
@@ -76,40 +75,26 @@ export function HarnessMenu(props: HarnessProps) {
   const label =
     harness && model
       ? `${shortHarness(harness.label)} · ${model.label}`
-      : harness?.label ?? 'Harness'
-  const hintId = 'hw-harness-qualification-hint'
+      : (harness?.label ?? 'Harness')
   return (
     <PillMenu
       open={props.open}
       label={label}
       icon="harness"
       menuLabel="Harness and model"
+      fields
       disabled={props.disabled === true}
       onToggle={props.onToggle}
     >
-      <div className="hd-menu__label">Harness</div>
-      {props.harnesses.map((item) => (
-        <HarnessChoice
-          key={item.id}
-          item={item}
-          selected={item.id === props.selectedHarnessId}
-          onSelect={props.onSelectHarness}
-        />
-      ))}
-      {harness &&
-      harness.available &&
-      props.harnessMenuPhase === 'model' ? (
-        <ModelChoices
-          harness={harness}
-          selectedModelId={props.selectedModelId}
-          onSelectModel={props.onSelectModel}
-        />
-      ) : null}
-      {props.qualificationHint !== null ? (
-        <span className="hd-field__hint" id={hintId} role="note">
-          {props.qualificationHint}
-        </span>
-      ) : null}
+      <ComposerHarnessFields
+        harnesses={props.harnesses}
+        selectedHarnessId={props.selectedHarnessId}
+        selectedModelId={props.selectedModelId}
+        qualificationHint={props.qualificationHint}
+        disabled={props.disabled === true}
+        onSelectHarness={props.onSelectHarness}
+        onSelectModel={props.onSelectModel}
+      />
     </PillMenu>
   )
 }

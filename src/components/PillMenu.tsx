@@ -7,6 +7,8 @@ type Props = {
   readonly icon: Extract<IconName, 'folder' | 'harness' | 'shield' | 'workflow'>
   readonly accent?: boolean
   readonly menuLabel: string
+  /** Centered field pickers use a group panel, not a menuitem list. */
+  readonly fields?: boolean
   readonly disabled?: boolean
   readonly onToggle: () => void
   readonly children: ReactNode
@@ -18,6 +20,7 @@ export function PillMenu({
   icon,
   accent = false,
   menuLabel,
+  fields = false,
   disabled = false,
   onToggle,
   children,
@@ -28,7 +31,7 @@ export function PillMenu({
       <button
         type="button"
         className={`hd-pill${tone}${open ? ' is-open' : ''}`}
-        aria-haspopup="menu"
+        aria-haspopup={fields ? 'dialog' : 'menu'}
         aria-expanded={open}
         disabled={disabled}
         aria-disabled={disabled || undefined}
@@ -40,16 +43,20 @@ export function PillMenu({
       </button>
       {open ? (
         <div
-          className="hd-menu"
-          role="menu"
+          className={fields ? 'hd-menu hd-m04-picker-menu' : 'hd-menu'}
+          role={fields ? 'group' : 'menu'}
           aria-label={menuLabel}
-          style={{
-            position: 'absolute',
-            top: 'calc(100% + 6px)',
-            left: 0,
-            zIndex: 5,
-            width: 300,
-          }}
+          style={
+            fields
+              ? undefined
+              : {
+                  position: 'absolute',
+                  top: 'calc(100% + 6px)',
+                  left: 0,
+                  zIndex: 5,
+                  width: 300,
+                }
+          }
         >
           {children}
         </div>

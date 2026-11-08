@@ -15,7 +15,7 @@ const QUALIFICATION_HINT = 'Choose a qualified harness and model.'
  * Composer status copy. Validation and an empty draft outrank a prior
  * accepted/refused outcome so a new draft does not keep the old message.
  * Qualification and refuse copy follow the centered redraw (HarflowDesign
- * 19365d9); refuse maps the contract code and reason.
+ * 854caae); refuse maps the contract code and reason.
  */
 export function newTaskStatusMessage(state: NewTaskScreenState): string {
   if (state.submission.kind === 'pending') return 'Starting task…'

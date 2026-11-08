@@ -42,7 +42,6 @@ function composerProps(overrides: Override = {}) {
     selectedModelId: composer.selectedModelId,
     selectedAccess: composer.selectedAccess,
     openMenu: null,
-    harnessMenuPhase: 'harness' as const,
     qualificationHint: null,
     optionsOpen: overrides.optionsOpen ?? false,
     optionsCustomized:
@@ -54,6 +53,7 @@ function composerProps(overrides: Override = {}) {
     effortOptions: EFFORT_OPTIONS,
     permissionPreview: accessPermissionPreview(composer.selectedAccess),
     startBlockedReason: null,
+    qualification: 'ready' as const,
     onPrompt: overrides.onPrompt ?? vi.fn(),
     onOpenMenu: vi.fn(),
     onSelectRepository: vi.fn(),

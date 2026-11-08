@@ -8,13 +8,13 @@ import type { ScenarioDefinition } from './scenarios'
 
 const DRAFT = 'Review the delivery queue'
 
-/** Centered composer/sidebar redraw scenarios (HarflowDesign 19365d9). */
+/** Centered composer/sidebar redraw scenarios (HarflowDesign 854caae). */
 export const CENTERED_SCENARIOS: readonly ScenarioDefinition[] = [
   base({
     id: 'composer-loading',
     label: 'Composer loading',
     description:
-      'Centered-loading: qualification checking; Start gated (Design 19365d9).',
+      'Centered-loading: qualification checking; Start gated (Design 854caae).',
     context: readyWithComposer(checkingComposer()),
     startOutcome: accepted,
     holdStart: false,
@@ -24,7 +24,7 @@ export const CENTERED_SCENARIOS: readonly ScenarioDefinition[] = [
     id: 'composer-unqualified',
     label: 'Composer unqualified',
     description:
-      'Centered-unqualified: no qualified harness; Start gated (Design 19365d9).',
+      'Centered-unqualified: no qualified harness; Start gated (Design 854caae).',
     context: readyWithComposer(unqualifiedComposer()),
     startOutcome: accepted,
     holdStart: false,
@@ -34,7 +34,7 @@ export const CENTERED_SCENARIOS: readonly ScenarioDefinition[] = [
     id: 'composer-invalid',
     label: 'Composer invalid',
     description:
-      'Centered-invalid: turns=0 with options open (Design 19365d9).',
+      'Centered-invalid: turns=0 with options open (Design 854caae).',
     context: readyContext(),
     startOutcome: accepted,
     holdStart: false,
@@ -44,7 +44,7 @@ export const CENTERED_SCENARIOS: readonly ScenarioDefinition[] = [
     id: 'composer-starting',
     label: 'Composer starting',
     description:
-      'Centered-starting: in-flight Start; no duplicate submit (Design 19365d9).',
+      'Centered-starting: in-flight Start; no duplicate submit (Design 854caae).',
     context: readyContext(),
     startOutcome: accepted,
     holdStart: true,
@@ -54,7 +54,7 @@ export const CENTERED_SCENARIOS: readonly ScenarioDefinition[] = [
     id: 'composer-refused',
     label: 'Composer refused',
     description:
-      'Centered-refused: refuse code+reason; draft preserved (Design 19365d9).',
+      'Centered-refused: refuse code+reason; draft preserved (Design 854caae).',
     context: readyContext(),
     startOutcome: {
       kind: 'refused',
@@ -68,7 +68,7 @@ export const CENTERED_SCENARIOS: readonly ScenarioDefinition[] = [
     id: 'composer-options-closed',
     label: 'Composer options closed',
     description:
-      'Centered-options-closed: customized effort, options collapsed (Design 19365d9).',
+      'Centered-options-closed: customized effort, options collapsed (Design 854caae).',
     context: readyContext(),
     startOutcome: accepted,
     holdStart: false,
@@ -78,7 +78,7 @@ export const CENTERED_SCENARIOS: readonly ScenarioDefinition[] = [
     id: 'composer-harness-open',
     label: 'Composer harness open',
     description:
-      'Centered-harness-open: unavailable harness selected; hint in menu (Design 19365d9).',
+      'Centered-harness-open: unavailable harness selected; hint in menu (Design 854caae).',
     context: readyWithComposer(unavailableHarnessComposer()),
     startOutcome: accepted,
     holdStart: false,
@@ -88,7 +88,7 @@ export const CENTERED_SCENARIOS: readonly ScenarioDefinition[] = [
     id: 'sidebar-collapsed',
     label: 'Sidebar collapsed',
     description:
-      'Centered-collapsed sidebar rail (Design 19365d9 sidebar/centered-collapsed).',
+      'Centered-collapsed sidebar rail (Design 854caae sidebar/centered-collapsed).',
     context: readyContext(),
     startOutcome: accepted,
     holdStart: false,
@@ -98,7 +98,7 @@ export const CENTERED_SCENARIOS: readonly ScenarioDefinition[] = [
     id: 'sidebar-minimum',
     label: 'Sidebar minimum',
     description:
-      'Centered-minimum 1000×620 frame (Design 19365d9 sidebar/centered-minimum).',
+      'Centered-minimum 1000×620 frame (Design 854caae sidebar/centered-minimum).',
     context: readyContext(),
     startOutcome: accepted,
     holdStart: false,

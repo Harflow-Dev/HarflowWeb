@@ -196,7 +196,7 @@ describe('qualification vs model selection', () => {
   it('keeps an observation-selected unavailable harness id', () => {
     const composer = unavailableHarnessComposer()
     expect(composer.selectedHarnessId).toBe(asHarnessId('unavailable'))
-    expect(composer.selectedModelId).toBe(asModelId('unavailable-default'))
+    expect(composer.selectedModelId).toBe(asModelId('claude-default'))
     expect(composer.qualification).toBe('unqualified')
   })
 })

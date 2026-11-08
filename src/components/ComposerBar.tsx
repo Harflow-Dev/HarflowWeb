@@ -1,6 +1,7 @@
 import type {
   AccessLevel,
   AccessOption,
+  ComposerQualification,
   HarnessId,
   HarnessOption,
   ModelId,
@@ -25,7 +26,6 @@ type Props = {
   readonly selectedModelId: ModelId | null
   readonly selectedAccess: AccessLevel
   readonly openMenu: OpenMenu
-  readonly harnessMenuPhase: 'harness' | 'model'
   readonly qualificationHint: string | null
   readonly optionsOpen: boolean
   readonly optionsCustomized: boolean
@@ -35,6 +35,7 @@ type Props = {
   readonly effortOptions: readonly EffortLevel[]
   readonly permissionPreview: string
   readonly startBlockedReason: string | null
+  readonly qualification: ComposerQualification
   readonly onOpenMenu: (menu: OpenMenu) => void
   readonly onSelectRepository: (id: RepositoryId) => void
   readonly onSelectHarness: (id: HarnessId) => void
@@ -65,6 +66,7 @@ export function ComposerBar(props: Props) {
         approvals={props.approvals}
         effortOptions={props.effortOptions}
         permissionPreview={props.permissionPreview}
+        qualification={props.qualification}
         onToggle={props.onToggleOptions}
         onClose={props.onCloseOptions}
         onEffort={props.onEffort}
@@ -80,7 +82,6 @@ export function ComposerBar(props: Props) {
         selectedModelId={props.selectedModelId}
         selectedAccess={props.selectedAccess}
         openMenu={props.openMenu}
-        harnessMenuPhase={props.harnessMenuPhase}
         qualificationHint={
           props.openMenu === 'harness' ? props.qualificationHint : null
         }

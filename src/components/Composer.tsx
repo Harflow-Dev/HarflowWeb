@@ -1,6 +1,7 @@
 import type {
   AccessLevel,
   AccessOption,
+  ComposerQualification,
   HarnessId,
   HarnessOption,
   ModelId,
@@ -25,7 +26,6 @@ export type ComposerProps = {
   readonly selectedModelId: ModelId | null
   readonly selectedAccess: AccessLevel
   readonly openMenu: OpenMenu
-  readonly harnessMenuPhase: 'harness' | 'model'
   readonly qualificationHint: string | null
   readonly optionsOpen: boolean
   readonly optionsCustomized: boolean
@@ -35,6 +35,7 @@ export type ComposerProps = {
   readonly effortOptions: readonly EffortLevel[]
   readonly permissionPreview: string
   readonly startBlockedReason: string | null
+  readonly qualification: ComposerQualification
   readonly onPrompt: (value: string) => void
   readonly onOpenMenu: (menu: OpenMenu) => void
   readonly onSelectRepository: (id: RepositoryId) => void

@@ -1,4 +1,5 @@
 import { useRef } from 'react'
+import type { ComposerQualification } from '../model'
 import type { ApprovalsMode, EffortLevel } from '../presentation/taskOptions'
 import { ComposerTaskOptionsFields } from './ComposerTaskOptionsFields'
 import { ComposerTaskOptionsTrigger } from './ComposerTaskOptionsTrigger'
@@ -20,6 +21,7 @@ type Props = {
   readonly approvals: ApprovalsMode
   readonly effortOptions: readonly EffortLevel[]
   readonly permissionPreview: string
+  readonly qualification: ComposerQualification
   readonly onToggle: () => void
   readonly onClose: (focusTrigger: boolean) => void
   readonly onEffort: (value: EffortLevel) => void
@@ -67,6 +69,7 @@ export function ComposerTaskOptions(props: Props) {
           approvals={props.approvals}
           effortOptions={props.effortOptions}
           permissionPreview={props.permissionPreview}
+          qualification={props.qualification}
           onEffort={props.onEffort}
           onTurns={props.onTurns}
           onApprovals={props.onApprovals}

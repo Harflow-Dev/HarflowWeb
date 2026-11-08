@@ -64,7 +64,7 @@ export function TranscriptSurface({
     const host = hostRef.current
     if (!host) return
     let restoreWarning = ''
-    if (pending.action === 'earlier') {
+    if (pending.action === 'earlier' || pending.action === 'retry') {
       restoreVisibleAnchor(
         history,
         pending.anchor,
@@ -154,6 +154,8 @@ export function TranscriptSurface({
           olderLoaded={transcript.olderLoaded}
           freshShown={transcript.freshShown}
           pendingSourceChange={transcript.pendingSourceEpoch !== null}
+          earlierAvailable={transcript.earlierPrototype !== null}
+          freshAvailable={transcript.freshPrototype !== null}
           onEarlier={() => apply('earlier')}
           onNew={() => apply('new')}
           onRetry={() => apply('retry')}

@@ -148,4 +148,44 @@ describe('mergeTranscriptObservation', () => {
     expect(merged.rows.map((row) => row.id)).toEqual(['row-current'])
     expect(merged.summaryCoverage).toBe('unavailable')
   })
+
+  it('keeps a new pending source after rebase when it differs from the adopted one', () => {
+    const rebased = transitionTranscript(
+      base({ pendingSourceEpoch: 'mock-source-b' }),
+      'rebase',
+    )
+    expect(rebased.sourceEpoch).toBe('mock-source-b')
+    expect(rebased.pendingSourceEpoch).toBeNull()
+    const withC = mergeTranscriptObservation(
+      base({
+        history: 'reconnecting',
+        pendingSourceEpoch: 'mock-source-c',
+        captureUncertainty: true,
+        summaryCoverage: 'unavailable',
+      }),
+      rebased,
+    )
+    expect(withC.currentWindow).toBe(true)
+    expect(withC.sourceEpoch).toBe('mock-source-b')
+    expect(withC.pendingSourceEpoch).toBe('mock-source-c')
+    expect(withC.rows.map((row) => row.id)).toEqual(['row-current'])
+  })
+
+  it('clears a pending source after rebase when it matches the adopted one', () => {
+    const rebased = transitionTranscript(
+      base({ pendingSourceEpoch: 'mock-source-b' }),
+      'rebase',
+    )
+    const withSame = mergeTranscriptObservation(
+      base({
+        history: 'reconnecting',
+        pendingSourceEpoch: 'mock-source-b',
+        captureUncertainty: true,
+        summaryCoverage: 'unavailable',
+      }),
+      rebased,
+    )
+    expect(withSame.pendingSourceEpoch).toBeNull()
+    expect(withSame.currentWindow).toBe(true)
+  })
 })

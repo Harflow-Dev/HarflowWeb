@@ -8,6 +8,8 @@ type Props = {
   readonly olderLoaded: boolean
   readonly freshShown: boolean
   readonly pendingSourceChange: boolean
+  readonly earlierAvailable: boolean
+  readonly freshAvailable: boolean
   readonly onEarlier: () => void
   readonly onNew: () => void
   readonly onRetry: () => void

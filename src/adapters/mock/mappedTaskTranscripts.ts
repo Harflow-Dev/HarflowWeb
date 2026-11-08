@@ -37,6 +37,17 @@ export function preloadTranscript(): TranscriptObservation {
       title: 'Earlier captured activity',
       body: 'Read preload bridge notes from the prior turn.',
     },
+    freshPrototype: {
+      id: 'row-new',
+      sourceEpoch: 'mock-source-a',
+      windowEpoch: 0,
+      occurrence: 3,
+      seq: 10,
+      type: 'message',
+      anchorId: 'new',
+      title: 'New captured activity',
+      body: 'Preload bridge authority notes received.',
+    },
   }
 }
 
@@ -59,6 +70,9 @@ export function eventsReaderFailedTranscript(): TranscriptObservation {
         body: "I'll look at how the reader is used before swapping the parser.",
       },
     ]),
+    // This mock has no earlier or fresh page — do not reuse specimen rows.
+    earlierPrototype: null,
+    freshPrototype: null,
   }
 }
 
@@ -95,5 +109,8 @@ export function retryBudgetDoneTranscript(): TranscriptObservation {
         disclosure: 'tool-pytest-queue',
       },
     ]),
+    // This mock has no earlier or fresh page — do not reuse specimen rows.
+    earlierPrototype: null,
+    freshPrototype: null,
   }
 }

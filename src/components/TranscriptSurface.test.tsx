@@ -11,9 +11,12 @@ import {
 } from '../model'
 import { transcriptObservationFor } from '../adapters/mock/transcriptFixtures'
 import {
+  eventsReaderFailedTranscript,
   preloadTranscript,
+  retryBudgetDoneTranscript,
   slotReleaseTranscript,
 } from '../adapters/mock/mappedTaskTranscripts'
+import { EARLIER_UNAVAILABLE_EXPLANATION } from './TranscriptEarlierAction'
 import { TaskPage } from './TaskPage'
 import { TranscriptSurface } from './TranscriptSurface'
 import {
@@ -105,6 +108,7 @@ function stubHistoryGeometry(
   row: HTMLElement,
   historyTop: number,
   rowTop: number,
+  scrollTop = 40,
 ): void {
   history.getBoundingClientRect = () =>
     ({ top: historyTop, bottom: historyTop + 200, height: 200 }) as DOMRect
@@ -113,12 +117,52 @@ function stubHistoryGeometry(
   Object.defineProperty(history, 'scrollTop', {
     configurable: true,
     writable: true,
-    value: 40,
+    value: scrollTop,
   })
   Object.defineProperty(history, 'scrollHeight', {
     configurable: true,
     value: 800,
   })
+}
+
+/**
+ * After Load earlier inserts a row, the retained anchor is pushed down by
+ * `pushPx`. Restore must compensate so the visible offset stays the same.
+ */
+function stubAnchorPushAfterEarlier(
+  history: HTMLElement,
+  anchor: HTMLElement,
+  historyTop: number,
+  initialRowTop: number,
+  pushPx: number,
+  scrollTop = 40,
+): void {
+  stubHistoryGeometry(history, anchor, historyTop, initialRowTop, scrollTop)
+  anchor.getBoundingClientRect = () => {
+    const pushed = history.querySelector('[data-row="earlier"]') !== null
+    const top = pushed ? initialRowTop + pushPx : initialRowTop
+    return { top, bottom: top + 40, height: 40 } as DOMRect
+  }
+}
+
+/**
+ * After Retry, the boundary grows (Retry swaps for Load earlier). The
+ * retained anchor shifts down by `pushPx` until restore compensates.
+ */
+function stubAnchorPushAfterRetry(
+  history: HTMLElement,
+  anchor: HTMLElement,
+  historyTop: number,
+  initialRowTop: number,
+  pushPx: number,
+  scrollTop = 40,
+): void {
+  stubHistoryGeometry(history, anchor, historyTop, initialRowTop, scrollTop)
+  anchor.getBoundingClientRect = () => {
+    const retryGone = history.querySelector('[data-action="retry"]') === null
+    const top = retryGone ? initialRowTop + pushPx : initialRowTop
+    return { top, bottom: top + 40, height: 40 } as DOMRect
+  }
 }
 
 describe('TranscriptSurface observation reconciliation', () => {
@@ -185,6 +229,55 @@ describe('TranscriptSurface observation reconciliation', () => {
     ).toBeNull()
     expect(screen.getByText('Current activity window')).toBeInTheDocument()
   })
+
+  it('rebrings Load current activity after rebase when a later pending source differs', async () => {
+    const user = userEvent.setup()
+    render(
+      <ObservationHarness
+        sequence={[
+          transcriptObservationFor('reconnecting'),
+          {
+            ...transcriptObservationFor('reconnecting'),
+            pendingSourceEpoch: 'mock-source-c',
+          },
+        ]}
+      />,
+    )
+    await user.click(
+      screen.getByRole('button', { name: 'Load current activity' }),
+    )
+    expect(
+      screen.queryByRole('button', { name: 'Load current activity' }),
+    ).toBeNull()
+    await user.click(screen.getByTestId('next-obs'))
+    expect(
+      screen.getByRole('button', { name: 'Load current activity' }),
+    ).toBeInTheDocument()
+    expect(screen.getByText('Current activity window')).toBeInTheDocument()
+  })
+
+  it('does not rebring Load current activity when the later pending source matches', async () => {
+    const user = userEvent.setup()
+    render(
+      <ObservationHarness
+        sequence={[
+          transcriptObservationFor('reconnecting'),
+          {
+            ...transcriptObservationFor('reconnecting'),
+            // Same pending as the adopted source after rebase (mock-source-b).
+            pendingSourceEpoch: 'mock-source-b',
+          },
+        ]}
+      />,
+    )
+    await user.click(
+      screen.getByRole('button', { name: 'Load current activity' }),
+    )
+    await user.click(screen.getByTestId('next-obs'))
+    expect(
+      screen.queryByRole('button', { name: 'Load current activity' }),
+    ).toBeNull()
+  })
 })
 
 describe('task-owned earlier prototypes', () => {
@@ -207,6 +300,71 @@ describe('task-owned earlier prototypes', () => {
     expect(
       screen.queryByText('Read slot release implementation.'),
     ).toBeNull()
+  })
+
+  it('Load earlier on each offering fixture only shows that fixture’s rows', async () => {
+    const user = userEvent.setup()
+    const fixtures: ReadonlyArray<{
+      readonly label: string
+      readonly transcript: TranscriptObservation
+      readonly ownedEarlier: string
+      readonly foreignEarlier: readonly string[]
+    }> = [
+      {
+        label: 'slot-release',
+        transcript: slotReleaseTranscript(),
+        ownedEarlier: 'Read slot release implementation.',
+        foreignEarlier: [
+          'Read preload bridge notes from the prior turn.',
+        ],
+      },
+      {
+        label: 'preload',
+        transcript: preloadTranscript(),
+        ownedEarlier: 'Read preload bridge notes from the prior turn.',
+        foreignEarlier: ['Read slot release implementation.'],
+      },
+      {
+        label: 'transcript-observed',
+        transcript: transcriptObservationFor('observed'),
+        ownedEarlier: 'Read slot release implementation.',
+        foreignEarlier: [
+          'Read preload bridge notes from the prior turn.',
+        ],
+      },
+    ]
+
+    for (const fixture of fixtures) {
+      const { unmount } = render(
+        <ReadingHarness initial={fixture.transcript} />,
+      )
+      const earlier = screen.getByRole('button', { name: 'Load earlier' })
+      expect(earlier).not.toBeDisabled()
+      await user.click(earlier)
+      expect(screen.getByText(fixture.ownedEarlier)).toBeInTheDocument()
+      for (const foreign of fixture.foreignEarlier) {
+        if (foreign === fixture.ownedEarlier) continue
+        expect(screen.queryByText(foreign)).toBeNull()
+      }
+      unmount()
+    }
+
+    for (const transcript of [
+      eventsReaderFailedTranscript(),
+      retryBudgetDoneTranscript(),
+    ]) {
+      const { unmount } = render(<ReadingHarness initial={transcript} />)
+      const earlier = screen.getByRole('button', { name: 'Load earlier' })
+      expect(earlier).toBeDisabled()
+      expect(earlier).toHaveAttribute('title', EARLIER_UNAVAILABLE_EXPLANATION)
+      expect(
+        screen.queryByText('Read slot release implementation.'),
+      ).toBeNull()
+      expect(
+        screen.queryByText('Read preload bridge notes from the prior turn.'),
+      ).toBeNull()
+      unmount()
+    }
   })
 })
 
@@ -506,17 +664,40 @@ describe('live region, scroll, and focus through production actions', () => {
     if (!(history instanceof HTMLElement) || !(anchor instanceof HTMLElement)) {
       return
     }
-    stubHistoryGeometry(history, anchor, 100, 160)
+    // Capture: scrollTop=40, offset = 160-100 = 60.
+    // After insert the anchor is pushed +80 → top 240.
+    // Restored scrollTop = 40 + (240 - 100) - 60 = 120.
+    stubAnchorPushAfterEarlier(history, anchor, 100, 160, 80)
     await user.click(screen.getByRole('button', { name: 'Load earlier' }))
-    // After earlier insert, the retained row sits lower; restore compensates.
-    // scrollTop + (rowTop - historyTop) - offset = 40 + (160 - 100) - 60 = 100
-    // when geometry is unchanged; layout may shift the row after insert.
-    expect(history.scrollTop).toBeGreaterThanOrEqual(0)
+    expect(history.scrollTop).toBe(120)
     expect(
       screen.getByText('Read slot release implementation.'),
     ).toBeInTheDocument()
     const live = document.querySelector('[data-d2b-live]')
     expect(live?.textContent).toContain('Earlier captured rows loaded')
+  })
+
+  it('Retry restores the scroll anchor when the boundary height changes', async () => {
+    const user = userEvent.setup()
+    render(
+      <ReadingHarness initial={transcriptObservationFor('reconnecting')} />,
+    )
+    const history = document.querySelector('.hd-d2b-history')
+    const anchor = document.querySelector('[data-row="anchor"]')
+    expect(history).not.toBeNull()
+    expect(anchor).not.toBeNull()
+    if (!(history instanceof HTMLElement) || !(anchor instanceof HTMLElement)) {
+      return
+    }
+    // Capture: scrollTop=40, offset = 160-100 = 60.
+    // After Retry the boundary grows and the anchor is pushed +50 → top 210.
+    // Restored scrollTop = 40 + (210 - 100) - 60 = 90.
+    stubAnchorPushAfterRetry(history, anchor, 100, 160, 50)
+    await user.click(screen.getByRole('button', { name: 'Retry history read' }))
+    expect(history.scrollTop).toBe(90)
+    expect(
+      document.querySelector('[data-d2b-live]')?.textContent,
+    ).toContain('Cached rows retained')
   })
 
   it('announces the restore warning instead of success when the anchor is missing', async () => {

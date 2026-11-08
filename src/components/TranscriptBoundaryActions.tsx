@@ -1,10 +1,15 @@
 import type { TranscriptHistoryKind } from '../model'
+import { TranscriptEarlierAction } from './TranscriptEarlierAction'
 
 type Props = {
   readonly history: TranscriptHistoryKind
   readonly olderLoaded: boolean
   readonly freshShown: boolean
   readonly pendingSourceChange: boolean
+  /** False when the observation has no earlier prototype for this task. */
+  readonly earlierAvailable: boolean
+  /** False when the observation has no fresh prototype for this task. */
+  readonly freshAvailable: boolean
   readonly onEarlier: () => void
   readonly onNew: () => void
   readonly onRetry: () => void
@@ -14,19 +19,23 @@ type Props = {
 /** History action buttons for the transcript boundary notice. */
 export function TranscriptBoundaryActions(props: Props) {
   const { history } = props
-  const showEarlier =
+  const offerEarlierSlot =
     ['observed', 'partial', 'unknown'].includes(history) && !props.olderLoaded
   const showRetry = history === 'reconnecting' || history === 'nonprogress'
   const showRebase =
     history === 'capacity' ||
     history === 'reset' ||
     props.pendingSourceChange
-  const showNew = history === 'observed' && !props.freshShown
+  const showNew =
+    history === 'observed' && !props.freshShown && props.freshAvailable
 
   return (
     <div className="hd-row hd-d2b-actions">
-      {showEarlier ? (
-        <Action label="Load earlier" action="earlier" onClick={props.onEarlier} />
+      {offerEarlierSlot ? (
+        <TranscriptEarlierAction
+          available={props.earlierAvailable}
+          onEarlier={props.onEarlier}
+        />
       ) : null}
       {showRetry ? (
         <Action

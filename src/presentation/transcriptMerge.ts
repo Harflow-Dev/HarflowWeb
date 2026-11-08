@@ -21,6 +21,16 @@ export function mergeTranscriptObservation(
     }
   }
 
+  const sourceEpoch = retained.currentWindow
+    ? retained.sourceEpoch
+    : incoming.sourceEpoch
+  const pendingSourceEpoch = retained.currentWindow
+    ? incoming.pendingSourceEpoch !== null &&
+      incoming.pendingSourceEpoch !== sourceEpoch
+      ? incoming.pendingSourceEpoch
+      : null
+    : incoming.pendingSourceEpoch
+
   return {
     ...incoming,
     liveMessage: '',
@@ -28,14 +38,10 @@ export function mergeTranscriptObservation(
     olderLoaded: retained.olderLoaded,
     freshShown: retained.freshShown,
     currentWindow: retained.currentWindow,
-    sourceEpoch: retained.currentWindow
-      ? retained.sourceEpoch
-      : incoming.sourceEpoch,
+    sourceEpoch,
     windowEpoch: retained.currentWindow
       ? retained.windowEpoch
       : incoming.windowEpoch,
-    pendingSourceEpoch: retained.currentWindow
-      ? null
-      : incoming.pendingSourceEpoch,
+    pendingSourceEpoch,
   }
 }

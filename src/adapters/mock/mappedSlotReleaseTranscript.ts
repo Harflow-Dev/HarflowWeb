@@ -24,6 +24,17 @@ export function slotReleaseTranscript(): TranscriptObservation {
       title: 'Earlier captured activity',
       body: 'Read slot release implementation.',
     },
+    freshPrototype: {
+      id: 'row-new',
+      sourceEpoch: 'mock-source-a',
+      windowEpoch: 0,
+      occurrence: 3,
+      seq: 10,
+      type: 'message',
+      anchorId: 'new',
+      title: 'New captured activity',
+      body: 'Slot release validation result received.',
+    },
   }
 }
 

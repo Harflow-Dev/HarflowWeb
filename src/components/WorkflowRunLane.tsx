@@ -14,6 +14,8 @@ type Props = {
   readonly laneExplanation?: string
   readonly toolUnavailableId?: string
   readonly toolExplanation?: string
+  /** When false, the working glyph stays still. Defaults to animated. */
+  readonly animateWorking?: boolean
 }
 
 /** One read-only Parallel lane. Composers and lane actions stay disabled. */
@@ -23,6 +25,7 @@ export function WorkflowRunLane({
   laneExplanation = WORKFLOW_RUN_LANE_EXPLANATION,
   toolUnavailableId = RUN_TOOL_UNAVAILABLE_ID,
   toolExplanation = WORKFLOW_RUN_TOOL_EXPLANATION,
+  animateWorking = true,
 }: Props) {
   const messageLabel = `Message ${lane.composerName}`
   const sendLabel = `Send to ${lane.composerName}`
@@ -34,21 +37,11 @@ export function WorkflowRunLane({
     >
       <div className="hd-lane__head">
         <LaneGlyph status={lane.status} />
-        <div
-          style={{
-            flex: 1,
-            minWidth: 0,
-            display: 'flex',
-            flexDirection: 'column',
-          }}
-        >
+        <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
           <span className="hd-lane__title">{lane.title}</span>
           <span className="caption hd-faint">{lane.agentLabel}</span>
         </div>
-        <span
-          className="caption"
-          style={{ color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}
-        >
+        <span className="caption" style={{ color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>
           {lane.statusMeta}
         </span>
         <button
@@ -70,6 +63,7 @@ export function WorkflowRunLane({
             block={block}
             toolUnavailableId={toolUnavailableId}
             toolExplanation={toolExplanation}
+            animateWorking={animateWorking}
           />
         ))}
       </div>
@@ -134,10 +128,12 @@ function LaneBlock({
   block,
   toolUnavailableId,
   toolExplanation,
+  animateWorking,
 }: {
   readonly block: WorkflowRunLaneBlock
   readonly toolUnavailableId: string
   readonly toolExplanation: string
+  readonly animateWorking: boolean
 }) {
   if (block.kind === 'agent') {
     return (
@@ -173,13 +169,7 @@ function LaneBlock({
         >
           <Icon name={iconName} size="sm" />
           <span className="hd-tool__summary">
-            {summaryKind === 'plain' ? (
-              block.summary
-            ) : (
-              <>
-                Ran <code>{block.summary}</code>
-              </>
-            )}
+            {summaryKind === 'plain' ? block.summary : <>Ran <code>{block.summary}</code></>}
           </span>
           <span className="hd-tool__meta">{block.duration}</span>
           <Icon name="chevron-right" size="sm" />
@@ -208,12 +198,12 @@ function LaneBlock({
     )
   }
   if (block.kind === 'working') {
+    const glyph = animateWorking
+      ? 'hd-glyph hd-glyph--running is-animated'
+      : 'hd-glyph hd-glyph--running'
     return (
       <div className="hd-working">
-        <span
-          className="hd-glyph hd-glyph--running is-animated"
-          aria-hidden="true"
-        />
+        <span className={glyph} aria-hidden="true" />
         <span>{block.text}</span>
       </div>
     )

@@ -1,8 +1,9 @@
 import type { LoadParallelGroupUseCase } from '../application'
-import type {
-  ObservationHandle,
-  ParallelGroupId,
-  ParallelGroupLoad,
+import {
+  PARALLEL_GROUP_UNAVAILABLE,
+  type ObservationHandle,
+  type ParallelGroupId,
+  type ParallelGroupLoad,
 } from '../model'
 import {
   initialParallelGroupState,
@@ -94,7 +95,16 @@ export class ParallelGroupSession {
     load: ParallelGroupLoad,
   ): void {
     if (this.disposed || gen !== this.epoch || this.state.groupId !== id) return
-    if (load.kind === 'ready' && load.group.groupId !== id) return
+    if (load.kind === 'ready' && load.group.groupId !== id) {
+      this.publish({
+        groupId: id,
+        load: {
+          kind: 'unavailable',
+          message: PARALLEL_GROUP_UNAVAILABLE,
+        },
+      })
+      return
+    }
     this.publish({
       groupId: id,
       load,

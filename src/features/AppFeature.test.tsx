@@ -75,6 +75,7 @@ import {
 } from '../adapters/mock/taskChangesFixtures'
 import {
   EVENTS_READER_FAILED_TASK_ID,
+  PRELOAD_TASK_ID,
   RETRY_BUDGET_DONE_TASK_ID,
   taskLoadFor,
 } from '../adapters/mock/taskFixtures'
@@ -738,7 +739,7 @@ describe('AppFeature navigation', () => {
     const { port, publishTask } = createTestEngine({
       deferTaskIds: [EVENTS_READER_FAILED_TASK_ID],
     })
-    renderApp(port)
+    const { presenter } = renderApp(port)
     await flush()
 
     await user.click(
@@ -771,6 +772,14 @@ describe('AppFeature navigation', () => {
       ),
     ).toBeInTheDocument()
     expect(within(main).queryByText('Running tests…')).not.toBeInTheDocument()
+
+    presenter.openTask(PRELOAD_TASK_ID)
+    await flush()
+    expect(
+      await within(main).findByText(
+        /Include notes on <script>alert\("x"\)<\/script>/,
+      ),
+    ).toBeInTheDocument()
   })
 
   it('opens the Parallel group from the Running sidebar row', async () => {
@@ -818,8 +827,13 @@ describe('AppFeature navigation', () => {
     renderApp(createTestEngine().port)
     await flush()
 
+    const start = screen.getByRole('button', { name: 'Collapse sidebar' })
+    start.focus()
+    expect(start).toHaveFocus()
     const row = screen.getByRole('button', { name: /Review preload bridge/ })
-    row.focus()
+    for (let i = 0; i < 40 && document.activeElement !== row; i += 1) {
+      await user.tab()
+    }
     expect(row).toHaveFocus()
     await user.keyboard('{Enter}')
     await flush()

@@ -452,6 +452,10 @@ describe('WorkflowRunView', () => {
       'Waits for both scans',
     )
     expect(screen.queryByText('Codex · gpt-6')).not.toBeInTheDocument()
+    const npm = within(lanes).getByRole('region', { name: 'Scan npm deps' })
+    const workingGlyph = within(npm).getByText('Reading package-lock.json…')
+      .previousElementSibling
+    expect(workingGlyph).toHaveClass('hd-glyph', 'hd-glyph--running', 'is-animated')
   })
 
   it('shows new Parallel lane text from a same-run update', () => {

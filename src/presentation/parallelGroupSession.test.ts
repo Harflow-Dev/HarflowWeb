@@ -57,13 +57,37 @@ async function flush(): Promise<void> {
   await Promise.resolve()
 }
 
+const unavailable: ParallelGroupLoad = {
+  kind: 'unavailable',
+  message: PARALLEL_GROUP_UNAVAILABLE,
+}
+
 describe('ParallelGroupSession', () => {
-  it('loads the mapped group and refuses a mismatched payload', async () => {
+  it('publishes unavailable when the first ready payload identity mismatches', () => {
     const { engine, saved } = port({ auto: false })
     const session = sessionFor(engine)
     session.open(PRELOAD_PARALLEL_GROUP_ID)
     expect(session.getState().load.kind).toBe('loading')
+    saved[0]?.send({
+      kind: 'ready',
+      group: {
+        ...preloadParallelGroup(),
+        groupId: asParallelGroupId('other'),
+        title: 'Borrowed',
+      },
+    })
+    expect(session.getState().load).toEqual(unavailable)
+    expect(session.getState().groupId).toBe(PRELOAD_PARALLEL_GROUP_ID)
+    session.dispose()
+  })
+
+  it('replaces ready lanes with unavailable after a mismatched update', () => {
+    const { engine, saved } = port({ auto: false })
+    const session = sessionFor(engine)
+    session.open(PRELOAD_PARALLEL_GROUP_ID)
     const send = saved[0]?.send
+    send?.(parallelGroupLoadFor(PRELOAD_PARALLEL_GROUP_ID))
+    expect(session.getState().load.kind).toBe('ready')
     send?.({
       kind: 'ready',
       group: {
@@ -72,11 +96,30 @@ describe('ParallelGroupSession', () => {
         title: 'Borrowed',
       },
     })
+    expect(session.getState().load).toEqual(unavailable)
+    session.dispose()
+  })
+
+  it('ignores an obsolete-generation callback after reopen', () => {
+    const { engine, saved } = port({ auto: false })
+    const session = sessionFor(engine)
+    session.open(PRELOAD_PARALLEL_GROUP_ID)
+    const first = saved[0]?.send
+    first?.(parallelGroupLoadFor(PRELOAD_PARALLEL_GROUP_ID))
+
+    session.open(PRELOAD_PARALLEL_GROUP_ID)
     expect(session.getState().load.kind).toBe('loading')
-    send?.(parallelGroupLoadFor(PRELOAD_PARALLEL_GROUP_ID))
-    expect(session.getState().load).toEqual(
-      parallelGroupLoadFor(PRELOAD_PARALLEL_GROUP_ID),
-    )
+    first?.({
+      kind: 'ready',
+      group: { ...preloadParallelGroup(), title: 'Stale generation' },
+    })
+    expect(session.getState().load.kind).toBe('loading')
+    saved[saved.length - 1]?.send(parallelGroupLoadFor(PRELOAD_PARALLEL_GROUP_ID))
+    const load = session.getState().load
+    expect(load.kind).toBe('ready')
+    if (load.kind === 'ready') {
+      expect(load.group.title).toBe('Review preload bridge')
+    }
     session.dispose()
   })
 
@@ -86,10 +129,7 @@ describe('ParallelGroupSession', () => {
     const missing = asParallelGroupId('parallel-group-missing')
     session.open(missing)
     await flush()
-    expect(session.getState().load).toEqual({
-      kind: 'unavailable',
-      message: PARALLEL_GROUP_UNAVAILABLE,
-    })
+    expect(session.getState().load).toEqual(unavailable)
     session.dispose()
   })
 

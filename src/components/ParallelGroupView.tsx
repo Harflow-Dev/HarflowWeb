@@ -78,6 +78,7 @@ export function ParallelGroupView({ load }: Props) {
             laneExplanation={PARALLEL_GROUP_LANE_EXPLANATION}
             toolUnavailableId={PARALLEL_GROUP_TOOL_UNAVAILABLE_ID}
             toolExplanation={PARALLEL_GROUP_TOOL_EXPLANATION}
+            animateWorking={false}
           />
         ))}
       </div>

@@ -123,6 +123,15 @@ describe('ParallelGroupView', () => {
     }
   })
 
+  it('keeps the Parallel group working glyph static', () => {
+    render(<ParallelGroupView load={readyLoad()} />)
+    const claude = screen.getByRole('region', { name: 'Claude Code' })
+    const working = within(claude).getByText('Reading src/preload/bridge.ts…')
+      .previousElementSibling
+    expect(working).toHaveClass('hd-glyph', 'hd-glyph--running')
+    expect(working).not.toHaveClass('is-animated')
+  })
+
   it('shows unavailable for missing groups and empty lanes', () => {
     const { rerender } = render(
       <ParallelGroupView

@@ -26,6 +26,17 @@ export function preloadTranscript(): TranscriptObservation {
         body: 'Reviewing the preload bridge surface for authority gaps. Probe: <img src=x onerror=alert(1)> stays literal.',
       },
     ]),
+    earlierPrototype: {
+      id: 'row-earlier',
+      sourceEpoch: 'mock-source-a',
+      windowEpoch: 0,
+      occurrence: -1,
+      seq: 5,
+      type: 'message',
+      anchorId: 'earlier',
+      title: 'Earlier captured activity',
+      body: 'Read preload bridge notes from the prior turn.',
+    },
   }
 }
 

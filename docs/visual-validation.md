@@ -594,12 +594,15 @@ Check each state in light and dark, Events closed and open (`/events`).
 | `task/transcript-integrity-failed` | Transcript integrity failed | Withheld request absent from DOM; task facts remain |
 | `task/transcript-reconnecting` | Transcript reconnecting | Cached rows kept; Retry; Load current activity for source change |
 | `task/transcript-capacity` | Transcript capacity | Limit notice; rows/position kept; qualified totals may remain |
-| `task/transcript-sources` | Transcript sources | Normalized record, stub, ordering, Recovered message |
+| `task/transcript-sources` | Transcript sources | Tool disclosure in transcript; stub, ordering, Recovered message in Events |
 | `…/events` (all eight) | scenario id `transcript-*/events` | Pane open at load via route suffix; Changes/Artifacts disabled with explanation |
 
 Honesty: Copy record copies exact normalized JSON (mocked clipboard in tests);
 never claim success without a copy. Live region (`aria-live=polite`) announces
-history actions.
+history actions. Restore-anchor misses announce the warning, not success.
+Pinned transcript states omit Summary; `task/done` still shows its fixture summary.
+Earlier/fresh rows are per-observation prototypes; reading windows merge across
+later observations without discarding loaded rows.
 
 ## Limitations
 

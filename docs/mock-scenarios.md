@@ -44,8 +44,8 @@ populated fixture and shows a single “Mock engine” badge.
 | Transcript integrity failed | Design `task/transcript-integrity-failed` |
 | Transcript reconnecting | Design `task/transcript-reconnecting` |
 | Transcript capacity | Design `task/transcript-capacity` |
-| Transcript sources | Design `task/transcript-sources` |
-| Transcript · Events | Any of the eight with `/events` (hash `#task/transcript-*/events` or scenario id `transcript-*/events`) opens Events at load |
+| Transcript sources | Design `task/transcript-sources` — tool disclosure in the transcript; unsupported stub only in Events |
+| Transcript · Events | Any of the eight with `/events` (hash `#task/transcript-*/events` or scenario id `transcript-*/events`) opens Events at load. Pinned transcript completed states omit Summary; `task/done` keeps its fixture summary. |
 | Needs you empty | Approved `needs-you/empty` specimen. Populated scenarios use `needs-you/waiting` |
 
 Sidebar navigation between **New task**, **Workflows**, **Resources**,

@@ -1,6 +1,26 @@
 import { describe, expect, it } from 'vitest'
-import type { TranscriptObservation } from '../model'
+import type { TranscriptObservation, TranscriptRow } from '../model'
 import { transitionTranscript } from './transcriptTransition'
+import { mergeTranscriptObservation } from './transcriptMerge'
+
+function prototype(
+  id: string,
+  body: string,
+  extras: Partial<TranscriptRow> = {},
+): TranscriptRow {
+  return {
+    id,
+    sourceEpoch: 'mock-source-a',
+    windowEpoch: 0,
+    occurrence: 0,
+    seq: 1,
+    type: 'message',
+    anchorId: id,
+    title: 'Title',
+    body,
+    ...extras,
+  }
+}
 
 function base(overrides: Partial<TranscriptObservation> = {}): TranscriptObservation {
   return {
@@ -14,31 +34,16 @@ function base(overrides: Partial<TranscriptObservation> = {}): TranscriptObserva
     pendingSourceEpoch: null,
     windowEpoch: 0,
     rows: [
-      {
-        id: 'row-a',
-        sourceEpoch: 'mock-source-a',
-        windowEpoch: 0,
-        occurrence: 0,
-        seq: 7,
-        type: 'message',
-        anchorId: 'anchor',
-        title: 'Codex',
-        body: 'First',
-      },
-      {
-        id: 'row-b',
-        sourceEpoch: 'mock-source-a',
-        windowEpoch: 0,
+      prototype('row-a', 'First', { occurrence: 0, seq: 7, anchorId: 'anchor' }),
+      prototype('row-b', '', {
         occurrence: 1,
         seq: 8,
         type: 'tool_result',
         anchorId: 'tool',
-        title: 'Codex',
-        body: '',
         toolSummary: 'Ran tool',
         toolBody: 'out',
         disclosure: 'tool-1',
-      },
+      }),
     ],
     olderLoaded: false,
     freshShown: false,
@@ -48,6 +53,19 @@ function base(overrides: Partial<TranscriptObservation> = {}): TranscriptObserva
     normalizedRecord: null,
     stubRecord: null,
     ordering: [],
+    earlierPrototype: prototype('row-earlier', 'Task-specific earlier', {
+      occurrence: -1,
+      seq: 5,
+      anchorId: 'earlier',
+    }),
+    freshPrototype: prototype('row-new', 'Task-specific fresh', {
+      occurrence: 3,
+      seq: 10,
+      anchorId: 'new',
+    }),
+    currentWindowPrototype: prototype('row-current', 'Current window', {
+      anchorId: 'new',
+    }),
     ...overrides,
   }
 }
@@ -70,12 +88,17 @@ describe('transitionTranscript', () => {
     expect(rebased.rows.map((row) => row.id)).toEqual(['row-current'])
   })
 
-  it('keeps existing rows until capacity rebase is chosen', () => {
-    const before = base({ history: 'capacity', summaryCoverage: 'observed' })
-    expect(before.rows.map((row) => row.id)).toEqual(['row-a', 'row-b'])
-    const rebased = transitionTranscript(before, 'rebase')
-    expect(rebased.currentWindow).toBe(true)
-    expect(rebased.rows.map((row) => row.id)).toEqual(['row-current'])
+  it('loads earlier from the observation prototype, not shared specimen text', () => {
+    const before = base({
+      earlierPrototype: prototype('row-earlier', 'Preload earlier notes', {
+        occurrence: -1,
+        seq: 5,
+        anchorId: 'earlier',
+      }),
+    })
+    const next = transitionTranscript(before, 'earlier')
+    expect(next.rows[0]?.body).toBe('Preload earlier notes')
+    expect(next.rows[0]?.body).not.toContain('slot release')
   })
 
   it('retains rows across reconnect retry', () => {
@@ -83,5 +106,46 @@ describe('transitionTranscript', () => {
     const next = transitionTranscript(before, 'retry')
     expect(next.rows).toEqual(before.rows)
     expect(next.liveMessage).toContain('Cached rows retained')
+  })
+})
+
+describe('mergeTranscriptObservation', () => {
+  it('keeps loaded earlier rows when a reconnect observation arrives', () => {
+    const observed = base()
+    const withEarlier = transitionTranscript(observed, 'earlier')
+    const reconnect = base({
+      history: 'reconnecting',
+      pendingSourceEpoch: 'mock-source-b',
+      captureUncertainty: true,
+      summaryCoverage: 'unavailable',
+    })
+    const merged = mergeTranscriptObservation(reconnect, withEarlier)
+    expect(merged.rows[0]?.body).toBe('Task-specific earlier')
+    expect(merged.olderLoaded).toBe(true)
+    expect(merged.history).toBe('reconnecting')
+    expect(merged.pendingSourceEpoch).toBe('mock-source-b')
+  })
+
+  it('takes withheld request from the new observation while keeping rows', () => {
+    const withEarlier = transitionTranscript(base(), 'earlier')
+    const integrity = base({
+      request: 'integrity-failed',
+      assignmentText: 'secret assignment must not show',
+    })
+    const merged = mergeTranscriptObservation(integrity, withEarlier)
+    expect(merged.request).toBe('integrity-failed')
+    expect(merged.rows[0]?.anchorId).toBe('earlier')
+  })
+
+  it('keeps an explicit rebase window across a later observation', () => {
+    const rebased = transitionTranscript(
+      base({ pendingSourceEpoch: 'mock-source-b' }),
+      'rebase',
+    )
+    const later = base({ summaryCoverage: 'unavailable' })
+    const merged = mergeTranscriptObservation(later, rebased)
+    expect(merged.currentWindow).toBe(true)
+    expect(merged.rows.map((row) => row.id)).toEqual(['row-current'])
+    expect(merged.summaryCoverage).toBe('unavailable')
   })
 })

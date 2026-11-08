@@ -1,5 +1,6 @@
 import { useState, type ReactNode } from 'react'
 import type { TaskObservation, TranscriptObservation } from '../model'
+import { mergeTranscriptObservation } from '../presentation/transcriptMerge'
 import { TaskEventsPane } from './TaskEventsPane'
 import { TaskFailureBanner } from './TaskFailureBanner'
 import { TaskFollowUp } from './TaskFollowUp'
@@ -54,13 +55,12 @@ function TranscriptTaskBody({
 }) {
   const observed = observation.transcript
   const [prevObserved, setPrevObserved] = useState(observed)
-  // Local reading overlay only — cleared whenever the observation updates.
   const [reading, setReading] = useState<TranscriptObservation | null>(null)
   const [announce, setAnnounce] = useState('')
 
   if (observed !== prevObserved) {
     setPrevObserved(observed)
-    setReading(null)
+    setReading(mergeTranscriptObservation(observed, reading))
     setAnnounce('')
   }
 
@@ -115,7 +115,7 @@ function TranscriptTaskBody({
           onUnavailable={onUnavailable}
         />
       ) : null}
-      {observation.status === 'completed' ? (
+      {observation.status === 'completed' && observation.summary ? (
         <TaskSummarySection summary={observation.summary} />
       ) : null}
       <TaskFollowUp

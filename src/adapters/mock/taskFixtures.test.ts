@@ -83,8 +83,9 @@ describe('taskFixtures', () => {
     expect(load.observation.headerMeta).toBe('Claude · Opus 5.5 · HarflowWeb')
     expect(load.observation.detailsPane).toBe('changes')
     if (load.observation.status !== 'completed') return
-    expect(load.observation.summary.heading).toBe('Summary')
-    expect(load.observation.summary.segments[0]?.kind).toBe('paragraph')
+    expect(load.observation.summary).toBeDefined()
+    expect(load.observation.summary?.heading).toBe('Summary')
+    expect(load.observation.summary?.segments[0]?.kind).toBe('paragraph')
     expect(load.observation.followUpPlaceholder).toBe('Continue this task')
   })
 

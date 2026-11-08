@@ -77,7 +77,9 @@
   activity totals, normalized Copy record, Recovered message, Record ordering;
   Changes and Artifacts disabled with explanations. Mapped running / failed /
   done sidebar fixtures use the same transcript surface; `/events` on a
-  transcript route opens Events at load.
+  transcript route opens Events at load. Local earlier/fresh/rebase rows come
+  from each observation’s prototypes (mock-owned). Reading windows merge across
+  later observations; the eight pinned transcript states do not draw a Summary.
 - States implemented:
   - `new-task/centered-empty` (and prior `new-task/default`) light/dark
   - `new-task/centered-loading`, `centered-unqualified`, `centered-invalid`,

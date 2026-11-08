@@ -1,0 +1,41 @@
+import type { TranscriptObservation } from '../model'
+
+/**
+ * Fold a fresh observation into the retained reading window.
+ * Request text, coverage, totals and status come from `incoming`.
+ * Locally loaded rows and an explicit rebase stay until replaced by reading actions.
+ */
+export function mergeTranscriptObservation(
+  incoming: TranscriptObservation,
+  retained: TranscriptObservation | null,
+): TranscriptObservation {
+  if (!retained) return incoming
+
+  const keepWindow =
+    retained.currentWindow || retained.olderLoaded || retained.freshShown
+
+  if (!keepWindow) {
+    return {
+      ...incoming,
+      liveMessage: '',
+    }
+  }
+
+  return {
+    ...incoming,
+    liveMessage: '',
+    rows: retained.rows,
+    olderLoaded: retained.olderLoaded,
+    freshShown: retained.freshShown,
+    currentWindow: retained.currentWindow,
+    sourceEpoch: retained.currentWindow
+      ? retained.sourceEpoch
+      : incoming.sourceEpoch,
+    windowEpoch: retained.currentWindow
+      ? retained.windowEpoch
+      : incoming.windowEpoch,
+    pendingSourceEpoch: retained.currentWindow
+      ? null
+      : incoming.pendingSourceEpoch,
+  }
+}

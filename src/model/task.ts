@@ -60,7 +60,8 @@ export type TaskObservation =
     })
   | (TaskObservationBase & {
       readonly status: 'completed'
-      readonly summary: TaskSummary
+      /** Present only when the specimen draws a summary (not the eight transcript states). */
+      readonly summary?: TaskSummary
     })
 
 export type TaskLoad =

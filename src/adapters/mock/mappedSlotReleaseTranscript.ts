@@ -13,6 +13,17 @@ export function slotReleaseTranscript(): TranscriptObservation {
     assignmentText:
       'The test_release_frees_slot test in tests/test_slots.py fails about one run in ten. Find out why and fix it without adding sleeps.',
     rows: slotReleaseRows(),
+    earlierPrototype: {
+      id: 'row-earlier',
+      sourceEpoch: 'mock-source-a',
+      windowEpoch: 0,
+      occurrence: -1,
+      seq: 5,
+      type: 'message',
+      anchorId: 'earlier',
+      title: 'Earlier captured activity',
+      body: 'Read slot release implementation.',
+    },
   }
 }
 

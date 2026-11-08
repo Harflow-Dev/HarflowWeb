@@ -13,6 +13,11 @@ import {
   observationFields,
   type TranscriptMount,
 } from './transcriptFixtureState'
+import {
+  specimenCurrentWindowPrototype,
+  specimenEarlierPrototype,
+  specimenFreshPrototype,
+} from './transcriptRowFixtures'
 
 export type { TranscriptMount }
 
@@ -43,6 +48,9 @@ export function transcriptObservationFor(
     currentWindow: false,
     liveMessage: '',
     recoveredMessage: 'Mock recovery text: validation was requested.',
+    earlierPrototype: specimenEarlierPrototype(),
+    freshPrototype: specimenFreshPrototype(),
+    currentWindowPrototype: specimenCurrentWindowPrototype(),
   }
 }
 
@@ -63,26 +71,9 @@ export function transcriptTaskObservation(
     transcript,
     detailsPane: 'events' as const,
   }
+  // Pinned transcript states do not draw a Summary block.
   if (running) return { ...base, status: 'running' }
-  return {
-    ...base,
-    status: 'completed',
-    summary: {
-      heading: 'Summary',
-      segments: [
-        {
-          kind: 'paragraph',
-          runs: [
-            {
-              kind: 'text',
-              value:
-                'Fixture summary for the transcript surface — not independent proof.',
-            },
-          ],
-        },
-      ],
-    },
-  }
+  return { ...base, status: 'completed' }
 }
 
 export function transcriptTaskLoad(mount: TranscriptMount) {

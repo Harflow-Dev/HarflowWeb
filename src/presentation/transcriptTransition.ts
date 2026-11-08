@@ -1,5 +1,4 @@
-import type { TranscriptObservation } from '../model'
-import { SPECIMEN_ROW_FACTORY } from './transcriptRowBuilders'
+import type { TranscriptObservation, TranscriptRow } from '../model'
 
 export type TranscriptAction =
   | 'earlier'
@@ -9,9 +8,7 @@ export type TranscriptAction =
   | 'rebase'
   | 'read-more'
 
-const rows = SPECIMEN_ROW_FACTORY
-
-/** Pure specimen transitions for local reading actions. */
+/** Pure reading-window transitions. Row bodies come from observation prototypes. */
 export function transitionTranscript(
   state: TranscriptObservation,
   action: TranscriptAction,
@@ -40,22 +37,32 @@ function readMore(state: TranscriptObservation): TranscriptObservation {
 }
 
 function loadEarlier(state: TranscriptObservation): TranscriptObservation {
-  if (state.olderLoaded) return state
+  if (state.olderLoaded || !state.earlierPrototype) return state
+  const earlier = placePrototype(
+    state.earlierPrototype,
+    state.sourceEpoch,
+    state.windowEpoch,
+  )
   return {
     ...state,
     olderLoaded: true,
-    rows: [rows.earlier(state.sourceEpoch, state.windowEpoch), ...state.rows],
+    rows: [earlier, ...state.rows],
     history: state.history === 'observed' ? 'drained' : state.history,
     liveMessage: 'Earlier captured rows loaded. Reading position retained.',
   }
 }
 
 function showNew(state: TranscriptObservation): TranscriptObservation {
-  if (state.freshShown) return state
+  if (state.freshShown || !state.freshPrototype) return state
+  const next = placePrototype(
+    state.freshPrototype,
+    state.sourceEpoch,
+    state.windowEpoch,
+  )
   return {
     ...state,
     freshShown: true,
-    rows: [...state.rows, rows.fresh(state.sourceEpoch, state.windowEpoch)],
+    rows: [...state.rows, next],
     liveMessage: 'New captured activity shown by request.',
   }
 }
@@ -83,6 +90,10 @@ function retryRequest(state: TranscriptObservation): TranscriptObservation {
 function rebaseCurrent(state: TranscriptObservation): TranscriptObservation {
   const sourceEpoch = state.pendingSourceEpoch ?? state.sourceEpoch
   const windowEpoch = state.windowEpoch + 1
+  const prototype = state.currentWindowPrototype
+  const row = prototype
+    ? placePrototype(prototype, sourceEpoch, windowEpoch)
+    : null
   return {
     ...state,
     history: 'partial',
@@ -98,8 +109,16 @@ function rebaseCurrent(state: TranscriptObservation): TranscriptObservation {
       state.pendingSourceEpoch !== null
         ? 'unavailable'
         : state.summaryCoverage,
-    rows: [rows.current(sourceEpoch, windowEpoch)],
+    rows: row ? [row] : [],
     liveMessage:
       'Current activity window loaded by request. Earlier coverage is unknown.',
   }
+}
+
+function placePrototype(
+  prototype: TranscriptRow,
+  sourceEpoch: string,
+  windowEpoch: number,
+): TranscriptRow {
+  return { ...prototype, sourceEpoch, windowEpoch }
 }

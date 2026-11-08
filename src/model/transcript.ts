@@ -93,6 +93,13 @@ export type TranscriptObservation = {
   readonly normalizedRecord: NormalizedEventRecord | null
   readonly stubRecord: NormalizedEventRecord | null
   readonly ordering: readonly { readonly kind: string; readonly seq: number }[]
+  /**
+   * Task-owned prototypes for local reading actions. Presentation never invents
+   * their content — Load earlier / New / rebase copy these from the observation.
+   */
+  readonly earlierPrototype: TranscriptRow | null
+  readonly freshPrototype: TranscriptRow | null
+  readonly currentWindowPrototype: TranscriptRow | null
 }
 
 /** Full original assignment text from the Design specimen. */

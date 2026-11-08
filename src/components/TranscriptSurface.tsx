@@ -63,12 +63,17 @@ export function TranscriptSurface({
     const history = historyRef.current
     const host = hostRef.current
     if (!host) return
+    let restoreWarning = ''
     if (pending.action === 'earlier') {
       restoreVisibleAnchor(
         history,
         pending.anchor,
-        onAnnounce,
-        onAnnounce,
+        (message) => {
+          restoreWarning = message
+        },
+        (message) => {
+          restoreWarning = message
+        },
         pending.message,
       )
     } else if (pending.action === 'rebase') {
@@ -79,7 +84,9 @@ export function TranscriptSurface({
       history.scrollTop = pending.scrollTop
     }
     applyFocusAfterAction(host, history, focusTargetFor(pending.action))
-    if (pending.message) onAnnounce(pending.message)
+    // Restore warnings replace the success announcement when the offset fails.
+    const finalMessage = restoreWarning || pending.message
+    if (finalMessage) onAnnounce(finalMessage)
   })
 
   function apply(action: TranscriptAction): void {

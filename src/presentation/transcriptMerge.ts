@@ -4,6 +4,8 @@ import type { TranscriptObservation } from '../model'
  * Fold a fresh observation into the retained reading window.
  * Request text, coverage, totals and status come from `incoming`.
  * Locally loaded rows and an explicit rebase stay until replaced by reading actions.
+ * Read more prefix is kept across live snapshots only for the same truncated or
+ * unverified request body.
  */
 export function mergeTranscriptObservation(
   incoming: TranscriptObservation,
@@ -11,12 +13,21 @@ export function mergeTranscriptObservation(
 ): TranscriptObservation {
   if (!retained) return incoming
 
+  const retainReadMorePrefix =
+    (incoming.request === 'truncated' || incoming.request === 'unverified') &&
+    incoming.request === retained.request &&
+    incoming.assignmentText === retained.assignmentText
+  const requestMaxBytes = retainReadMorePrefix
+    ? Math.max(incoming.requestMaxBytes, retained.requestMaxBytes)
+    : incoming.requestMaxBytes
+
   const keepWindow =
     retained.currentWindow || retained.olderLoaded || retained.freshShown
 
   if (!keepWindow) {
     return {
       ...incoming,
+      requestMaxBytes,
       liveMessage: '',
     }
   }
@@ -33,6 +44,7 @@ export function mergeTranscriptObservation(
 
   return {
     ...incoming,
+    requestMaxBytes,
     liveMessage: '',
     rows: retained.rows,
     olderLoaded: retained.olderLoaded,

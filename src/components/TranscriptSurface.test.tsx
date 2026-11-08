@@ -52,16 +52,18 @@ function ReadingHarness({
 
 function ObservationHarness({
   sequence,
+  taskIds,
   withSummary = false,
 }: {
   readonly sequence: readonly TranscriptObservation[]
+  readonly taskIds?: readonly ReturnType<typeof asTaskId>[]
   readonly withSummary?: boolean
 }) {
   const [index, setIndex] = useState(0)
   const [note, setNote] = useState('')
   const observation: TaskObservation = {
     status: 'completed',
-    taskId: asTaskId('task-obs'),
+    taskId: taskIds?.[index] ?? asTaskId('task-obs'),
     title: 'Fix slot release test',
     statusBadge: 'Done',
     headerMeta: 'Codex · HarflowMCP',
@@ -256,6 +258,130 @@ describe('TranscriptSurface observation reconciliation', () => {
     expect(screen.getByText('Current activity window')).toBeInTheDocument()
   })
 
+  it('Read more alone retains expanded prefix and copy text across same-request snapshot', async () => {
+    const user = userEvent.setup()
+    const writeText = vi.fn().mockResolvedValue(undefined)
+    vi.stubGlobal('navigator', {
+      ...navigator,
+      clipboard: { writeText },
+    })
+    const truncated = transcriptObservationFor('partial')
+    const prefix128 = TRANSCRIPT_REQUEST_TEXT.slice(0, 128)
+    render(
+      <ObservationHarness
+        sequence={[truncated, { ...truncated, requestMaxBytes: 64 }]}
+      />,
+    )
+    expect(screen.getByRole('button', { name: 'Read more' })).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Read more' }))
+    expect(screen.queryByRole('button', { name: 'Read more' })).toBeNull()
+    expect(
+      screen.getByText(
+        'View limit reached. Full request remains unavailable in this view.',
+      ),
+    ).toBeInTheDocument()
+    expect(document.querySelector('[data-copy-text]')?.textContent).toBe(
+      prefix128,
+    )
+
+    await user.click(screen.getByTestId('next-obs'))
+    expect(document.querySelector('[data-copy-text]')?.textContent).toBe(
+      prefix128,
+    )
+    expect(
+      screen.getByText(
+        'View limit reached. Full request remains unavailable in this view.',
+      ),
+    ).toBeInTheDocument()
+    await user.click(
+      screen.getByRole('button', { name: 'Copy displayed text' }),
+    )
+    expect(writeText).toHaveBeenCalledWith(prefix128)
+    expect(
+      await screen.findByText('Copied displayed mock request text.'),
+    ).toBeInTheDocument()
+  })
+
+  it('resets Read more prefix when assignment changes or truncated becomes unverified', async () => {
+    const user = userEvent.setup()
+    const truncated = transcriptObservationFor('partial')
+    render(
+      <ObservationHarness
+        sequence={[
+          truncated,
+          {
+            ...truncated,
+            assignmentText: 'Changed assignment for reset bounds',
+            requestMaxBytes: 64,
+          },
+          {
+            ...truncated,
+            request: 'unverified',
+            requestMaxBytes: 64,
+          },
+        ]}
+      />,
+    )
+    await user.click(screen.getByRole('button', { name: 'Read more' }))
+    expect(document.querySelector('[data-copy-text]')?.textContent?.length).toBe(
+      128,
+    )
+
+    await user.click(screen.getByTestId('next-obs'))
+    expect(document.querySelector('[data-copy-text]')?.textContent).toBe(
+      'Changed assignment for reset bounds'.slice(0, 64),
+    )
+    expect(screen.getByRole('button', { name: 'Read more' })).toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: 'Read more' }))
+    await user.click(screen.getByTestId('next-obs'))
+    expect(document.querySelector('[data-copy-text]')?.textContent).toBe(
+      TRANSCRIPT_REQUEST_TEXT.slice(0, 64),
+    )
+    expect(screen.getByRole('button', { name: 'Read more' })).toBeInTheDocument()
+  })
+
+  it('task switch resets Read more local state via task-id identity', async () => {
+    const user = userEvent.setup()
+    const truncated = transcriptObservationFor('partial')
+    render(
+      <ObservationHarness
+        sequence={[truncated, truncated]}
+        taskIds={[asTaskId('task-read-a'), asTaskId('task-read-b')]}
+      />,
+    )
+    await user.click(screen.getByRole('button', { name: 'Read more' }))
+    expect(document.querySelector('[data-copy-text]')?.textContent?.length).toBe(
+      128,
+    )
+    await user.click(screen.getByTestId('next-obs'))
+    expect(document.querySelector('[data-copy-text]')?.textContent?.length).toBe(
+      64,
+    )
+    expect(screen.getByRole('button', { name: 'Read more' })).toBeInTheDocument()
+  })
+
+  it('withholds request DOM after Read more when integrity-failed arrives', async () => {
+    const user = userEvent.setup()
+    render(
+      <ObservationHarness
+        sequence={[
+          transcriptObservationFor('partial'),
+          transcriptObservationFor('integrity-failed'),
+        ]}
+      />,
+    )
+    await user.click(screen.getByRole('button', { name: 'Read more' }))
+    await user.click(screen.getByTestId('next-obs'))
+    expect(screen.queryByText(TRANSCRIPT_REQUEST_TEXT)).toBeNull()
+    expect(document.querySelector('[data-copy-text]')).toBeNull()
+    expect(
+      screen.getByText(
+        'Content withheld because integrity verification failed.',
+      ),
+    ).toBeInTheDocument()
+  })
+
   it('does not rebring Load current activity when the later pending source matches', async () => {
     const user = userEvent.setup()
     render(
@@ -356,7 +482,14 @@ describe('task-owned earlier prototypes', () => {
       const { unmount } = render(<ReadingHarness initial={transcript} />)
       const earlier = screen.getByRole('button', { name: 'Load earlier' })
       expect(earlier).toBeDisabled()
-      expect(earlier).toHaveAttribute('title', EARLIER_UNAVAILABLE_EXPLANATION)
+      expect(earlier).not.toHaveAttribute('title')
+      expect(screen.getByText(EARLIER_UNAVAILABLE_EXPLANATION)).toBeInTheDocument()
+      const describedBy = earlier.getAttribute('aria-describedby')
+      expect(describedBy).toBeTruthy()
+      expect(document.getElementById(describedBy!)).toHaveTextContent(
+        EARLIER_UNAVAILABLE_EXPLANATION,
+      )
+      await user.click(earlier)
       expect(
         screen.queryByText('Read slot release implementation.'),
       ).toBeNull()
@@ -438,6 +571,7 @@ describe('TranscriptSurface states', () => {
       screen.getByText('The original request could not be read.'),
     ).toBeInTheDocument()
     expect(screen.queryByText(TRANSCRIPT_REQUEST_TEXT)).toBeNull()
+    expect(document.querySelector('[data-copy-text]')).toBeNull()
     expect(
       screen.getByRole('button', { name: 'Retry request read' }),
     ).toBeInTheDocument()
@@ -454,6 +588,17 @@ describe('TranscriptSurface states', () => {
     ).toBeInTheDocument()
     expect(container.textContent).not.toContain('slot release race')
     expect(container.querySelector('[data-copy-text]')).toBeNull()
+  })
+
+  it('loading and unavailable withhold assignment text from DOM and copy targets', () => {
+    for (const mount of ['loading', 'unavailable'] as const) {
+      const { unmount } = render(
+        <ReadingHarness initial={transcriptObservationFor(mount)} />,
+      )
+      expect(screen.queryByText(TRANSCRIPT_REQUEST_TEXT)).toBeNull()
+      expect(document.querySelector('[data-copy-text]')).toBeNull()
+      unmount()
+    }
   })
 
   it('capacity: keeps rows and offers explicit rebase', () => {

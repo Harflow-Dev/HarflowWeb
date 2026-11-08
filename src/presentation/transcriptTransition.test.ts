@@ -188,4 +188,67 @@ describe('mergeTranscriptObservation', () => {
     expect(withSame.pendingSourceEpoch).toBeNull()
     expect(withSame.currentWindow).toBe(true)
   })
+
+  it('preserves Read more prefix across same truncated request without a history window', () => {
+    const expanded = transitionTranscript(
+      base({ request: 'truncated' }),
+      'read-more',
+    )
+    expect(expanded.requestMaxBytes).toBe(128)
+    expect(expanded.olderLoaded).toBe(false)
+    const merged = mergeTranscriptObservation(
+      base({ request: 'truncated', requestMaxBytes: 64 }),
+      expanded,
+    )
+    expect(merged.requestMaxBytes).toBe(128)
+    expect(merged.olderLoaded).toBe(false)
+  })
+
+  it('preserves Read more prefix for unverified and inside a kept history window', () => {
+    const unverifiedExpanded = transitionTranscript(
+      base({ request: 'unverified' }),
+      'read-more',
+    )
+    expect(
+      mergeTranscriptObservation(
+        base({ request: 'unverified', requestMaxBytes: 64 }),
+        unverifiedExpanded,
+      ).requestMaxBytes,
+    ).toBe(128)
+
+    const withEarlier = transitionTranscript(
+      base({ request: 'truncated' }),
+      'earlier',
+    )
+    const expanded = transitionTranscript(withEarlier, 'read-more')
+    const merged = mergeTranscriptObservation(
+      base({ request: 'truncated', requestMaxBytes: 64 }),
+      expanded,
+    )
+    expect(merged.requestMaxBytes).toBe(128)
+    expect(merged.olderLoaded).toBe(true)
+  })
+
+  it('resets Read more prefix when assignment text or request kind changes', () => {
+    const expanded = transitionTranscript(
+      base({ request: 'truncated' }),
+      'read-more',
+    )
+    expect(
+      mergeTranscriptObservation(
+        base({
+          request: 'truncated',
+          assignmentText: 'Different assignment',
+          requestMaxBytes: 64,
+        }),
+        expanded,
+      ).requestMaxBytes,
+    ).toBe(64)
+    expect(
+      mergeTranscriptObservation(
+        base({ request: 'unverified', requestMaxBytes: 64 }),
+        expanded,
+      ).requestMaxBytes,
+    ).toBe(64)
+  })
 })

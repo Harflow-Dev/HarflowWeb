@@ -37,6 +37,15 @@ populated fixture and shows a single “Mock engine” badge.
 | Task running | Approved `task/running` transcript for mapped sidebar rows |
 | Task failed | Approved `task/failed` transcript for the mapped recent-work row |
 | Task done | Approved `task/done` transcript+summary + read-only Changes pane |
+| Transcript observed | Design `task/transcript-observed` (Design 854caae) |
+| Transcript loading | Design `task/transcript-loading` |
+| Transcript partial | Design `task/transcript-partial` |
+| Transcript unavailable | Design `task/transcript-unavailable` |
+| Transcript integrity failed | Design `task/transcript-integrity-failed` |
+| Transcript reconnecting | Design `task/transcript-reconnecting` |
+| Transcript capacity | Design `task/transcript-capacity` |
+| Transcript sources | Design `task/transcript-sources` |
+| Transcript observed · Events | Same as observed with Events open at load (`/events`) |
 | Needs you empty | Approved `needs-you/empty` specimen. Populated scenarios use `needs-you/waiting` |
 
 Sidebar navigation between **New task**, **Workflows**, **Resources**,

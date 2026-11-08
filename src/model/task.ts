@@ -1,4 +1,5 @@
 import type { TaskId } from './ids'
+import type { TranscriptObservation } from './transcript'
 
 /** Inline run of plain or code-styled text — never HTML. */
 export type InlineRun =
@@ -80,6 +81,12 @@ type TaskObservationBase = {
   readonly headerMeta: string
   readonly blocks: readonly TranscriptBlock[]
   readonly followUpPlaceholder: string
+  /**
+   * When set, the task screen renders the Design 854caae transcript surface
+   * (request disclosure, boundary, rows, live region, Events pane) instead of
+   * the superseded block-only layout.
+   */
+  readonly transcript: TranscriptObservation | null
 }
 
 /**

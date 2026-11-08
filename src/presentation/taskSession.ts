@@ -98,6 +98,9 @@ export class TaskSession {
       })
       return
     }
+    const usesEvents =
+      this.state.load.kind === 'ready' &&
+      this.state.load.observation.transcript !== null
     this.publish({
       ...this.state,
       changesPaneOpen: true,
@@ -106,7 +109,8 @@ export class TaskSession {
       changesFiles: null,
       changesLoad: { kind: 'loading' },
     })
-    this.beginChangesObservation()
+    // Transcript states open Events, not Changes — skip the changes observation.
+    if (!usesEvents) this.beginChangesObservation()
   }
 
   selectChangedFile(path: string): void {

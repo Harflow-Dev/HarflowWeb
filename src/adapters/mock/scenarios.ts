@@ -63,6 +63,15 @@ export type ScenarioId =
   | 'composer-harness-open'
   | 'sidebar-collapsed'
   | 'sidebar-minimum'
+  | 'transcript-observed'
+  | 'transcript-loading'
+  | 'transcript-partial'
+  | 'transcript-unavailable'
+  | 'transcript-integrity-failed'
+  | 'transcript-reconnecting'
+  | 'transcript-capacity'
+  | 'transcript-sources'
+  | 'transcript-observed-events'
 
 export type ScenarioDefinition = {
   readonly id: ScenarioId

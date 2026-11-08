@@ -23,4 +23,8 @@ export type NewTaskScenarioSeed = {
   readonly frame?: 'default' | 'minimum'
   /** Submit once after ready so starting/refused specimens are observation-driven. */
   readonly autoSubmit?: boolean
+  /** Open a mapped task after context is ready (transcript scenarios). */
+  readonly openTaskId?: string
+  /** Open the right pane (Events for transcript states; Changes otherwise). */
+  readonly eventsPaneOpen?: boolean
 }

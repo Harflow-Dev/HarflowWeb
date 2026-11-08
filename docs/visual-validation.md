@@ -578,6 +578,29 @@ commit’s `v2/index.html` (do not use a later Design HEAD).
 Hosted `https://design.harflow.dev/v2` may be newer than `854caae`; citations
 remain the immutable commit above.
 
+## Task transcript + Events redraw (Design 854caae) — inspection checklist
+
+Pinned commit: HarflowDesign `854caae4d474536f84e6e911ff96d48c4ada008b`.
+Sources: `v2/scripts/screens-transcript.js`, `v2/scripts/transcript-screen.js`,
+`v2/scripts/d2b-proposal.js`. Serve that commit’s `v2/index.html` locally.
+Check each state in light and dark, Events closed and open (`/events`).
+
+| Design route | Preview scenario | What to confirm |
+| --- | --- | --- |
+| `task/transcript-observed` | Transcript observed | Request provenance; caught-up boundary; qualified tool totals |
+| `task/transcript-loading` | Transcript loading | Independent loading placeholders; no zero totals |
+| `task/transcript-partial` | Transcript partial | Truncated request; capture-gap copy; stub + ordering in Events |
+| `task/transcript-unavailable` | Transcript unavailable | Read refusal; Done/Running status unchanged; no request text |
+| `task/transcript-integrity-failed` | Transcript integrity failed | Withheld request absent from DOM; task facts remain |
+| `task/transcript-reconnecting` | Transcript reconnecting | Cached rows kept; Retry; Load current activity for source change |
+| `task/transcript-capacity` | Transcript capacity | Limit notice; rows/position kept; qualified totals may remain |
+| `task/transcript-sources` | Transcript sources | Normalized record, stub, ordering, Recovered message |
+| `…/events` | Transcript observed · Events | Pane open at load; Changes/Artifacts disabled with explanation |
+
+Honesty: Copy record copies exact normalized JSON (mocked clipboard in tests);
+never claim success without a copy. Live region (`aria-live=polite`) announces
+history actions.
+
 ## Limitations
 
 - Pixel fidelity to native materials is not claimed.

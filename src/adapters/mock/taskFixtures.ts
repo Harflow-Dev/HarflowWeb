@@ -11,6 +11,11 @@ import {
 } from './taskCompletedBlocks'
 import { eventsReaderFailedBlocks } from './taskFailedBlocks'
 import { preloadBlocks, slotReleaseBlocks } from './taskFixtureBlocks'
+import {
+  TRANSCRIPT_TASK_IDS,
+  transcriptTaskObservation,
+  type TranscriptMount,
+} from './transcriptFixtures'
 
 /** Mapped from sidebar row "Fix flaky slot release test". */
 export const SLOT_RELEASE_TASK_ID = asTaskId('task-slot-release')
@@ -34,6 +39,7 @@ export function slotReleaseObservation(): TaskObservation {
     blocks: slotReleaseBlocks(),
     followUpPlaceholder:
       'Send a follow-up. It is delivered after the current turn.',
+    transcript: null,
   }
 }
 
@@ -47,6 +53,7 @@ export function preloadObservation(): TaskObservation {
     blocks: preloadBlocks(),
     followUpPlaceholder:
       'Send a follow-up. It is delivered after the current turn.',
+    transcript: null,
   }
 }
 
@@ -65,6 +72,7 @@ export function eventsReaderFailedObservation(): TaskObservation {
       lastError:
         'json.decoder.JSONDecodeError: Unterminated string starting at: line 1 column 38',
     },
+    transcript: null,
   }
 }
 
@@ -78,6 +86,7 @@ export function retryBudgetCompletedObservation(): TaskObservation {
     blocks: retryBudgetCompletedBlocks(),
     followUpPlaceholder: 'Continue this task',
     summary: retryBudgetSummary(),
+    transcript: null,
   }
 }
 
@@ -86,6 +95,10 @@ const BY_ID: ReadonlyMap<string, TaskObservation> = new Map([
   [PRELOAD_TASK_ID, preloadObservation()],
   [EVENTS_READER_FAILED_TASK_ID, eventsReaderFailedObservation()],
   [RETRY_BUDGET_DONE_TASK_ID, retryBudgetCompletedObservation()],
+  ...(Object.keys(TRANSCRIPT_TASK_IDS) as TranscriptMount[]).map(
+    (mount) =>
+      [TRANSCRIPT_TASK_IDS[mount], transcriptTaskObservation(mount)] as const,
+  ),
 ])
 
 export function taskLoadFor(taskId: string): TaskLoad {

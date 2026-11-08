@@ -3,6 +3,7 @@ import { emptySidebar, partialSidebar } from './fixtures'
 import { emptyNeedsYouLoad } from './needsYouFixtures'
 import { accepted, base, readyContext } from './scenarioBase'
 import { CENTERED_SCENARIOS } from './scenarioCatalogCentered'
+import { TRANSCRIPT_SCENARIOS } from './scenarioCatalogTranscript'
 import type { ScenarioDefinition } from './scenarios'
 import { statisticsLoadFor } from './statisticsFixtures'
 import { taskLoadFor } from './taskFixtures'
@@ -179,4 +180,5 @@ export const SCENARIOS: readonly ScenarioDefinition[] = [
     holdStart: false,
   }),
   ...CENTERED_SCENARIOS,
+  ...TRANSCRIPT_SCENARIOS,
 ]

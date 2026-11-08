@@ -1,4 +1,5 @@
 import type { NewTaskScenarioSeed } from '../adapters/mock'
+import { asTaskId } from '../model'
 import type {
   AppPresenter,
   ApprovalsMode,
@@ -29,4 +30,15 @@ export function applyNewTaskSeed(
     presenter.setOpenMenu(seed.openMenu as OpenMenu)
   }
   if (seed.autoSubmit === true) presenter.submit()
+  if (seed.openTaskId !== undefined) {
+    presenter.openTask(asTaskId(seed.openTaskId))
+    if (seed.eventsPaneOpen === true) {
+      // Wait until the task observation is ready before opening Events.
+      const unsub = presenter.subscribe((state) => {
+        if (state.task.load.kind !== 'ready') return
+        unsub()
+        presenter.setTaskChangesPaneOpen(true)
+      })
+    }
+  }
 }

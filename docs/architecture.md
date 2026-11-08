@@ -64,10 +64,10 @@ callbacks are rejected by task, query path, and generation.
 Sidebar chrome is split across `sidebarNavConfig.ts`, `sidebarNav.tsx`,
 `sidebarSections.tsx`, and a thin `Sidebar.tsx` shell so navigation growth does
 not pile more responsibilities onto one file. Task UI is split across
-`TaskMain`, `TaskPage`, `TaskTranscript`, `TaskFailureBanner`,
-`TaskSummarySection`, `TaskChangesPane`, and `TaskFollowUp`. Size-limit
-splits stay in-layer as cohesive sibling modules that re-export through the
-original public entry.
+`TaskMain`, `TaskPage`, `TaskTranscript`, `TranscriptSurface`,
+`TaskEventsPane`, `TaskFailureBanner`, `TaskSummarySection`,
+`TaskChangesPane`, and `TaskFollowUp`. Size-limit splits stay in-layer as
+cohesive sibling modules that re-export through the original public entry.
 
 ## EnginePort (slice-sized)
 

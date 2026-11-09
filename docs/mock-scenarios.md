@@ -47,6 +47,7 @@ populated fixture and shows a single “Mock engine” badge.
 | Transcript sources | Design `task/transcript-sources` — tool disclosure in the transcript; unsupported stub only in Events |
 | Transcript · Events | Any of the eight with `/events` (hash `#task/transcript-*/events` or scenario id `transcript-*/events`) opens Events at load. Pinned transcript completed states omit Summary; `task/done` keeps its fixture summary. |
 | Needs you empty | Approved `needs-you/empty` specimen. Populated scenarios use `needs-you/waiting` |
+| Needs you loading | Approved `needs-you/loading` main-pane skeleton (Design `9d19fd7`). Deferred Needs you read; populated context keeps live Running/Recent. Open Needs you in the preview after selecting the scenario. Full sidebar `SB` and minimum window are not accepted here |
 
 Sidebar navigation between **New task**, **Workflows**, **Resources**,
 **Statistics**, **Settings**, and **Needs you** is live. Explicitly mapped

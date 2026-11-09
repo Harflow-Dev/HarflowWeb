@@ -1,6 +1,7 @@
 import type { NeedsYouLoad, TaskId, WorkflowRunId } from '../model'
 import { Icon } from './Icon'
 import { NeedsYouCard } from './NeedsYouCard'
+import { NeedsYouLoadingPage } from './skeleton'
 
 const UNAVAILABLE_ID = 'needs-you-action-unavailable'
 export const NEEDS_YOU_ACTION_EXPLANATION =
@@ -12,8 +13,12 @@ type Props = {
   readonly onOpenRun: (runId: WorkflowRunId) => void
 }
 
-/** Approved needs-you/waiting and needs-you/empty composition. */
+/** Approved needs-you/waiting, empty, and main-pane loading composition. */
 export function NeedsYouPage({ load, onOpenTask, onOpenRun }: Props) {
+  if (load.kind === 'loading') {
+    return <NeedsYouLoadingPage />
+  }
+
   return (
     <div className="hd-page">
       <div className="hd-page__head">
@@ -42,17 +47,10 @@ function NeedsYouBody({
   onOpenTask,
   onOpenRun,
 }: {
-  readonly load: NeedsYouLoad
+  readonly load: Extract<NeedsYouLoad, { kind: 'ready' | 'unavailable' }>
   readonly onOpenTask: (taskId: TaskId) => void
   readonly onOpenRun: (runId: WorkflowRunId) => void
 }) {
-  if (load.kind === 'loading') {
-    return (
-      <p role="status">
-        Loading requests… (proposal — not a design-approved specimen)
-      </p>
-    )
-  }
   if (load.kind === 'unavailable') {
     return <p role="status">{load.message}</p>
   }

@@ -1,0 +1,57 @@
+/* Shimmering skeleton blocks. Fill is --surface-active; the sheen is
+   --skeleton-sheen. Sweep 1.4s; reduced motion keeps blocks static.
+   Ported from HarflowDesign 9d19fd7 v2/styles/skeleton.css (after hd-skel base). */
+
+.hd-skel--shimmer {
+  display: block;
+  background-color: var(--surface-active);
+  background-image: linear-gradient(
+    90deg,
+    transparent 33%,
+    var(--skeleton-sheen) 50%,
+    transparent 67%
+  );
+  background-size: 300% 100%;
+  background-repeat: no-repeat;
+  background-position: 100% 0;
+  animation: hd-skel-sheen 1.4s cubic-bezier(0.37, 0, 0.63, 1) infinite;
+}
+
+.hd-skel--pill {
+  border-radius: 999px;
+}
+
+.hd-skel--circle {
+  border-radius: 50%;
+}
+
+.hd-skel--soft {
+  border-radius: var(--radius-md);
+}
+
+.hd-skel--still {
+  animation: none;
+  background-image: none;
+}
+
+@keyframes hd-skel-sheen {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: 0% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hd-skel--shimmer {
+    animation: none;
+    background-image: none;
+  }
+}
+
+/* Placeholder rows are not controls: no hover fill and no pointer. */
+[data-skeleton] .hd-task-row[aria-hidden='true'],
+[data-skeleton] .hd-list-row[aria-hidden='true'] {
+  pointer-events: none;
+}

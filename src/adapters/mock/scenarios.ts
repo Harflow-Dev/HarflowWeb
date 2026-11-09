@@ -55,6 +55,7 @@ export type ScenarioId =
   | 'task-failed'
   | 'task-done'
   | 'needs-you-empty'
+  | 'needs-you-loading'
   | 'composer-loading'
   | 'composer-unqualified'
   | 'composer-invalid'

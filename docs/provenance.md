@@ -17,6 +17,14 @@
   - `v2/scripts/components.js`
   - `v2/styles/tokens.css`
   - `v2/styles/bundle.css` (vendored into `src/styles/`)
+- Needs you main-pane loading (owner-approved 2026-11-08), mock-only:
+  HarflowDesign `9d19fd7`, `v2/scripts/screens-loading-more.js` state
+  `needs-you/loading`, `v2/scripts/skeleton.js`, `skeleton-specs.js` spec
+  `needs-you`, `v2/styles/skeleton.css` (shimmer + sheen tokens ported into
+  `src/styles/`). Implemented scope is the Needs you page column only; Design
+  sidebar `SB` data skeleton and `246cc97` minimum window are not accepted here.
+  Observed checks and remaining visual limits are recorded in
+  `docs/visual-validation.md`.
 - Centered New task composer amendment (owner-approved 2026-11-06), separate
   from the baseline `new-task/*` templates: HarflowDesign
   `9d64bfda7bed735d42c761c3149516c7f3e6ca01`
@@ -162,6 +170,7 @@
 | Settings harnesses | Design `settings/harnesses` and `settings/mcp-approvals` | **Mock-only presentation** — independent fixture facts; the disclosure shows that harness’s list only; unknown or missing approvals stay unavailable; no PATH probe, install, registration change, or approval edit |
 | Needs you waiting | Design `needs-you/waiting` approvals and one question | **Mock-only presentation** — fixture requests, not this computer; the Nightly publish card uses the same snapshot as the run detail; exact-action labels; no approval authority |
 | Needs you empty | Design `needs-you/empty` | **Mock-only presentation** — complete coverage and zero items only; unknown is not this state |
+| Needs you loading | Design `needs-you/loading` at HarflowDesign `9d19fd7` (`v2/scripts/screens-loading-more.js`, skeleton spec `needs-you`) | **Mock-only main-pane** — title real; waiting badge and three request cards are shimmer placeholders (measured 1280×800 geometry from that pin); sidebar Running/Recent stay independently known; full Design `SB` sidebar-data skeleton and `246cc97` minimum window are **not** accepted in this slice |
 | Repository options | Mock-only | Future server-hosted repos; not filesystem pickers; not ctl |
 
 ### Statistics semantic gaps (explicit)
@@ -214,8 +223,11 @@
   not added to the badge.
 - Commands, paths, and prompts are fixture copy. They are rendered as text.
 - Complete coverage with zero items is the only “Nothing needs you” state.
-  Loading, unavailable, and partial coverage are proposals without approved
-  specimens. Partial coverage shows the known items plus an incomplete mark.
+  Main-pane loading follows approved Design `9d19fd7` `needs-you/loading`
+  (skeleton of waiting). Unavailable and partial coverage remain proposals
+  without approved specimens. Partial coverage shows the known items plus an
+  incomplete mark. Needs you loading does not blank known sidebar work rows
+  or invent a waiting count; full app `SB` fidelity is a separate prerequisite.
 - Mapped Open task navigates to that task. The Nightly publish card’s Open
   run navigates to the mapped run graph and does not approve it. Unmapped
   Open task stays unavailable. The reply control is not a submitting form.

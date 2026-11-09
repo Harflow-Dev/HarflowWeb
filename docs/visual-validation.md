@@ -301,8 +301,31 @@ Open task stays available.
 Observed empty: heading only, no sidebar count, “Nothing needs you” plus the
 approved sentence. No “3 waiting”. Document scrollWidth equals clientWidth
 (1280) on the preview page; the clipped app column is 1280×800. Focus is the
-activated theme control. Loading, unavailable, and partial states have no
-approved specimen and were not captured as specimens.
+activated theme control. Main-pane Needs you loading is approved at
+HarflowDesign `9d19fd7` (`needs-you/loading`); this repository implements that
+main-pane scope only. Full Design sidebar `SB` and `246cc97` minimum frames are
+not accepted here. Unavailable and partial remain proposals without approved
+specimens.
+
+### Needs you main-pane loading — 2026-11-09
+
+Post-fix verification: 300 tests passed; TypeScript, lint and architecture checks
+passed with zero architecture warnings. Three independent reviews closed the
+reported inline-style typing error before final verification.
+
+Browser checks used `/preview?scenario=needs-you-loading` with populated context
+and the Needs you route selected. The page exposes the loading group and busy
+state with no interactive controls or fabricated waiting count. Known Running
+and Recent work rows remain present. The badge is 69×22; the body is 512 high
+with a 12px gap and hidden overflow. At the observed responsive content width
+of 665px, card heights are 154.6875, 154.671875 and 142.640625, matching the
+approved nominal-height/margin/flex-shrink composition. Width remains responsive.
+
+Light and dark sheen tokens resolve to the approved values. Normal shimmer was
+observed. The loaded reduced-motion media rule removes animation and the sheen;
+the browser's reduced-motion preference was not forced on, so runtime behavior
+under that preference remains unverified. These checks do not establish full
+sidebar-skeleton or minimum-window parity.
 
 ## Workflow run — verified 1280×800 captures
 
@@ -515,7 +538,9 @@ approved specimen and were not captured as specimens.
 - Settings: `v2/scripts/screens-settings.js` (`settings/general`,
   `settings/harnesses`, and `settings/mcp-approvals` light/dark)
 - Needs you: `v2/scripts/screens-needs-you.js` (`needs-you/waiting` and
-  `needs-you/empty` light/dark)
+  `needs-you/empty` light/dark); loading main-pane pin HarflowDesign `9d19fd7`
+  `v2/scripts/screens-loading-more.js` + `skeleton-specs.js` spec `needs-you`
+  (implemented main-pane only; full `SB` / minimum not accepted)
 - Workflow run: `v2/scripts/screens-workflows.js` (`workflows/run` light/dark)
 - Workflow run graph: `v2/scripts/screens-workflow-run.js`
   (`workflow-run/graph-needs-you`, `workflow-run/on-demand`, and
@@ -607,8 +632,9 @@ later observations without discarding loaded rows.
 ## Limitations
 
 - Pixel fidelity to native materials is not claimed.
-- Workflows/resources/statistics/task/Needs you loading, unavailable, and
-  partial treatments are proposals, not approved specimens. Workflow run
+- Workflows/resources/statistics/task unavailable and partial treatments, and
+  Needs you unavailable/partial, are proposals, not approved specimens. Needs
+  you main-pane loading is approved at `9d19fd7` (main-pane scope only). Workflow run
   loading, validation, error, and adaptive states are the same: proposals,
   not approved specimens. Workflow editor loading, error, and adaptive
   states are proposals, not approved specimens. MCP approvals Add and

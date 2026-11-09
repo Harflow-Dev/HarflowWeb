@@ -1,4 +1,4 @@
-import { cleanup, render, screen } from '@testing-library/react'
+import { cleanup, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import {
@@ -97,15 +97,59 @@ describe('NeedsYouPage', () => {
     expect(screen.getByText('1 known. Not a complete total.')).toBeInTheDocument()
     expect(screen.queryByText('1 waiting')).not.toBeInTheDocument()
 
-    rerender(<NeedsYouPage load={{ kind: 'loading' }} onOpenTask={vi.fn()} onOpenRun={vi.fn()} />)
-    expect(screen.queryByText('Nothing needs you')).not.toBeInTheDocument()
-    expect(screen.getByRole('status')).toHaveTextContent(/Loading requests/)
-
     rerender(
       <NeedsYouPage load={unavailableNeedsYouLoad()} onOpenTask={vi.fn()} onOpenRun={vi.fn()} />,
     )
     expect(screen.queryByText('Nothing needs you')).not.toBeInTheDocument()
     expect(screen.getByRole('status')).toHaveTextContent('Needs you is unavailable.')
+  })
+
+  it('renders main-pane loading skeleton without fake counts, empty, or actions', () => {
+    render(
+      <NeedsYouPage load={{ kind: 'loading' }} onOpenTask={vi.fn()} onOpenRun={vi.fn()} />,
+    )
+    const loading = screen.getByRole('group', { name: 'Loading Needs you' })
+    expect(loading).toHaveAttribute('aria-busy', 'true')
+    expect(within(loading).getByRole('heading', { name: 'Needs you' })).toBeInTheDocument()
+    expect(screen.queryByText('Nothing needs you')).not.toBeInTheDocument()
+    expect(screen.queryByText('3 waiting')).not.toBeInTheDocument()
+    expect(screen.queryByText(/Loading requests/)).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Approve once' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Send' })).toBeNull()
+    expect(screen.queryByRole('textbox', { name: 'Reply' })).toBeNull()
+    expect(loading.querySelectorAll('.hd-approval').length).toBe(3)
+    expect(loading.querySelectorAll('.hd-skel--shimmer').length).toBeGreaterThan(0)
+  })
+
+  it('drops loading busy semantics when ready and restores them when loading returns', () => {
+    const { rerender } = render(
+      <NeedsYouPage load={{ kind: 'loading' }} onOpenTask={vi.fn()} onOpenRun={vi.fn()} />,
+    )
+    expect(screen.getByRole('group', { name: 'Loading Needs you' })).toHaveAttribute(
+      'aria-busy',
+      'true',
+    )
+
+    rerender(
+      <NeedsYouPage
+        load={waitingNeedsYouLoad()}
+        onOpenTask={vi.fn()}
+        onOpenRun={vi.fn()}
+      />,
+    )
+    expect(screen.queryByRole('group', { name: 'Loading Needs you' })).toBeNull()
+    expect(screen.getByText('3 waiting')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Approve once' })).toBeDisabled()
+
+    rerender(
+      <NeedsYouPage load={{ kind: 'loading' }} onOpenTask={vi.fn()} onOpenRun={vi.fn()} />,
+    )
+    expect(screen.getByRole('group', { name: 'Loading Needs you' })).toHaveAttribute(
+      'aria-busy',
+      'true',
+    )
+    expect(screen.queryByText('3 waiting')).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Approve once' })).toBeNull()
   })
 
   it('keeps HTML-like prompt text as text', () => {

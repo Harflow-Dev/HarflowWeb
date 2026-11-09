@@ -1688,12 +1688,26 @@ describe('AppFeature navigation', () => {
     engine.publishNeedsYou({ kind: 'loading' })
     await flush()
     expect(screen.queryByText('Nothing needs you')).not.toBeInTheDocument()
-    expect(screen.getByText(/Loading requests/)).toBeInTheDocument()
+    expect(
+      screen.getByRole('group', { name: 'Loading Needs you' }),
+    ).toHaveAttribute('aria-busy', 'true')
+    expect(screen.queryByText('3 waiting')).not.toBeInTheDocument()
+    expect(within(nav).queryByText('3')).not.toBeInTheDocument()
+    expect(within(nav).queryByText('0')).not.toBeInTheDocument()
+    expect(
+      within(sidebar).getByRole('button', {
+        name: /Fix flaky slot release test/,
+      }),
+    ).toBeInTheDocument()
+    expect(
+      within(sidebar).getByRole('button', { name: /Review preload bridge/ }),
+    ).toBeInTheDocument()
 
     engine.publishNeedsYou(unavailableNeedsYouLoad())
     await flush()
     expect(screen.queryByText('Nothing needs you')).not.toBeInTheDocument()
     expect(screen.getByText('Needs you is unavailable.')).toBeInTheDocument()
+    expect(screen.queryByRole('group', { name: 'Loading Needs you' })).toBeNull()
     expect(within(nav).queryByText('0')).not.toBeInTheDocument()
     expect(presenter.getState().settingsSection).toBe('harnesses')
     expect(presenter.getState().newTask.appearance).toBe('dark')

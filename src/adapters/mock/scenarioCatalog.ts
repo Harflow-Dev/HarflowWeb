@@ -179,6 +179,16 @@ export const SCENARIOS: readonly ScenarioDefinition[] = [
     startOutcome: accepted,
     holdStart: false,
   }),
+  base({
+    id: 'needs-you-loading',
+    label: 'Needs you loading',
+    description:
+      'Approved needs-you/loading main-pane skeleton (Design 9d19fd7). Deferred Needs you read; populated sidebar context stays live. Full sidebar SB and minimum window are not accepted in this slice.',
+    context: readyContext(),
+    needsYou: 'defer',
+    startOutcome: accepted,
+    holdStart: false,
+  }),
   ...CENTERED_SCENARIOS,
   ...TRANSCRIPT_SCENARIOS,
 ]

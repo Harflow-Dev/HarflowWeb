@@ -11,9 +11,12 @@ grant approvals, answer questions, or touch the task store.
 ## Known deviations
 
 - Loading / unavailable / partial-sidebar treatments are **proposals** requiring
-  design review; they are not approved specimens.
-- Workflows/resources/statistics/task/harnesses/Needs you loading, unavailable,
-  and partial copy are **proposals**, not approved specimens.
+  design review; they are not approved specimens (except Needs you main-pane
+  loading at Design `9d19fd7`, main-pane scope only).
+- Workflows/resources/statistics/task/harnesses loading, unavailable, and
+  partial copy are **proposals**, not approved specimens. Needs you unavailable
+  and partial remain proposals; Needs you main-pane loading is approved at
+  `9d19fd7` without full sidebar `SB` or minimum acceptance.
 - Specimen copy “Choices are remembered per repository” is not implemented;
   selection is one global set for the mock session.
 - New task follows the owner-approved centered composer amendment
@@ -54,10 +57,14 @@ grant approvals, answer questions, or touch the task store.
   Lane model `Codex · gpt-6` is adapted to `Codex · gpt-6-astra`. Lane actions
   and composers stay disabled. recovery is not built. The empty state is
   complete coverage with zero items.
-  Loading and unavailable do not say nothing needs you and do not show a zero
-  badge. Partial coverage shows known items with an incomplete mark. The
-  Nightly row’s attention glyph is not counted. No approval authority, answer
-  submission, clipboard, provider, filesystem, or engine access.
+  Main-pane loading uses the approved Design `9d19fd7` skeleton (title real;
+  badge and cards placeholders; no proposal “Loading requests…” copy). It does
+  not claim full sidebar `SB` or minimum-window acceptance. Unavailable remains
+  a proposal. Loading and unavailable do not say nothing needs you and do not
+  show a zero badge. Partial coverage shows known items with an incomplete
+  mark. The Nightly row’s attention glyph is not counted. No approval
+  authority, answer submission, clipboard, provider, filesystem, or engine
+  access.
 - Sidebar destinations outside New task, Workflows, Resources, Statistics,
   Settings, Needs you, and explicitly mapped running-task rows stay unavailable.
 - Workflow list Run opens the selected definition’s run form. The form shows

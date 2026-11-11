@@ -17,14 +17,25 @@
   - `v2/scripts/components.js`
   - `v2/styles/tokens.css`
   - `v2/styles/bundle.css` (vendored into `src/styles/`)
-- Needs you main-pane loading (owner-approved 2026-11-08), mock-only:
-  HarflowDesign `9d19fd7`, `v2/scripts/screens-loading-more.js` state
-  `needs-you/loading`, `v2/scripts/skeleton.js`, `skeleton-specs.js` spec
-  `needs-you`, `v2/styles/skeleton.css` (shimmer + sheen tokens ported into
-  `src/styles/`). Implemented scope is the Needs you page column only; Design
-  sidebar `SB` data skeleton and `246cc97` minimum window are not accepted here.
-  Observed checks and remaining visual limits are recorded in
-  `docs/visual-validation.md`.
+- First-load skeletons (owner-approved 2026-11-08), mock-only, Design pin
+  `9d19fd70cc385c551004db4a8054cc85dc93fe86`. Shared primitives:
+  `v2/scripts/skeleton.js` at `ba8c9280e817cb8d634bf0cbaaf6fa8f94824931`,
+  `v2/scripts/skeleton-specs.js` at `9d19fd7…`, `v2/styles/skeleton.css` at
+  `8f52ad3e5931e6bd8ea52842ba84968f194f8ca9` (shimmer + sheen tokens in
+  `src/styles/`). State registrations (last change at or before the pin):
+  - `v2/scripts/screens-loading-work.js` @ `9d19fd7…` —
+    `new-task/loading`, `sidebar/loading`, `task/loading`,
+    `parallel-group/loading` (`task/loading-pane` skipped; no
+    `task/pane-running-open` mirror in this mock).
+  - `v2/scripts/screens-loading-more.js` @ `9d19fd7…` —
+    `needs-you/loading`, `workflows/loading`, `workflow-editor/loading`,
+    `workflow-run/loading`, `workflow-run/loading-parallel`,
+    `resources/loading`, `statistics/loading`, `settings/loading-general`,
+    `settings/loading-harnesses`, `settings/loading-mcp-approvals`
+    (`menu-bar/loading` skipped; no menu-bar surface).
+  Needs you remains main-pane scope only (no full Design `SB` sidebar-data
+  skeleton, no `246cc97` minimum window). Observed checks and remaining
+  visual limits are in `docs/visual-validation.md`.
 - Centered New task composer amendment (owner-approved 2026-11-06), separate
   from the baseline `new-task/*` templates: HarflowDesign
   `9d64bfda7bed735d42c761c3149516c7f3e6ca01`
@@ -171,6 +182,16 @@
 | Needs you waiting | Design `needs-you/waiting` approvals and one question | **Mock-only presentation** — fixture requests, not this computer; the Nightly publish card uses the same snapshot as the run detail; exact-action labels; no approval authority |
 | Needs you empty | Design `needs-you/empty` | **Mock-only presentation** — complete coverage and zero items only; unknown is not this state |
 | Needs you loading | Design `needs-you/loading` at HarflowDesign `9d19fd7` (`v2/scripts/screens-loading-more.js`, skeleton spec `needs-you`) | **Mock-only main-pane** — title real; waiting badge and three request cards are shimmer placeholders (measured 1280×800 geometry from that pin); sidebar Running/Recent stay independently known; full Design `SB` sidebar-data skeleton and `246cc97` minimum window are **not** accepted in this slice |
+| New task loading | Design `new-task/loading` @ `9d19fd7` (`screens-loading-work.js`, spec `new-task`) | **Mock-only** — deferred context; greeting and composer frame real; options/repo placeholders |
+| Sidebar loading | Design `sidebar/loading` @ `9d19fd7` (`screens-loading-work.js`, spec `sidebar`) | **Mock-only** — Running/Recent and Needs you count placeholders; nav headings real; main area stays centered empty composer |
+| Task loading | Design `task/loading` @ `9d19fd7` (`screens-loading-work.js`, spec `task`) | **Mock-only** — mirrors `task/running-stop`; known title when the sidebar supplies it; transcript/status placeholders |
+| Parallel group loading | Design `parallel-group/loading` @ `9d19fd7` (`screens-loading-work.js`, spec for lanes) | **Mock-only** — deferred `observeParallelGroup`; lane frames real, header/transcript placeholders |
+| Workflows loading | Design `workflows/loading` @ `9d19fd7` (`screens-loading-more.js`, spec `workflows`) | **Mock-only** — title/search/New workflow real; list rows placeholders |
+| Workflow editor loading | Design `workflow-editor/loading` @ `9d19fd7` (`screens-loading-more.js`, spec `workflow-editor`) | **Mock-only** — toolbar/tray/zoom real; title, nodes, canvas, inspector placeholders |
+| Workflow run loading | Design `workflow-run/loading` and `loading-parallel` @ `9d19fd7` (`screens-loading-more.js`) | **Mock-only** — deferred execution; Graph or Parallel preference while loading; mirrors on-demand / parallel |
+| Resources loading | Design `resources/loading` @ `9d19fd7` (`screens-loading-more.js`, spec `resources`) | **Mock-only** — title/headings real; harness cards and waiting list placeholders |
+| Statistics loading | Design `statistics/loading` @ `9d19fd7` (`screens-loading-more.js`, spec `statistics`) | **Mock-only** — title, range control, labels, column headers real; figures/chart/table cells placeholders |
+| Settings loading | Design `settings/loading-general`, `loading-harnesses`, `loading-mcp-approvals` @ `9d19fd7` (`screens-loading-more.js`) | **Mock-only** — General uses `context.settingsGeneralLoading` (no separate settings observation port); Harnesses/MCP use deferred `observeHarnesses` with an optional MCP preference seed |
 | Repository options | Mock-only | Future server-hosted repos; not filesystem pickers; not ctl |
 
 ### Statistics semantic gaps (explicit)

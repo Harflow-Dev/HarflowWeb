@@ -327,6 +327,37 @@ the browser's reduced-motion preference was not forced on, so runtime behavior
 under that preference remains unverified. These checks do not establish full
 sidebar-skeleton or minimum-window parity.
 
+### Remaining first-load skeletons — 2026-11-11
+
+Design pin: HarflowDesign `9d19fd70cc385c551004db4a8054cc85dc93fe86`. Target
+viewport for acceptance captures: **1280×800** (light and dark). Intended PNG
+directory when archived:
+`~/.codex/workflows/screenshots/2026-11-11-harflowweb-loading-skeletons/`
+(create `verified-1280x800/` under that path; do not claim files that are not
+there yet).
+
+| Design state | Preview scenario | Notes |
+| --- | --- | --- |
+| `new-task/loading` | `new-task-loading` | Deferred context |
+| `sidebar/loading` | `sidebar-loading` | Listing placeholders only |
+| `task/loading` | `task-loading` | Opens Slot release; mirrors running-stop |
+| `workflows/loading` | `workflows-loading` | |
+| `workflow-editor/loading` | `workflow-editor-loading` | Release checklist |
+| `workflow-run/loading` | `workflow-run-loading` | Nightly on-demand |
+| `workflow-run/loading-parallel` | `workflow-run-loading-parallel` | Parallel preference while deferred |
+| `parallel-group/loading` | `parallel-group-loading` | Review preload bridge |
+| `resources/loading` | `resources-loading` | |
+| `statistics/loading` | `statistics-loading` | |
+| `settings/loading-general` | `settings-loading-general` | Context flag |
+| `settings/loading-harnesses` | `settings-loading-harnesses` | |
+| `settings/loading-mcp-approvals` | `settings-loading-mcp-approvals` | Seed preference |
+
+Verification this slice: `npm run verify` and `npm run lint` passed; unit tests
+cover deferred → ready and navigate-away mid-load for each path. Full light/dark
+1280×800 PNG archive for every row above was **not** written this session.
+Skipped: `task/loading-pane`, `menu-bar/loading`, minima, partials (see
+`docs/review-notes.md`).
+
 ## Workflow run — verified 1280×800 captures
 
 Directory:
@@ -541,6 +572,9 @@ approved specimen and were not captured as specimens.
   `needs-you/empty` light/dark); loading main-pane pin HarflowDesign `9d19fd7`
   `v2/scripts/screens-loading-more.js` + `skeleton-specs.js` spec `needs-you`
   (implemented main-pane only; full `SB` / minimum not accepted)
+- First-load skeletons (same pin): `v2/scripts/screens-loading-work.js`,
+  `screens-loading-more.js`, `skeleton-specs.js` — see the 2026-11-11 table
+  above for preview scenario ids
 - Workflow run: `v2/scripts/screens-workflows.js` (`workflows/run` light/dark)
 - Workflow run graph: `v2/scripts/screens-workflow-run.js`
   (`workflow-run/graph-needs-you`, `workflow-run/on-demand`, and
@@ -633,12 +667,12 @@ later observations without discarding loaded rows.
 
 - Pixel fidelity to native materials is not claimed.
 - Workflows/resources/statistics/task unavailable and partial treatments, and
-  Needs you unavailable/partial, are proposals, not approved specimens. Needs
-  you main-pane loading is approved at `9d19fd7` (main-pane scope only). Workflow run
-  loading, validation, error, and adaptive states are the same: proposals,
-  not approved specimens. Workflow editor loading, error, and adaptive
-  states are proposals, not approved specimens. MCP approvals Add and
-  Remove stay disabled, so the expanded list is a read-only fixture view.
+  Needs you unavailable/partial, are proposals, not approved specimens. First-load
+  skeletons for those families (and Settings) are approved at `9d19fd7` and
+  implemented where the mirrored loaded screen exists; Needs you loading stays
+  main-pane only. Workflow run / editor **validation, error, and adaptive**
+  states remain proposals. MCP approvals Add and Remove stay disabled, so the
+  expanded list is a read-only fixture view.
   recovery stays outside this slice. Parallel is the Nightly lanes capture
   above. Parallel group is the Review preload bridge capture target above.
   The on-demand inspector is the Security reviewer state above. The

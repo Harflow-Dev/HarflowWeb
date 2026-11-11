@@ -14,7 +14,20 @@ populated fixture and shows a single “Mock engine” badge.
 | --- | --- |
 | Populated | Design-aligned new-task (centered grow-to-cap composer and + task options) ≈ `new-task/centered-empty` + workflows + resources + statistics + mapped running-task fixtures |
 | Empty sidebar | Ready composer; empty Running/Recent |
-| Context loading | Proposal status (not design-approved) — whole context still loading |
+| Context loading | Legacy id for `new-task/loading`. Prefer **New task loading** |
+| New task loading | Approved `new-task/loading` skeleton (Design `9d19fd7`). Deferred context; greeting and composer frame stay real |
+| Sidebar loading | Approved `sidebar/loading` (Design `9d19fd7`). Composer operable; Running/Recent and Needs you count placeholders |
+| Task loading | Approved `task/loading` (Design `9d19fd7`) mirroring `task/running-stop`. Deferred task; opens mapped Slot release row |
+| Workflows loading | Approved `workflows/loading` skeleton (Design `9d19fd7`). Deferred workflows list; opens Workflows |
+| Workflow editor loading | Approved `workflow-editor/loading` (Design `9d19fd7`). Deferred editor for Release checklist |
+| Workflow run loading | Approved `workflow-run/loading` (Design `9d19fd7`) mirroring on-demand. Deferred Nightly execution |
+| Workflow run loading · Parallel | Approved `workflow-run/loading-parallel` (Design `9d19fd7`). Same deferred run with Parallel preference |
+| Parallel group loading | Approved `parallel-group/loading` (Design `9d19fd7`). Deferred Review preload bridge group |
+| Resources loading | Approved `resources/loading` (Design `9d19fd7`). Deferred resources; opens Resources |
+| Statistics loading | Approved `statistics/loading` (Design `9d19fd7`). Deferred statistics; opens Statistics |
+| Settings loading · General | Approved `settings/loading-general` (Design `9d19fd7`). `context.settingsGeneralLoading`; opens Settings · General |
+| Settings loading · Harnesses | Approved `settings/loading-harnesses` (Design `9d19fd7`). Deferred harnesses; opens Settings · Harnesses |
+| Settings loading · MCP approvals | Approved `settings/loading-mcp-approvals` (Design `9d19fd7`). Deferred harnesses with MCP preference seed |
 | Context unavailable | Proposal status (not design-approved) |
 | Partial sidebar | Incomplete coverage note (proposal) |
 | Submit accepted | Outcome ≈ `ctl-launch-run-accepted` |
@@ -48,6 +61,11 @@ populated fixture and shows a single “Mock engine” badge.
 | Transcript · Events | Any of the eight with `/events` (hash `#task/transcript-*/events` or scenario id `transcript-*/events`) opens Events at load. Pinned transcript completed states omit Summary; `task/done` keeps its fixture summary. |
 | Needs you empty | Approved `needs-you/empty` specimen. Populated scenarios use `needs-you/waiting` |
 | Needs you loading | Approved `needs-you/loading` main-pane skeleton (Design `9d19fd7`). Deferred Needs you read; populated context keeps live Running/Recent. Open Needs you in the preview after selecting the scenario. Full sidebar `SB` and minimum window are not accepted here |
+
+First-load skeleton scenarios live in `src/adapters/mock/scenarioCatalogLoading.ts`.
+They keep the mirrored chrome real and shimmer only the measured data regions.
+Resolve a deferred observation from the preview controls (or remount) to replace
+the skeleton with the loaded screen without a layout jump.
 
 Sidebar navigation between **New task**, **Workflows**, **Resources**,
 **Statistics**, **Settings**, and **Needs you** is live. Explicitly mapped

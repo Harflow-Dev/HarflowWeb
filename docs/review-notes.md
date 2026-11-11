@@ -10,13 +10,22 @@ grant approvals, answer questions, or touch the task store.
 
 ## Known deviations
 
-- Loading / unavailable / partial-sidebar treatments are **proposals** requiring
-  design review; they are not approved specimens (except Needs you main-pane
-  loading at Design `9d19fd7`, main-pane scope only).
-- Workflows/resources/statistics/task/harnesses loading, unavailable, and
-  partial copy are **proposals**, not approved specimens. Needs you unavailable
-  and partial remain proposals; Needs you main-pane loading is approved at
-  `9d19fd7` without full sidebar `SB` or minimum acceptance.
+- Approved first-load skeletons at Design `9d19fd7` are implemented for every
+  mirrored screen that already exists in this mock (see
+  `scenarioCatalogLoading.ts`). Unavailable and partial-sidebar treatments
+  remain **proposals**. Needs you loading stays main-pane only (no full `SB`,
+  no minimum window).
+- **Skipped** approved loading states (mirrored loaded screen missing or
+  out of scope): `task/loading-pane` (no `task/pane-running-open`),
+  `menu-bar/loading` (no menu-bar surface), 1000×620 minimum-window variants,
+  partial loads (`task/changes-loading`, `events-loading`,
+  `artifacts-loading`, `sidebar/history-older`, `new-task/centered-loading`),
+  app-states / harness-runtime first loads, and pending launches.
+- **Deviation:** `settings/loading-general` is driven by
+  `context.settingsGeneralLoading` rather than a dedicated settings
+  observation port (mock presentation flag documented on `ContextLoad`).
+  MCP approvals loading prefers the MCP skeleton while harnesses are deferred
+  via preview seed `settingsMcpApprovalsLoading` (session flag), not a URL.
 - Specimen copy “Choices are remembered per repository” is not implemented;
   selection is one global set for the mock session.
 - New task follows the owner-approved centered composer amendment
@@ -76,8 +85,9 @@ grant approvals, answer questions, or touch the task store.
   a visible caption says they are not installed or qualified backends and do
   not claim enforcement. “Sandboxed” remains the specimen limit label.
   “Task is required.” is a proposal shown only for a seeded blank task.
-  Loading and error copy are proposals. No execution, save, delete,
-  provider, engine, or filesystem action.
+  First-load list skeleton is approved at Design `9d19fd7`; error copy remains
+  a proposal. No execution, save, delete, provider, engine, or filesystem
+  action.
 - Workflow list Edit opens the mapped definition’s read-only graph,
   standalone strip, and inspector. Release checklist selects Review.
   Nightly dependency audit selects Audit lockfiles. Its dashed loop returns
@@ -96,7 +106,8 @@ grant approvals, answer questions, or touch the task store.
   fields stay disabled and explained. The specimen phrases “Unsaved changes”
   and “Ready to save” are omitted. The footer counts path nodes and on-demand
   nodes. Opening the editor does not clear run drafts or other session state.
-  Loading, error, and adaptive editor states are proposals.
+  First-load editor skeleton is approved at Design `9d19fd7`; error and
+  adaptive editor states remain proposals.
 - New workflow, “Describe one to an agent”, Resources task links,
   Install, follow-up send, Stop (running only), Retry, and Copy resume command
   are visible per design and explicitly unavailable in this slice — no
@@ -153,8 +164,11 @@ grant approvals, answer questions, or touch the task store.
   future server.
 - Whether harness fixture labels should track live backend qualification names or
   remain design specimen copy.
-- Adaptive browser states for loading/error need owner-approved v2 specimens
-  before claiming design fidelity.
+- First-load skeletons are approved at `9d19fd7`; adaptive/error browser
+  states still need owner-approved specimens before claiming fidelity.
+- Pixel-level light/dark captures at 1280×800 for every new loading scenario
+  were not archived this slice; unit tests and `/preview` reachability cover
+  behaviour. Re-capture under `docs/visual-validation.md` when storing PNGs.
 - Whether not-installed Install should remain visible-but-unavailable or wait for
   an approved install flow before appearing in product Web.
 - Accepted engine semantics for success rate, median duration, and reported cost

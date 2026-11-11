@@ -41,6 +41,7 @@ function RunViewActions({
             disabled
             aria-disabled="true"
             aria-pressed={active === view}
+            aria-current={active === view ? 'page' : undefined}
           >
             {view === 'graph' ? 'Graph' : 'Parallel'}
           </button>

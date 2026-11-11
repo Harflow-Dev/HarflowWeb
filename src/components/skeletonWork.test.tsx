@@ -85,7 +85,7 @@ describe('SidebarListingSkeleton', () => {
     expect(
       within(aside).getByRole('group', { name: 'Loading tasks' }),
     ).toHaveAttribute('aria-busy', 'true')
-    expect(within(aside).getByRole('status')).toHaveTextContent('Loading tasks')
+    expect(within(aside).getByText('Loading tasks…')).toBeInTheDocument()
     expect(screen.queryByText('Fix flaky slot release test')).toBeNull()
     expect(screen.queryByText('3')).toBeNull()
     expect(aside.querySelectorAll('.hd-skel--shimmer').length).toBeGreaterThan(0)

@@ -40,7 +40,11 @@ export function SettingsRuntimeSection({
   readonly onUnavailable: (label: string) => void
 }) {
   return (
-    <section aria-label="Harflow runtime" style={SECTION_STYLE}>
+    <section
+      aria-label="Harflow runtime"
+      aria-busy={loading ? true : undefined}
+      style={SECTION_STYLE}
+    >
       <h2 className="label hd-faint" style={{ margin: 0, fontWeight: 500 }}>
         Harflow runtime
       </h2>
@@ -79,7 +83,11 @@ export function SettingsStoreSection({
   readonly onUnavailable: (label: string) => void
 }) {
   return (
-    <section aria-label="Task store" style={SECTION_STYLE}>
+    <section
+      aria-label="Task store"
+      aria-busy={loading ? true : undefined}
+      style={SECTION_STYLE}
+    >
       <h2 className="label hd-faint" style={{ margin: 0, fontWeight: 500 }}>
         Task store
       </h2>

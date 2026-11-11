@@ -150,6 +150,11 @@ function McpApprovalsPanelSkeleton() {
 }
 
 /**
+ * Assumption: the expanded harness is the first row. Placeholder rows are
+ * anonymous before data arrives, so the approvals placeholder always sits
+ * under row 0 regardless of the expanded id (Claude Code, the preview seed,
+ * is first in the fixture).
+ *
  * Settings MCP approvals first-load. One harness is expanded (session state),
  * so only the first row carries an approvals placeholder; on ready the same
  * harness stays expanded and its approvals replace the placeholders. This

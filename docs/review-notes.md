@@ -29,7 +29,9 @@ grant approvals, answer questions, or touch the task store.
 - **Deviation:** `settings/loading-mcp-approvals` draws the approvals
   placeholder under one expanded harness (the first row), not under every row
   as the Design drawing does, so it matches the loaded page where exactly one
-  harness is expanded. The expanded harness id is session state
+  harness is expanded. The skeleton assumes the expanded harness is the first
+  row, because placeholder rows are anonymous before data arrives. The
+  expanded harness id is session state
   (`harnesses.expandedId`); the preview seeds it and it persists into ready.
 - Task loading keeps the task title visible in the top bar when the sidebar
   row maps to it (owner decision); only the badge, meta and transcript shimmer.
@@ -41,7 +43,13 @@ grant approvals, answer questions, or touch the task store.
   icon, Cancel run, More actions), workflow editor top bar (More actions,
   icons, working Back), task top bar (disabled Toggle right pane), and five
   Resources cards (the loaded mock renders five harnesses).
-- Busy skeleton groups carry a visually hidden polite `role="status"` line.
+- Busy skeleton groups carry a visually hidden loading label (plain text, not
+  a live region). `StatusRegion` stays the single polite live region and
+  announces the main screen's first-load label ("Loading workflows", …) from
+  `features/mainLoadingLabel.ts`; its text changes when the screen enters and
+  leaves first load.
+- Settings General marks `aria-busy` only on the sections still loading
+  (Behaviour, Harflow runtime, Task store); the Theme control stays usable.
 - Specimen copy “Choices are remembered per repository” is not implemented;
   selection is one global set for the mock session.
 - New task follows the owner-approved centered composer amendment

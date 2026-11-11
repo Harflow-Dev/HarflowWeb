@@ -2,6 +2,7 @@ import { useSyncExternalStore } from 'react'
 import { MockBadge, Sidebar, StatusRegion } from '../components'
 import { needsYouBadge } from '../model'
 import type { AppPresenter } from '../presentation'
+import { mainLoadingLabel } from './mainLoadingLabel'
 import { NeedsYouMain } from './NeedsYouMain'
 import { NewTaskMain } from './NewTaskMain'
 import { ParallelGroupMain } from './ParallelGroupMain'
@@ -138,6 +139,7 @@ export function AppFeature({ presenter }: Props) {
         submission={newTask.submission}
         contextNote={contextNote}
         unavailableNav={ephemeral.note}
+        loadingNote={mainLoadingLabel(state)}
       />
     </div>
   )

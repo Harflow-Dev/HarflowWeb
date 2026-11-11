@@ -1,13 +1,13 @@
 import type { CSSProperties, ReactNode } from 'react'
 import { SKEL_TITLE_WIDTHS, type SkelShape } from './skeletonConstants'
 
-/** Visually hidden polite announcement inside a busy skeleton group. */
+/**
+ * Visually hidden loading label inside a busy skeleton group. It is not a
+ * live region: `StatusRegion` is the one polite region and announces the main
+ * screen's loading label (see `mainLoadingLabel`).
+ */
 export function SkelStatus({ children }: { readonly children: ReactNode }) {
-  return (
-    <p role="status" className="hd-sr">
-      {children}
-    </p>
-  )
+  return <p className="hd-sr">{children}</p>
 }
 
 function size(v: number | string): string {

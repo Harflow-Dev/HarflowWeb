@@ -125,4 +125,22 @@ describe('HarnessesSession', () => {
     expect(encoded).not.toContain('Ready')
     expect(session.getState().load).toEqual(unavailableHarnessesLoad())
   })
+
+  it('collapses an expanded id missing from a ready observation and keeps a present one', () => {
+    const { port, capture } = createCapturingPort()
+    const session = new HarnessesSession(createLoadHarnessesUseCase(port))
+    session.start()
+    session.setExpandedId('claude-code')
+    expect(session.getState().expandedId).toBe('claude-code')
+    capture()!(populatedHarnessesLoad())
+    expect(session.getState().expandedId).toBe('claude-code')
+
+    session.setExpandedId('no-such-harness')
+    capture()!(populatedHarnessesLoad())
+    expect(session.getState().expandedId).toBeNull()
+
+    session.setExpandedId('no-such-harness')
+    capture()!(unavailableHarnessesLoad())
+    expect(session.getState().expandedId).toBe('no-such-harness')
+  })
 })

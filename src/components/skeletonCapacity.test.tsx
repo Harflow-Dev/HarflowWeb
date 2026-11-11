@@ -42,7 +42,7 @@ describe('Capacity and settings loading skeletons', () => {
         onUnavailable={() => undefined}
       />,
     )
-    expect(screen.getByRole('status')).toHaveTextContent('Loading settings')
+    expect(screen.getByText(/Loading settings/)).toBeInTheDocument()
     expect(screen.getByText('Behaviour')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Check for updates' })).toBeDisabled()
     expect(screen.getByRole('group', { name: 'Theme' })).toBeInTheDocument()
@@ -55,20 +55,20 @@ describe('Capacity and settings loading skeletons', () => {
       'aria-busy',
       'true',
     )
-    expect(screen.getByRole('status')).toHaveTextContent('Loading harness')
+    expect(screen.getByText(/Loading harness/)).toBeInTheDocument()
     expect(screen.getByText('Harness qualification')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Refresh' })).toBeDisabled()
     expect(screen.queryByTestId('mcp-approvals-skeleton')).toBeNull()
 
     rerender(<SettingsMcpApprovalsLoading />)
-    expect(screen.getByRole('status')).toHaveTextContent('Loading MCP approvals')
+    expect(screen.getByText(/Loading MCP approvals/)).toBeInTheDocument()
     expect(screen.getAllByTestId('mcp-approvals-skeleton')).toHaveLength(1)
   })
 
   it('announces loading politely in each capacity skeleton', () => {
     const { rerender } = render(<ResourcesLoadingPage />)
-    expect(screen.getByRole('status')).toHaveTextContent('Loading resources')
+    expect(screen.getByText(/Loading resources/)).toBeInTheDocument()
     rerender(<StatisticsLoadingBody />)
-    expect(screen.getByRole('status')).toHaveTextContent('Loading statistics')
+    expect(screen.getByText(/Loading statistics/)).toBeInTheDocument()
   })
 })

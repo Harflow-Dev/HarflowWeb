@@ -47,10 +47,7 @@ export function SettingsPage({
         Settings
       </h1>
       <SettingsSectionTabs section={section} onSection={onSection} />
-      <SettingsSectionPanel
-        section={section}
-        busy={(section === 'harnesses' ? harnesses : general).kind === 'loading'}
-      >
+      <SettingsSectionPanel section={section}>
         {section === 'harnesses' ? (
           <SettingsHarnesses
             load={harnesses}

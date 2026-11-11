@@ -2414,6 +2414,21 @@ describe('AppFeature first-load skeletons', () => {
     expect(presenter.getState().workflows.load.kind).toBe('ready')
   })
 
+  it('announces the main screen loading label in the single live region', async () => {
+    const user = userEvent.setup()
+    const engine = createTestEngine({ deferWorkflows: true })
+    renderApp(engine.port)
+    await flush()
+    const live = screen.getByRole('status')
+    expect(live).toHaveTextContent('')
+    await user.click(screen.getByRole('button', { name: 'Workflows' }))
+    expect(live).toHaveTextContent('Loading workflows')
+    expect(screen.getAllByRole('status')).toHaveLength(1)
+    engine.publishWorkflows({ kind: 'ready', workflows: POPULATED_WORKFLOWS })
+    await flush()
+    expect(live).toHaveTextContent('')
+  })
+
   it('shows workflow editor loading and clears after close mid-load', async () => {
     const user = userEvent.setup()
     const engine = createTestEngine({ deferWorkflowEditor: true })
@@ -2547,16 +2562,18 @@ describe('AppFeature first-load skeletons', () => {
     const { presenter } = renderApp(engine.port)
     await flush()
     await user.click(screen.getByRole('button', { name: 'Settings' }))
-    const panel = screen.getByRole('tabpanel')
-    expect(panel).toHaveAttribute('aria-busy', 'true')
-    expect(within(panel).getByRole('status')).toHaveTextContent('Loading settings')
+    const runtime = screen.getByRole('region', { name: 'Harflow runtime' })
+    expect(runtime).toHaveAttribute('aria-busy', 'true')
+    expect(screen.getByRole('tabpanel')).not.toHaveAttribute('aria-busy')
+    expect(screen.getByRole('status')).toHaveTextContent('Loading settings')
     expect(screen.getByText('Behaviour')).toBeInTheDocument()
     const theme = within(screen.getByRole('main')).getByRole('group', {
       name: 'Theme',
     })
     engine.publishSettingsGeneral(populatedSettingsGeneralLoad())
     await flush()
-    expect(screen.getByRole('tabpanel')).not.toHaveAttribute('aria-busy')
+    expect(screen.getByRole('region', { name: 'Harflow runtime' })).not.toHaveAttribute('aria-busy')
+    expect(screen.getByRole('status')).toHaveTextContent('')
     expect(
       within(screen.getByRole('main')).getByRole('group', { name: 'Theme' }),
     ).toBe(theme)

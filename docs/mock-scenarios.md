@@ -98,7 +98,9 @@ observation and clears the prior diff immediately. Settings → Harnesses observ
 fixture fields. Approval entries belong to that harness id. A later loading
 or unavailable result drops the previous ready rows. Refresh, update, remove,
 Add approval, and Remove approval stay disabled and do not re-observe or edit
-the list. The MCP approvals control only expands the selected harness.
+the list. The MCP approvals control only expands the selected harness. The
+expanded harness is session state, so it persists across navigation and
+through loading; a ready observation that does not list it collapses it.
 Needs you observes `observeNeedsYou(…)`. The sidebar count is that
 observation: three waiting items on the populated fixture, no count on the
 empty scenario, and no zero when the observation is loading or unavailable.

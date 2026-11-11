@@ -229,18 +229,23 @@ describe('mid-load navigation', () => {
   it('settings general: a result delivered while away is shown on return', async () => {
     const app = await mount('settings-loading-general')
     await act(async () => app.presenter.navigate('settings'))
-    expect(screen.getByRole('tabpanel')).toHaveAttribute('aria-busy', 'true')
+    expect(screen.getByRole('region', { name: 'Task store' })).toHaveAttribute(
+      'aria-busy',
+      'true',
+    )
     await act(async () => app.presenter.navigate('new-task'))
     await deliver(() => app.mock.publishSettingsGeneral(populatedSettingsGeneralLoad()))
     await act(async () => app.presenter.navigate('settings'))
-    expect(screen.getByRole('tabpanel')).not.toHaveAttribute('aria-busy')
+    expect(screen.getByRole('region', { name: 'Task store' })).not.toHaveAttribute(
+      'aria-busy',
+    )
     expect(screen.getByText('Harflow runtime 0.9.3 is ready')).toBeInTheDocument()
   })
 })
 
 type Expected =
   | { readonly role: 'group'; readonly name: string }
-  | { readonly role: 'tabpanel' }
+  | { readonly role: 'region'; readonly name: string }
 
 const BUSY: Readonly<Record<string, Expected>> = {
   'new-task-loading': { role: 'group', name: 'Loading New task' },
@@ -253,7 +258,7 @@ const BUSY: Readonly<Record<string, Expected>> = {
   'parallel-group-loading': { role: 'group', name: 'Loading Parallel group' },
   'resources-loading': { role: 'group', name: 'Loading Resources' },
   'statistics-loading': { role: 'group', name: 'Loading Statistics' },
-  'settings-loading-general': { role: 'tabpanel' },
+  'settings-loading-general': { role: 'region', name: 'Task store' },
   'settings-loading-harnesses': { role: 'group', name: 'Loading Harnesses' },
   'settings-loading-mcp-approvals': { role: 'group', name: 'Loading MCP approvals' },
 }
@@ -277,8 +282,8 @@ describe('loading scenario catalog through the preview seeding path', () => {
       render(<PreviewShell />)
       const busy = await waitFor(() => {
         const found =
-          expected.role === 'tabpanel'
-            ? screen.getByRole('tabpanel')
+          expected.role === 'region'
+            ? screen.getByRole('region', { name: expected.name })
             : screen.getByRole('group', { name: expected.name })
         expect(found).toHaveAttribute('aria-busy', 'true')
         return found

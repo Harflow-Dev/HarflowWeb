@@ -98,6 +98,7 @@ function BehaviourSection({ loading }: { readonly loading: boolean }) {
   return (
     <section
       aria-label="Behaviour"
+      aria-busy={loading ? true : undefined}
       style={{
         display: 'flex',
         flexDirection: 'column',

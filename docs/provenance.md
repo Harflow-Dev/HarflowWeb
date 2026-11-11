@@ -53,7 +53,8 @@
   remeasured while open on viewport or compose-area resize. Pending and
   unknown outcomes disable Start and lock repository, harness, model, access,
   and option fields; unknown also refuses another launch. The compose status
-  line is visual only; `StatusRegion` is the sole polite live region. Unknown
+  line is visual only; `StatusRegion` is the sole polite live region (it also announces the main
+  screen's first-load label; skeleton labels are plain hidden text). Unknown
   specimen copy mentions Review Recent work; that action navigates to the
   design's `history-retained` board, which this mock does not implement, so
   the button is omitted. Option values are presentation state in this mock and

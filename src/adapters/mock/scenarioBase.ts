@@ -8,6 +8,7 @@ import { populatedHarnessesLoad } from './harnessFixtures'
 import { waitingNeedsYouLoad } from './needsYouFixtures'
 import { populatedResourcesLoad } from './resourceFixtures'
 import type {
+  DeferredSurface,
   ScenarioDefinition,
   StatisticsScenario,
   TaskChangesScenario,
@@ -41,6 +42,9 @@ const tasks: TasksScenario = 'default'
 const taskChanges: TaskChangesScenario = 'default'
 const harnesses = populatedHarnessesLoad()
 const needsYou = waitingNeedsYouLoad()
+const workflowEditors: DeferredSurface = 'default'
+const workflowExecutions: DeferredSurface = 'default'
+const parallelGroups: DeferredSurface = 'default'
 
 export function base(
   partial: Omit<
@@ -52,6 +56,9 @@ export function base(
     | 'taskChanges'
     | 'harnesses'
     | 'needsYou'
+    | 'workflowEditors'
+    | 'workflowExecutions'
+    | 'parallelGroups'
   > &
     Partial<
       Pick<
@@ -63,6 +70,9 @@ export function base(
         | 'taskChanges'
         | 'harnesses'
         | 'needsYou'
+        | 'workflowEditors'
+        | 'workflowExecutions'
+        | 'parallelGroups'
         | 'seed'
       >
     >,
@@ -75,6 +85,9 @@ export function base(
     taskChanges,
     harnesses,
     needsYou,
+    workflowEditors,
+    workflowExecutions,
+    parallelGroups,
     ...partial,
   }
 }

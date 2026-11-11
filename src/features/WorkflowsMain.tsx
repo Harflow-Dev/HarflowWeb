@@ -1,4 +1,8 @@
 import { Icon, WorkflowEditorView, WorkflowRunForm, WorkflowsPage } from '../components'
+import {
+  WorkflowEditorLoadingPage,
+  WorkflowsLoadingPage,
+} from '../components/skeleton'
 import type {
   RepositoryId,
   WorkflowId,
@@ -152,6 +156,9 @@ function EditorBody({
   readonly onClose: () => void
   readonly onSelect: (id: WorkflowNodeId) => void
 }) {
+  if (editor.load.kind === 'loading') {
+    return <WorkflowEditorLoadingPage />
+  }
   if (editor.load.kind !== 'ready') {
     return (
       <>
@@ -162,9 +169,7 @@ function EditorBody({
           </button>
         </div>
         <p className="caption hd-faint" role="status">
-          {editor.load.kind === 'loading'
-            ? 'Loading workflow… (proposal — not a design-approved specimen)'
-            : editor.load.message}
+          {editor.load.message}
         </p>
       </>
     )
@@ -181,17 +186,16 @@ function EditorBody({
 }
 
 function ListStatus({ state }: { readonly state: WorkflowsScreenState }) {
+  if (state.load.kind === 'loading') {
+    return <WorkflowsLoadingPage />
+  }
   return (
     <div className="hd-page">
       <div className="hd-page__head">
         <h1 className="hd-page__title">Workflows</h1>
       </div>
       <p className="caption hd-faint" role="status">
-        {state.load.kind === 'loading'
-          ? 'Loading workflows… (proposal — not a design-approved specimen)'
-          : state.load.kind === 'unavailable'
-            ? state.load.message
-            : null}
+        {state.load.kind === 'unavailable' ? state.load.message : null}
       </p>
     </div>
   )

@@ -1,5 +1,10 @@
 import type { NewTaskScenarioSeed } from '../adapters/mock'
-import { asTaskId } from '../model'
+import {
+  asParallelGroupId,
+  asTaskId,
+  asWorkflowId,
+  asWorkflowRunId,
+} from '../model'
 import type {
   AppPresenter,
   ApprovalsMode,
@@ -30,6 +35,10 @@ export function applyNewTaskSeed(
     presenter.setOpenMenu(seed.openMenu as OpenMenu)
   }
   if (seed.autoSubmit === true) presenter.submit()
+  if (seed.openRoute !== undefined) presenter.navigate(seed.openRoute)
+  if (seed.settingsSection !== undefined) {
+    presenter.selectSettingsSection(seed.settingsSection)
+  }
   if (seed.openTaskId !== undefined) {
     presenter.openTask(asTaskId(seed.openTaskId))
     if (seed.eventsPaneOpen === true) {
@@ -40,5 +49,19 @@ export function applyNewTaskSeed(
         presenter.setTaskChangesPaneOpen(true)
       })
     }
+  }
+  if (seed.openWorkflowEditorId !== undefined) {
+    presenter.openWorkflowEditor(asWorkflowId(seed.openWorkflowEditorId))
+  }
+  if (seed.openWorkflowExecutionId !== undefined) {
+    presenter.openWorkflowExecution(
+      asWorkflowRunId(seed.openWorkflowExecutionId),
+    )
+    if (seed.workflowRunView === 'parallel') {
+      presenter.setWorkflowRunViewMode('parallel')
+    }
+  }
+  if (seed.openParallelGroupId !== undefined) {
+    presenter.openParallelGroup(asParallelGroupId(seed.openParallelGroupId))
   }
 }

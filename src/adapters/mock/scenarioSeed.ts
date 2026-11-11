@@ -27,4 +27,17 @@ export type NewTaskScenarioSeed = {
   readonly openTaskId?: string
   /** Open the right pane (Events for transcript states; Changes otherwise). */
   readonly eventsPaneOpen?: boolean
+  /** Navigate to a main route after context is ready. */
+  readonly openRoute?:
+    | 'new-task'
+    | 'workflows'
+    | 'resources'
+    | 'statistics'
+    | 'settings'
+    | 'needs-you'
+  readonly openWorkflowEditorId?: string
+  readonly openWorkflowExecutionId?: string
+  readonly openParallelGroupId?: string
+  readonly workflowRunView?: 'graph' | 'parallel'
+  readonly settingsSection?: 'general' | 'harnesses'
 }

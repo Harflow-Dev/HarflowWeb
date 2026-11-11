@@ -159,6 +159,71 @@ export const SCENARIOS: readonly ScenarioDefinition[] = [
     holdStart: false,
   }),
   base({
+    id: 'workflows-loading',
+    label: 'Workflows loading',
+    description:
+      'Approved workflows/loading skeleton (Design 9d19fd7). Deferred workflows list.',
+    context: readyContext(),
+    workflows: 'defer',
+    startOutcome: accepted,
+    holdStart: false,
+    seed: { openRoute: 'workflows' },
+  }),
+  base({
+    id: 'workflow-editor-loading',
+    label: 'Workflow editor loading',
+    description:
+      'Approved workflow-editor/loading skeleton (Design 9d19fd7). Deferred editor for Release checklist.',
+    context: readyContext(),
+    workflowEditors: 'defer',
+    startOutcome: accepted,
+    holdStart: false,
+    seed: {
+      openRoute: 'workflows',
+      openWorkflowEditorId: 'wf-release-checklist',
+    },
+  }),
+  base({
+    id: 'workflow-run-loading',
+    label: 'Workflow run loading',
+    description:
+      'Approved workflow-run/loading skeleton (Design 9d19fd7) mirroring on-demand.',
+    context: readyContext(),
+    workflowExecutions: 'defer',
+    startOutcome: accepted,
+    holdStart: false,
+    seed: {
+      openRoute: 'workflows',
+      openWorkflowExecutionId: 'run-nightly-dependency-audit',
+    },
+  }),
+  base({
+    id: 'workflow-run-loading-parallel',
+    label: 'Workflow run loading · Parallel',
+    description:
+      'Approved workflow-run/loading-parallel skeleton (Design 9d19fd7).',
+    context: readyContext(),
+    workflowExecutions: 'defer',
+    startOutcome: accepted,
+    holdStart: false,
+    seed: {
+      openRoute: 'workflows',
+      openWorkflowExecutionId: 'run-nightly-dependency-audit',
+      workflowRunView: 'parallel',
+    },
+  }),
+  base({
+    id: 'parallel-group-loading',
+    label: 'Parallel group loading',
+    description:
+      'Approved parallel-group/loading skeleton (Design 9d19fd7) for Review preload bridge.',
+    context: readyContext(),
+    parallelGroups: 'defer',
+    startOutcome: accepted,
+    holdStart: false,
+    seed: { openParallelGroupId: 'parallel-group-preload-bridge' },
+  }),
+  base({
     id: 'resources-slots',
     label: 'Resources slots',
     description: 'Approved resources/slots specimen data.',

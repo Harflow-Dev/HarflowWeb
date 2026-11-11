@@ -11,6 +11,10 @@ import {
   type WorkflowRunViewMode,
 } from '../presentation'
 import { Icon } from './Icon'
+import {
+  WorkflowRunLoadingPage,
+  WorkflowRunParallelLoadingPage,
+} from './skeleton'
 import { WorkflowRunCanvas } from './WorkflowRunCanvas'
 import { WorkflowRunDetail } from './WorkflowRunDetail'
 import { WorkflowRunOnDemandPane } from './WorkflowRunOnDemandPane'
@@ -49,7 +53,11 @@ export function WorkflowRunView({
 }: Props) {
   const reviewerButton = useRef<HTMLButtonElement>(null)
   if (load.kind === 'loading') {
-    return <p role="status">Loading workflow run…</p>
+    return activeView === 'parallel' ? (
+      <WorkflowRunParallelLoadingPage />
+    ) : (
+      <WorkflowRunLoadingPage />
+    )
   }
   if (load.kind === 'unavailable') {
     return <p role="status">{load.message}</p>

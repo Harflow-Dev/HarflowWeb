@@ -33,6 +33,8 @@ export type TaskChangesScenario =
   | 'defer'
   | ((query: TaskChangesQuery) => TaskChangesLoad)
 
+export type DeferredSurface = 'default' | 'defer'
+
 /**
  * Deterministic preview scenarios for /preview.
  * Scenario controls stay off the main product composition.
@@ -49,6 +51,11 @@ export type ScenarioId =
   | 'stale-response'
   | 'workflows-populated'
   | 'workflows-empty'
+  | 'workflows-loading'
+  | 'workflow-editor-loading'
+  | 'workflow-run-loading'
+  | 'workflow-run-loading-parallel'
+  | 'parallel-group-loading'
   | 'resources-slots'
   | 'statistics-overview'
   | 'task-running'
@@ -97,6 +104,9 @@ export type ScenarioDefinition = {
   readonly taskChanges: TaskChangesScenario
   readonly harnesses: HarnessesLoad | 'defer'
   readonly needsYou: NeedsYouLoad | 'defer'
+  readonly workflowEditors: DeferredSurface
+  readonly workflowExecutions: DeferredSurface
+  readonly parallelGroups: DeferredSurface
   readonly startOutcome: StartTaskOutcome
   readonly holdStart: boolean
   readonly seed?: NewTaskScenarioSeed

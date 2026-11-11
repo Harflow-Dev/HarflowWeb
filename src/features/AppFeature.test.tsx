@@ -24,6 +24,7 @@ import {
   asTaskId,
   asWorkflowId,
   asWorkflowNodeId,
+  asWorkflowRunId,
   type ContextLoad,
   type ObservationHandle,
   type ParallelGroupId,
@@ -96,6 +97,9 @@ function createTestEngine(options?: {
   workflows?: WorkflowsLoad
   deferContext?: boolean
   sidebarListingLoading?: boolean
+  deferWorkflows?: boolean
+  deferWorkflowEditor?: boolean
+  deferWorkflowExecution?: boolean
   deferStatisticsRanges?: readonly StatisticsRangeId[]
   deferTaskIds?: readonly TaskId[]
   deferParallelGroupIds?: readonly ParallelGroupId[]
@@ -119,10 +123,15 @@ function createTestEngine(options?: {
   captureWorkflowRun: (
     id: WorkflowId,
   ) => ((load: WorkflowRunContextLoad) => void) | null
+  publishWorkflows: (load: WorkflowsLoad) => void
   publishWorkflowEditor: (id: WorkflowId, load: WorkflowEditorLoad) => void
   captureWorkflowEditor: (
     id: WorkflowId,
   ) => ((load: WorkflowEditorLoad) => void) | null
+  publishWorkflowExecution: (
+    id: import('../model').WorkflowRunId,
+    load: import('../model').WorkflowRunLoad,
+  ) => void
   captureParallelGroup: (
     id: ParallelGroupId,
   ) => ((load: ParallelGroupLoad) => void) | null
@@ -138,6 +147,7 @@ function createTestEngine(options?: {
   const deferredTasks = new Set(options?.deferTaskIds ?? [])
   const deferredParallelGroups = new Set(options?.deferParallelGroupIds ?? [])
   const contextListeners = new Set<(load: ContextLoad) => void>()
+  const workflowListeners = new Set<(load: WorkflowsLoad) => void>()
   const statsListeners = new Map<
     StatisticsRangeId,
     (load: StatisticsLoad) => void
@@ -155,6 +165,10 @@ function createTestEngine(options?: {
   const editorListeners = new Map<
     WorkflowId,
     (load: WorkflowEditorLoad) => void
+  >()
+  const executionListeners = new Map<
+    import('../model').WorkflowRunId,
+    (load: import('../model').WorkflowRunLoad) => void
   >()
   const parallelGroupListeners = new Map<
     ParallelGroupId,
@@ -181,11 +195,16 @@ function createTestEngine(options?: {
       return handle
     },
     observeWorkflows(onUpdate) {
-      queueMicrotask(() => onUpdate(workflows))
+      workflowListeners.add(onUpdate)
+      queueMicrotask(() =>
+        onUpdate(
+          options?.deferWorkflows ? { kind: 'loading' } : workflows,
+        ),
+      )
       return {
         id: asObservationId('ui-wf'),
         cancel() {
-          /* no-op */
+          workflowListeners.delete(onUpdate)
         },
       }
     },
@@ -205,7 +224,9 @@ function createTestEngine(options?: {
     },
     observeWorkflowEditor(workflowId, onUpdate) {
       editorListeners.set(workflowId, onUpdate)
-      queueMicrotask(() => onUpdate(workflowEditorLoadFor(workflowId)))
+      if (!options?.deferWorkflowEditor) {
+        queueMicrotask(() => onUpdate(workflowEditorLoadFor(workflowId)))
+      }
       return {
         id: asObservationId('ui-workflow-editor'),
         cancel() {
@@ -216,11 +237,16 @@ function createTestEngine(options?: {
       }
     },
     observeWorkflowExecution(runId, onUpdate) {
-      queueMicrotask(() => onUpdate(workflowExecutionLoadFor(runId)))
+      executionListeners.set(runId, onUpdate)
+      if (!options?.deferWorkflowExecution) {
+        queueMicrotask(() => onUpdate(workflowExecutionLoadFor(runId)))
+      }
       return {
         id: asObservationId('ui-workflow-execution'),
         cancel() {
-          /* run lifetime is covered in its session tests */
+          if (executionListeners.get(runId) === onUpdate) {
+            executionListeners.delete(runId)
+          }
         },
       }
     },
@@ -328,8 +354,14 @@ function createTestEngine(options?: {
     publishContext(load) {
       for (const listener of contextListeners) listener(load)
     },
+    publishWorkflows(load) {
+      for (const listener of workflowListeners) listener(load)
+    },
     publishStatistics(range, load) {
       statsListeners.get(range)?.(load)
+    },
+    publishWorkflowExecution(id, load) {
+      executionListeners.get(id)?.(load)
     },
     publishTask(taskId, load) {
       taskListeners.get(taskId)?.(load)
@@ -2299,5 +2331,86 @@ describe('AppFeature first-load skeletons', () => {
     await user.click(within(nav).getByRole('button', { name: /New task/ }))
     expect(presenter.getState().route).toBe('new-task')
     expect(screen.queryByRole('group', { name: 'Loading Task' })).toBeNull()
+  })
+
+  it('shows workflows loading then replaces it when the list arrives', async () => {
+    const user = userEvent.setup()
+    const engine = createTestEngine({ deferWorkflows: true })
+    const { presenter } = renderApp(engine.port)
+    await flush()
+    await user.click(screen.getByRole('button', { name: 'Workflows' }))
+    expect(screen.getByRole('group', { name: 'Loading Workflows' })).toHaveAttribute(
+      'aria-busy',
+      'true',
+    )
+    expect(screen.queryByText('Release checklist')).toBeNull()
+    engine.publishWorkflows({
+      kind: 'ready',
+      workflows: POPULATED_WORKFLOWS,
+    })
+    await flush()
+    expect(screen.queryByRole('group', { name: 'Loading Workflows' })).toBeNull()
+    expect(screen.getByText('Release checklist')).toBeInTheDocument()
+    expect(presenter.getState().workflows.load.kind).toBe('ready')
+  })
+
+  it('shows workflow editor loading and clears after close mid-load', async () => {
+    const user = userEvent.setup()
+    const engine = createTestEngine({ deferWorkflowEditor: true })
+    const { presenter } = renderApp(engine.port)
+    await flush()
+    await user.click(screen.getByRole('button', { name: 'Workflows' }))
+    presenter.openWorkflowEditor(RELEASE_WORKFLOW_ID)
+    await flush()
+    expect(
+      screen.getByRole('group', { name: 'Loading Workflow editor' }),
+    ).toHaveAttribute('aria-busy', 'true')
+    const nav = screen.getByRole('navigation', { name: 'Main' })
+    await user.click(within(nav).getByRole('button', { name: /New task/ }))
+    expect(screen.queryByRole('group', { name: 'Loading Workflow editor' })).toBeNull()
+  })
+
+  it('shows workflow run graph and parallel loading skeletons', async () => {
+    const user = userEvent.setup()
+    const engine = createTestEngine({ deferWorkflowExecution: true })
+    const { presenter } = renderApp(engine.port)
+    await flush()
+    const runId = asWorkflowRunId('run-nightly-dependency-audit')
+    presenter.navigate('workflows')
+    presenter.openWorkflowExecution(runId)
+    await flush()
+    expect(screen.getByRole('group', { name: 'Loading Workflow run' })).toHaveAttribute(
+      'aria-busy',
+      'true',
+    )
+    expect(screen.getByLabelText('Workflow steps')).toBeInTheDocument()
+    presenter.setWorkflowRunViewMode('parallel')
+    await flush()
+    expect(screen.getByLabelText('Parallel lanes')).toBeInTheDocument()
+    engine.publishWorkflowExecution(runId, workflowExecutionLoadFor(runId))
+    await flush()
+    expect(screen.queryByRole('group', { name: 'Loading Workflow run' })).toBeNull()
+    await user.click(within(screen.getByRole('navigation', { name: 'Main' })).getByRole('button', { name: /New task/ }))
+    expect(presenter.getState().workflowExecution.runId).toBeNull()
+  })
+
+  it('shows parallel group loading then replaces on ready', async () => {
+    const user = userEvent.setup()
+    const engine = createTestEngine({
+      deferParallelGroupIds: [PRELOAD_PARALLEL_GROUP_ID],
+    })
+    const { presenter } = renderApp(engine.port)
+    await flush()
+    await user.click(screen.getByRole('button', { name: /Review preload bridge/ }))
+    expect(
+      screen.getByRole('group', { name: 'Loading Parallel group' }),
+    ).toHaveAttribute('aria-busy', 'true')
+    engine.publishParallelGroup(
+      PRELOAD_PARALLEL_GROUP_ID,
+      parallelGroupLoadFor(PRELOAD_PARALLEL_GROUP_ID),
+    )
+    await flush()
+    expect(screen.queryByRole('group', { name: 'Loading Parallel group' })).toBeNull()
+    expect(presenter.getState().parallelGroup.load.kind).toBe('ready')
   })
 })

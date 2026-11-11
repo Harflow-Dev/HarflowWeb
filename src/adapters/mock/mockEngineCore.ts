@@ -175,7 +175,11 @@ export function buildMockEnginePort(options: {
         listeners.workflowEditors,
         workflowId,
         onUpdate,
-        (id) => workflowEditorLoadFor(id),
+        (id) => {
+          const scenario = getScenario()
+          if (scenario.workflowEditors === 'defer') return { kind: 'loading' }
+          return workflowEditorLoadFor(id)
+        },
       )
     },
     observeWorkflowExecution(runId, onUpdate) {
@@ -183,7 +187,11 @@ export function buildMockEnginePort(options: {
         listeners.workflowExecutions,
         runId,
         onUpdate,
-        (id) => workflowExecutionLoadFor(id),
+        (id) => {
+          const scenario = getScenario()
+          if (scenario.workflowExecutions === 'defer') return { kind: 'loading' }
+          return workflowExecutionLoadFor(id)
+        },
       )
     },
     observeParallelGroup(groupId, onUpdate) {
@@ -191,7 +199,11 @@ export function buildMockEnginePort(options: {
         listeners.parallelGroups,
         groupId,
         onUpdate,
-        (id) => parallelGroupLoadFor(id),
+        (id) => {
+          const scenario = getScenario()
+          if (scenario.parallelGroups === 'defer') return { kind: 'loading' }
+          return parallelGroupLoadFor(id)
+        },
       )
     },
     observeHarnesses(onUpdate) {

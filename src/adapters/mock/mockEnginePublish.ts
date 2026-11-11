@@ -100,13 +100,25 @@ function republishSurfaces(
     listener.send(workflowRunLoadFor(listener.key))
   }
   for (const listener of listeners.workflowEditors) {
-    listener.send(workflowEditorLoadFor(listener.key))
+    listener.send(
+      scenario.workflowEditors === 'defer'
+        ? { kind: 'loading' }
+        : workflowEditorLoadFor(listener.key),
+    )
   }
   for (const listener of listeners.workflowExecutions) {
-    listener.send(workflowExecutionLoadFor(listener.key))
+    listener.send(
+      scenario.workflowExecutions === 'defer'
+        ? { kind: 'loading' }
+        : workflowExecutionLoadFor(listener.key),
+    )
   }
   for (const listener of listeners.parallelGroups) {
-    listener.send(parallelGroupLoadFor(listener.key))
+    listener.send(
+      scenario.parallelGroups === 'defer'
+        ? { kind: 'loading' }
+        : parallelGroupLoadFor(listener.key),
+    )
   }
 }
 

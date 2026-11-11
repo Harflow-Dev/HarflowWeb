@@ -95,7 +95,12 @@ export class WorkflowExecutionSession {
   /** Presentation-only Graph / Parallel choice. Does not mutate the observation. */
   setViewMode(mode: WorkflowRunViewMode): void {
     const current = this.state
-    if (current.runId === null || current.load.kind !== 'ready') return
+    if (current.runId === null) return
+    if (current.load.kind === 'loading') {
+      this.publish({ ...current, viewMode: mode })
+      return
+    }
+    if (current.load.kind !== 'ready') return
     if (current.load.run.runId !== current.runId) return
     if (mode === 'parallel' && !workflowRunHasParallel(current.load.run)) return
     this.publish({ ...current, viewMode: mode })

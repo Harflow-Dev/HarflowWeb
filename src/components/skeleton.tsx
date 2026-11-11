@@ -20,3 +20,12 @@ export {
   TaskLoadingPage,
   TaskTranscriptSkeleton,
 } from './skeletonWork'
+export {
+  WorkflowEditorLoadingPage,
+  WorkflowsLoadingPage,
+} from './skeletonWorkflows'
+export {
+  ParallelGroupLoadingPage,
+  WorkflowRunLoadingPage,
+  WorkflowRunParallelLoadingPage,
+} from './skeletonWorkflowRun'

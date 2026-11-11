@@ -1,5 +1,6 @@
 import type { ParallelGroupLoad, WorkflowRunLane } from '../model'
 import { PARALLEL_GROUP_UNAVAILABLE } from '../model'
+import { ParallelGroupLoadingPage } from './skeleton'
 import { WorkflowRunLane as Lane } from './WorkflowRunLane'
 import {
   PARALLEL_GROUP_ACTION_EXPLANATION,
@@ -20,7 +21,7 @@ type Props = {
  */
 export function ParallelGroupView({ load }: Props) {
   if (load.kind === 'loading') {
-    return <p role="status">Loading parallel group…</p>
+    return <ParallelGroupLoadingPage />
   }
   if (load.kind === 'unavailable') {
     return <p role="status">{load.message}</p>

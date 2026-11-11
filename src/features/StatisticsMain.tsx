@@ -1,4 +1,5 @@
 import { StatisticsPage, StatisticsRangeBar } from '../components'
+import { StatisticsLoadingBody } from '../components/skeleton'
 import type { StatisticsRangeId } from '../model'
 import type { StatisticsScreenState } from '../presentation'
 
@@ -40,11 +41,12 @@ function StatisticsBody({ state }: { readonly state: StatisticsScreenState }) {
   if (state.load.kind === 'ready') {
     return <StatisticsPage observation={state.load.observation} />
   }
+  if (state.load.kind === 'loading') {
+    return <StatisticsLoadingBody />
+  }
   return (
     <p className="caption hd-faint" role="status">
-      {state.load.kind === 'loading'
-        ? 'Loading statistics… (proposal — not a design-approved specimen)'
-        : state.load.message}
+      {state.load.message}
     </p>
   )
 }

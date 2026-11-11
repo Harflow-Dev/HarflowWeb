@@ -11,6 +11,8 @@ type Props = {
   readonly onAppearance: (appearance: Appearance) => void
   readonly onUnavailable: (label: string) => void
   readonly harnesses: HarnessesLoad
+  readonly generalLoading?: boolean
+  readonly mcpApprovalsLoading?: boolean
 }
 
 /**
@@ -25,6 +27,8 @@ export function SettingsPage({
   onAppearance,
   onUnavailable,
   harnesses,
+  generalLoading = false,
+  mcpApprovalsLoading = false,
 }: Props) {
   return (
     <div
@@ -43,12 +47,16 @@ export function SettingsPage({
       <SettingsSectionTabs section={section} onSection={onSection} />
       <SettingsSectionPanel section={section}>
         {section === 'harnesses' ? (
-          <SettingsHarnesses load={harnesses} />
+          <SettingsHarnesses
+            load={harnesses}
+            mcpApprovalsLoading={mcpApprovalsLoading}
+          />
         ) : (
           <SettingsGeneral
             appearance={appearance}
             onAppearance={onAppearance}
             onUnavailable={onUnavailable}
+            loading={generalLoading}
           />
         )}
       </SettingsSectionPanel>

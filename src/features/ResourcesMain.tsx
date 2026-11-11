@@ -1,4 +1,5 @@
 import { ResourcesPage } from '../components'
+import { ResourcesLoadingPage } from '../components/skeleton'
 import type { ResourcesScreenState } from '../presentation'
 
 type Props = {
@@ -18,15 +19,15 @@ export function ResourcesMain({ state, onUnavailable }: Props) {
             observation={state.load.observation}
             onUnavailable={onUnavailable}
           />
+        ) : state.load.kind === 'loading' ? (
+          <ResourcesLoadingPage />
         ) : (
           <div className="hd-page">
             <div className="hd-page__head">
               <h1 className="hd-page__title">Resources</h1>
             </div>
             <p className="caption hd-faint" role="status">
-              {state.load.kind === 'loading'
-                ? 'Loading resources… (proposal — not a design-approved specimen)'
-                : state.load.message}
+              {state.load.message}
             </p>
           </div>
         )}

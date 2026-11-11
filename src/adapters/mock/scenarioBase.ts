@@ -18,7 +18,10 @@ import { populatedWorkflowsLoad } from './workflowFixtures'
 
 export function readyContext(
   sidebar = populatedSidebar(),
-  options?: { readonly sidebarListingLoading?: boolean },
+  options?: {
+    readonly sidebarListingLoading?: boolean
+    readonly settingsGeneralLoading?: boolean
+  },
 ): ContextLoad {
   return {
     kind: 'ready',
@@ -26,6 +29,9 @@ export function readyContext(
     sidebar,
     ...(options?.sidebarListingLoading === true
       ? { sidebarListingLoading: true }
+      : {}),
+    ...(options?.settingsGeneralLoading === true
+      ? { settingsGeneralLoading: true }
       : {}),
   }
 }

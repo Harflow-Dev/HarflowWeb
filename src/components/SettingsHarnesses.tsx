@@ -3,6 +3,10 @@ import type { HarnessesLoad, McpServerFact } from '../model'
 import { Icon, type IconName } from './Icon'
 import { HarnessListItem } from './SettingsHarnessRow'
 import { QualificationSection } from './SettingsHarnessQualification'
+import {
+  SettingsHarnessesLoading,
+  SettingsMcpApprovalsLoading,
+} from './skeleton'
 
 const UNAVAILABLE_ID = 'settings-harness-actions-unavailable'
 export const HARNESS_ACTION_EXPLANATION =
@@ -10,13 +14,22 @@ export const HARNESS_ACTION_EXPLANATION =
 
 type Props = {
   readonly load: HarnessesLoad
+  /** Prefer MCP-approvals skeleton while harnesses observation is deferred. */
+  readonly mcpApprovalsLoading?: boolean
 }
 
 /** Approved settings/harnesses composition. Mutations stay disabled. */
-export function SettingsHarnesses({ load }: Props) {
+export function SettingsHarnesses({
+  load,
+  mcpApprovalsLoading = false,
+}: Props) {
   const [openId, setOpenId] = useState<string | null>(null)
   if (load.kind === 'loading') {
-    return <p role="status">Loading harness registration…</p>
+    return mcpApprovalsLoading ? (
+      <SettingsMcpApprovalsLoading />
+    ) : (
+      <SettingsHarnessesLoading />
+    )
   }
   if (load.kind === 'unavailable') {
     return <p role="status">{load.message}</p>

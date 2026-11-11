@@ -215,8 +215,9 @@ describe('SettingsHarnesses', () => {
     const view = render(<SettingsHarnesses load={populatedHarnessesLoad()} />)
     expect(screen.getAllByText('Claude Code').length).toBeGreaterThan(0)
     view.rerender(<SettingsHarnesses load={{ kind: 'loading' }} />)
-    expect(screen.getByRole('status')).toHaveTextContent(
-      'Loading harness registration…',
+    expect(screen.getByRole('group', { name: 'Loading Settings' })).toHaveAttribute(
+      'aria-busy',
+      'true',
     )
     expect(screen.queryByText('Claude Code')).not.toBeInTheDocument()
     expect(screen.queryByText('Installed')).not.toBeInTheDocument()

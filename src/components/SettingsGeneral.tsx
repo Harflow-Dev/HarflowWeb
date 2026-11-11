@@ -1,16 +1,27 @@
 import type { Appearance } from '../model'
 import { Icon } from './Icon'
+import { SettingsGeneralLoading } from './skeleton'
 import { ThemeToggle } from './ThemeToggle'
 
 export function SettingsGeneral({
   appearance,
   onAppearance,
   onUnavailable,
+  loading = false,
 }: {
   readonly appearance: Appearance
   readonly onAppearance: (appearance: Appearance) => void
   readonly onUnavailable: (label: string) => void
+  readonly loading?: boolean
 }) {
+  if (loading) {
+    return (
+      <SettingsGeneralLoading
+        appearance={appearance}
+        onAppearance={onAppearance}
+      />
+    )
+  }
   return (
     <>
       <AppearanceSection appearance={appearance} onAppearance={onAppearance} />

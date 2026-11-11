@@ -40,4 +40,6 @@ export type NewTaskScenarioSeed = {
   readonly openParallelGroupId?: string
   readonly workflowRunView?: 'graph' | 'parallel'
   readonly settingsSection?: 'general' | 'harnesses'
+  /** Prefer the MCP-approvals loading pattern while harnesses are deferred. */
+  readonly settingsMcpApprovalsLoading?: boolean
 }

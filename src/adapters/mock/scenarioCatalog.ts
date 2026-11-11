@@ -3,6 +3,7 @@ import { emptySidebar, partialSidebar } from './fixtures'
 import { emptyNeedsYouLoad } from './needsYouFixtures'
 import { accepted, base, readyContext } from './scenarioBase'
 import { CENTERED_SCENARIOS } from './scenarioCatalogCentered'
+import { LOADING_SCENARIOS } from './scenarioCatalogLoading'
 import { TRANSCRIPT_SCENARIOS } from './scenarioCatalogTranscript'
 import type { ScenarioDefinition } from './scenarios'
 import { statisticsLoadFor } from './statisticsFixtures'
@@ -38,39 +39,6 @@ export const SCENARIOS: readonly ScenarioDefinition[] = [
       reason: 'Context is still loading.',
     },
     holdStart: false,
-  }),
-  base({
-    id: 'new-task-loading',
-    label: 'New task loading',
-    description:
-      'Approved new-task/loading skeleton (Design 9d19fd7). Deferred context; greeting and composer frame stay real.',
-    context: 'defer',
-    startOutcome: {
-      kind: 'refused',
-      code: 'unavailable',
-      reason: 'Context is still loading.',
-    },
-    holdStart: false,
-  }),
-  base({
-    id: 'sidebar-loading',
-    label: 'Sidebar loading',
-    description:
-      'Approved sidebar/loading (Design 9d19fd7). Composer stays operable; Running/Recent and Needs you count are placeholders.',
-    context: readyContext(undefined, { sidebarListingLoading: true }),
-    startOutcome: accepted,
-    holdStart: false,
-  }),
-  base({
-    id: 'task-loading',
-    label: 'Task loading',
-    description:
-      'Approved task/loading skeleton (Design 9d19fd7) mirroring task/running-stop. Deferred task observation; open the mapped running row after selecting.',
-    context: readyContext(),
-    tasks: 'defer',
-    startOutcome: accepted,
-    holdStart: false,
-    seed: { openTaskId: 'task-slot-release' },
   }),
   base({
     id: 'unavailable',
@@ -159,71 +127,6 @@ export const SCENARIOS: readonly ScenarioDefinition[] = [
     holdStart: false,
   }),
   base({
-    id: 'workflows-loading',
-    label: 'Workflows loading',
-    description:
-      'Approved workflows/loading skeleton (Design 9d19fd7). Deferred workflows list.',
-    context: readyContext(),
-    workflows: 'defer',
-    startOutcome: accepted,
-    holdStart: false,
-    seed: { openRoute: 'workflows' },
-  }),
-  base({
-    id: 'workflow-editor-loading',
-    label: 'Workflow editor loading',
-    description:
-      'Approved workflow-editor/loading skeleton (Design 9d19fd7). Deferred editor for Release checklist.',
-    context: readyContext(),
-    workflowEditors: 'defer',
-    startOutcome: accepted,
-    holdStart: false,
-    seed: {
-      openRoute: 'workflows',
-      openWorkflowEditorId: 'wf-release-checklist',
-    },
-  }),
-  base({
-    id: 'workflow-run-loading',
-    label: 'Workflow run loading',
-    description:
-      'Approved workflow-run/loading skeleton (Design 9d19fd7) mirroring on-demand.',
-    context: readyContext(),
-    workflowExecutions: 'defer',
-    startOutcome: accepted,
-    holdStart: false,
-    seed: {
-      openRoute: 'workflows',
-      openWorkflowExecutionId: 'run-nightly-dependency-audit',
-    },
-  }),
-  base({
-    id: 'workflow-run-loading-parallel',
-    label: 'Workflow run loading · Parallel',
-    description:
-      'Approved workflow-run/loading-parallel skeleton (Design 9d19fd7).',
-    context: readyContext(),
-    workflowExecutions: 'defer',
-    startOutcome: accepted,
-    holdStart: false,
-    seed: {
-      openRoute: 'workflows',
-      openWorkflowExecutionId: 'run-nightly-dependency-audit',
-      workflowRunView: 'parallel',
-    },
-  }),
-  base({
-    id: 'parallel-group-loading',
-    label: 'Parallel group loading',
-    description:
-      'Approved parallel-group/loading skeleton (Design 9d19fd7) for Review preload bridge.',
-    context: readyContext(),
-    parallelGroups: 'defer',
-    startOutcome: accepted,
-    holdStart: false,
-    seed: { openParallelGroupId: 'parallel-group-preload-bridge' },
-  }),
-  base({
     id: 'resources-slots',
     label: 'Resources slots',
     description: 'Approved resources/slots specimen data.',
@@ -288,6 +191,7 @@ export const SCENARIOS: readonly ScenarioDefinition[] = [
     startOutcome: accepted,
     holdStart: false,
   }),
+  ...LOADING_SCENARIOS,
   ...CENTERED_SCENARIOS,
   ...TRANSCRIPT_SCENARIOS,
 ]

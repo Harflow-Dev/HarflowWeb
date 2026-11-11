@@ -58,6 +58,7 @@ export type AppPresenter = {
   selectTaskChangedFile(path: string): void
   selectStatisticsRange(range: StatisticsRangeId): void
   selectSettingsSection(section: SettingsSection): void
+  setSettingsMcpApprovalsLoading(value: boolean): void
   setAppearance(appearance: Appearance): void
   cycleAppearance(): void
   setSidebarCollapsed(collapsed: boolean): void
@@ -117,6 +118,8 @@ export function createAppPresenter(deps: Deps): AppPresenter {
     selectTaskChangedFile: (path) => session.selectTaskChangedFile(path),
     selectStatisticsRange: (range) => session.selectStatisticsRange(range),
     selectSettingsSection: (section) => session.selectSettingsSection(section),
+    setSettingsMcpApprovalsLoading: (value) =>
+      session.setSettingsMcpApprovalsLoading(value),
     setAppearance: (appearance) => session.setAppearance(appearance),
     cycleAppearance: () => session.cycleAppearance(),
     setSidebarCollapsed: (collapsed) => session.setSidebarCollapsed(collapsed),

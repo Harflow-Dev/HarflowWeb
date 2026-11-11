@@ -30,6 +30,11 @@ export type AppScreenState = {
   readonly statistics: StatisticsScreenState
   readonly task: TaskScreenState
   readonly settingsSection: SettingsSection
+  /**
+   * Preview seed: while harnesses are deferred, prefer the MCP-approvals
+   * loading skeleton over the harnesses list skeleton.
+   */
+  readonly settingsMcpApprovalsLoading: boolean
   readonly harnesses: HarnessesScreenState
   readonly needsYou: NeedsYouScreenState
   readonly workflowEditor: WorkflowEditorScreenState

@@ -29,3 +29,12 @@ export {
   WorkflowRunLoadingPage,
   WorkflowRunParallelLoadingPage,
 } from './skeletonWorkflowRun'
+export {
+  ResourcesLoadingPage,
+  StatisticsLoadingBody,
+} from './skeletonCapacity'
+export {
+  SettingsGeneralLoading,
+  SettingsHarnessesLoading,
+  SettingsMcpApprovalsLoading,
+} from './skeletonSettings'

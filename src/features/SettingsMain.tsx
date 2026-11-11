@@ -9,6 +9,8 @@ type Props = {
   readonly onAppearance: (appearance: Appearance) => void
   readonly onUnavailable: (label: string) => void
   readonly harnesses: HarnessesLoad
+  readonly generalLoading?: boolean
+  readonly mcpApprovalsLoading?: boolean
 }
 
 /** Settings general page. Appearance is the shared session value. */
@@ -19,6 +21,8 @@ export function SettingsMain({
   onAppearance,
   onUnavailable,
   harnesses,
+  generalLoading = false,
+  mcpApprovalsLoading = false,
 }: Props) {
   return (
     <>
@@ -33,6 +37,8 @@ export function SettingsMain({
           onAppearance={onAppearance}
           onUnavailable={onUnavailable}
           harnesses={harnesses}
+          generalLoading={generalLoading}
+          mcpApprovalsLoading={mcpApprovalsLoading}
         />
       </div>
     </>

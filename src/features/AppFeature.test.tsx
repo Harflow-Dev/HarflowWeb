@@ -26,6 +26,7 @@ import {
   asWorkflowNodeId,
   asWorkflowRunId,
   type ContextLoad,
+  type HarnessesLoad,
   type ObservationHandle,
   type ParallelGroupId,
   type ParallelGroupLoad,
@@ -97,9 +98,12 @@ function createTestEngine(options?: {
   workflows?: WorkflowsLoad
   deferContext?: boolean
   sidebarListingLoading?: boolean
+  settingsGeneralLoading?: boolean
   deferWorkflows?: boolean
   deferWorkflowEditor?: boolean
   deferWorkflowExecution?: boolean
+  deferResources?: boolean
+  deferHarnesses?: boolean
   deferStatisticsRanges?: readonly StatisticsRangeId[]
   deferTaskIds?: readonly TaskId[]
   deferParallelGroupIds?: readonly ParallelGroupId[]
@@ -111,6 +115,8 @@ function createTestEngine(options?: {
   resolveStart: (outcome: StartTaskOutcome) => void
   publishContext: (load: ContextLoad) => void
   publishStatistics: (range: StatisticsRangeId, load: StatisticsLoad) => void
+  publishResources: (load: ResourcesLoad) => void
+  publishHarnesses: (load: HarnessesLoad) => void
   publishTask: (taskId: TaskId, load: TaskLoad) => void
   publishTaskChanges: (query: TaskChangesQuery, load: TaskChangesLoad) => void
   publishNeedsYou: (load: NeedsYouLoad) => void
@@ -148,6 +154,8 @@ function createTestEngine(options?: {
   const deferredParallelGroups = new Set(options?.deferParallelGroupIds ?? [])
   const contextListeners = new Set<(load: ContextLoad) => void>()
   const workflowListeners = new Set<(load: WorkflowsLoad) => void>()
+  const resourceListeners = new Set<(load: ResourcesLoad) => void>()
+  const harnessListeners = new Set<(load: HarnessesLoad) => void>()
   const statsListeners = new Map<
     StatisticsRangeId,
     (load: StatisticsLoad) => void
@@ -177,10 +185,17 @@ function createTestEngine(options?: {
   let lastChangesCallback: ((load: TaskChangesLoad) => void) | null = null
   const initialContext = (): ContextLoad => {
     if (options?.deferContext) return { kind: 'loading' }
-    const base = readyContext()
-    return options?.sidebarListingLoading
-      ? { ...base, sidebarListingLoading: true }
-      : base
+    return {
+      kind: 'ready',
+      composer: populatedComposer(),
+      sidebar: populatedSidebar(),
+      ...(options?.sidebarListingLoading === true
+        ? { sidebarListingLoading: true as const }
+        : {}),
+      ...(options?.settingsGeneralLoading === true
+        ? { settingsGeneralLoading: true as const }
+        : {}),
+    }
   }
   const port: EnginePort = {
     observeContext(onUpdate) {
@@ -265,11 +280,16 @@ function createTestEngine(options?: {
       }
     },
     observeResources(onUpdate) {
-      queueMicrotask(() => onUpdate(resources))
+      resourceListeners.add(onUpdate)
+      queueMicrotask(() =>
+        onUpdate(
+          options?.deferResources ? { kind: 'loading' } : resources,
+        ),
+      )
       return {
         id: asObservationId('ui-res'),
         cancel() {
-          /* no-op */
+          resourceListeners.delete(onUpdate)
         },
       }
     },
@@ -318,11 +338,18 @@ function createTestEngine(options?: {
       }
     },
     observeHarnesses(onUpdate) {
-      queueMicrotask(() => onUpdate(populatedHarnessesLoad()))
+      harnessListeners.add(onUpdate)
+      queueMicrotask(() =>
+        onUpdate(
+          options?.deferHarnesses
+            ? { kind: 'loading' }
+            : populatedHarnessesLoad(),
+        ),
+      )
       return {
         id: asObservationId('ui-harnesses'),
         cancel() {
-          /* no-op */
+          harnessListeners.delete(onUpdate)
         },
       }
     },
@@ -359,6 +386,12 @@ function createTestEngine(options?: {
     },
     publishStatistics(range, load) {
       statsListeners.get(range)?.(load)
+    },
+    publishResources(load) {
+      for (const listener of resourceListeners) listener(load)
+    },
+    publishHarnesses(load) {
+      for (const listener of harnessListeners) listener(load)
     },
     publishWorkflowExecution(id, load) {
       executionListeners.get(id)?.(load)
@@ -613,7 +646,7 @@ describe('AppFeature navigation', () => {
     expect(presenter.getState().statistics.load.kind).toBe('loading')
     expect(screen.queryByText('284')).not.toBeInTheDocument()
     expect(
-      screen.getByText(/Loading statistics… \(proposal/),
+      screen.getByRole('group', { name: 'Loading Statistics' }),
     ).toBeInTheDocument()
     expect(screen.getByRole('button', { name: '7 days' })).toHaveFocus()
 
@@ -2412,5 +2445,97 @@ describe('AppFeature first-load skeletons', () => {
     await flush()
     expect(screen.queryByRole('group', { name: 'Loading Parallel group' })).toBeNull()
     expect(presenter.getState().parallelGroup.load.kind).toBe('ready')
+  })
+
+  it('shows resources loading then replaces it when slots arrive', async () => {
+    const user = userEvent.setup()
+    const engine = createTestEngine({ deferResources: true })
+    const { presenter } = renderApp(engine.port)
+    await flush()
+    await user.click(screen.getByRole('button', { name: 'Resources' }))
+    expect(screen.getByRole('group', { name: 'Loading Resources' })).toHaveAttribute(
+      'aria-busy',
+      'true',
+    )
+    engine.publishResources(populatedResourcesLoad())
+    await flush()
+    expect(screen.queryByRole('group', { name: 'Loading Resources' })).toBeNull()
+    expect(presenter.getState().resources.load.kind).toBe('ready')
+    await user.click(
+      within(screen.getByRole('navigation', { name: 'Main' })).getByRole(
+        'button',
+        { name: /New task/ },
+      ),
+    )
+    expect(screen.queryByRole('group', { name: 'Loading Resources' })).toBeNull()
+  })
+
+  it('shows statistics loading while deferred, replaces on ready, clears after leave', async () => {
+    const user = userEvent.setup()
+    const engine = createTestEngine({ deferStatisticsRanges: ['30d'] })
+    const { presenter } = renderApp(engine.port)
+    await flush()
+    await user.click(screen.getByRole('button', { name: 'Statistics' }))
+    expect(screen.getByRole('group', { name: 'Loading Statistics' })).toHaveAttribute(
+      'aria-busy',
+      'true',
+    )
+    engine.publishStatistics('30d', statisticsLoadFor('30d'))
+    await flush()
+    expect(screen.queryByRole('group', { name: 'Loading Statistics' })).toBeNull()
+    expect(presenter.getState().statistics.load.kind).toBe('ready')
+    await user.click(
+      within(screen.getByRole('navigation', { name: 'Main' })).getByRole(
+        'button',
+        { name: /New task/ },
+      ),
+    )
+    expect(screen.queryByRole('group', { name: 'Loading Statistics' })).toBeNull()
+  })
+
+  it('shows settings general, harnesses, and MCP approvals loading paths', async () => {
+    const user = userEvent.setup()
+    const engine = createTestEngine({
+      settingsGeneralLoading: true,
+      deferHarnesses: true,
+    })
+    const { presenter } = renderApp(engine.port)
+    await flush()
+    await user.click(screen.getByRole('button', { name: 'Settings' }))
+    expect(screen.getByRole('group', { name: 'Loading Settings' })).toHaveAttribute(
+      'aria-busy',
+      'true',
+    )
+    expect(screen.getByText('Behaviour')).toBeInTheDocument()
+    engine.publishContext({
+      kind: 'ready',
+      composer: populatedComposer(),
+      sidebar: populatedSidebar(),
+    })
+    await flush()
+    expect(screen.queryByRole('group', { name: 'Loading Settings' })).toBeNull()
+
+    await user.click(screen.getByRole('tab', { name: 'Harnesses' }))
+    expect(screen.getByText('Harness qualification')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Refresh' })).toBeDisabled()
+
+    presenter.setSettingsMcpApprovalsLoading(true)
+    await flush()
+    expect(document.querySelectorAll('.hd-form-row[aria-hidden="true"]').length).toBeGreaterThan(
+      5,
+    )
+
+    engine.publishHarnesses(populatedHarnessesLoad())
+    await flush()
+    expect(document.querySelectorAll('.hd-form-row[aria-hidden="true"]').length).toBe(0)
+    expect(presenter.getState().harnesses.load.kind).toBe('ready')
+
+    await user.click(
+      within(screen.getByRole('navigation', { name: 'Main' })).getByRole(
+        'button',
+        { name: /New task/ },
+      ),
+    )
+    expect(screen.queryByRole('group', { name: 'Loading Settings' })).toBeNull()
   })
 })

@@ -108,6 +108,11 @@ export function AppFeature({ presenter }: Props) {
               onAppearance={(appearance) => presenter.setAppearance(appearance)}
               onUnavailable={(label) => ephemeral.show(label)}
               harnesses={state.harnesses.load}
+              generalLoading={ready?.settingsGeneralLoading === true}
+              mcpApprovalsLoading={
+                state.harnesses.load.kind === 'loading' &&
+                state.settingsMcpApprovalsLoading
+              }
             />
           ) : state.route === 'needs-you' ? (
             <NeedsYouMain

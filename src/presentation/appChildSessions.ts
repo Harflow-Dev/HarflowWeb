@@ -118,6 +118,7 @@ export function buildAppSnapshot(
   route: AppRoute,
   settingsSection: SettingsSection,
   children: AppChildSessions,
+  settingsMcpApprovalsLoading = false,
 ): AppScreenState {
   return {
     route,
@@ -127,6 +128,7 @@ export function buildAppSnapshot(
     statistics: children.statistics.getState(),
     task: children.task.getState(),
     settingsSection,
+    settingsMcpApprovalsLoading,
     harnesses: children.harnesses.getState(),
     needsYou: children.needsYou.getState(),
     workflowEditor: children.workflowEditor.getState(),

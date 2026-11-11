@@ -32,11 +32,14 @@ export function AppFeature({ presenter }: Props) {
       : newTask.appearance
 
   const ready = newTask.context.kind === 'ready' ? newTask.context : null
+  const listingLoading =
+    newTask.context.kind === 'loading' ||
+    ready?.sidebarListingLoading === true
   const contextNote =
     newTask.context.kind === 'unavailable'
       ? newTask.context.message
       : newTask.context.kind === 'loading'
-        ? 'Loading composer context… (proposal — not a design-approved specimen)'
+        ? null
         : (ready?.sidebar.coverageNote ?? null)
 
   return (
@@ -50,6 +53,7 @@ export function AppFeature({ presenter }: Props) {
           activeTaskId={state.task.selectedTaskId}
           activeParallelGroupId={state.parallelGroup.groupId}
           sidebar={ready?.sidebar ?? null}
+          listingLoading={listingLoading}
           needsYou={needsYouBadge(state.needsYou.load)}
           onCollapse={(collapsed) => presenter.setSidebarCollapsed(collapsed)}
           onAppearance={(appearance) => presenter.setAppearance(appearance)}

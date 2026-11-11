@@ -2,6 +2,7 @@ import type { Appearance, NeedsYouBadge } from '../model'
 import type { AppRoute } from '../presentation'
 import { Icon } from './Icon'
 import { NAV, isAppRoute } from './sidebarNavConfig'
+import { SidebarCountSkeleton } from './skeleton'
 import { ThemeToggle } from './ThemeToggle'
 
 function needsYouVisible(
@@ -36,11 +37,13 @@ export function ExpandedNavItem({
   item,
   activeRoute,
   needsYou,
+  listingLoading = false,
   onNavigate,
 }: {
   item: (typeof NAV)[number]
   activeRoute: AppRoute
   needsYou: NeedsYouBadge
+  listingLoading?: boolean
   onNavigate: (route: AppRoute) => void
 }) {
   const active = isAppRoute(item.id) && item.id === activeRoute
@@ -48,7 +51,13 @@ export function ExpandedNavItem({
     <>
       <Icon name={item.icon} />
       <span className="hd-nav-item__label">{item.label}</span>
-      {item.id === 'needs-you' ? <NeedsYouMarks badge={needsYou} /> : null}
+      {item.id === 'needs-you' ? (
+        listingLoading ? (
+          <SidebarCountSkeleton />
+        ) : (
+          <NeedsYouMarks badge={needsYou} />
+        )
+      ) : null}
       {item.kbd ? <span className="hd-kbd">{item.kbd}</span> : null}
     </>
   )

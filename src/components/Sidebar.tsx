@@ -10,6 +10,7 @@ import { Icon } from './Icon'
 import { CollapsedRail, ExpandedNavItem } from './sidebarNav'
 import { NAV } from './sidebarNavConfig'
 import { TaskSection } from './sidebarSections'
+import { SidebarListingSkeleton } from './skeleton'
 import { ThemeToggle } from './ThemeToggle'
 
 type Props = {
@@ -19,6 +20,8 @@ type Props = {
   readonly activeTaskId: TaskId | null
   readonly activeParallelGroupId: ParallelGroupId | null
   readonly sidebar: SidebarData | null
+  /** Design `sidebar/loading` / cold-start listing: rows and Needs you count. */
+  readonly listingLoading?: boolean
   readonly needsYou: NeedsYouBadge
   readonly onCollapse: (collapsed: boolean) => void
   readonly onAppearance: (appearance: Appearance) => void
@@ -35,6 +38,7 @@ export function Sidebar({
   activeTaskId,
   activeParallelGroupId,
   sidebar,
+  listingLoading = false,
   needsYou,
   onCollapse,
   onAppearance,
@@ -53,8 +57,8 @@ export function Sidebar({
       <CollapsedRail
         appearance={appearance}
         activeRoute={activeRoute}
-        runningCount={runningCount}
-        needsYou={needsYou}
+        runningCount={listingLoading ? 0 : runningCount}
+        needsYou={listingLoading ? { kind: 'unknown' } : needsYou}
         onCollapse={onCollapse}
         onAppearance={onAppearance}
         onNavigate={onNavigate}
@@ -63,7 +67,11 @@ export function Sidebar({
   }
 
   return (
-    <aside className="hd-sidebar" aria-label="Sidebar">
+    <aside
+      className="hd-sidebar"
+      aria-label={listingLoading ? 'Loading Sidebar' : 'Sidebar'}
+      {...(listingLoading ? { 'aria-busy': true } : {})}
+    >
       <div className="hd-sidebar__top">
         <span className="hd-brand">
           <span className="hd-brand__mark" aria-hidden="true" />
@@ -86,31 +94,38 @@ export function Sidebar({
               item={item}
               activeRoute={activeRoute}
               needsYou={needsYou}
+              listingLoading={listingLoading}
               onNavigate={onNavigate}
             />
           ))}
         </nav>
-        <TaskSection
-          label="Running"
-          count={runningCount}
-          rows={sidebar?.running ?? []}
-          activeTaskId={taskActiveId}
-          activeParallelGroupId={groupActiveId}
-          onOpenTask={onOpenTask}
-          onOpenParallelGroup={onOpenParallelGroup}
-          onUnavailable={onUnavailable}
-        />
-        <TaskSection
-          label="Recent work"
-          rows={sidebar?.recent ?? []}
-          done
-          coverageIncomplete={sidebar?.coverageIncomplete ?? false}
-          activeTaskId={taskActiveId}
-          activeParallelGroupId={groupActiveId}
-          onOpenTask={onOpenTask}
-          onOpenParallelGroup={onOpenParallelGroup}
-          onUnavailable={onUnavailable}
-        />
+        {listingLoading ? (
+          <SidebarListingSkeleton />
+        ) : (
+          <>
+            <TaskSection
+              label="Running"
+              count={runningCount}
+              rows={sidebar?.running ?? []}
+              activeTaskId={taskActiveId}
+              activeParallelGroupId={groupActiveId}
+              onOpenTask={onOpenTask}
+              onOpenParallelGroup={onOpenParallelGroup}
+              onUnavailable={onUnavailable}
+            />
+            <TaskSection
+              label="Recent work"
+              rows={sidebar?.recent ?? []}
+              done
+              coverageIncomplete={sidebar?.coverageIncomplete ?? false}
+              activeTaskId={taskActiveId}
+              activeParallelGroupId={groupActiveId}
+              onOpenTask={onOpenTask}
+              onOpenParallelGroup={onOpenParallelGroup}
+              onUnavailable={onUnavailable}
+            />
+          </>
+        )}
       </div>
       <div className="hd-sidebar__foot">
         <button

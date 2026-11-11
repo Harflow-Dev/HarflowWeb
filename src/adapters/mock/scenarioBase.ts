@@ -15,11 +15,17 @@ import type {
 } from './scenarios'
 import { populatedWorkflowsLoad } from './workflowFixtures'
 
-export function readyContext(sidebar = populatedSidebar()): ContextLoad {
+export function readyContext(
+  sidebar = populatedSidebar(),
+  options?: { readonly sidebarListingLoading?: boolean },
+): ContextLoad {
   return {
     kind: 'ready',
     composer: populatedComposer(),
     sidebar,
+    ...(options?.sidebarListingLoading === true
+      ? { sidebarListingLoading: true }
+      : {}),
   }
 }
 

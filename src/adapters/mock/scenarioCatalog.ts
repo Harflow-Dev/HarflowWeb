@@ -29,7 +29,8 @@ export const SCENARIOS: readonly ScenarioDefinition[] = [
   base({
     id: 'loading',
     label: 'Context loading',
-    description: 'Proposal status: loading — no approved specimen.',
+    description:
+      'Legacy id for new-task/loading. Prefer scenario new-task-loading.',
     context: { kind: 'loading' },
     startOutcome: {
       kind: 'refused',
@@ -37,6 +38,39 @@ export const SCENARIOS: readonly ScenarioDefinition[] = [
       reason: 'Context is still loading.',
     },
     holdStart: false,
+  }),
+  base({
+    id: 'new-task-loading',
+    label: 'New task loading',
+    description:
+      'Approved new-task/loading skeleton (Design 9d19fd7). Deferred context; greeting and composer frame stay real.',
+    context: 'defer',
+    startOutcome: {
+      kind: 'refused',
+      code: 'unavailable',
+      reason: 'Context is still loading.',
+    },
+    holdStart: false,
+  }),
+  base({
+    id: 'sidebar-loading',
+    label: 'Sidebar loading',
+    description:
+      'Approved sidebar/loading (Design 9d19fd7). Composer stays operable; Running/Recent and Needs you count are placeholders.',
+    context: readyContext(undefined, { sidebarListingLoading: true }),
+    startOutcome: accepted,
+    holdStart: false,
+  }),
+  base({
+    id: 'task-loading',
+    label: 'Task loading',
+    description:
+      'Approved task/loading skeleton (Design 9d19fd7) mirroring task/running-stop. Deferred task observation; open the mapped running row after selecting.',
+    context: readyContext(),
+    tasks: 'defer',
+    startOutcome: accepted,
+    holdStart: false,
+    seed: { openTaskId: 'task-slot-release' },
   }),
   base({
     id: 'unavailable',

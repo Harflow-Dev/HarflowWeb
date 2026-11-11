@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import { Icon, TaskChangesPane, TaskPage } from '../components'
+import { TaskLoadingPage } from '../components/skeleton'
 import type { SidebarData, TaskObservation } from '../model'
 import type { TaskScreenState } from '../presentation'
 
@@ -62,6 +63,9 @@ export function TaskMain({
     )
   }
 
+  if (state.load.kind === 'loading') {
+    return <TaskLoadingPage knownTitle={title === 'Task' ? null : title} />
+  }
   if (state.load.kind !== 'ready') {
     return (
       <div style={columnStyle}>
@@ -72,9 +76,7 @@ export function TaskMain({
             role="status"
             style={{ padding: 'var(--space-5) var(--space-6)' }}
           >
-            {state.load.kind === 'loading'
-              ? 'Loading task… (proposal — not a design-approved specimen)'
-              : state.load.message}
+            {state.load.message}
           </p>
         </div>
       </div>

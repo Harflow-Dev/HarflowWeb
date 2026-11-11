@@ -101,6 +101,11 @@ export type ContextLoad =
       readonly kind: 'ready'
       readonly composer: ComposerContext
       readonly sidebar: SidebarData
+      /**
+       * When true, Running / Recent rows and the Needs you count slot are
+       * unread (Design `sidebar/loading`). Composer stays operable.
+       */
+      readonly sidebarListingLoading?: boolean
     }
 
 /**

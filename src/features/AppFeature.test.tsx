@@ -94,6 +94,8 @@ function readyContext(): ContextLoad {
 function createTestEngine(options?: {
   holdStart?: boolean
   workflows?: WorkflowsLoad
+  deferContext?: boolean
+  sidebarListingLoading?: boolean
   deferStatisticsRanges?: readonly StatisticsRangeId[]
   deferTaskIds?: readonly TaskId[]
   deferParallelGroupIds?: readonly ParallelGroupId[]
@@ -103,6 +105,7 @@ function createTestEngine(options?: {
   port: EnginePort
   starts: StartTaskRequest[]
   resolveStart: (outcome: StartTaskOutcome) => void
+  publishContext: (load: ContextLoad) => void
   publishStatistics: (range: StatisticsRangeId, load: StatisticsLoad) => void
   publishTask: (taskId: TaskId, load: TaskLoad) => void
   publishTaskChanges: (query: TaskChangesQuery, load: TaskChangesLoad) => void
@@ -134,6 +137,7 @@ function createTestEngine(options?: {
   const deferred = new Set(options?.deferStatisticsRanges ?? [])
   const deferredTasks = new Set(options?.deferTaskIds ?? [])
   const deferredParallelGroups = new Set(options?.deferParallelGroupIds ?? [])
+  const contextListeners = new Set<(load: ContextLoad) => void>()
   const statsListeners = new Map<
     StatisticsRangeId,
     (load: StatisticsLoad) => void
@@ -157,13 +161,21 @@ function createTestEngine(options?: {
     (load: ParallelGroupLoad) => void
   >()
   let lastChangesCallback: ((load: TaskChangesLoad) => void) | null = null
+  const initialContext = (): ContextLoad => {
+    if (options?.deferContext) return { kind: 'loading' }
+    const base = readyContext()
+    return options?.sidebarListingLoading
+      ? { ...base, sidebarListingLoading: true }
+      : base
+  }
   const port: EnginePort = {
     observeContext(onUpdate) {
-      queueMicrotask(() => onUpdate(readyContext()))
+      contextListeners.add(onUpdate)
+      queueMicrotask(() => onUpdate(initialContext()))
       const handle: ObservationHandle = {
         id: asObservationId('ui-ctx'),
         cancel() {
-          /* no-op */
+          contextListeners.delete(onUpdate)
         },
       }
       return handle
@@ -312,6 +324,9 @@ function createTestEngine(options?: {
     starts,
     resolveStart(outcome) {
       held.resolve(outcome)
+    },
+    publishContext(load) {
+      for (const listener of contextListeners) listener(load)
     },
     publishStatistics(range, load) {
       statsListeners.get(range)?.(load)
@@ -760,7 +775,7 @@ describe('AppFeature navigation', () => {
       within(main).getByText('Migrate events.jsonl reader'),
     ).toBeInTheDocument()
     expect(
-      within(main).getByText(/Loading task… \(proposal/),
+      within(main).getByRole('group', { name: 'Loading Task' }),
     ).toBeInTheDocument()
     expect(within(main).queryByText('Running tests…')).not.toBeInTheDocument()
     expect(
@@ -972,7 +987,7 @@ describe('AppFeature navigation', () => {
       within(main).getByText('Migrate events.jsonl reader'),
     ).toBeInTheDocument()
     expect(
-      within(main).getByText(/Loading task… \(proposal/),
+      within(main).getByRole('group', { name: 'Loading Task' }),
     ).toBeInTheDocument()
     expect(within(main).queryByText('Running tests…')).not.toBeInTheDocument()
     expect(within(main).queryByText('Running 04:12')).not.toBeInTheDocument()
@@ -1077,7 +1092,7 @@ describe('AppFeature navigation', () => {
       within(main).getByText('Add retry budget to delivery queue'),
     ).toBeInTheDocument()
     expect(
-      within(main).getByText(/Loading task… \(proposal/),
+      within(main).getByRole('group', { name: 'Loading Task' }),
     ).toBeInTheDocument()
     expect(
       within(main).queryByText('Task failed: the harness exited with code 1'),
@@ -2214,5 +2229,75 @@ describe('AppFeature navigation', () => {
     expect(within(main).queryByLabelText('Workflow canvas')).not.toBeInTheDocument()
     expect(within(main).queryByText('Release checklist')).not.toBeInTheDocument()
     expect(engine.starts).toHaveLength(0)
+  })
+})
+
+describe('AppFeature first-load skeletons', () => {
+  it('shows new-task loading, replaces on ready, and drops it after navigate away', async () => {
+    const user = userEvent.setup()
+    const engine = createTestEngine({ deferContext: true })
+    const { presenter } = renderApp(engine.port)
+    await flush()
+    expect(screen.getByRole('group', { name: 'Loading New task' })).toHaveAttribute(
+      'aria-busy',
+      'true',
+    )
+    expect(screen.getByLabelText('Loading Sidebar')).toHaveAttribute('aria-busy', 'true')
+    expect(screen.queryByText('Fix flaky slot release test')).toBeNull()
+
+    engine.publishContext(readyContext())
+    await flush()
+    expect(screen.queryByRole('group', { name: 'Loading New task' })).toBeNull()
+    expect(screen.getByText('Fix flaky slot release test')).toBeInTheDocument()
+
+    engine.publishContext({ kind: 'loading' })
+    await flush()
+    expect(screen.getByRole('group', { name: 'Loading New task' })).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Workflows' }))
+    expect(presenter.getState().route).toBe('workflows')
+    expect(screen.queryByRole('group', { name: 'Loading New task' })).toBeNull()
+  })
+
+  it('keeps the composer operable while sidebar listing loads', async () => {
+    const engine = createTestEngine({ sidebarListingLoading: true })
+    renderApp(engine.port)
+    await flush()
+    expect(screen.getByLabelText('Loading Sidebar')).toHaveAttribute('aria-busy', 'true')
+    expect(screen.queryByText('Fix flaky slot release test')).toBeNull()
+    expect(screen.getByRole('textbox', { name: 'Task prompt' })).toBeEnabled()
+    expect(screen.getByRole('button', { name: 'More task options' })).toBeEnabled()
+
+    engine.publishContext(readyContext())
+    await flush()
+    expect(screen.queryByLabelText('Loading Sidebar')).toBeNull()
+    expect(screen.getByText('Fix flaky slot release test')).toBeInTheDocument()
+  })
+
+  it('shows task loading while deferred, replaces on ready, clears after leave', async () => {
+    const user = userEvent.setup()
+    const engine = createTestEngine({ deferTaskIds: [SLOT_RELEASE_TASK_ID] })
+    const { presenter } = renderApp(engine.port)
+    await flush()
+    await user.click(
+      screen.getByRole('button', { name: /Fix flaky slot release test/ }),
+    )
+    expect(screen.getByRole('group', { name: 'Loading Task' })).toHaveAttribute(
+      'aria-busy',
+      'true',
+    )
+    expect(screen.queryByText(/Running tests/)).toBeNull()
+
+    engine.publishTask(SLOT_RELEASE_TASK_ID, taskLoadFor(SLOT_RELEASE_TASK_ID))
+    await flush()
+    expect(screen.queryByRole('group', { name: 'Loading Task' })).toBeNull()
+    expect(presenter.getState().task.load.kind).toBe('ready')
+
+    engine.publishTask(SLOT_RELEASE_TASK_ID, { kind: 'loading' })
+    await flush()
+    expect(screen.getByRole('group', { name: 'Loading Task' })).toBeInTheDocument()
+    const nav = screen.getByRole('navigation', { name: 'Main' })
+    await user.click(within(nav).getByRole('button', { name: /New task/ }))
+    expect(presenter.getState().route).toBe('new-task')
+    expect(screen.queryByRole('group', { name: 'Loading Task' })).toBeNull()
   })
 })

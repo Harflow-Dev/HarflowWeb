@@ -1,4 +1,5 @@
 import { Composer } from '../components'
+import { NewTaskLoadingComposer, SkelLine } from '../components/skeleton'
 import type { AppPresenter } from '../presentation'
 import type { NewTaskScreenState } from '../presentation'
 import {
@@ -72,17 +73,23 @@ export function NewTaskMain({ presenter, state }: Props) {
               onApprovals={(value) => presenter.setApprovals(value)}
               onSubmit={() => presenter.submit()}
             />
+          ) : state.context.kind === 'loading' ? (
+            <NewTaskLoadingComposer />
           ) : (
             <p className="caption hd-faint" style={{ textAlign: 'center' }}>
-              {state.context.kind === 'loading'
-                ? 'Connecting to mock engine…'
-                : state.context.kind === 'unavailable'
-                  ? state.context.message
-                  : null}
+              {state.context.kind === 'unavailable'
+                ? state.context.message
+                : null}
             </p>
           )}
           {/* Visual status only — StatusRegion is the sole live region. */}
-          <div className="hw-compose-status">{statusMessage}</div>
+          <div className="hw-compose-status hd-m04-status">
+            {state.context.kind === 'loading' ? (
+              <SkelLine width={150} height={12} />
+            ) : (
+              statusMessage
+            )}
+          </div>
           <p className="caption hd-faint hw-compose-help">
             Press <span className="hd-kbd">↵</span> to start. Choices are
             remembered per repository.

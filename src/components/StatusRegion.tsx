@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import type { SubmissionStatus } from '../presentation'
 
 type Props = {
@@ -6,6 +7,36 @@ type Props = {
   readonly unavailableNav: string | null
   /** First-load label of the main screen, e.g. "Loading workflows". */
   readonly loadingNote?: string | null
+}
+
+type Source = 'submission' | 'loading' | 'none'
+
+/**
+ * Which source the region speaks for: whichever changed most recently. A
+ * retained submission outcome stops being announced once a later first load
+ * starts, and stays quiet after that load ends. A new submission outcome
+ * takes the region back. The outcome itself stays visible where it is shown.
+ */
+function useAnnouncedSource(
+  submission: SubmissionStatus,
+  loadingNote: string | null,
+): Source {
+  const submissionKey = JSON.stringify(submission)
+  const [source, setSource] = useState<Source>('submission')
+  const [seen, setSeen] = useState({ submissionKey, loadingNote })
+  if (seen.submissionKey !== submissionKey) {
+    setSeen({ submissionKey, loadingNote })
+    setSource('submission')
+    return 'submission'
+  }
+  if (seen.loadingNote !== loadingNote) {
+    const next: Source =
+      loadingNote !== null ? 'loading' : source === 'loading' ? 'none' : source
+    setSeen({ submissionKey, loadingNote })
+    setSource(next)
+    return next
+  }
+  return source
 }
 
 /** Accessible live region — kept out of the main design hero composition. */
@@ -17,9 +48,13 @@ export function StatusRegion({
 }: Props) {
   // Submission outcomes outrank context notes so partial-sidebar coverage
   // does not swallow accepted / refused / unknown announcements.
+  const source = useAnnouncedSource(submission, loadingNote)
+  const speakSubmission = source === 'submission'
   let message = ''
   if (unavailableNav) {
     message = `${unavailableNav} is unavailable in this exploratory slice.`
+  } else if (!speakSubmission) {
+    message = loadingNote ?? contextNote ?? ''
   } else if (submission.kind === 'pending') {
     message = 'Starting task…'
   } else if (submission.kind === 'accepted') {

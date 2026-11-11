@@ -2429,6 +2429,37 @@ describe('AppFeature first-load skeletons', () => {
     expect(live).toHaveTextContent('')
   })
 
+  it('announces a new first load even when an older submission outcome is retained', async () => {
+    const user = userEvent.setup()
+    const engine = createTestEngine({ deferWorkflows: true })
+    renderApp(engine.port)
+    await flush()
+    await user.type(await screen.findByLabelText('Task prompt'), 'do it')
+    await user.click(screen.getByRole('button', { name: 'Start task' }))
+    await flush()
+    expect(screen.getByRole('status')).toHaveTextContent(/Accepted mock task/)
+    await user.click(screen.getByRole('button', { name: 'Workflows' }))
+    expect(screen.getByRole('status')).toHaveTextContent('Loading workflows')
+    engine.publishWorkflows({ kind: 'ready', workflows: POPULATED_WORKFLOWS })
+    await flush()
+    expect(screen.getByRole('status')).toHaveTextContent('')
+  })
+
+  it('announces a submission outcome that arrives while a screen is loading', async () => {
+    const user = userEvent.setup()
+    const engine = createTestEngine({ holdStart: true, deferWorkflows: true })
+    renderApp(engine.port)
+    await flush()
+    await user.type(await screen.findByLabelText('Task prompt'), 'do it')
+    await user.click(screen.getByRole('button', { name: 'Start task' }))
+    await flush()
+    await user.click(screen.getByRole('button', { name: 'Workflows' }))
+    expect(screen.getByRole('status')).toHaveTextContent('Loading workflows')
+    engine.resolveStart({ kind: 'accepted', taskId: asTaskId('late-ok') })
+    await flush()
+    expect(screen.getByRole('status')).toHaveTextContent(/Accepted mock task late-ok/)
+  })
+
   it('shows workflow editor loading and clears after close mid-load', async () => {
     const user = userEvent.setup()
     const engine = createTestEngine({ deferWorkflowEditor: true })

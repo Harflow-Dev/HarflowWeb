@@ -209,6 +209,14 @@ function createTestEngine(options?: {
         },
       }
     },
+    observeSettingsGeneral() {
+      return {
+        id: asObservationId('unused-settings-general'),
+        cancel() {
+          /* no-op */
+        },
+      }
+    },
     observeNeedsYou(onUpdate) {
       queueMicrotask(() =>
         onUpdate({

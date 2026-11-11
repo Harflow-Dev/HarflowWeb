@@ -45,6 +45,11 @@ export {
 } from './resourcesState'
 export { ResourcesSession } from './resourcesSession'
 export {
+  initialSettingsGeneralState,
+  type SettingsGeneralScreenState,
+} from './settingsGeneralState'
+export { SettingsGeneralSession } from './settingsGeneralSession'
+export {
   initialStatisticsState,
   type StatisticsScreenState,
 } from './statisticsState'

@@ -157,7 +157,7 @@ function EditorBody({
   readonly onSelect: (id: WorkflowNodeId) => void
 }) {
   if (editor.load.kind === 'loading') {
-    return <WorkflowEditorLoadingPage />
+    return <WorkflowEditorLoadingPage onClose={onClose} />
   }
   if (editor.load.kind !== 'ready') {
     return (

@@ -62,6 +62,14 @@ function createCapturingPort(initial: ResourcesLoad = populatedResourcesLoad()):
     observeHarnesses() {
       return noopHandle('harnesses')
     },
+    observeSettingsGeneral() {
+      return {
+        id: asObservationId('unused-settings-general'),
+        cancel() {
+          /* no-op */
+        },
+      }
+    },
     observeNeedsYou() {
       return noopHandle('needs')
     },

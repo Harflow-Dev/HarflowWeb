@@ -7,6 +7,7 @@ import {
   populatedHarnessesLoad,
   unavailableHarnessesLoad,
 } from '../adapters/mock/harnessFixtures'
+import { populatedSettingsGeneralLoad } from '../adapters/mock/settingsGeneralFixtures'
 import type { HarnessesLoad } from '../model'
 import type { SettingsSection } from '../presentation'
 import { SettingsPage } from './SettingsPage'
@@ -31,6 +32,9 @@ describe('SettingsPage behaviour switches', () => {
     const onUnavailable = vi.fn()
     render(
       <SettingsPage
+        general={populatedSettingsGeneralLoad()}
+        expandedHarnessId={null}
+        onExpandHarness={() => undefined}
         section="general"
         onSection={() => undefined}
         appearance="dark"
@@ -69,6 +73,9 @@ describe('SettingsPage behaviour switches', () => {
     const onUnavailable = vi.fn()
     const view = render(
       <SettingsPage
+        general={populatedSettingsGeneralLoad()}
+        expandedHarnessId={null}
+        onExpandHarness={() => undefined}
         section="general"
         onSection={() => undefined}
         appearance="system"
@@ -84,6 +91,9 @@ describe('SettingsPage behaviour switches', () => {
     expect(onAppearance).toHaveBeenCalledWith('light')
     view.rerender(
       <SettingsPage
+        general={populatedSettingsGeneralLoad()}
+        expandedHarnessId={null}
+        onExpandHarness={() => undefined}
         section="general"
         onSection={() => undefined}
         appearance="light"
@@ -110,6 +120,9 @@ describe('Settings section tabs', () => {
     const onSection = vi.fn()
     render(
       <SettingsPage
+        general={populatedSettingsGeneralLoad()}
+        expandedHarnessId={null}
+        onExpandHarness={() => undefined}
         section="general"
         onSection={onSection}
         appearance="light"
@@ -180,6 +193,9 @@ describe('Settings section tabs', () => {
     const onSection = vi.fn()
     const view = render(
       <SettingsPage
+        general={populatedSettingsGeneralLoad()}
+        expandedHarnessId={null}
+        onExpandHarness={() => undefined}
         section="harnesses"
         onSection={onSection}
         appearance="dark"
@@ -193,6 +209,9 @@ describe('Settings section tabs', () => {
     harnesses.focus()
     view.rerender(
       <SettingsPage
+        general={populatedSettingsGeneralLoad()}
+        expandedHarnessId={null}
+        onExpandHarness={() => undefined}
         section="harnesses"
         onSection={onSection}
         appearance="dark"
@@ -211,6 +230,9 @@ describe('Settings section tabs', () => {
     expect(general).toHaveFocus()
     view.rerender(
       <SettingsPage
+        general={populatedSettingsGeneralLoad()}
+        expandedHarnessId={null}
+        onExpandHarness={() => undefined}
         section="harnesses"
         onSection={onSection}
         appearance="dark"
@@ -231,6 +253,9 @@ describe('Settings section tabs', () => {
   it('keeps disabled harness actions and independent fixture facts', () => {
     render(
       <SettingsPage
+        general={populatedSettingsGeneralLoad()}
+        expandedHarnessId={null}
+        onExpandHarness={() => undefined}
         section="harnesses"
         onSection={() => undefined}
         appearance="light"
@@ -272,6 +297,9 @@ function ControlledSettings({
   const [section, setSection] = useState(initial)
   return (
     <SettingsPage
+        general={populatedSettingsGeneralLoad()}
+        expandedHarnessId={null}
+        onExpandHarness={() => undefined}
       section={section}
       onSection={setSection}
       appearance={appearance}

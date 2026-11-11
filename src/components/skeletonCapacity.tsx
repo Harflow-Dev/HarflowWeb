@@ -1,9 +1,9 @@
 import type { ReactNode } from 'react'
-import {
-  SkelBlock,
-  SkelLine,
-  SKEL_TITLE_WIDTHS,
-} from './skeletonPrimitives'
+import { SKEL_TITLE_WIDTHS } from './skeletonConstants'
+import { SkelBlock, SkelLine, SkelStatus } from './skeletonPrimitives'
+
+/** Card count of the loaded mock Resources screen (five harnesses). */
+const RESOURCE_CARD_COUNT = 5
 
 function ResourceCardSkeleton({ index }: { readonly index: number }) {
   return (
@@ -44,6 +44,7 @@ export function ResourcesLoadingPage(): ReactNode {
       aria-busy="true"
       aria-label="Loading Resources"
     >
+      <SkelStatus>Loading resources…</SkelStatus>
       <div className="hd-page__head">
         <h1 className="hd-page__title">Resources</h1>
       </div>
@@ -55,7 +56,7 @@ export function ResourcesLoadingPage(): ReactNode {
         free slot before it starts.
       </p>
       <div className="hd-grid hd-grid--2" data-skeleton="">
-        {Array.from({ length: 4 }, (_, index) => (
+        {Array.from({ length: RESOURCE_CARD_COUNT }, (_, index) => (
           <ResourceCardSkeleton key={index} index={index} />
         ))}
       </div>
@@ -136,6 +137,7 @@ function StatisticsRowSkeleton() {
 export function StatisticsLoadingBody(): ReactNode {
   return (
     <div role="group" aria-busy="true" aria-label="Loading Statistics">
+      <SkelStatus>Loading statistics…</SkelStatus>
       <div className="hd-grid hd-grid--4">
         {['Tasks run', 'Success rate', 'Agent time', 'Reported cost'].map(
           (label) => (

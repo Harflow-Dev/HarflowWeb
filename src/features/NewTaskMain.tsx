@@ -83,7 +83,7 @@ export function NewTaskMain({ presenter, state }: Props) {
             </p>
           )}
           {/* Visual status only — StatusRegion is the sole live region. */}
-          <div className="hw-compose-status hd-m04-status">
+          <div className="hw-compose-status">
             {state.context.kind === 'loading' ? (
               <SkelLine width={150} height={12} />
             ) : (

@@ -9,6 +9,7 @@ export const LOADING_SCENARIOS: readonly ScenarioDefinition[] = [
     description:
       'Approved new-task/loading skeleton (Design 9d19fd7). Deferred context; greeting and composer frame stay real.',
     context: 'defer',
+    needsYou: 'defer',
     startOutcome: {
       kind: 'refused',
       code: 'unavailable',
@@ -22,6 +23,7 @@ export const LOADING_SCENARIOS: readonly ScenarioDefinition[] = [
     description:
       'Approved sidebar/loading (Design 9d19fd7). Composer stays operable; Running/Recent and Needs you count are placeholders.',
     context: readyContext(undefined, { sidebarListingLoading: true }),
+    needsYou: 'defer',
     startOutcome: accepted,
     holdStart: false,
   }),
@@ -127,8 +129,9 @@ export const LOADING_SCENARIOS: readonly ScenarioDefinition[] = [
     id: 'settings-loading-general',
     label: 'Settings loading · General',
     description:
-      'Approved settings/loading-general skeleton (Design 9d19fd7). Deferred via context.settingsGeneralLoading.',
-    context: readyContext(undefined, { settingsGeneralLoading: true }),
+      'Approved settings/loading-general skeleton (Design 9d19fd7). Deferred settings-general observation.',
+    context: readyContext(),
+    settingsGeneral: 'defer',
     startOutcome: accepted,
     holdStart: false,
     seed: { openRoute: 'settings', settingsSection: 'general' },
@@ -148,7 +151,7 @@ export const LOADING_SCENARIOS: readonly ScenarioDefinition[] = [
     id: 'settings-loading-mcp-approvals',
     label: 'Settings loading · MCP approvals',
     description:
-      'Approved settings/loading-mcp-approvals skeleton (Design 9d19fd7). Deferred harnesses with MCP pattern.',
+      'Approved settings/loading-mcp-approvals skeleton (Design 9d19fd7). Deferred harnesses with an expanded harness (MCP approvals).',
     context: readyContext(),
     harnesses: 'defer',
     startOutcome: accepted,
@@ -156,7 +159,7 @@ export const LOADING_SCENARIOS: readonly ScenarioDefinition[] = [
     seed: {
       openRoute: 'settings',
       settingsSection: 'harnesses',
-      settingsMcpApprovalsLoading: true,
+      settingsExpandedHarnessId: 'claude-code',
     },
   }),
 ]

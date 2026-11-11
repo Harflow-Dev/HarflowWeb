@@ -5,8 +5,9 @@ export {
   SkelParagraph,
   SkelTaskRow,
   SkelToolRow,
-  SKEL_TITLE_WIDTHS,
+  SkelStatus,
 } from './skeletonPrimitives'
+export { SKEL_TITLE_WIDTHS } from './skeletonConstants'
 export {
   NeedsYouApprovalCardSkeleton,
   NeedsYouBadgeSkeleton,
@@ -34,7 +35,6 @@ export {
   StatisticsLoadingBody,
 } from './skeletonCapacity'
 export {
-  SettingsGeneralLoading,
   SettingsHarnessesLoading,
   SettingsMcpApprovalsLoading,
 } from './skeletonSettings'

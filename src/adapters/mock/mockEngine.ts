@@ -6,6 +6,7 @@ import type {
   ParallelGroupId,
   ParallelGroupLoad,
   ResourcesLoad,
+  SettingsGeneralLoad,
   StartTaskOutcome,
   StartTaskRequest,
   StatisticsLoad,
@@ -41,6 +42,7 @@ export type MockEngineControls = {
   publishTask(taskId: TaskId, load: TaskLoad): void
   publishTaskChanges(query: TaskChangesQuery, load: TaskChangesLoad): void
   publishHarnesses(load: HarnessesLoad): void
+  publishSettingsGeneral(load: SettingsGeneralLoad): void
   publishNeedsYou(load: NeedsYouLoad): void
   publishWorkflowRun(workflowId: WorkflowId, load: WorkflowRunContextLoad): void
   publishWorkflowEditor(workflowId: WorkflowId, load: WorkflowEditorLoad): void

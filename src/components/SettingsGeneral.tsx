@@ -1,33 +1,55 @@
-import type { Appearance } from '../model'
-import { Icon } from './Icon'
-import { SettingsGeneralLoading } from './skeleton'
+import type { Appearance, SettingsGeneralLoad } from '../model'
+import { SettingsRuntimeSection, SettingsStoreSection } from './SettingsGeneralFacts'
+import { SkelBlock, SkelStatus } from './skeletonPrimitives'
 import { ThemeToggle } from './ThemeToggle'
 
-export function SettingsGeneral({
-  appearance,
-  onAppearance,
-  onUnavailable,
-  loading = false,
-}: {
+type Props = {
+  readonly load: SettingsGeneralLoad
   readonly appearance: Appearance
   readonly onAppearance: (appearance: Appearance) => void
   readonly onUnavailable: (label: string) => void
-  readonly loading?: boolean
-}) {
-  if (loading) {
-    return (
-      <SettingsGeneralLoading
-        appearance={appearance}
-        onAppearance={onAppearance}
-      />
-    )
-  }
+}
+
+/**
+ * Approved settings/general. Loading keeps every section, gap, and divider of
+ * the loaded page; only the observed values become placeholders. Appearance
+ * is the same element in every state, so the theme control is never remounted.
+ */
+export function SettingsGeneral({
+  load,
+  appearance,
+  onAppearance,
+  onUnavailable,
+}: Props) {
+  const loading = load.kind === 'loading'
+  const observation = load.kind === 'ready' ? load.observation : null
   return (
     <>
+      {loading ? <SkelStatus>Loading settings…</SkelStatus> : null}
       <AppearanceSection appearance={appearance} onAppearance={onAppearance} />
-      <BehaviourSection />
-      <RuntimeSection onUnavailable={onUnavailable} />
-      <StoreSection onUnavailable={onUnavailable} />
+      <BehaviourSection loading={loading} />
+      {load.kind === 'unavailable' ? (
+        <p
+          className="caption hd-faint"
+          role="status"
+          style={{ margin: 'var(--space-6) 0 0' }}
+        >
+          {load.message}
+        </p>
+      ) : (
+        <>
+          <SettingsRuntimeSection
+            loading={loading}
+            runtime={observation?.runtime ?? null}
+            onUnavailable={onUnavailable}
+          />
+          <SettingsStoreSection
+            loading={loading}
+            taskStore={observation?.taskStore ?? null}
+            onUnavailable={onUnavailable}
+          />
+        </>
+      )}
     </>
   )
 }
@@ -72,7 +94,7 @@ const BEHAVIOUR_EXPLANATION_ID = 'settings-behaviour-specimen'
 const BEHAVIOUR_EXPLANATION =
   'Mock specimen values. These are not saved preferences or active notification settings.'
 
-function BehaviourSection() {
+function BehaviourSection({ loading }: { readonly loading: boolean }) {
   return (
     <section
       aria-label="Behaviour"
@@ -94,118 +116,23 @@ function BehaviourSection() {
           {index > 0 ? <FormRule /> : null}
           <div className="hd-form-row" style={{ minHeight: 40 }}>
             <div className="hd-form-row__label">{row.label}</div>
-            <button
-              type="button"
-              className="hd-switch"
-              role="switch"
-              aria-checked={row.checked}
-              aria-label={row.label}
-              aria-disabled="true"
-              aria-describedby={BEHAVIOUR_EXPLANATION_ID}
-              disabled
-            />
+            {loading ? (
+              <SkelBlock width={32} height={18} shape="pill" />
+            ) : (
+              <button
+                type="button"
+                className="hd-switch"
+                role="switch"
+                aria-checked={row.checked}
+                aria-label={row.label}
+                aria-disabled="true"
+                aria-describedby={BEHAVIOUR_EXPLANATION_ID}
+                disabled
+              />
+            )}
           </div>
         </div>
       ))}
-    </section>
-  )
-}
-
-function RuntimeSection({
-  onUnavailable,
-}: {
-  readonly onUnavailable: (label: string) => void
-}) {
-  return (
-    <section
-      aria-label="Harflow runtime"
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 'var(--space-3)',
-        marginTop: 'var(--space-6)',
-      }}
-    >
-      <h2 className="label hd-faint" style={{ margin: 0, fontWeight: 500 }}>
-        Harflow runtime
-      </h2>
-      <div className="hd-form-row" style={{ minHeight: 40 }}>
-        <div className="hd-form-row__label">
-          <span
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 'var(--space-2)',
-            }}
-          >
-            <span className="hd-glyph hd-glyph--done" aria-hidden="true">
-              <Icon name="check" size="sm" />
-            </span>
-            Harflow runtime 0.9.3 is ready
-          </span>
-        </div>
-        <button
-          type="button"
-          className="hd-btn hd-btn--secondary"
-          onClick={() => onUnavailable('Check for updates')}
-        >
-          Check for updates
-        </button>
-      </div>
-    </section>
-  )
-}
-
-function StoreSection({
-  onUnavailable,
-}: {
-  readonly onUnavailable: (label: string) => void
-}) {
-  return (
-    <section
-      aria-label="Task store"
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 'var(--space-3)',
-        marginTop: 'var(--space-6)',
-      }}
-    >
-      <h2 className="label hd-faint" style={{ margin: 0, fontWeight: 500 }}>
-        Task store
-      </h2>
-      <div className="hd-form-row" style={{ minHeight: 40 }}>
-        <div className="hd-form-row__label">
-          <span
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 'var(--space-2)',
-            }}
-          >
-            <span className="hd-glyph hd-glyph--done" aria-hidden="true">
-              <Icon name="check" size="sm" />
-            </span>
-            Task store is compatible
-          </span>
-        </div>
-        <span style={{ display: 'flex', gap: 'var(--space-2)' }}>
-          <button
-            type="button"
-            className="hd-btn hd-btn--secondary"
-            onClick={() => onUnavailable('Inspect task store')}
-          >
-            Inspect task store
-          </button>
-          <button
-            type="button"
-            className="hd-btn hd-btn--ghost"
-            onClick={() => onUnavailable('Show backup in Finder')}
-          >
-            Show backup in Finder
-          </button>
-        </span>
-      </div>
     </section>
   )
 }

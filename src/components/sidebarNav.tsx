@@ -37,13 +37,13 @@ export function ExpandedNavItem({
   item,
   activeRoute,
   needsYou,
-  listingLoading = false,
+  needsYouLoading = false,
   onNavigate,
 }: {
   item: (typeof NAV)[number]
   activeRoute: AppRoute
   needsYou: NeedsYouBadge
-  listingLoading?: boolean
+  needsYouLoading?: boolean
   onNavigate: (route: AppRoute) => void
 }) {
   const active = isAppRoute(item.id) && item.id === activeRoute
@@ -52,7 +52,7 @@ export function ExpandedNavItem({
       <Icon name={item.icon} />
       <span className="hd-nav-item__label">{item.label}</span>
       {item.id === 'needs-you' ? (
-        listingLoading ? (
+        needsYouLoading ? (
           <SidebarCountSkeleton />
         ) : (
           <NeedsYouMarks badge={needsYou} />

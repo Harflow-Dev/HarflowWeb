@@ -43,7 +43,6 @@ export class AppSession {
   private route: AppRoute = 'new-task'
   private readonly children: AppChildSessions
   private settingsSection: SettingsSection = 'general'
-  private settingsMcpApprovalsLoading = false
   private readonly listeners = new Set<AppListener>()
   private snapshot: AppScreenState
 
@@ -173,10 +172,8 @@ export class AppSession {
     this.emit()
   }
 
-  setSettingsMcpApprovalsLoading(value: boolean): void {
-    if (this.settingsMcpApprovalsLoading === value) return
-    this.settingsMcpApprovalsLoading = value
-    this.emit()
+  setExpandedHarness(id: string | null): void {
+    this.children.harnesses.setExpandedId(id)
   }
 
   setAppearance(appearance: Appearance): void {
@@ -223,12 +220,7 @@ export class AppSession {
   }
 
   private buildSnapshot(): AppScreenState {
-    return buildAppSnapshot(
-      this.route,
-      this.settingsSection,
-      this.children,
-      this.settingsMcpApprovalsLoading,
-    )
+    return buildAppSnapshot(this.route, this.settingsSection, this.children)
   }
 
   private emit(): void {

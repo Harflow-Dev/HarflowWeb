@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import { Icon } from './Icon'
-import { SkelBlock, SkelLine, SKEL_TITLE_WIDTHS } from './skeletonPrimitives'
+import { SKEL_TITLE_WIDTHS } from './skeletonConstants'
+import { SkelBlock, SkelLine, SkelStatus } from './skeletonPrimitives'
 
 export { WorkflowEditorLoadingPage } from './skeletonWorkflowEditor'
 
@@ -33,6 +34,7 @@ export function WorkflowsLoadingPage(): ReactNode {
       aria-busy="true"
       aria-label="Loading Workflows"
     >
+      <SkelStatus>Loading workflows…</SkelStatus>
       <div className="hd-page__head">
         <h1 className="hd-page__title">Workflows</h1>
         <button

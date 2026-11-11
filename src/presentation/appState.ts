@@ -2,6 +2,7 @@ import type { HarnessesScreenState } from './harnessesState'
 import type { NeedsYouScreenState } from './needsYouState'
 import type { NewTaskScreenState } from './screenState'
 import type { ResourcesScreenState } from './resourcesState'
+import type { SettingsGeneralScreenState } from './settingsGeneralState'
 import type { StatisticsScreenState } from './statisticsState'
 import type { TaskScreenState } from './taskState'
 import type { ParallelGroupScreenState } from './parallelGroupState'
@@ -30,11 +31,7 @@ export type AppScreenState = {
   readonly statistics: StatisticsScreenState
   readonly task: TaskScreenState
   readonly settingsSection: SettingsSection
-  /**
-   * Preview seed: while harnesses are deferred, prefer the MCP-approvals
-   * loading skeleton over the harnesses list skeleton.
-   */
-  readonly settingsMcpApprovalsLoading: boolean
+  readonly settingsGeneral: SettingsGeneralScreenState
   readonly harnesses: HarnessesScreenState
   readonly needsYou: NeedsYouScreenState
   readonly workflowEditor: WorkflowEditorScreenState

@@ -51,3 +51,7 @@ export {
   createStartTaskUseCase,
   type StartTaskUseCase,
 } from './startTask'
+export {
+  createLoadSettingsGeneralUseCase,
+  type LoadSettingsGeneralUseCase,
+} from './loadSettingsGeneral'

@@ -3,6 +3,7 @@ import type {
   HarnessesLoad,
   NeedsYouLoad,
   ResourcesLoad,
+  SettingsGeneralLoad,
   StartTaskOutcome,
   StatisticsLoad,
   StatisticsRangeId,
@@ -108,6 +109,7 @@ export type ScenarioDefinition = {
   readonly tasks: TasksScenario
   readonly taskChanges: TaskChangesScenario
   readonly harnesses: HarnessesLoad | 'defer'
+  readonly settingsGeneral: SettingsGeneralLoad | 'defer'
   readonly needsYou: NeedsYouLoad | 'defer'
   readonly workflowEditors: DeferredSurface
   readonly workflowExecutions: DeferredSurface

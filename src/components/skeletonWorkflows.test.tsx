@@ -1,5 +1,6 @@
 import { cleanup, render, screen } from '@testing-library/react'
-import { afterEach, describe, expect, it } from 'vitest'
+import userEvent from '@testing-library/user-event'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import {
   ParallelGroupLoadingPage,
   WorkflowRunLoadingPage,
@@ -24,12 +25,22 @@ describe('Workflow loading skeletons', () => {
     expect(loading.querySelectorAll('.hd-list-row[aria-hidden="true"]').length).toBe(5)
   })
 
+  it('keeps Back enabled in the loading editor', async () => {
+    const onClose = vi.fn()
+    render(<WorkflowEditorLoadingPage onClose={onClose} />)
+    const back = screen.getByRole('button', { name: 'Workflows' })
+    expect(back).toBeEnabled()
+    await userEvent.setup().click(back)
+    expect(onClose).toHaveBeenCalledTimes(1)
+    expect(screen.getByRole('button', { name: 'More actions' })).toBeDisabled()
+  })
+
   it('renders workflow editor graph and inspector placeholders', () => {
-    render(<WorkflowEditorLoadingPage />)
+    render(<WorkflowEditorLoadingPage onClose={() => undefined} />)
     const loading = screen.getByRole('group', { name: 'Loading Workflow editor' })
     expect(loading).toHaveAttribute('aria-busy', 'true')
-    expect(screen.getByLabelText('Workflow canvas')).toBeInTheDocument()
-    expect(screen.getByLabelText('Node settings')).toBeInTheDocument()
+    expect(screen.getByLabelText('Loading workflow canvas')).toBeInTheDocument()
+    expect(screen.getByLabelText('Loading node settings')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Save' })).toBeDisabled()
     expect(loading.querySelectorAll('.hd-skel--shimmer').length).toBeGreaterThan(0)
   })
@@ -40,12 +51,17 @@ describe('Workflow loading skeletons', () => {
       'aria-busy',
       'true',
     )
-    expect(screen.getByLabelText('Workflow steps')).toBeInTheDocument()
+    expect(screen.getByLabelText('Loading workflow graph')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Close' })).toBeDisabled()
+    expect(screen.getByRole('status')).toHaveTextContent('Loading workflow run')
+    expect(screen.getByRole('button', { name: 'More actions' })).toBeDisabled()
+    expect(screen.getByRole('textbox', { name: 'Message this node' })).toBeDisabled()
+    expect(screen.getByLabelText('Loading selected node')).toBeInTheDocument()
 
     rerender(<WorkflowRunParallelLoadingPage />)
     expect(screen.getByLabelText('Parallel lanes')).toBeInTheDocument()
     expect(document.querySelectorAll('.hd-lane').length).toBe(3)
+    expect(screen.getAllByRole('textbox', { name: 'Message this lane' })).toHaveLength(3)
   })
 
   it('renders parallel group lane placeholders', () => {
@@ -55,5 +71,6 @@ describe('Workflow loading skeletons', () => {
     expect(screen.getByRole('button', { name: 'View prompt' })).toBeDisabled()
     expect(screen.getByRole('button', { name: 'Cancel all' })).toBeDisabled()
     expect(screen.getByLabelText('Parallel lanes')).toBeInTheDocument()
+    expect(screen.getByRole('status')).toHaveTextContent('Loading parallel group')
   })
 })

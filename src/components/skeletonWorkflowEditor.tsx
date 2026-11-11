@@ -1,16 +1,15 @@
 import type { ReactNode } from 'react'
 import { Icon } from './Icon'
 import { GraphSkeleton, StandaloneNodesSkeleton } from './skeletonLanes'
-import { SkelBlock, SkelLine } from './skeletonPrimitives'
+import { SkelBlock, SkelLine, SkelStatus } from './skeletonPrimitives'
 
-function EditorTopbarSkeleton() {
+function EditorTopbarSkeleton({ onClose }: { readonly onClose: () => void }) {
   return (
     <div className="hd-topbar">
       <button
         type="button"
         className="hd-btn hd-btn--ghost hd-btn--sm"
-        aria-disabled="true"
-        disabled
+        onClick={onClose}
       >
         <Icon name="arrow-left" size="sm" />
         Workflows
@@ -24,7 +23,17 @@ function EditorTopbarSkeleton() {
         disabled
         aria-disabled="true"
       >
+        <Icon name="sparkle" size="sm" />
         Edit with agent
+      </button>
+      <button
+        type="button"
+        className="hd-btn hd-btn--icon hd-btn--sm"
+        aria-label="More actions"
+        disabled
+        aria-disabled="true"
+      >
+        <Icon name="more" />
       </button>
       <button
         type="button"
@@ -48,6 +57,7 @@ function EditorTopbarSkeleton() {
         disabled
         aria-disabled="true"
       >
+        <Icon name="play" size="sm" />
         Run
       </button>
     </div>
@@ -56,7 +66,7 @@ function EditorTopbarSkeleton() {
 
 function EditorInspectorSkeleton() {
   return (
-    <aside className="hd-inspector" aria-label="Node settings">
+    <aside className="hd-inspector" aria-label="Loading node settings">
       <div className="hd-inspector__head">
         <SkelLine width={90} height={14} />
       </div>
@@ -81,7 +91,11 @@ function EditorInspectorSkeleton() {
 }
 
 /** Workflow editor first-load — Design `workflow-editor/loading`. */
-export function WorkflowEditorLoadingPage(): ReactNode {
+export function WorkflowEditorLoadingPage({
+  onClose,
+}: {
+  readonly onClose: () => void
+}): ReactNode {
   return (
     <div
       role="group"
@@ -95,7 +109,8 @@ export function WorkflowEditorLoadingPage(): ReactNode {
         minHeight: 0,
       }}
     >
-      <EditorTopbarSkeleton />
+      <SkelStatus>Loading workflow editor…</SkelStatus>
+      <EditorTopbarSkeleton onClose={onClose} />
       <div className="hd-standalone">
         <span className="hd-standalone__label">
           <strong>Standalone</strong>
@@ -113,12 +128,14 @@ export function WorkflowEditorLoadingPage(): ReactNode {
             minHeight: 0,
           }}
         >
-          <div
-            className="hd-canvas hd-thin-scroll"
-            aria-label="Workflow canvas"
-            style={{ flex: '1 1 auto', overflow: 'auto', position: 'relative' }}
-          >
-            <GraphSkeleton />
+          <div className="hd-canvas">
+            <div
+              className="hd-canvas__port hd-thin-scroll"
+              role="region"
+              aria-label="Loading workflow canvas"
+            >
+              <GraphSkeleton />
+            </div>
           </div>
           <div
             className="caption hd-faint"

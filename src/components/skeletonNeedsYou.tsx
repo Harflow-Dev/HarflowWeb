@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { SkelBlock, SkelLine } from './skeletonPrimitives'
+import { SkelBlock, SkelLine, SkelStatus } from './skeletonPrimitives'
 
 const CARD_HEIGHTS = [167, 167, 154] as const
 
@@ -88,6 +88,7 @@ export function NeedsYouLoadingPage(): ReactNode {
       aria-busy="true"
       aria-label="Loading Needs you"
     >
+      <SkelStatus>Loading Needs you…</SkelStatus>
       <div className="hd-page__head">
         <h1 className="hd-page__title">Needs you</h1>
         <NeedsYouBadgeSkeleton />

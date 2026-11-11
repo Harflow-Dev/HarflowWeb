@@ -52,6 +52,7 @@ function LaneFootSkeleton() {
       <form className="hd-composer" aria-label="Message">
         <textarea
           className="hd-composer__input"
+          aria-label="Message this lane"
           rows={1}
           readOnly
           aria-readonly="true"

@@ -4,6 +4,7 @@ import type {
   LoadNeedsYouUseCase,
   LoadParallelGroupUseCase,
   LoadResourcesUseCase,
+  LoadSettingsGeneralUseCase,
   LoadWorkflowEditorUseCase,
   LoadWorkflowExecutionUseCase,
   LoadWorkflowRunUseCase,
@@ -19,6 +20,7 @@ import { NeedsYouSession } from './needsYouSession'
 import { ParallelGroupSession } from './parallelGroupSession'
 import { PresenterSession } from './presenterSession'
 import { ResourcesSession } from './resourcesSession'
+import { SettingsGeneralSession } from './settingsGeneralSession'
 import { StatisticsSession } from './statisticsSession'
 import { TaskSession } from './taskSession'
 import { WorkflowEditorSession } from './workflowEditorSession'
@@ -34,6 +36,7 @@ export type AppSessionDeps = {
   readonly loadTask: LoadTaskUseCase
   readonly loadTaskChanges: LoadTaskChangesUseCase
   readonly loadHarnesses: LoadHarnessesUseCase
+  readonly loadSettingsGeneral: LoadSettingsGeneralUseCase
   readonly loadNeedsYou: LoadNeedsYouUseCase
   readonly loadWorkflowRun: LoadWorkflowRunUseCase
   readonly loadWorkflowEditor: LoadWorkflowEditorUseCase
@@ -48,6 +51,7 @@ export type AppChildSessions = {
   readonly statistics: StatisticsSession
   readonly task: TaskSession
   readonly harnesses: HarnessesSession
+  readonly settingsGeneral: SettingsGeneralSession
   readonly needsYou: NeedsYouSession
   readonly workflowEditor: WorkflowEditorSession
   readonly workflowExecution: WorkflowExecutionSession
@@ -65,6 +69,7 @@ export function createAppChildSessions(deps: AppSessionDeps): AppChildSessions {
     statistics: new StatisticsSession(deps.loadStatistics),
     task: new TaskSession(deps.loadTask, deps.loadTaskChanges),
     harnesses: new HarnessesSession(deps.loadHarnesses),
+    settingsGeneral: new SettingsGeneralSession(deps.loadSettingsGeneral),
     needsYou: new NeedsYouSession(deps.loadNeedsYou),
     workflowEditor: new WorkflowEditorSession(deps.loadWorkflowEditor),
     workflowExecution: new WorkflowExecutionSession(deps.loadWorkflowExecution),
@@ -82,6 +87,7 @@ export function subscribeAppChildSessions(
   children.statistics.subscribe(onChange)
   children.task.subscribe(onChange)
   children.harnesses.subscribe(onChange)
+  children.settingsGeneral.subscribe(onChange)
   children.needsYou.subscribe(onChange)
   children.workflowEditor.subscribe(onChange)
   children.workflowExecution.subscribe(onChange)
@@ -95,6 +101,7 @@ export function startAppChildSessions(children: AppChildSessions): void {
   children.statistics.start()
   children.task.start()
   children.harnesses.start()
+  children.settingsGeneral.start()
   children.needsYou.start()
   children.workflowEditor.start()
   children.workflowExecution.start()
@@ -108,6 +115,7 @@ export function disposeAppChildSessions(children: AppChildSessions): void {
   children.statistics.dispose()
   children.task.dispose()
   children.harnesses.dispose()
+  children.settingsGeneral.dispose()
   children.needsYou.dispose()
   children.workflowEditor.dispose()
   children.workflowExecution.dispose()
@@ -118,7 +126,6 @@ export function buildAppSnapshot(
   route: AppRoute,
   settingsSection: SettingsSection,
   children: AppChildSessions,
-  settingsMcpApprovalsLoading = false,
 ): AppScreenState {
   return {
     route,
@@ -128,7 +135,7 @@ export function buildAppSnapshot(
     statistics: children.statistics.getState(),
     task: children.task.getState(),
     settingsSection,
-    settingsMcpApprovalsLoading,
+    settingsGeneral: children.settingsGeneral.getState(),
     harnesses: children.harnesses.getState(),
     needsYou: children.needsYou.getState(),
     workflowEditor: children.workflowEditor.getState(),

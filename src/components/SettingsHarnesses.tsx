@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import type { HarnessesLoad, McpServerFact } from '../model'
 import { Icon, type IconName } from './Icon'
 import { HarnessListItem } from './SettingsHarnessRow'
@@ -14,18 +13,15 @@ export const HARNESS_ACTION_EXPLANATION =
 
 type Props = {
   readonly load: HarnessesLoad
-  /** Prefer MCP-approvals skeleton while harnesses observation is deferred. */
-  readonly mcpApprovalsLoading?: boolean
+  /** Harness whose MCP approvals are expanded (session state). */
+  readonly expandedId: string | null
+  readonly onExpand: (id: string | null) => void
 }
 
 /** Approved settings/harnesses composition. Mutations stay disabled. */
-export function SettingsHarnesses({
-  load,
-  mcpApprovalsLoading = false,
-}: Props) {
-  const [openId, setOpenId] = useState<string | null>(null)
+export function SettingsHarnesses({ load, expandedId, onExpand }: Props) {
   if (load.kind === 'loading') {
-    return mcpApprovalsLoading ? (
+    return expandedId !== null ? (
       <SettingsMcpApprovalsLoading />
     ) : (
       <SettingsHarnessesLoading />
@@ -49,11 +45,9 @@ export function SettingsHarnesses({
           <HarnessListItem
             key={row.id}
             row={row}
-            expanded={openId === row.id}
+            expanded={expandedId === row.id}
             unavailableId={UNAVAILABLE_ID}
-            onToggle={() =>
-              setOpenId((current) => (current === row.id ? null : row.id))
-            }
+            onToggle={() => onExpand(expandedId === row.id ? null : row.id)}
           />
         ))}
       </ul>

@@ -106,12 +106,6 @@ export type ContextLoad =
        * unread (Design `sidebar/loading`). Composer stays operable.
        */
       readonly sidebarListingLoading?: boolean
-      /**
-       * Mock presentation flag for Design `settings/loading-general`.
-       * Carried on context so General specimen facts can defer without a
-       * separate settings observation port in this slice.
-       */
-      readonly settingsGeneralLoading?: boolean
     }
 
 /**

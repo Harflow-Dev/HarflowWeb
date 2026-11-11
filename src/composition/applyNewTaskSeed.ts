@@ -39,8 +39,8 @@ export function applyNewTaskSeed(
   if (seed.settingsSection !== undefined) {
     presenter.selectSettingsSection(seed.settingsSection)
   }
-  if (seed.settingsMcpApprovalsLoading === true) {
-    presenter.setSettingsMcpApprovalsLoading(true)
+  if (seed.settingsExpandedHarnessId !== undefined) {
+    presenter.setExpandedHarness(seed.settingsExpandedHarnessId)
   }
   if (seed.openTaskId !== undefined) {
     presenter.openTask(asTaskId(seed.openTaskId))

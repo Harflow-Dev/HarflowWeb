@@ -108,9 +108,11 @@ function tabFromKey(
 
 export function SettingsSectionPanel({
   section,
+  busy = false,
   children,
 }: {
   readonly section: SettingsSection
+  readonly busy?: boolean
   readonly children: ReactNode
 }) {
   return (
@@ -118,6 +120,7 @@ export function SettingsSectionPanel({
       role="tabpanel"
       id={settingsPanelId(section)}
       aria-labelledby={settingsTabId(section)}
+      aria-busy={busy ? true : undefined}
       style={{ marginTop: 'var(--space-3)' }}
     >
       {children}

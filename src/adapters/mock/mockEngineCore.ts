@@ -6,6 +6,7 @@ import type {
   ParallelGroupId,
   ParallelGroupLoad,
   ResourcesLoad,
+  SettingsGeneralLoad,
   StartTaskOutcome,
   StartTaskRequest,
   StatisticsLoad,
@@ -50,6 +51,7 @@ export type MockListenerSets = {
   readonly tasks: Set<KeyedListener<TaskId, TaskLoad>>
   readonly taskChanges: Set<KeyedListener<TaskChangesKey, TaskChangesLoad>>
   readonly harnesses: Set<(load: HarnessesLoad) => void>
+  readonly settingsGeneral: Set<(load: SettingsGeneralLoad) => void>
   readonly needsYou: Set<(load: NeedsYouLoad) => void>
   readonly workflowRuns: Set<KeyedListener<WorkflowId, WorkflowRunContextLoad>>
   readonly workflowEditors: Set<KeyedListener<WorkflowId, WorkflowEditorLoad>>
@@ -66,6 +68,7 @@ export function createListenerSets(): MockListenerSets {
     tasks: new Set(),
     taskChanges: new Set(),
     harnesses: new Set(),
+    settingsGeneral: new Set(),
     needsYou: new Set(),
     workflowRuns: new Set(),
     workflowEditors: new Set(),
@@ -219,6 +222,16 @@ export function buildMockEnginePort(options: {
           scenario.harnesses === 'defer'
             ? { kind: 'loading' }
             : scenario.harnesses
+        return load
+      })
+    },
+    observeSettingsGeneral(onUpdate) {
+      return createObservation(listeners.settingsGeneral, onUpdate, () => {
+        const scenario = getScenario()
+        const load: SettingsGeneralLoad =
+          scenario.settingsGeneral === 'defer'
+            ? { kind: 'loading' }
+            : scenario.settingsGeneral
         return load
       })
     },

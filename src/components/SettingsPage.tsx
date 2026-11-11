@@ -1,4 +1,4 @@
-import type { Appearance, HarnessesLoad } from '../model'
+import type { Appearance, HarnessesLoad, SettingsGeneralLoad } from '../model'
 import type { SettingsSection } from '../presentation'
 import { SettingsGeneral } from './SettingsGeneral'
 import { SettingsHarnesses } from './SettingsHarnesses'
@@ -10,9 +10,10 @@ type Props = {
   readonly appearance: Appearance
   readonly onAppearance: (appearance: Appearance) => void
   readonly onUnavailable: (label: string) => void
+  readonly general: SettingsGeneralLoad
   readonly harnesses: HarnessesLoad
-  readonly generalLoading?: boolean
-  readonly mcpApprovalsLoading?: boolean
+  readonly expandedHarnessId: string | null
+  readonly onExpandHarness: (id: string | null) => void
 }
 
 /**
@@ -26,9 +27,10 @@ export function SettingsPage({
   appearance,
   onAppearance,
   onUnavailable,
+  general,
   harnesses,
-  generalLoading = false,
-  mcpApprovalsLoading = false,
+  expandedHarnessId,
+  onExpandHarness,
 }: Props) {
   return (
     <div
@@ -45,18 +47,22 @@ export function SettingsPage({
         Settings
       </h1>
       <SettingsSectionTabs section={section} onSection={onSection} />
-      <SettingsSectionPanel section={section}>
+      <SettingsSectionPanel
+        section={section}
+        busy={(section === 'harnesses' ? harnesses : general).kind === 'loading'}
+      >
         {section === 'harnesses' ? (
           <SettingsHarnesses
             load={harnesses}
-            mcpApprovalsLoading={mcpApprovalsLoading}
+            expandedId={expandedHarnessId}
+            onExpand={onExpandHarness}
           />
         ) : (
           <SettingsGeneral
             appearance={appearance}
             onAppearance={onAppearance}
             onUnavailable={onUnavailable}
-            loading={generalLoading}
+            load={general}
           />
         )}
       </SettingsSectionPanel>

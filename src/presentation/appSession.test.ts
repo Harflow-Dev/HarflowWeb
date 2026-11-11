@@ -3,6 +3,7 @@ import {
   createLoadContextUseCase,
   createLoadHarnessesUseCase,
   createLoadNeedsYouUseCase,
+  createLoadSettingsGeneralUseCase,
   createLoadParallelGroupUseCase,
   createLoadResourcesUseCase,
   createLoadStatisticsUseCase,
@@ -236,6 +237,14 @@ function createTestEngine(options?: {
         },
       }
     },
+    observeSettingsGeneral() {
+      return {
+        id: asObservationId('unused-settings-general'),
+        cancel() {
+          /* no-op */
+        },
+      }
+    },
     observeNeedsYou(onUpdate) {
       queueMicrotask(() => onUpdate(waitingNeedsYouLoad()))
       return {
@@ -293,6 +302,7 @@ function createPresenter(engine: EnginePort) {
     loadTaskChanges: createLoadTaskChangesUseCase(engine),
     loadHarnesses: createLoadHarnessesUseCase(engine),
     loadNeedsYou: createLoadNeedsYouUseCase(engine),
+    loadSettingsGeneral: createLoadSettingsGeneralUseCase(engine),
     loadWorkflowRun: createLoadWorkflowRunUseCase(engine),
     loadWorkflowEditor: createLoadWorkflowEditorUseCase(engine),
     loadWorkflowExecution: createLoadWorkflowExecutionUseCase(engine),

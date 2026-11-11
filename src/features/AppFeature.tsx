@@ -55,6 +55,7 @@ export function AppFeature({ presenter }: Props) {
           sidebar={ready?.sidebar ?? null}
           listingLoading={listingLoading}
           needsYou={needsYouBadge(state.needsYou.load)}
+          needsYouLoading={state.needsYou.load.kind === 'loading'}
           onCollapse={(collapsed) => presenter.setSidebarCollapsed(collapsed)}
           onAppearance={(appearance) => presenter.setAppearance(appearance)}
           onNavigate={(route) => presenter.navigate(route)}
@@ -107,12 +108,10 @@ export function AppFeature({ presenter }: Props) {
               appearance={newTask.appearance}
               onAppearance={(appearance) => presenter.setAppearance(appearance)}
               onUnavailable={(label) => ephemeral.show(label)}
+              general={state.settingsGeneral.load}
               harnesses={state.harnesses.load}
-              generalLoading={ready?.settingsGeneralLoading === true}
-              mcpApprovalsLoading={
-                state.harnesses.load.kind === 'loading' &&
-                state.settingsMcpApprovalsLoading
-              }
+              expandedHarnessId={state.harnesses.expandedId}
+              onExpandHarness={(id) => presenter.setExpandedHarness(id)}
             />
           ) : state.route === 'needs-you' ? (
             <NeedsYouMain

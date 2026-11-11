@@ -1,9 +1,14 @@
-import type { CSSProperties } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
+import { SKEL_TITLE_WIDTHS, type SkelShape } from './skeletonConstants'
 
-export type SkelShape = 'line' | 'pill' | 'circle' | 'soft' | 'rect'
-
-/** Alternating title widths from Design skeleton-specs `TITLE`. */
-export const SKEL_TITLE_WIDTHS = [190, 140, 168, 120] as const
+/** Visually hidden polite announcement inside a busy skeleton group. */
+export function SkelStatus({ children }: { readonly children: ReactNode }) {
+  return (
+    <p role="status" className="hd-sr">
+      {children}
+    </p>
+  )
+}
 
 function size(v: number | string): string {
   return typeof v === 'number' ? `${v}px` : v

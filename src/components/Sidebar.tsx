@@ -22,6 +22,8 @@ type Props = {
   readonly sidebar: SidebarData | null
   /** Design `sidebar/loading` / cold-start listing: rows and Needs you count. */
   readonly listingLoading?: boolean
+  /** Needs you observation is still loading: count slot is a placeholder. */
+  readonly needsYouLoading?: boolean
   readonly needsYou: NeedsYouBadge
   readonly onCollapse: (collapsed: boolean) => void
   readonly onAppearance: (appearance: Appearance) => void
@@ -39,6 +41,7 @@ export function Sidebar({
   activeParallelGroupId,
   sidebar,
   listingLoading = false,
+  needsYouLoading = false,
   needsYou,
   onCollapse,
   onAppearance,
@@ -58,7 +61,7 @@ export function Sidebar({
         appearance={appearance}
         activeRoute={activeRoute}
         runningCount={listingLoading ? 0 : runningCount}
-        needsYou={listingLoading ? { kind: 'unknown' } : needsYou}
+        needsYou={needsYou}
         onCollapse={onCollapse}
         onAppearance={onAppearance}
         onNavigate={onNavigate}
@@ -69,8 +72,7 @@ export function Sidebar({
   return (
     <aside
       className="hd-sidebar"
-      aria-label={listingLoading ? 'Loading Sidebar' : 'Sidebar'}
-      {...(listingLoading ? { 'aria-busy': true } : {})}
+      aria-label="Sidebar"
     >
       <div className="hd-sidebar__top">
         <span className="hd-brand">
@@ -94,7 +96,7 @@ export function Sidebar({
               item={item}
               activeRoute={activeRoute}
               needsYou={needsYou}
-              listingLoading={listingLoading}
+              needsYouLoading={needsYouLoading}
               onNavigate={onNavigate}
             />
           ))}

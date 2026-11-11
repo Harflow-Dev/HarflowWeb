@@ -1,6 +1,8 @@
 import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { useState } from 'react'
 import { afterEach, describe, expect, it } from 'vitest'
+import type { HarnessesLoad } from '../model'
 import {
   divergentHarnessesObservation,
   populatedHarnessesLoad,
@@ -12,10 +14,22 @@ afterEach(() => {
   cleanup()
 })
 
+/** Holds the expanded id the way the app session does. */
+function StatefulHarnesses({ load }: { readonly load: HarnessesLoad }) {
+  const [expandedId, setExpandedId] = useState<string | null>(null)
+  return (
+    <SettingsHarnesses
+      load={load}
+      expandedId={expandedId}
+      onExpand={setExpandedId}
+    />
+  )
+}
+
 describe('SettingsHarnesses', () => {
   it('shows independent specimen facts and blocks unavailable actions', async () => {
     const user = userEvent.setup()
-    render(<SettingsHarnesses load={populatedHarnessesLoad()} />)
+    render(<StatefulHarnesses load={populatedHarnessesLoad()} />)
     const list = screen.getByRole('list', { name: 'Harness registration' })
     const claude = within(list).getByText('Claude Code').closest('li')
     expect(claude).not.toBeNull()
@@ -57,7 +71,7 @@ describe('SettingsHarnesses', () => {
 
   it('expands and collapses one harness list without changing approvals', async () => {
     const user = userEvent.setup()
-    render(<SettingsHarnesses load={populatedHarnessesLoad()} />)
+    render(<StatefulHarnesses load={populatedHarnessesLoad()} />)
     const approvals = screen.getByRole('button', {
       name: 'MCP approvals for Claude Code',
     })
@@ -106,7 +120,7 @@ describe('SettingsHarnesses', () => {
   it('does not show another harness list or an empty list for unknown approvals', async () => {
     const user = userEvent.setup()
     render(
-      <SettingsHarnesses
+      <StatefulHarnesses
         load={{ kind: 'ready', observation: divergentHarnessesObservation() }}
       />,
     )
@@ -145,7 +159,7 @@ describe('SettingsHarnesses', () => {
   it('does not present missing approvals as an empty approved list', async () => {
     const user = userEvent.setup()
     render(
-      <SettingsHarnesses
+      <StatefulHarnesses
         load={{
           kind: 'ready',
           observation: {
@@ -182,7 +196,7 @@ describe('SettingsHarnesses', () => {
 
   it('renders divergent and unknown facts without collapsing them', () => {
     render(
-      <SettingsHarnesses
+      <StatefulHarnesses
         load={{ kind: 'ready', observation: divergentHarnessesObservation() }}
       />,
     )
@@ -212,17 +226,17 @@ describe('SettingsHarnesses', () => {
   })
 
   it('drops ready facts while loading or unavailable', () => {
-    const view = render(<SettingsHarnesses load={populatedHarnessesLoad()} />)
+    const view = render(<StatefulHarnesses load={populatedHarnessesLoad()} />)
     expect(screen.getAllByText('Claude Code').length).toBeGreaterThan(0)
-    view.rerender(<SettingsHarnesses load={{ kind: 'loading' }} />)
-    expect(screen.getByRole('group', { name: 'Loading Settings' })).toHaveAttribute(
+    view.rerender(<StatefulHarnesses load={{ kind: 'loading' }} />)
+    expect(screen.getByRole('group', { name: 'Loading Harnesses' })).toHaveAttribute(
       'aria-busy',
       'true',
     )
     expect(screen.queryByText('Claude Code')).not.toBeInTheDocument()
     expect(screen.queryByText('Installed')).not.toBeInTheDocument()
     expect(screen.queryByText('Ready')).not.toBeInTheDocument()
-    view.rerender(<SettingsHarnesses load={unavailableHarnessesLoad()} />)
+    view.rerender(<StatefulHarnesses load={unavailableHarnessesLoad()} />)
     expect(screen.getByRole('status')).toHaveTextContent(
       'Harness registration is unavailable.',
     )

@@ -4,7 +4,14 @@ import {
   LanesSkeleton,
   StandaloneNodesSkeleton,
 } from './skeletonLanes'
-import { SkelBlock, SkelLine, SkelParagraph, SkelToolRow } from './skeletonPrimitives'
+import { Icon } from './Icon'
+import {
+  SkelBlock,
+  SkelLine,
+  SkelParagraph,
+  SkelStatus,
+  SkelToolRow,
+} from './skeletonPrimitives'
 
 function RunTopbarSkeleton({ actions }: { readonly actions: ReactNode }) {
   return (
@@ -18,40 +25,52 @@ function RunTopbarSkeleton({ actions }: { readonly actions: ReactNode }) {
   )
 }
 
-function RunViewActions() {
+function RunViewActions({
+  active,
+}: {
+  readonly active: 'graph' | 'parallel'
+}) {
   return (
     <>
+      <div className="hd-seg" role="group" aria-label="Run view">
+        {(['graph', 'parallel'] as const).map((view) => (
+          <button
+            key={view}
+            type="button"
+            className={`hd-seg__item${active === view ? ' is-active' : ''}`}
+            disabled
+            aria-disabled="true"
+            aria-pressed={active === view}
+          >
+            {view === 'graph' ? 'Graph' : 'Parallel'}
+          </button>
+        ))}
+      </div>
       <button
         type="button"
-        className="hd-btn hd-btn--ghost hd-btn--sm"
+        className="hd-btn hd-btn--ghost"
         disabled
         aria-disabled="true"
       >
-        Graph
-      </button>
-      <button
-        type="button"
-        className="hd-btn hd-btn--ghost hd-btn--sm"
-        disabled
-        aria-disabled="true"
-      >
-        Parallel
-      </button>
-      <button
-        type="button"
-        className="hd-btn hd-btn--ghost hd-btn--sm"
-        disabled
-        aria-disabled="true"
-      >
+        <Icon name="pause" size="sm" />
         Pause
       </button>
       <button
         type="button"
-        className="hd-btn hd-btn--danger hd-btn--sm"
+        className="hd-btn hd-btn--ghost"
         disabled
         aria-disabled="true"
       >
         Cancel run
+      </button>
+      <button
+        type="button"
+        className="hd-btn hd-btn--icon hd-btn--sm"
+        aria-label="More actions"
+        disabled
+        aria-disabled="true"
+      >
+        <Icon name="more" />
       </button>
     </>
   )
@@ -59,7 +78,7 @@ function RunViewActions() {
 
 function OnDemandPaneSkeleton() {
   return (
-    <aside className="hd-pane">
+    <aside className="hd-pane" aria-label="Loading selected node">
       <div className="hd-pane__head">
         <SkelLine width={110} height={14} />
         <SkelBlock width={60} height={10} shape="pill" />
@@ -91,6 +110,7 @@ function OnDemandPaneSkeleton() {
       <form className="hd-composer" aria-label="Message this node">
         <textarea
           className="hd-composer__input"
+          aria-label="Message this node"
           rows={2}
           readOnly
           disabled
@@ -128,7 +148,8 @@ export function WorkflowRunLoadingPage(): ReactNode {
       aria-label="Loading Workflow run"
       style={columnStyle}
     >
-      <RunTopbarSkeleton actions={<RunViewActions />} />
+      <SkelStatus>Loading workflow run…</SkelStatus>
+      <RunTopbarSkeleton actions={<RunViewActions active="graph" />} />
       <div className="hd-standalone">
         <span className="hd-standalone__label">
           <strong>Standalone</strong>
@@ -137,12 +158,15 @@ export function WorkflowRunLoadingPage(): ReactNode {
         <StandaloneNodesSkeleton />
       </div>
       <div className="hd-split" style={{ flex: '1 1 auto', minHeight: 0 }}>
-        <div
-          className="hd-canvas hd-thin-scroll"
-          aria-label="Workflow steps"
-          style={{ flex: '1 1 auto', overflow: 'auto', position: 'relative' }}
-        >
-          <GraphSkeleton />
+        <div className="hd-canvas">
+          <div
+            className="hd-canvas__port hd-thin-scroll"
+            role="region"
+            aria-label="Loading workflow graph"
+            style={{ scrollbarGutter: 'auto' }}
+          >
+            <GraphSkeleton />
+          </div>
         </div>
         <OnDemandPaneSkeleton />
       </div>
@@ -159,7 +183,8 @@ export function WorkflowRunParallelLoadingPage(): ReactNode {
       aria-label="Loading Workflow run"
       style={columnStyle}
     >
-      <RunTopbarSkeleton actions={<RunViewActions />} />
+      <SkelStatus>Loading workflow run…</SkelStatus>
+      <RunTopbarSkeleton actions={<RunViewActions active="parallel" />} />
       <LanesSkeleton />
       <div
         data-skel-region=""
@@ -190,6 +215,7 @@ export function ParallelGroupLoadingPage(): ReactNode {
       aria-label="Loading Parallel group"
       style={columnStyle}
     >
+      <SkelStatus>Loading parallel group…</SkelStatus>
       <div className="hd-topbar">
         <SkelLine width={150} height={14} />
         <SkelBlock width={72} height={22} shape="pill" />

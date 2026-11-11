@@ -1,114 +1,7 @@
 import type { ReactNode } from 'react'
-import type { Appearance } from '../model'
 import { Icon } from './Icon'
-import { SkelBlock, SkelLine, SKEL_TITLE_WIDTHS } from './skeletonPrimitives'
-import { ThemeToggle } from './ThemeToggle'
-
-function BehaviourLoadingSection() {
-  return (
-    <section aria-label="Behaviour" style={{ marginTop: 'var(--space-6)' }}>
-      <h2 className="label hd-faint" style={{ margin: 0, fontWeight: 500 }}>
-        Behaviour
-      </h2>
-      {[
-        'Open the window when a task starts',
-        'Notify when a task finishes',
-        'Notify when a request needs you',
-      ].map((label) => (
-        <div key={label} className="hd-form-row" style={{ minHeight: 40 }}>
-          <div className="hd-form-row__label">{label}</div>
-          <SkelBlock width={40} height={24} shape="pill" />
-        </div>
-      ))}
-    </section>
-  )
-}
-
-function RuntimeStoreLoadingSections() {
-  return (
-    <>
-      <section aria-label="Harflow runtime" style={{ marginTop: 'var(--space-6)' }}>
-        <h2 className="label hd-faint" style={{ margin: 0, fontWeight: 500 }}>
-          Harflow runtime
-        </h2>
-        <div className="hd-form-row" style={{ minHeight: 40 }}>
-          <div className="hd-form-row__label">
-            <SkelLine width={200} height={12} />
-          </div>
-          <button
-            type="button"
-            className="hd-btn hd-btn--secondary"
-            disabled
-            aria-disabled="true"
-          >
-            Check for updates
-          </button>
-        </div>
-      </section>
-      <section aria-label="Task store" style={{ marginTop: 'var(--space-6)' }}>
-        <h2 className="label hd-faint" style={{ margin: 0, fontWeight: 500 }}>
-          Task store
-        </h2>
-        <div className="hd-form-row" style={{ minHeight: 40 }}>
-          <div className="hd-form-row__label">
-            <SkelLine width={170} height={12} />
-          </div>
-          <span style={{ display: 'flex', gap: 'var(--space-2)' }}>
-            <button
-              type="button"
-              className="hd-btn hd-btn--secondary"
-              disabled
-              aria-disabled="true"
-            >
-              Inspect task store
-            </button>
-            <button
-              type="button"
-              className="hd-btn hd-btn--ghost"
-              disabled
-              aria-disabled="true"
-            >
-              Show backup in Finder
-            </button>
-          </span>
-        </div>
-      </section>
-    </>
-  )
-}
-
-/** Settings General first-load — Design `settings/loading-general`. */
-export function SettingsGeneralLoading({
-  appearance,
-  onAppearance,
-}: {
-  readonly appearance: Appearance
-  readonly onAppearance: (appearance: Appearance) => void
-}): ReactNode {
-  return (
-    <div
-      role="group"
-      aria-busy="true"
-      aria-label="Loading Settings"
-      style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}
-    >
-      <section aria-label="Appearance">
-        <h2 className="label hd-faint" style={{ margin: 0, fontWeight: 500 }}>
-          Appearance
-        </h2>
-        <div className="hd-form-row" style={{ minHeight: 40 }}>
-          <div className="hd-form-row__label">
-            Theme
-            <span className="hd-form-row__hint">Also in the sidebar footer.</span>
-          </div>
-          <ThemeToggle appearance={appearance} onChange={onAppearance} labeled />
-        </div>
-      </section>
-      <BehaviourLoadingSection />
-      <RuntimeStoreLoadingSections />
-    </div>
-  )
-}
+import { SKEL_TITLE_WIDTHS } from './skeletonConstants'
+import { SkelBlock, SkelLine, SkelStatus } from './skeletonPrimitives'
 
 function HarnessRowSkeleton({ index }: { readonly index: number }) {
   return (
@@ -177,10 +70,11 @@ export function SettingsHarnessesLoading(): ReactNode {
     <div
       role="group"
       aria-busy="true"
-      aria-label="Loading Settings"
+      aria-label="Loading Harnesses"
       style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}
       data-skel-region=""
     >
+      <SkelStatus>Loading harness registration…</SkelStatus>
       <SettingsHarnessChrome />
       <div>
         <hr style={{ border: 0, borderTop: '1px solid var(--border)', margin: 0 }} />
@@ -205,38 +99,80 @@ export function SettingsHarnessesLoading(): ReactNode {
   )
 }
 
-/** Settings MCP approvals first-load — Design `settings/loading-mcp-approvals`. */
+function ApprovalRowSkeleton({ index }: { readonly index: number }) {
+  return (
+    <div
+      className="hd-form-row"
+      aria-hidden="true"
+      style={{ minHeight: 36, paddingLeft: 'var(--space-3)' }}
+    >
+      <SkelLine
+        width={SKEL_TITLE_WIDTHS[(index + 1) % SKEL_TITLE_WIDTHS.length]!}
+        height={14}
+      />
+      <span style={{ flex: 1 }} />
+      <SkelBlock width={64} height={26} shape="pill" />
+    </div>
+  )
+}
+
+/** Placeholder for the expanded harness's approvals, shaped like the loaded panel. */
+function McpApprovalsPanelSkeleton() {
+  return (
+    <div
+      aria-hidden="true"
+      data-testid="mcp-approvals-skeleton"
+      style={{
+        marginLeft: 44,
+        padding: 'var(--space-2) 0 var(--space-3)',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 'var(--space-2)',
+      }}
+    >
+      <SkelLine width={320} height={10} />
+      {[0, 1, 2].map((index) => (
+        <ApprovalRowSkeleton key={index} index={index} />
+      ))}
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 'var(--space-2)',
+          paddingLeft: 'var(--space-3)',
+        }}
+      >
+        <SkelBlock width="100%" height={32} shape="soft" style={{ flex: 1 }} />
+        <SkelBlock width={110} height={32} shape="pill" />
+      </div>
+    </div>
+  )
+}
+
+/**
+ * Settings MCP approvals first-load. One harness is expanded (session state),
+ * so only the first row carries an approvals placeholder; on ready the same
+ * harness stays expanded and its approvals replace the placeholders. This
+ * differs from the Design `settings/loading-mcp-approvals` drawing, which
+ * shows a placeholder under every row.
+ */
 export function SettingsMcpApprovalsLoading(): ReactNode {
   return (
     <div
       role="group"
       aria-busy="true"
-      aria-label="Loading Settings"
+      aria-label="Loading MCP approvals"
       style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}
       data-skel-region=""
     >
+      <SkelStatus>Loading MCP approvals…</SkelStatus>
       <SettingsHarnessChrome />
       <div>
         <hr style={{ border: 0, borderTop: '1px solid var(--border)', margin: 0 }} />
         {Array.from({ length: 5 }, (_, index) => (
           <div key={index}>
             <HarnessRowSkeleton index={index} />
-            <div
-              className="hd-form-row"
-              aria-hidden="true"
-              style={{
-                height: 44,
-                boxSizing: 'border-box',
-                paddingLeft: 44,
-              }}
-            >
-              <SkelLine
-                width={SKEL_TITLE_WIDTHS[(index + 1) % SKEL_TITLE_WIDTHS.length]!}
-                height={14}
-              />
-              <span style={{ flex: 1 }} />
-              <SkelBlock width={64} height={26} shape="pill" />
-            </div>
+            {index === 0 ? <McpApprovalsPanelSkeleton /> : null}
             <hr
               style={{ border: 0, borderTop: '1px solid var(--border)', margin: 0 }}
             />

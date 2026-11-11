@@ -1,5 +1,5 @@
 import { SettingsPage } from '../components'
-import type { Appearance, HarnessesLoad } from '../model'
+import type { Appearance, HarnessesLoad, SettingsGeneralLoad } from '../model'
 import type { SettingsSection } from '../presentation'
 
 type Props = {
@@ -8,9 +8,10 @@ type Props = {
   readonly appearance: Appearance
   readonly onAppearance: (appearance: Appearance) => void
   readonly onUnavailable: (label: string) => void
+  readonly general: SettingsGeneralLoad
   readonly harnesses: HarnessesLoad
-  readonly generalLoading?: boolean
-  readonly mcpApprovalsLoading?: boolean
+  readonly expandedHarnessId: string | null
+  readonly onExpandHarness: (id: string | null) => void
 }
 
 /** Settings general page. Appearance is the shared session value. */
@@ -20,9 +21,10 @@ export function SettingsMain({
   appearance,
   onAppearance,
   onUnavailable,
+  general,
   harnesses,
-  generalLoading = false,
-  mcpApprovalsLoading = false,
+  expandedHarnessId,
+  onExpandHarness,
 }: Props) {
   return (
     <>
@@ -36,9 +38,10 @@ export function SettingsMain({
           appearance={appearance}
           onAppearance={onAppearance}
           onUnavailable={onUnavailable}
+          general={general}
           harnesses={harnesses}
-          generalLoading={generalLoading}
-          mcpApprovalsLoading={mcpApprovalsLoading}
+          expandedHarnessId={expandedHarnessId}
+          onExpandHarness={onExpandHarness}
         />
       </div>
     </>

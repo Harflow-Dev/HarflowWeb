@@ -5,6 +5,7 @@ import {
   createLoadContextUseCase,
   createLoadHarnessesUseCase,
   createLoadNeedsYouUseCase,
+  createLoadSettingsGeneralUseCase,
   createLoadParallelGroupUseCase,
   createLoadResourcesUseCase,
   createLoadStatisticsUseCase,
@@ -111,6 +112,14 @@ function transcriptEngine(): EnginePort {
       queueMicrotask(() => onUpdate(populatedHarnessesLoad()))
       return handle('harnesses')
     },
+    observeSettingsGeneral() {
+      return {
+        id: asObservationId('unused-settings-general'),
+        cancel() {
+          /* no-op */
+        },
+      }
+    },
     observeNeedsYou(onUpdate) {
       queueMicrotask(() => onUpdate(emptyNeedsYouLoad()))
       return handle('needs')
@@ -151,6 +160,7 @@ function renderApp(engine: EnginePort) {
     loadTaskChanges: createLoadTaskChangesUseCase(engine),
     loadHarnesses: createLoadHarnessesUseCase(engine),
     loadNeedsYou: createLoadNeedsYouUseCase(engine),
+    loadSettingsGeneral: createLoadSettingsGeneralUseCase(engine),
     loadWorkflowRun: createLoadWorkflowRunUseCase(engine),
     loadWorkflowEditor: createLoadWorkflowEditorUseCase(engine),
     loadWorkflowExecution: createLoadWorkflowExecutionUseCase(engine),

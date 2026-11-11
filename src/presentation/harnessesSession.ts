@@ -40,7 +40,7 @@ export class HarnessesSession {
     this.observationEpoch += 1
     const gen = this.observationEpoch
     this.observation?.cancel()
-    this.publish({ load: { kind: 'loading' } })
+    this.publish({ ...this.state, load: { kind: 'loading' } })
     this.observation = this.loadHarnesses.observe((load) =>
       this.applyLoad(load, gen),
     )
@@ -53,9 +53,23 @@ export class HarnessesSession {
     this.observation = null
   }
 
+  /** Expand one harness's MCP approvals, or collapse with null. */
+  setExpandedId(id: string | null): void {
+    if (this.disposed || id === this.state.expandedId) return
+    this.publish({ ...this.state, expandedId: id })
+  }
+
   private applyLoad(load: HarnessesLoad, gen: number): void {
     if (this.disposed || gen !== this.observationEpoch) return
-    this.publish({ load })
+    this.publish({ load, expandedId: this.reconcileExpanded(load) })
+  }
+
+  /** A ready observation that does not list the expanded harness collapses it. */
+  private reconcileExpanded(load: HarnessesLoad): string | null {
+    const id = this.state.expandedId
+    if (id === null || load.kind !== 'ready') return id
+    const listed = load.observation.harnesses.some((row) => row.id === id)
+    return listed ? id : null
   }
 
   private publish(next: HarnessesScreenState): void {

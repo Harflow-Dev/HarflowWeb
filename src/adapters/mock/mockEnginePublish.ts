@@ -6,6 +6,7 @@ import type {
   ParallelGroupId,
   ParallelGroupLoad,
   ResourcesLoad,
+  SettingsGeneralLoad,
   StatisticsLoad,
   StatisticsRangeId,
   TaskChangesLoad,
@@ -91,6 +92,13 @@ function republishSurfaces(
         : scenario.harnesses,
     )
   }
+  for (const listener of listeners.settingsGeneral) {
+    listener(
+      scenario.settingsGeneral === 'defer'
+        ? { kind: 'loading' }
+        : scenario.settingsGeneral,
+    )
+  }
   for (const listener of listeners.needsYou) {
     listener(
       scenario.needsYou === 'defer' ? { kind: 'loading' } : scenario.needsYou,
@@ -159,6 +167,9 @@ export function surfacePublishers(listeners: MockListenerSets) {
   return {
     publishHarnesses(load: HarnessesLoad) {
       for (const listener of listeners.harnesses) listener(load)
+    },
+    publishSettingsGeneral(load: SettingsGeneralLoad) {
+      for (const listener of listeners.settingsGeneral) listener(load)
     },
     publishNeedsYou(load: NeedsYouLoad) {
       for (const listener of listeners.needsYou) listener(load)

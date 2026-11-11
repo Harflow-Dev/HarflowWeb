@@ -6,6 +6,7 @@ import type {
   ParallelGroupId,
   ParallelGroupLoad,
   ResourcesLoad,
+  SettingsGeneralLoad,
   StartTaskOutcome,
   StartTaskRequest,
   StatisticsLoad,
@@ -131,6 +132,15 @@ export type EnginePort = {
    */
   observeHarnesses(
     onUpdate: (load: HarnessesLoad) => void,
+  ): ObservationHandle
+
+  /**
+   * Read Settings General facts: runtime readiness and task store
+   * compatibility. Unknown is not ready. Mock-only — not a host probe,
+   * not an update check, and not a public ctl claim.
+   */
+  observeSettingsGeneral(
+    onUpdate: (load: SettingsGeneralLoad) => void,
   ): ObservationHandle
 
   /**

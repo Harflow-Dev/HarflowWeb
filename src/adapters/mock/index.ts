@@ -65,6 +65,11 @@ export {
   populatedHarnessesObservation,
   unavailableHarnessesLoad,
 } from './harnessFixtures'
+export {
+  populatedSettingsGeneralLoad,
+  populatedSettingsGeneralObservation,
+  unavailableSettingsGeneralLoad,
+} from './settingsGeneralFixtures'
 export { UNMAPPED_LAUNCH_TASK_ID } from './sidebarFixtures'
 export {
   NIGHTLY_WORKFLOW_ID,

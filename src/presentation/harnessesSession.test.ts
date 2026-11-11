@@ -58,6 +58,14 @@ function createCapturingPort(): {
         },
       }
     },
+    observeSettingsGeneral() {
+      return {
+        id: asObservationId('unused-settings-general'),
+        cancel() {
+          /* no-op */
+        },
+      }
+    },
     observeNeedsYou() {
       return noopHandle('needs')
     },

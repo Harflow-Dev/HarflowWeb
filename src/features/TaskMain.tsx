@@ -24,7 +24,8 @@ export function TaskMain({
   onToggleChangesPane,
   onSelectChangedFile,
 }: Props) {
-  const title = resolveTitle(state, sidebar)
+  const knownTitle = resolveKnownTitle(state, sidebar)
+  const title = knownTitle ?? 'Task'
   const ready =
     state.load.kind === 'ready' ? state.load.observation : null
   const usesEvents = ready?.detailsPane === 'events'
@@ -64,7 +65,7 @@ export function TaskMain({
   }
 
   if (state.load.kind === 'loading') {
-    return <TaskLoadingPage knownTitle={title === 'Task' ? null : title} />
+    return <TaskLoadingPage knownTitle={knownTitle} />
   }
   if (state.load.kind !== 'ready') {
     return (
@@ -160,17 +161,16 @@ function StatusBadge({
   )
 }
 
-function resolveTitle(
+/** The ready title, else the mapped sidebar row title, else null. */
+function resolveKnownTitle(
   state: TaskScreenState,
   sidebar: SidebarData | null,
-): string {
+): string | null {
   if (state.load.kind === 'ready') {
     return state.load.observation.title
   }
-  if (!state.selectedTaskId || !sidebar) {
-    return 'Task'
-  }
+  if (!state.selectedTaskId || !sidebar) return null
   const rows = [...sidebar.running, ...sidebar.recent]
   const match = rows.find((row) => row.mappedTaskId === state.selectedTaskId)
-  return match?.title ?? 'Task'
+  return match?.title ?? null
 }

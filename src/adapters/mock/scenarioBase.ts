@@ -7,6 +7,7 @@ import { populatedComposer, populatedSidebar } from './fixtures'
 import { populatedHarnessesLoad } from './harnessFixtures'
 import { waitingNeedsYouLoad } from './needsYouFixtures'
 import { populatedResourcesLoad } from './resourceFixtures'
+import { populatedSettingsGeneralLoad } from './settingsGeneralFixtures'
 import type {
   DeferredSurface,
   ScenarioDefinition,
@@ -20,7 +21,6 @@ export function readyContext(
   sidebar = populatedSidebar(),
   options?: {
     readonly sidebarListingLoading?: boolean
-    readonly settingsGeneralLoading?: boolean
   },
 ): ContextLoad {
   return {
@@ -29,9 +29,6 @@ export function readyContext(
     sidebar,
     ...(options?.sidebarListingLoading === true
       ? { sidebarListingLoading: true }
-      : {}),
-    ...(options?.settingsGeneralLoading === true
-      ? { settingsGeneralLoading: true }
       : {}),
   }
 }
@@ -48,6 +45,7 @@ const tasks: TasksScenario = 'default'
 const taskChanges: TaskChangesScenario = 'default'
 const harnesses = populatedHarnessesLoad()
 const needsYou = waitingNeedsYouLoad()
+const settingsGeneral = populatedSettingsGeneralLoad()
 const workflowEditors: DeferredSurface = 'default'
 const workflowExecutions: DeferredSurface = 'default'
 const parallelGroups: DeferredSurface = 'default'
@@ -61,6 +59,7 @@ export function base(
     | 'tasks'
     | 'taskChanges'
     | 'harnesses'
+    | 'settingsGeneral'
     | 'needsYou'
     | 'workflowEditors'
     | 'workflowExecutions'
@@ -75,6 +74,7 @@ export function base(
         | 'tasks'
         | 'taskChanges'
         | 'harnesses'
+        | 'settingsGeneral'
         | 'needsYou'
         | 'workflowEditors'
         | 'workflowExecutions'
@@ -90,6 +90,7 @@ export function base(
     tasks,
     taskChanges,
     harnesses,
+    settingsGeneral,
     needsYou,
     workflowEditors,
     workflowExecutions,

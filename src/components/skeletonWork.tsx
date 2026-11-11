@@ -4,6 +4,7 @@ import {
   SkelBlock,
   SkelLine,
   SkelParagraph,
+  SkelStatus,
   SkelTaskRow,
   SkelToolRow,
 } from './skeletonPrimitives'
@@ -22,7 +23,8 @@ export function SidebarListingSkeleton({
   readonly recent?: number
 }) {
   return (
-    <>
+    <div role="group" aria-busy="true" aria-label="Loading tasks">
+      <SkelStatus>Loading tasks…</SkelStatus>
       <section className="hd-section" aria-label="Running" data-skeleton="">
         <div className="hd-section__head">
           Running <SidebarCountSkeleton />
@@ -41,7 +43,7 @@ export function SidebarListingSkeleton({
           ))}
         </div>
       </section>
-    </>
+    </div>
   )
 }
 
@@ -57,6 +59,7 @@ export function NewTaskLoadingComposer(): ReactNode {
       aria-label="Loading New task"
       style={{ width: '100%' }}
     >
+      <SkelStatus>Loading new task…</SkelStatus>
       <form className="hd-composer hw-composer" aria-label="New task">
         <label className="hd-sr" htmlFor="new-task-loading-prompt">
           Task prompt
@@ -83,10 +86,7 @@ export function NewTaskLoadingComposer(): ReactNode {
             <Icon name="plus" />
             <span className="hd-sr">Default options</span>
           </button>
-          <span
-            className="hd-m04-picker"
-            style={{ display: 'flex', gap: 8, alignItems: 'center' }}
-          >
+          <span style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
             <SkelBlock width={120} height={32} shape="pill" />
             <SkelBlock width={160} height={32} shape="pill" />
             <SkelBlock width={140} height={32} shape="pill" />
@@ -157,6 +157,7 @@ export function TaskLoadingPage({
         minHeight: 0,
       }}
     >
+      <SkelStatus>Loading task…</SkelStatus>
       <div className="hd-topbar">
         {knownTitle ? (
           <span className="hd-topbar__title">{knownTitle}</span>
@@ -166,6 +167,15 @@ export function TaskLoadingPage({
         <SkelBlock width={72} height={22} shape="pill" />
         <SkelLine width={170} height={10} />
         <span className="hd-topbar__spacer" />
+        <button
+          type="button"
+          className="hd-btn hd-btn--icon hd-btn--sm"
+          aria-label="Toggle right pane"
+          aria-disabled="true"
+          disabled
+        >
+          <Icon name="panel-right" />
+        </button>
       </div>
       <div
         className="hd-scroll"

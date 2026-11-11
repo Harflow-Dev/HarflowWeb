@@ -4,6 +4,7 @@ import {
   createLoadNeedsYouUseCase,
   createLoadParallelGroupUseCase,
   createLoadResourcesUseCase,
+  createLoadSettingsGeneralUseCase,
   createLoadStatisticsUseCase,
   createLoadTaskChangesUseCase,
   createLoadTaskUseCase,
@@ -44,6 +45,7 @@ export function createApp(scenario: ScenarioId = 'populated'): AppBundle {
   const loadTaskChanges = createLoadTaskChangesUseCase(mock.engine)
   const loadHarnesses = createLoadHarnessesUseCase(mock.engine)
   const loadNeedsYou = createLoadNeedsYouUseCase(mock.engine)
+  const loadSettingsGeneral = createLoadSettingsGeneralUseCase(mock.engine)
   const presenter = createAppPresenter({
     loadContext,
     startTask,
@@ -53,6 +55,7 @@ export function createApp(scenario: ScenarioId = 'populated'): AppBundle {
     loadTask,
     loadTaskChanges,
     loadHarnesses,
+    loadSettingsGeneral,
     loadNeedsYou,
     loadWorkflowRun,
     loadWorkflowEditor,

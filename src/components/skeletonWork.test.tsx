@@ -39,8 +39,8 @@ describe('SidebarListingSkeleton', () => {
     expect(document.querySelectorAll('.hd-task-row[aria-hidden="true"]').length).toBe(10)
   })
 
-  it('replaces work rows when Sidebar listingLoading is set', () => {
-    const { rerender } = render(
+  it('keeps the Needs you count while only the listing loads', () => {
+    render(
       <Sidebar
         collapsed={false}
         appearance="light"
@@ -58,8 +58,34 @@ describe('SidebarListingSkeleton', () => {
         onUnavailable={vi.fn()}
       />,
     )
-    const aside = screen.getByLabelText('Loading Sidebar')
-    expect(aside).toHaveAttribute('aria-busy', 'true')
+    expect(screen.getByRole('navigation', { name: 'Main' })).toHaveTextContent('3')
+  })
+
+  it('replaces work rows when Sidebar listingLoading is set', () => {
+    const { rerender } = render(
+      <Sidebar
+        collapsed={false}
+        appearance="light"
+        activeRoute="new-task"
+        activeTaskId={null}
+        activeParallelGroupId={null}
+        sidebar={populatedSidebar()}
+        listingLoading
+        needsYouLoading
+        needsYou={{ kind: 'unknown' }}
+        onCollapse={vi.fn()}
+        onAppearance={vi.fn()}
+        onNavigate={vi.fn()}
+        onOpenTask={vi.fn()}
+        onOpenParallelGroup={vi.fn()}
+        onUnavailable={vi.fn()}
+      />,
+    )
+    const aside = screen.getByRole('complementary', { name: 'Sidebar' })
+    expect(
+      within(aside).getByRole('group', { name: 'Loading tasks' }),
+    ).toHaveAttribute('aria-busy', 'true')
+    expect(within(aside).getByRole('status')).toHaveTextContent('Loading tasks')
     expect(screen.queryByText('Fix flaky slot release test')).toBeNull()
     expect(screen.queryByText('3')).toBeNull()
     expect(aside.querySelectorAll('.hd-skel--shimmer').length).toBeGreaterThan(0)
@@ -82,7 +108,8 @@ describe('SidebarListingSkeleton', () => {
         onUnavailable={vi.fn()}
       />,
     )
-    expect(screen.queryByLabelText('Loading Sidebar')).toBeNull()
+    expect(screen.getByRole('complementary', { name: 'Sidebar' })).toBeInTheDocument()
+    expect(screen.queryByRole('group', { name: 'Loading tasks' })).toBeNull()
     expect(screen.getByText('Fix flaky slot release test')).toBeInTheDocument()
     expect(screen.getByRole('navigation', { name: 'Main' })).toHaveTextContent('3')
   })

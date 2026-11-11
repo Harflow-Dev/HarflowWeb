@@ -4,6 +4,7 @@ import type {
   LoadNeedsYouUseCase,
   LoadParallelGroupUseCase,
   LoadResourcesUseCase,
+  LoadSettingsGeneralUseCase,
   LoadWorkflowEditorUseCase,
   LoadWorkflowExecutionUseCase,
   LoadWorkflowRunUseCase,
@@ -58,7 +59,7 @@ export type AppPresenter = {
   selectTaskChangedFile(path: string): void
   selectStatisticsRange(range: StatisticsRangeId): void
   selectSettingsSection(section: SettingsSection): void
-  setSettingsMcpApprovalsLoading(value: boolean): void
+  setExpandedHarness(id: string | null): void
   setAppearance(appearance: Appearance): void
   cycleAppearance(): void
   setSidebarCollapsed(collapsed: boolean): void
@@ -84,6 +85,7 @@ type Deps = {
   readonly loadTask: LoadTaskUseCase
   readonly loadTaskChanges: LoadTaskChangesUseCase
   readonly loadHarnesses: LoadHarnessesUseCase
+  readonly loadSettingsGeneral: LoadSettingsGeneralUseCase
   readonly loadNeedsYou: LoadNeedsYouUseCase
   readonly loadWorkflowRun: LoadWorkflowRunUseCase
   readonly loadWorkflowEditor: LoadWorkflowEditorUseCase
@@ -118,8 +120,7 @@ export function createAppPresenter(deps: Deps): AppPresenter {
     selectTaskChangedFile: (path) => session.selectTaskChangedFile(path),
     selectStatisticsRange: (range) => session.selectStatisticsRange(range),
     selectSettingsSection: (section) => session.selectSettingsSection(section),
-    setSettingsMcpApprovalsLoading: (value) =>
-      session.setSettingsMcpApprovalsLoading(value),
+    setExpandedHarness: (id) => session.setExpandedHarness(id),
     setAppearance: (appearance) => session.setAppearance(appearance),
     cycleAppearance: () => session.cycleAppearance(),
     setSidebarCollapsed: (collapsed) => session.setSidebarCollapsed(collapsed),

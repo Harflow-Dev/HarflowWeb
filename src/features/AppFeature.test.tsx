@@ -5,6 +5,7 @@ import {
   createLoadContextUseCase,
   createLoadHarnessesUseCase,
   createLoadNeedsYouUseCase,
+  createLoadSettingsGeneralUseCase,
   createLoadParallelGroupUseCase,
   createLoadResourcesUseCase,
   createLoadStatisticsUseCase,
@@ -31,6 +32,7 @@ import {
   type ParallelGroupId,
   type ParallelGroupLoad,
   type ResourcesLoad,
+  type SettingsGeneralLoad,
   type StartTaskOutcome,
   type StartTaskRequest,
   type StatisticsLoad,
@@ -48,6 +50,7 @@ import {
 import { createControllablePromise } from '../adapters/mock/controllable'
 import { populatedComposer, populatedSidebar } from '../adapters/mock/fixtures'
 import { populatedHarnessesLoad } from '../adapters/mock/harnessFixtures'
+import { populatedSettingsGeneralLoad } from '../adapters/mock/settingsGeneralFixtures'
 import {
   emptyNeedsYouLoad,
   partialNeedsYouObservation,
@@ -62,7 +65,10 @@ import { SLOT_RELEASE_TASK_ID } from '../adapters/mock/taskFixtures'
 import {
   workflowEditorLoadFor,
 } from '../adapters/mock/workflowEditorFixtures'
-import { workflowExecutionLoadFor } from '../adapters/mock/workflowExecutionFixtures'
+import {
+  nightlyAuditRun,
+  workflowExecutionLoadFor,
+} from '../adapters/mock/workflowExecutionFixtures'
 import {
   NIGHTLY_WORKFLOW_ID,
   RELEASE_WORKFLOW_ID,
@@ -98,7 +104,7 @@ function createTestEngine(options?: {
   workflows?: WorkflowsLoad
   deferContext?: boolean
   sidebarListingLoading?: boolean
-  settingsGeneralLoading?: boolean
+  deferSettingsGeneral?: boolean
   deferWorkflows?: boolean
   deferWorkflowEditor?: boolean
   deferWorkflowExecution?: boolean
@@ -117,6 +123,7 @@ function createTestEngine(options?: {
   publishStatistics: (range: StatisticsRangeId, load: StatisticsLoad) => void
   publishResources: (load: ResourcesLoad) => void
   publishHarnesses: (load: HarnessesLoad) => void
+  publishSettingsGeneral: (load: SettingsGeneralLoad) => void
   publishTask: (taskId: TaskId, load: TaskLoad) => void
   publishTaskChanges: (query: TaskChangesQuery, load: TaskChangesLoad) => void
   publishNeedsYou: (load: NeedsYouLoad) => void
@@ -156,6 +163,9 @@ function createTestEngine(options?: {
   const workflowListeners = new Set<(load: WorkflowsLoad) => void>()
   const resourceListeners = new Set<(load: ResourcesLoad) => void>()
   const harnessListeners = new Set<(load: HarnessesLoad) => void>()
+  const settingsGeneralListeners = new Set<
+    (load: SettingsGeneralLoad) => void
+  >()
   const statsListeners = new Map<
     StatisticsRangeId,
     (load: StatisticsLoad) => void
@@ -191,9 +201,6 @@ function createTestEngine(options?: {
       sidebar: populatedSidebar(),
       ...(options?.sidebarListingLoading === true
         ? { sidebarListingLoading: true as const }
-        : {}),
-      ...(options?.settingsGeneralLoading === true
-        ? { settingsGeneralLoading: true as const }
         : {}),
     }
   }
@@ -353,6 +360,22 @@ function createTestEngine(options?: {
         },
       }
     },
+    observeSettingsGeneral(onUpdate) {
+      settingsGeneralListeners.add(onUpdate)
+      queueMicrotask(() =>
+        onUpdate(
+          options?.deferSettingsGeneral
+            ? { kind: 'loading' }
+            : populatedSettingsGeneralLoad(),
+        ),
+      )
+      return {
+        id: asObservationId('ui-settings-general'),
+        cancel() {
+          settingsGeneralListeners.delete(onUpdate)
+        },
+      }
+    },
     observeNeedsYou(onUpdate) {
       needsListeners.add(onUpdate)
       queueMicrotask(() => onUpdate(waitingNeedsYouLoad()))
@@ -392,6 +415,9 @@ function createTestEngine(options?: {
     },
     publishHarnesses(load) {
       for (const listener of harnessListeners) listener(load)
+    },
+    publishSettingsGeneral(load) {
+      for (const listener of settingsGeneralListeners) listener(load)
     },
     publishWorkflowExecution(id, load) {
       executionListeners.get(id)?.(load)
@@ -439,6 +465,7 @@ function renderApp(engine: EnginePort) {
     loadTaskChanges: createLoadTaskChangesUseCase(engine),
     loadHarnesses: createLoadHarnessesUseCase(engine),
     loadNeedsYou: createLoadNeedsYouUseCase(engine),
+    loadSettingsGeneral: createLoadSettingsGeneralUseCase(engine),
     loadWorkflowRun: createLoadWorkflowRunUseCase(engine),
     loadWorkflowEditor: createLoadWorkflowEditorUseCase(engine),
     loadWorkflowExecution: createLoadWorkflowExecutionUseCase(engine),
@@ -2307,7 +2334,7 @@ describe('AppFeature first-load skeletons', () => {
       'aria-busy',
       'true',
     )
-    expect(screen.getByLabelText('Loading Sidebar')).toHaveAttribute('aria-busy', 'true')
+    expect(screen.getByRole('group', { name: 'Loading tasks' })).toHaveAttribute('aria-busy', 'true')
     expect(screen.queryByText('Fix flaky slot release test')).toBeNull()
 
     engine.publishContext(readyContext())
@@ -2327,14 +2354,14 @@ describe('AppFeature first-load skeletons', () => {
     const engine = createTestEngine({ sidebarListingLoading: true })
     renderApp(engine.port)
     await flush()
-    expect(screen.getByLabelText('Loading Sidebar')).toHaveAttribute('aria-busy', 'true')
+    expect(screen.getByRole('group', { name: 'Loading tasks' })).toHaveAttribute('aria-busy', 'true')
     expect(screen.queryByText('Fix flaky slot release test')).toBeNull()
     expect(screen.getByRole('textbox', { name: 'Task prompt' })).toBeEnabled()
     expect(screen.getByRole('button', { name: 'More task options' })).toBeEnabled()
 
     engine.publishContext(readyContext())
     await flush()
-    expect(screen.queryByLabelText('Loading Sidebar')).toBeNull()
+    expect(screen.queryByRole('group', { name: 'Loading tasks' })).toBeNull()
     expect(screen.getByText('Fix flaky slot release test')).toBeInTheDocument()
   })
 
@@ -2416,7 +2443,7 @@ describe('AppFeature first-load skeletons', () => {
       'aria-busy',
       'true',
     )
-    expect(screen.getByLabelText('Workflow steps')).toBeInTheDocument()
+    expect(screen.getByLabelText('Loading workflow graph')).toBeInTheDocument()
     presenter.setWorkflowRunViewMode('parallel')
     await flush()
     expect(screen.getByLabelText('Parallel lanes')).toBeInTheDocument()
@@ -2425,6 +2452,27 @@ describe('AppFeature first-load skeletons', () => {
     expect(screen.queryByRole('group', { name: 'Loading Workflow run' })).toBeNull()
     await user.click(within(screen.getByRole('navigation', { name: 'Main' })).getByRole('button', { name: /New task/ }))
     expect(presenter.getState().workflowExecution.runId).toBeNull()
+  })
+
+  it('falls back to Graph when a Parallel preference set while loading meets a run without lanes', async () => {
+    const engine = createTestEngine({ deferWorkflowExecution: true })
+    const { presenter } = renderApp(engine.port)
+    await flush()
+    const runId = asWorkflowRunId('run-nightly-dependency-audit')
+    presenter.navigate('workflows')
+    presenter.openWorkflowExecution(runId)
+    presenter.setWorkflowRunViewMode('parallel')
+    await flush()
+    expect(screen.getByLabelText('Parallel lanes')).toBeInTheDocument()
+    expect(presenter.getState().workflowExecution.viewMode).toBe('parallel')
+    engine.publishWorkflowExecution(runId, {
+      kind: 'ready',
+      run: { ...nightlyAuditRun(), parallel: null },
+    })
+    await flush()
+    expect(presenter.getState().workflowExecution.viewMode).toBe('graph')
+    expect(screen.queryByLabelText('Parallel lanes')).toBeNull()
+    expect(screen.getByRole('region', { name: 'Workflow graph' })).toBeInTheDocument()
   })
 
   it('shows parallel group loading then replaces on ready', async () => {
@@ -2493,42 +2541,62 @@ describe('AppFeature first-load skeletons', () => {
     expect(screen.queryByRole('group', { name: 'Loading Statistics' })).toBeNull()
   })
 
-  it('shows settings general, harnesses, and MCP approvals loading paths', async () => {
+  it('shows settings general loading without remounting the theme control', async () => {
     const user = userEvent.setup()
-    const engine = createTestEngine({
-      settingsGeneralLoading: true,
-      deferHarnesses: true,
-    })
+    const engine = createTestEngine({ deferSettingsGeneral: true })
     const { presenter } = renderApp(engine.port)
     await flush()
     await user.click(screen.getByRole('button', { name: 'Settings' }))
-    expect(screen.getByRole('group', { name: 'Loading Settings' })).toHaveAttribute(
-      'aria-busy',
-      'true',
-    )
+    const panel = screen.getByRole('tabpanel')
+    expect(panel).toHaveAttribute('aria-busy', 'true')
+    expect(within(panel).getByRole('status')).toHaveTextContent('Loading settings')
     expect(screen.getByText('Behaviour')).toBeInTheDocument()
-    engine.publishContext({
-      kind: 'ready',
-      composer: populatedComposer(),
-      sidebar: populatedSidebar(),
+    const theme = within(screen.getByRole('main')).getByRole('group', {
+      name: 'Theme',
     })
+    engine.publishSettingsGeneral(populatedSettingsGeneralLoad())
     await flush()
-    expect(screen.queryByRole('group', { name: 'Loading Settings' })).toBeNull()
+    expect(screen.getByRole('tabpanel')).not.toHaveAttribute('aria-busy')
+    expect(
+      within(screen.getByRole('main')).getByRole('group', { name: 'Theme' }),
+    ).toBe(theme)
+    expect(screen.getByText('Harflow runtime 0.9.3 is ready')).toBeInTheDocument()
+    expect(screen.getByText('Task store is compatible')).toBeInTheDocument()
+    expect(presenter.getState().settingsGeneral.load.kind).toBe('ready')
+  })
 
+  it('keeps the expanded harness through loading and shows its approvals when ready', async () => {
+    const user = userEvent.setup()
+    const engine = createTestEngine({ deferHarnesses: true })
+    const { presenter } = renderApp(engine.port)
+    await flush()
+    await user.click(screen.getByRole('button', { name: 'Settings' }))
     await user.click(screen.getByRole('tab', { name: 'Harnesses' }))
+    const loading = screen.getByRole('group', { name: 'Loading Harnesses' })
+    expect(loading).toHaveAttribute('aria-busy', 'true')
+    expect(screen.queryByTestId('mcp-approvals-skeleton')).toBeNull()
     expect(screen.getByText('Harness qualification')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Refresh' })).toBeDisabled()
 
-    presenter.setSettingsMcpApprovalsLoading(true)
+    presenter.setExpandedHarness('claude-code')
     await flush()
-    expect(document.querySelectorAll('.hd-form-row[aria-hidden="true"]').length).toBeGreaterThan(
-      5,
-    )
+    expect(
+      screen.getByRole('group', { name: 'Loading MCP approvals' }),
+    ).toHaveAttribute('aria-busy', 'true')
+    expect(screen.getByTestId('mcp-approvals-skeleton')).toBeInTheDocument()
 
     engine.publishHarnesses(populatedHarnessesLoad())
     await flush()
-    expect(document.querySelectorAll('.hd-form-row[aria-hidden="true"]').length).toBe(0)
-    expect(presenter.getState().harnesses.load.kind).toBe('ready')
+    expect(screen.queryByTestId('mcp-approvals-skeleton')).toBeNull()
+    expect(presenter.getState().harnesses.expandedId).toBe('claude-code')
+    expect(
+      screen.getByRole('button', { name: 'MCP approvals for Claude Code' }),
+    ).toHaveAttribute('aria-expanded', 'true')
+    const region = screen.getByRole('region', {
+      name: 'MCP approvals for Claude Code',
+    })
+    expect(within(region).getByText('harflow/*')).toBeInTheDocument()
+    expect(within(region).getByText('linear/get_issue')).toBeInTheDocument()
 
     await user.click(
       within(screen.getByRole('navigation', { name: 'Main' })).getByRole(
@@ -2536,6 +2604,6 @@ describe('AppFeature first-load skeletons', () => {
         { name: /New task/ },
       ),
     )
-    expect(screen.queryByRole('group', { name: 'Loading Settings' })).toBeNull()
+    expect(screen.queryByRole('group', { name: 'Loading Harnesses' })).toBeNull()
   })
 })

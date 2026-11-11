@@ -21,11 +21,27 @@ grant approvals, answer questions, or touch the task store.
   partial loads (`task/changes-loading`, `events-loading`,
   `artifacts-loading`, `sidebar/history-older`, `new-task/centered-loading`),
   app-states / harness-runtime first loads, and pending launches.
-- **Deviation:** `settings/loading-general` is driven by
-  `context.settingsGeneralLoading` rather than a dedicated settings
-  observation port (mock presentation flag documented on `ContextLoad`).
-  MCP approvals loading prefers the MCP skeleton while harnesses are deferred
-  via preview seed `settingsMcpApprovalsLoading` (session flag), not a URL.
+- `settings/loading-general` is driven by a dedicated settings-general
+  observation (`observeSettingsGeneral`: runtime readiness and task store
+  compatibility, `'defer'` scenario value). The skeleton keeps the loaded
+  page's sections, gaps and dividers, and the Appearance theme control is the
+  same element in both states (no remount).
+- **Deviation:** `settings/loading-mcp-approvals` draws the approvals
+  placeholder under one expanded harness (the first row), not under every row
+  as the Design drawing does, so it matches the loaded page where exactly one
+  harness is expanded. The expanded harness id is session state
+  (`harnesses.expandedId`); the preview seeds it and it persists into ready.
+- Task loading keeps the task title visible in the top bar when the sidebar
+  row maps to it (owner decision); only the badge, meta and transcript shimmer.
+- The Needs you sidebar count placeholder follows the Needs you observation's
+  own load state, not the composer context. `sidebar-loading` and
+  `new-task-loading` defer that observation to show the Design count slot.
+- Loading skeletons mirror the loaded Web chrome where it differs from the
+  Design drawing: workflow run top bar (segmented Graph/Parallel, Pause with
+  icon, Cancel run, More actions), workflow editor top bar (More actions,
+  icons, working Back), task top bar (disabled Toggle right pane), and five
+  Resources cards (the loaded mock renders five harnesses).
+- Busy skeleton groups carry a visually hidden polite `role="status"` line.
 - Specimen copy “Choices are remembered per repository” is not implemented;
   selection is one global set for the mock session.
 - New task follows the owner-approved centered composer amendment

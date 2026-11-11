@@ -15,7 +15,7 @@ populated fixture and shows a single “Mock engine” badge.
 | Populated | Design-aligned new-task (centered grow-to-cap composer and + task options) ≈ `new-task/centered-empty` + workflows + resources + statistics + mapped running-task fixtures |
 | Empty sidebar | Ready composer; empty Running/Recent |
 | Context loading | Legacy id for `new-task/loading`. Prefer **New task loading** |
-| New task loading | Approved `new-task/loading` skeleton (Design `9d19fd7`). Deferred context; greeting and composer frame stay real |
+| New task loading | Approved `new-task/loading` skeleton (Design `9d19fd7`). Deferred context and Needs you; greeting and composer frame stay real |
 | Sidebar loading | Approved `sidebar/loading` (Design `9d19fd7`). Composer operable; Running/Recent and Needs you count placeholders |
 | Task loading | Approved `task/loading` (Design `9d19fd7`) mirroring `task/running-stop`. Deferred task; opens mapped Slot release row |
 | Workflows loading | Approved `workflows/loading` skeleton (Design `9d19fd7`). Deferred workflows list; opens Workflows |
@@ -25,9 +25,9 @@ populated fixture and shows a single “Mock engine” badge.
 | Parallel group loading | Approved `parallel-group/loading` (Design `9d19fd7`). Deferred Review preload bridge group |
 | Resources loading | Approved `resources/loading` (Design `9d19fd7`). Deferred resources; opens Resources |
 | Statistics loading | Approved `statistics/loading` (Design `9d19fd7`). Deferred statistics; opens Statistics |
-| Settings loading · General | Approved `settings/loading-general` (Design `9d19fd7`). `context.settingsGeneralLoading`; opens Settings · General |
+| Settings loading · General | Approved `settings/loading-general` (Design `9d19fd7`). Deferred settings-general observation; opens Settings · General |
 | Settings loading · Harnesses | Approved `settings/loading-harnesses` (Design `9d19fd7`). Deferred harnesses; opens Settings · Harnesses |
-| Settings loading · MCP approvals | Approved `settings/loading-mcp-approvals` (Design `9d19fd7`). Deferred harnesses with MCP preference seed |
+| Settings loading · MCP approvals | Approved `settings/loading-mcp-approvals` (Design `9d19fd7`). Deferred harnesses with Claude Code's MCP approvals seeded expanded (`settingsExpandedHarnessId`) |
 | Context unavailable | Proposal status (not design-approved) |
 | Partial sidebar | Incomplete coverage note (proposal) |
 | Submit accepted | Outcome ≈ `ctl-launch-run-accepted` |

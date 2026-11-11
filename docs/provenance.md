@@ -191,7 +191,7 @@
 | Workflow run loading | Design `workflow-run/loading` and `loading-parallel` @ `9d19fd7` (`screens-loading-more.js`) | **Mock-only** — deferred execution; Graph or Parallel preference while loading; mirrors on-demand / parallel |
 | Resources loading | Design `resources/loading` @ `9d19fd7` (`screens-loading-more.js`, spec `resources`) | **Mock-only** — title/headings real; harness cards and waiting list placeholders |
 | Statistics loading | Design `statistics/loading` @ `9d19fd7` (`screens-loading-more.js`, spec `statistics`) | **Mock-only** — title, range control, labels, column headers real; figures/chart/table cells placeholders |
-| Settings loading | Design `settings/loading-general`, `loading-harnesses`, `loading-mcp-approvals` @ `9d19fd7` (`screens-loading-more.js`) | **Mock-only** — General uses `context.settingsGeneralLoading` (no separate settings observation port); Harnesses/MCP use deferred `observeHarnesses` with an optional MCP preference seed |
+| Settings loading | Design `settings/loading-general`, `loading-harnesses`, `loading-mcp-approvals` @ `9d19fd7` (`screens-loading-more.js`) | **Mock-only** — General uses a deferred `observeSettingsGeneral` observation; Harnesses/MCP use deferred `observeHarnesses`, and MCP approvals shows its placeholder under the session-expanded harness only (deviation from the all-rows drawing) |
 | Repository options | Mock-only | Future server-hosted repos; not filesystem pickers; not ctl |
 
 ### Statistics semantic gaps (explicit)

@@ -31,7 +31,8 @@ A green import check does **not** prove semantic architecture correctness.
 - statistics child session (selected range + range-scoped observation)
 - task child session (selected task id + transcript observation + optional
   Changes-pane observation keyed by task and selected file path)
-- settings section (`general` | `harnesses`) plus a read-only harness
+- settings section (`general` | `harnesses`), a read-only Settings General
+  observation, the expanded harness id, and a read-only harness
   observation (install, MCP registration, and qualification stay independent)
 - Needs you child session (read-only approvals and questions). The sidebar
   badge is derived only from this observation. A running-row attention glyph
@@ -93,6 +94,9 @@ cohesive sibling modules that re-export through the original public entry.
   MCP registration, qualification, and per-harness approval facts. None is
   derived from another. Unknown stays unknown. Missing approvals are not an
   empty list.
+- `observeSettingsGeneral(onUpdate) → ObservationHandle` — runtime readiness
+  and task store compatibility facts for Settings General. Unknown stays
+  unknown. Loading keeps the page structure; the theme control never remounts.
 - `observeNeedsYou(onUpdate) → ObservationHandle` — approvals and questions
   only. Complete coverage with zero items is the empty state. Unknown or
   unavailable coverage is not zero and is not “nothing needs you.” Partial

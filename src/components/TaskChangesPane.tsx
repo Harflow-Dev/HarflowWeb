@@ -93,7 +93,7 @@ function PaneBody({
     if (load.kind === 'unavailable') {
       return (
         <div className="hd-scroll" style={{ padding: 'var(--space-3)' }}>
-          <p className="caption hd-faint" role="status">
+          <p className="caption hd-faint">
             {load.message}
           </p>
         </div>
@@ -172,7 +172,7 @@ function DiffRegion({
   }
   if (load.kind === 'unavailable') {
     return (
-      <p className="caption hd-faint" role="status">
+      <p className="caption hd-faint">
         {load.message}
       </p>
     )
@@ -192,14 +192,14 @@ function DiffBody({
 }) {
   if (diff.kind === 'empty') {
     return (
-      <p className="caption hd-faint" role="status">
+      <p className="caption hd-faint">
         No recorded diff lines for this file.
       </p>
     )
   }
   if (diff.kind === 'unavailable') {
     return (
-      <p className="caption hd-faint" role="status">
+      <p className="caption hd-faint">
         {diff.message}
       </p>
     )

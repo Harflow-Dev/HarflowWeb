@@ -100,7 +100,9 @@ export function activityView(obs: TranscriptObservation): ActivityView {
             : '2 tool calls observed'
           : 'Tool activity unavailable',
     reason:
-      coverage === 'limited'
+      coverage === 'loading'
+        ? 'The activity summary is still being read.'
+        : coverage === 'limited'
         ? 'The activity summary reached its limit; tool activity totals are unavailable.'
         : sound
           ? 'Observed in available captured history traversed from its beginning to the current boundary; this does not prove complete execution capture.'

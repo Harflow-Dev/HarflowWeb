@@ -296,12 +296,6 @@ body,
   text-align: center;
 }
 
-/* No reserved gap while starting (Design centered-starting-plain). */
-.hw-compose-status:empty {
-  display: none;
-  min-height: 0;
-}
-
 /*
  * Task right-pane loading (Design M05 changes-loading / events-loading).
  * Shimmer uses existing .hd-skel; panenote/caption mirror m05-proposal.css.
@@ -338,13 +332,6 @@ body,
 
 .hd-m05-panenote--info {
   background: var(--surface-sunken);
-}
-
-.hd-m05-caption {
-  margin: 0;
-  font-size: 12px;
-  line-height: 16px;
-  color: var(--text-tertiary);
 }
 
 .hw-pane-skel-lines {

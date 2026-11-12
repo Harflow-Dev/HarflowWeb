@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { SkelLine, SkelStatus } from './skeletonPrimitives'
+import { SkelLine } from './skeletonPrimitives'
 
 /**
  * Task Changes first-page skeleton — Design `task/changes-loading`
@@ -14,7 +14,6 @@ export function ChangesLoadingBody(): ReactNode {
       aria-busy="true"
       aria-label="Reading stored changes"
     >
-      <SkelStatus>Reading stored changes</SkelStatus>
       <div className="hd-m05-panenote hd-m05-panenote--info">
         <strong>Reading stored changes</strong>
       </div>
@@ -32,11 +31,7 @@ export function ChangesDiffLoadingBody(): ReactNode {
       aria-label="Reading diff"
       className="hw-changes-diff-skel"
     >
-      <SkelStatus>Reading diff</SkelStatus>
       <PaneSkeletonLines count={2} />
-      <p className="hd-m05-caption">
-        Loading: the row stays selected and no text is implied.
-      </p>
     </div>
   )
 }
@@ -53,7 +48,6 @@ export function EventsLoadingBody(): ReactNode {
       aria-busy="true"
       aria-label="Loading Events"
     >
-      <SkelStatus>Loading Events</SkelStatus>
       <h3 className="hd-m05-h">Task</h3>
       <PaneSkeletonLines count={2} />
       <h3 className="hd-m05-h">Captured activity facts</h3>

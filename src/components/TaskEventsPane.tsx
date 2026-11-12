@@ -20,8 +20,9 @@ export function TaskEventsPane({
   onCopyRecord,
   onUnavailable,
 }: Props) {
-  const loading =
-    transcript.history === 'loading' || transcript.summaryCoverage === 'loading'
+  // Full-pane skeleton only while history itself is loading; a loading summary
+  // keeps available records visible with its own loading line.
+  const loading = transcript.history === 'loading'
   const activity = activityView(transcript)
   const recordText = transcript.normalizedRecord
     ? JSON.stringify(transcript.normalizedRecord, null, 2)

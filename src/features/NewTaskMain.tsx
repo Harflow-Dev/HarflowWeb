@@ -71,13 +71,7 @@ export function NewTaskMain({ presenter, state }: Props) {
               onEffort={(value) => presenter.setEffort(value)}
               onTurns={(value) => presenter.setTurns(value)}
               onApprovals={(value) => presenter.setApprovals(value)}
-              onSubmit={() => {
-                presenter.submit()
-                // Design 76ad937 centered-starting-plain: leave the control.
-                if (document.activeElement instanceof HTMLElement) {
-                  document.activeElement.blur()
-                }
-              }}
+              onSubmit={() => presenter.submit()}
             />
           ) : state.context.kind === 'loading' ? (
             <NewTaskLoadingComposer />

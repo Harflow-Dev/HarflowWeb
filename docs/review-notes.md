@@ -54,7 +54,20 @@ grant approvals, answer questions, or touch the task store.
 - `task/changes-loading` and `task/events-loading` replace the former
   proposal “Loading changes…” copy. Busy regions use `role="group"` /
   `aria-busy` (not a second live region); Design’s pane `role="status"` is
-  not mirrored.
+  not mirrored. Changes "unavailable" and "empty" messages are plain text
+  (no `role="status"`). Each loading phrase is exposed once: the group label,
+  or the visible text, without a duplicate hidden `SkelStatus`. The diff-switch
+  skeleton drops the `changes-text` designer caption. The Events full-pane
+  skeleton keys on `history === 'loading'` only; a loading summary shows its
+  own loading line beside available records.
+- Submit no longer blurs the active element: Enter on an empty prompt or
+  while Start is blocked keeps focus in the prompt (tests cover both). The
+  `.hw-compose-status:empty` rule added with the starting state was removed;
+  the row is omitted in JSX while pending and otherwise keeps its reserved
+  height. Screenshots under `2026-11-12-harflowweb-starting-pane-loads/
+  verified-1280x800/` show full-pane loading and the starting composer, which
+  this round does not change visually (the removed caption only appeared in
+  the diff-switch skeleton, which is not captured), so they are not stale.
 - `settings/loading-general` is driven by a dedicated settings-general
   observation (`observeSettingsGeneral`: runtime readiness and task store
   compatibility, `'defer'` scenario value). The skeleton keeps the loaded

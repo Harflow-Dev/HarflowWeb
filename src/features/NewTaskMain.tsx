@@ -71,7 +71,13 @@ export function NewTaskMain({ presenter, state }: Props) {
               onEffort={(value) => presenter.setEffort(value)}
               onTurns={(value) => presenter.setTurns(value)}
               onApprovals={(value) => presenter.setApprovals(value)}
-              onSubmit={() => presenter.submit()}
+              onSubmit={() => {
+                presenter.submit()
+                // Design 76ad937 centered-starting-plain: leave the control.
+                if (document.activeElement instanceof HTMLElement) {
+                  document.activeElement.blur()
+                }
+              }}
             />
           ) : state.context.kind === 'loading' ? (
             <NewTaskLoadingComposer />
@@ -82,14 +88,19 @@ export function NewTaskMain({ presenter, state }: Props) {
                 : null}
             </p>
           )}
-          {/* Visual status only — StatusRegion is the sole live region. */}
-          <div className="hw-compose-status">
-            {state.context.kind === 'loading' ? (
-              <SkelLine width={150} height={12} />
-            ) : (
-              statusMessage
-            )}
-          </div>
+          {/*
+            Visual status only — StatusRegion is the sole live region.
+            Pending/starting omits this row (centered-starting-plain, 76ad937).
+          */}
+          {state.submission.kind === 'pending' ? null : (
+            <div className="hw-compose-status">
+              {state.context.kind === 'loading' ? (
+                <SkelLine width={150} height={12} />
+              ) : (
+                statusMessage
+              )}
+            </div>
+          )}
           <p className="caption hd-faint hw-compose-help">
             Press <span className="hd-kbd">↵</span> to start. Choices are
             remembered per repository.

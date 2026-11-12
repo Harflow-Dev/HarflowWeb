@@ -95,6 +95,7 @@ export function ComposerBar(props: Props) {
       <span className="hd-composer__spacer" />
       <ComposerStartButton
         canSubmit={props.canSubmit}
+        pending={props.pending}
         blockedReason={props.startBlockedReason}
       />
     </div>

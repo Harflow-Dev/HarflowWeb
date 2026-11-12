@@ -44,7 +44,7 @@ export const CENTERED_SCENARIOS: readonly ScenarioDefinition[] = [
     id: 'composer-starting',
     label: 'Composer starting',
     description:
-      'Centered-starting: in-flight Start; no duplicate submit (Design 854caae).',
+      'Approved new-task/centered-starting-plain (Design 76ad937): no visible status row; Start named Starting task; announce Starting task… once via StatusRegion. Resolve held start.',
     context: readyContext(),
     startOutcome: accepted,
     holdStart: true,

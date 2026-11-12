@@ -296,6 +296,12 @@ body,
   text-align: center;
 }
 
+/* No reserved gap while starting (Design centered-starting-plain). */
+.hw-compose-status:empty {
+  display: none;
+  min-height: 0;
+}
+
 .hw-compose-help {
   margin: 0;
   text-align: center;

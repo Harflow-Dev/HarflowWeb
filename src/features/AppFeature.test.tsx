@@ -921,9 +921,9 @@ describe('AppFeature navigation', () => {
     ).toBeInTheDocument()
     expect(within(main).getByText('1 running · 2 done')).toBeInTheDocument()
     expect(
-      within(main).getByText(
+      within(main).getAllByText(
         'Enforced for every agent here: Network: not controlled.',
-      ),
+      )[0],
     ).toBeInTheDocument()
     expect(
       within(main).getByRole('region', { name: 'Claude Code' }),
@@ -2217,7 +2217,7 @@ describe('AppFeature navigation', () => {
     await user.click(
       within(releaseRow as HTMLElement).getByRole('button', { name: 'Edit Release checklist' }),
     )
-    expect(await screen.findByText('Revision 7')).toBeInTheDocument()
+    expect((await screen.findAllByText('Revision 7'))[0]).toBeInTheDocument()
     expect(screen.getByRole('heading', { level: 3, name: 'NODE' })).toBeInTheDocument()
     expect(screen.getByRole('textbox', { name: 'Node name' })).toHaveValue('Review')
     const canvas = screen.getByLabelText('Workflow canvas')
@@ -2289,7 +2289,7 @@ describe('AppFeature navigation', () => {
         name: 'Edit Nightly dependency audit',
       }),
     )
-    expect(await screen.findByText('Revision 2')).toBeInTheDocument()
+    expect((await screen.findAllByText('Revision 2'))[0]).toBeInTheDocument()
     expect(screen.getByRole('textbox', { name: 'Node name' })).toHaveValue('Audit lockfiles')
     const nightlyCanvas = screen.getByLabelText('Workflow canvas')
     const loop = nightlyCanvas.querySelector('path[data-loop="true"]')

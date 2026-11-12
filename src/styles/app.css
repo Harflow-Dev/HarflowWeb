@@ -736,7 +736,7 @@ body,
 }
 
 .hw-topbar-meta__compact {
-  display: inline-flex;
+  display: none;
   align-items: center;
   gap: 6px;
   padding: 5px;
@@ -782,6 +782,12 @@ body,
   position: relative;
 }
 
+/* Lane floor: 320 at a wide main column (1280 x 800), 360 when narrow. */
+.hd-lane {
+  flex: 1 0 320px;
+  min-width: 320px;
+}
+
 @container hd-main (max-width: 800px) {
   .hd-inspector {
     width: 288px;
@@ -793,6 +799,25 @@ body,
     min-width: 360px;
   }
 
+  .hw-topbar-meta__full {
+    display: none;
+  }
+
+  .hw-topbar-meta__compact {
+    display: inline-flex;
+  }
+
+  /* Drawing stacks Instructions: label above a full-width textarea. */
+  .hw-form-row--stack-narrow {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 4px;
+  }
+
+  .hw-form-row--stack-narrow .hd-input {
+    width: 100%;
+  }
+
   .hw-topbar-meta-skel {
     display: none;
   }
@@ -800,23 +825,4 @@ body,
   .hw-editor-title-skel {
     width: 117px !important;
   }
-}
-
-/* Preview 1000 × 620 frame: same rules without relying on container queries. */
-.hw-preview__app--minimum .hd-inspector {
-  width: 288px;
-  flex: 0 0 288px;
-}
-
-.hw-preview__app--minimum .hd-lane {
-  flex: 0 0 360px !important;
-  min-width: 360px !important;
-}
-
-.hw-preview__app--minimum .hw-topbar-meta-skel {
-  display: none;
-}
-
-.hw-preview__app--minimum .hw-editor-title-skel {
-  width: 117px !important;
 }

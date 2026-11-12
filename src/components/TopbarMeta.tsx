@@ -1,112 +1,65 @@
-import {
-  useEffect,
-  useId,
-  useRef,
-  useState,
-  type RefObject,
-} from 'react'
+import { useEffect, useState, type KeyboardEvent } from 'react'
 
 type Props = {
   readonly children: string
 }
 
 /**
- * Top-bar meta. At a normal main width this matches the tertiary caption.
- * When the main column is narrow (1000 × 620 preview frame, or main ≤ 800px)
- * the caption drops first: a focusable dot keeps the text reachable on hover
- * and keyboard focus (HarflowDesign minimum window, cd606f0 / c147372).
+ * Top-bar meta. Both forms are rendered and CSS (`@container hd-main`) picks
+ * one, so a narrow window never flashes the wide form first and the hidden
+ * form (`display: none`) stays out of the accessibility tree.
+ *
+ * Wide main column: the tertiary caption. Narrow main column (<= 800px, which
+ * includes the 1000 x 620 preview frame): a focusable dot whose text shows on
+ * hover and keyboard focus (HarflowDesign minimum window, 246cc97).
  */
 export function TopbarMeta({ children }: Props) {
-  const hostRef = useRef<HTMLSpanElement>(null)
-  const compact = useNarrowMain(hostRef)
-
-  if (!compact) {
-    return (
-      <span ref={hostRef} className="hd-topbar__meta">
-        {children}
-      </span>
-    )
-  }
-
   return (
-    <span ref={hostRef} className="hd-topbar__meta">
+    <>
+      <span className="hd-topbar__meta hw-topbar-meta__full">{children}</span>
       <CompactMeta text={children} />
-    </span>
+    </>
   )
 }
 
 function CompactMeta({ text }: { readonly text: string }) {
-  const labelId = useId()
-  const rootRef = useRef<HTMLSpanElement>(null)
   const [dismissed, setDismissed] = useState(false)
+  const [hovered, setHovered] = useState(false)
 
+  // Hover-only reveal has no focus, so keydown never reaches the element.
+  // Listen on the document only while the pointer is over the dot.
   useEffect(() => {
-    const onKey = (event: KeyboardEvent) => {
+    if (!hovered) return
+    const onKey = (event: globalThis.KeyboardEvent) => {
       if (event.key !== 'Escape') return
-      const root = rootRef.current
-      if (!root) return
-      if (!root.matches(':hover') && !root.contains(document.activeElement)) {
-        return
-      }
       setDismissed(true)
+      event.stopPropagation()
     }
     document.addEventListener('keydown', onKey)
     return () => document.removeEventListener('keydown', onKey)
-  }, [])
+  }, [hovered])
+
+  const onKeyDown = (event: KeyboardEvent<HTMLSpanElement>) => {
+    if (event.key !== 'Escape' || dismissed) return
+    setDismissed(true)
+    event.stopPropagation()
+  }
 
   return (
     <span
-      ref={rootRef}
-      className={
-        dismissed
-          ? 'hw-topbar-meta__compact is-dismissed'
-          : 'hw-topbar-meta__compact'
-      }
+      className={`hd-topbar__meta hw-topbar-meta__compact${dismissed ? ' is-dismissed' : ''}`}
       tabIndex={0}
       role="note"
-      aria-labelledby={labelId}
-      onMouseEnter={() => setDismissed(false)}
+      onKeyDown={onKeyDown}
+      onMouseEnter={() => {
+        setHovered(true)
+        setDismissed(false)
+      }}
+      onMouseLeave={() => setHovered(false)}
       onFocus={() => setDismissed(false)}
     >
       <span className="hw-topbar-meta__dot" aria-hidden="true" />
-      <span id={labelId} className="hd-sr hw-topbar-meta__tip">
-        {text}
-      </span>
+      <span className="hd-sr hw-topbar-meta__tip">{text}</span>
     </span>
   )
-}
-
-/** True inside the 1000×620 preview frame, or when `.hd-main` is ≤ 800px wide. */
-function useNarrowMain(hostRef: RefObject<HTMLSpanElement | null>): boolean {
-  const [narrow, setNarrow] = useState(false)
-
-  useEffect(() => {
-    const host = hostRef.current
-    if (!host) return
-
-    const measure = () => {
-      if (host.closest('.hw-preview__app--minimum')) {
-        setNarrow(true)
-        return
-      }
-      const main = host.closest('.hd-main')
-      if (!(main instanceof HTMLElement)) {
-        setNarrow(false)
-        return
-      }
-      const width = main.clientWidth
-      setNarrow(width > 0 && width <= 800)
-    }
-
-    measure()
-    const main = host.closest('.hd-main')
-    if (!(main instanceof HTMLElement) || typeof ResizeObserver === 'undefined') {
-      return
-    }
-    const observer = new ResizeObserver(measure)
-    observer.observe(main)
-    return () => observer.disconnect()
-  }, [hostRef])
-
-  return narrow
 }

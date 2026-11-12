@@ -1,6 +1,7 @@
 import { cleanup, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { PreviewShell } from '../composition'
+import appCss from '../styles/app.css?raw'
 
 afterEach(() => {
   cleanup()
@@ -33,12 +34,10 @@ describe('minimum window 1000×620', () => {
     expect(
       await screen.findByLabelText('Parallel group lanes'),
     ).toBeInTheDocument()
-    const meta = await screen.findByRole('note', {
-      name: /Enforced for every agent here/,
-    })
+    const meta = await screen.findByRole('note')
     expect(meta).toHaveAttribute('tabindex', '0')
     expect(meta.querySelector('.hw-topbar-meta__dot')).not.toBeNull()
-    expect(meta.textContent).toMatch(/Enforced for every agent here/)
+    expect(meta).toHaveTextContent(/Enforced for every agent here/)
     meta.focus()
     expect(meta).toHaveFocus()
   })
@@ -46,28 +45,38 @@ describe('minimum window 1000×620', () => {
   it('Workflow run parallel-minimum exposes meta through the focusable dot', async () => {
     await boot('workflow-run-parallel-minimum')
     expect(await screen.findByLabelText('Parallel lanes')).toBeInTheDocument()
-    const meta = await screen.findByRole('note', {
-      name: 'Step 2 of 4 · 06:31',
-    })
+    const meta = await screen.findByRole('note')
+    expect(meta).toHaveTextContent('Step 2 of 4 · 06:31')
     expect(meta).toHaveAttribute('tabindex', '0')
   })
 
   it('Workflow editor node-selected-minimum scrolls the canvas and drops meta', async () => {
     await boot('workflow-editor-node-selected-minimum')
-    const meta = await screen.findByRole('note', { name: 'Revision 7' })
+    const meta = await screen.findByRole('note')
+    expect(meta).toHaveTextContent('Revision 7')
     expect(meta).toHaveAttribute('tabindex', '0')
     const canvas = screen.getByRole('region', { name: 'Workflow canvas' })
-    expect(canvas.className).toContain('hd-thin-scroll')
     expect(canvas.getAttribute('tabindex')).toBe('0')
-    // Content is sized larger than a clipped viewport; overflow stays scrollable.
-    expect(canvas).toHaveAttribute('data-content-width')
-    const contentWidth = Number(canvas.getAttribute('data-content-width'))
-    expect(contentWidth).toBeGreaterThan(0)
+
+    // jsdom has no layout, so load the real stylesheet and assert computed
+    // overflow, then compare the scaled content width with the widest the
+    // canvas can be in the 1000 px frame (frame minus the 288 px inspector).
+    const style = document.createElement('style')
+    style.textContent = appCss
+    document.head.appendChild(style)
+    try {
+      const computed = getComputedStyle(canvas)
+      expect(computed.overflow).toBe('auto')
+    } finally {
+      style.remove()
+    }
+    const sized = canvas.firstElementChild as HTMLElement
+    expect(parseFloat(sized.style.width)).toBeGreaterThan(1000 - 288)
   })
 
   it('Workflow editor orchestrator-minimum selects the locked orchestrator', async () => {
     await boot('workflow-editor-orchestrator-minimum')
-    await screen.findByRole('note', { name: 'Revision 7' })
+    await screen.findByRole('note')
     expect(
       await screen.findByRole('complementary', {
         name: 'Orchestrator settings',

@@ -356,6 +356,27 @@ with `sips` at **1000×620**. Light and dark for every state below (18 files:
 
 Out of scope (not captured): `menu-bar/*-minimum`, task-screen minima.
 
+Review-fix round 2026-11-12: lane sizing moved to the `.hd-lane` class,
+meta switching moved to the container query, Instructions stacks at the narrow
+width. jsdom cannot measure layout, so widths were verified manually in a
+browser (Vite dev server, `/preview?scenario=…`, scenario ids below):
+
+- 1000 × 620 frame (main 736): loaded lanes 360 each in
+  `parallel-group-lanes-minimum`, lane strip scrolls (736 / 1082);
+  skeleton lanes in `parallel-group-loading-minimum` identical (360, 736 /
+  1082); compact meta dot shown, wide meta hidden.
+- Same screens with the frame widened to 1280 (main 1016): loaded and skeleton
+  lanes both 338 and fit with no overflow; wide meta shown, dot hidden.
+- `workflow-editor-node-selected-minimum`: inspector 288; Instructions label
+  above a 244px textarea; canvas port scrolls (437 / 749, `overflow: auto`).
+- Not browser-verified: hover/focus tooltip pixels, dark theme after the
+  change, and the native 1280 × 800 window (the widened preview frame stands
+  in for it).
+
+Stale captures: `workflow-editor-node-selected-minimum-light.png` and
+`-dark.png` predate the stacked Instructions field and must be recaptured the
+same way. The other 16 files are unaffected by this round's pixel changes.
+
 ### Remaining first-load skeletons — 2026-11-11
 
 Design pin: HarflowDesign `9d19fd70cc385c551004db4a8054cc85dc93fe86`. Target

@@ -88,7 +88,7 @@ describe('Orchestrator inspector', () => {
     await user.click(within(canvas).getByRole('button', { name: /^Review$/ }))
     const name = screen.getByRole('textbox', { name: 'Node name' })
     expect(fieldShell(name).className).toBe('hd-field')
-    expect(fieldShell(screen.getByRole('textbox', { name: 'Instructions' })).className).toBe('hd-form-row')
+    expect(fieldShell(screen.getByRole('textbox', { name: 'Instructions' })).className).toBe('hd-form-row hw-form-row--stack-narrow')
     expect(fieldShell(screen.getByRole('textbox', { name: 'Turn limit' })).className).toBe('hd-field')
     const card = screen.getByRole('button', { name: 'Orchestrator, locked' })
     expect(card.className).toContain('hd-node--orchestrator')

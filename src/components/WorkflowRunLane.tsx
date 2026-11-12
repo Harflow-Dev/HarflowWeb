@@ -30,11 +30,7 @@ export function WorkflowRunLane({
   const messageLabel = `Message ${lane.composerName}`
   const sendLabel = `Send to ${lane.composerName}`
   return (
-    <section
-      className="hd-lane"
-      aria-label={lane.title}
-      style={{ flex: '1 0 320px', minWidth: 320 }}
-    >
+    <section className="hd-lane" aria-label={lane.title}>
       <div className="hd-lane__head">
         <LaneGlyph status={lane.status} />
         <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>

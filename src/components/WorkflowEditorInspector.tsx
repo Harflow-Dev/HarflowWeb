@@ -168,7 +168,11 @@ function ValueField({
     ? 'hd-form-row__label'
     : `${long || field.kind === 'text' ? 'hd-field__label' : 'hd-form-row__label'}${hidden ? ' hd-sr' : ''}`
   return (
-    <div className={stack ? 'hd-field' : 'hd-form-row'}>
+    <div
+      className={
+        stack ? 'hd-field' : long ? 'hd-form-row hw-form-row--stack-narrow' : 'hd-form-row'
+      }
+    >
       <label className={labelClass} htmlFor={field.id}>
         {field.label}
       </label>

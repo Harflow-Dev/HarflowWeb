@@ -84,11 +84,7 @@ export function LanesSkeleton({ count = 3 }: { readonly count?: number }) {
       data-skeleton=""
     >
       {Array.from({ length: count }, (_, index) => (
-        <section
-          key={index}
-          className="hd-lane"
-          style={{ flex: '1 0 360px', minWidth: 360 }}
-        >
+        <section key={index} className="hd-lane">
           <LaneHeadSkeleton />
           <LaneBodySkeleton index={index} />
           <LaneFootSkeleton />

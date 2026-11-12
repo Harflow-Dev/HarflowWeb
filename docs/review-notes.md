@@ -23,6 +23,21 @@ grant approvals, answer questions, or touch the task store.
   (main ≤ 800px / preview minimum frame): lanes keep a 360 floor, inspector
   is 288, top-bar meta drops to a focusable named dot, canvas scrolls. Normal
   1280×800 presentation is unchanged.
+- Narrow rules are one CSS container query on `.hd-main` (`max-width: 800px`);
+  lane sizing (320 floor wide, 360 narrow) lives in the `.hd-lane` class shared
+  by loaded and skeleton lanes. Top-bar meta renders both forms and CSS picks
+  one, so there is no JS width measurement and no flash of the wide form.
+  With the sidebar collapsed at a 1000px window the main column is about
+  952px, so the narrow rules do not fire there (by design: the approved
+  minimum drawings show the expanded sidebar). The preview minimum frame
+  always shows the sidebar expanded (main about 736px).
+- Narrow inspector stacks the Instructions label above a full-width textarea,
+  as the `workflow-editor/node-selected-minimum` drawing does. Known
+  difference at every width: the drawing shows Turn limit as a label-left row
+  and the Web Review node stacks it; the editor top bar already has More
+  actions. Neither was changed here.
+- Known: the production bundle is above 500 kB (Vite warning). No dependency
+  or code-splitting change was made for it in this slice.
 - **Skipped** approved states (out of scope for this slice):
   `task/loading-pane` (no `task/pane-running-open`), `menu-bar/loading` and
   `menu-bar/busy-minimum` / `menu-bar/loading-minimum` (no menu-bar surface),

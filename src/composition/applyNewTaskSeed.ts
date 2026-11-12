@@ -8,6 +8,7 @@ import {
 } from '../model'
 import type {
   AppPresenter,
+  AppScreenState,
   ApprovalsMode,
   EffortLevel,
   OpenMenu,
@@ -47,22 +48,30 @@ export function applyNewTaskSeed(
     presenter.openTask(asTaskId(seed.openTaskId))
     if (seed.eventsPaneOpen === true) {
       // Wait until the task observation is ready before opening Events.
-      const unsub = presenter.subscribe((state) => {
-        if (state.task.load.kind !== 'ready') return
-        unsub()
-        presenter.setTaskChangesPaneOpen(true)
-      })
+      const taskId = asTaskId(seed.openTaskId)
+      whenLoaded(
+        presenter,
+        (state) => ({
+          open: state.task.selectedTaskId === taskId,
+          kind: state.task.load.kind,
+        }),
+        () => presenter.setTaskChangesPaneOpen(true),
+      )
     }
   }
   if (seed.openWorkflowEditorId !== undefined) {
     presenter.openWorkflowEditor(asWorkflowId(seed.openWorkflowEditorId))
     if (seed.openWorkflowEditorNodeId !== undefined) {
       const nodeId = asWorkflowNodeId(seed.openWorkflowEditorNodeId)
-      const unsub = presenter.subscribe((state) => {
-        if (state.workflowEditor.load.kind !== 'ready') return
-        unsub()
-        presenter.selectWorkflowNode(nodeId)
-      })
+      const workflowId = asWorkflowId(seed.openWorkflowEditorId)
+      whenLoaded(
+        presenter,
+        (state) => ({
+          open: state.workflowEditor.workflowId === workflowId,
+          kind: state.workflowEditor.load.kind,
+        }),
+        () => presenter.selectWorkflowNode(nodeId),
+      )
     }
   }
   if (seed.openWorkflowExecutionId !== undefined) {
@@ -76,4 +85,44 @@ export function applyNewTaskSeed(
   if (seed.openParallelGroupId !== undefined) {
     presenter.openParallelGroup(asParallelGroupId(seed.openParallelGroupId))
   }
+}
+
+type LoadProbe = {
+  /** Whether the screen is still showing the seeded item. */
+  readonly open: boolean
+  readonly kind: 'loading' | 'unavailable' | 'ready'
+}
+
+/**
+ * Runs `apply` once the seeded item finishes loading, only if it is still the
+ * open item. Stops listening on ready, unavailable, or when another item is
+ * opened. Checks the current state first because subscribers may run
+ * synchronously and the load may already be settled.
+ */
+function whenLoaded(
+  presenter: AppPresenter,
+  probe: (state: AppScreenState) => LoadProbe,
+  apply: () => void,
+): void {
+  let unsub: (() => void) | undefined
+  let finished = false
+  const check = (state: AppScreenState): void => {
+    if (finished) return
+    const { open, kind } = probe(state)
+    if (!open) {
+      finished = true
+    } else if (kind === 'loading') {
+      return
+    } else {
+      finished = true
+      if (kind === 'ready') apply()
+    }
+    unsub?.()
+  }
+  check(presenter.getState())
+  if (finished) return
+  unsub = presenter.subscribe(check)
+  // The subscription replays the current state synchronously, which may have
+  // already finished before `unsub` was assigned.
+  if (finished) unsub()
 }

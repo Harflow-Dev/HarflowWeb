@@ -31,9 +31,9 @@ describe('ParallelGroupView', () => {
     expect(screen.getByText('Review preload bridge')).toBeInTheDocument()
     expect(screen.getByText('1 running · 2 done')).toBeInTheDocument()
     expect(
-      screen.getByText(
+      screen.getAllByText(
         'Enforced for every agent here: Network: not controlled.',
-      ),
+      )[0],
     ).toBeInTheDocument()
 
     const claude = screen.getByRole('region', { name: 'Claude Code' })

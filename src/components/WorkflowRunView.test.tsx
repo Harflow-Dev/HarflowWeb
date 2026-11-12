@@ -41,7 +41,7 @@ describe('WorkflowRunView', () => {
     const load = workflowExecutionLoadFor(NIGHTLY_AUDIT_RUN_ID)
     render(<WorkflowRunView load={load} {...viewProps(load)} />)
     expect(screen.getByText('Nightly dependency audit')).toBeInTheDocument()
-    expect(screen.getByText('Step 2 of 4 · 06:31')).toBeInTheDocument()
+    expect(screen.getAllByText('Step 2 of 4 · 06:31')[0]).toBeInTheDocument()
     const graph = screen.getByRole('region', { name: 'Workflow graph' })
     expect(graph.querySelectorAll('path').length).toBeGreaterThan(0)
     expect(screen.queryByRole('img', { name: /Scan lockfiles/ })).not.toBeInTheDocument()
@@ -323,7 +323,7 @@ describe('WorkflowRunView', () => {
         {...viewProps(updated)}
       />,
     )
-    expect(screen.getByText('Step 2 of 4 · 07:05')).toBeInTheDocument()
+    expect(screen.getAllByText('Step 2 of 4 · 07:05')[0]).toBeInTheDocument()
     expect(
       screen.getByRole('complementary', { name: 'Selected on-demand node' }),
     ).toHaveTextContent('Call 2 · Codex · gpt-6-astra · HarflowMCP')

@@ -43,6 +43,15 @@ populated fixture and shows a single “Mock engine” badge.
 | Composer harness open | Design `new-task/centered-harness-open` — Unavailable harness selected+disabled; hint in menu |
 | Sidebar collapsed | Design `sidebar/centered-collapsed` |
 | Sidebar minimum | Design `sidebar/centered-minimum` — preview frame 1000×620 |
+| Needs you · minimum | Design `needs-you/waiting-minimum` — 1000×620 frame; opens Needs you |
+| Parallel group · minimum | Design `parallel-group/lanes-minimum` — Review preload bridge; meta drops to a focusable dot |
+| Workflow run Parallel · minimum | Design `workflow-run/parallel-minimum` — Nightly Parallel at 1000×620 |
+| Workflow editor · minimum | Design `workflow-editor/node-selected-minimum` — Release checklist; inspector 288 |
+| Workflow editor orchestrator · minimum | Design `workflow-editor/orchestrator-minimum` — orchestrator selected after ready |
+| Needs you loading · minimum | Design `needs-you/loading-minimum` — deferred Needs you at 1000×620 |
+| Parallel group loading · minimum | Design `parallel-group/loading-minimum` — deferred group; no focusable meta |
+| Workflow run loading Parallel · minimum | Design `workflow-run/loading-parallel-minimum` — deferred Parallel at 1000×620 |
+| Workflow editor loading · minimum | Design `workflow-editor/loading-minimum` — deferred editor at 1000×620 |
 | Workflows list | Approved `workflows/list` definition rows |
 | Workflows empty | Approved `workflows/empty` specimen |
 | Resources slots | Approved `resources/slots` harness cards + waiting list |
@@ -60,10 +69,13 @@ populated fixture and shows a single “Mock engine” badge.
 | Transcript sources | Design `task/transcript-sources` — tool disclosure in the transcript; unsupported stub only in Events |
 | Transcript · Events | Any of the eight with `/events` (hash `#task/transcript-*/events` or scenario id `transcript-*/events`) opens Events at load. Pinned transcript completed states omit Summary; `task/done` keeps its fixture summary. |
 | Needs you empty | Approved `needs-you/empty` specimen. Populated scenarios use `needs-you/waiting` |
-| Needs you loading | Approved `needs-you/loading` main-pane skeleton (Design `9d19fd7`). Deferred Needs you read; populated context keeps live Running/Recent. Open Needs you in the preview after selecting the scenario. Full sidebar `SB` and minimum window are not accepted here |
+| Needs you loading | Approved `needs-you/loading` main-pane skeleton (Design `9d19fd7`). Deferred Needs you read; populated context keeps live Running/Recent. Open Needs you in the preview after selecting the scenario. Full sidebar `SB` remains out of scope; use **Needs you loading · minimum** for the 1000×620 companion |
 
 First-load skeleton scenarios live in `src/adapters/mock/scenarioCatalogLoading.ts`.
-They keep the mirrored chrome real and shimmer only the measured data regions.
+Minimum-window scenarios (loaded and loading) live in
+`src/adapters/mock/scenarioCatalogMinimum.ts` and reuse `seed.frame: 'minimum'`
+(same `hw-preview__app--minimum` chrome as Sidebar minimum). They keep the
+mirrored chrome real and shimmer only the measured data regions.
 Resolve a deferred observation from the preview controls (or remount) to replace
 the skeleton with the loaded screen without a layout jump.
 

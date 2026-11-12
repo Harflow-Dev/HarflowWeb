@@ -327,6 +327,35 @@ the browser's reduced-motion preference was not forced on, so runtime behavior
 under that preference remains unverified. These checks do not establish full
 sidebar-skeleton or minimum-window parity.
 
+### Minimum window 1000 × 620 — 2026-11-12
+
+Design approval: HarflowDesign `246cc97ca47643422af67ff7b00acc494d3e1d42`.
+Frame helpers last at `cd606f0e83b97fd79c807e3376b3fdbfae93ef2d`
+(`v2/scripts/minimum-frame.js`, `v2/styles/minimum-frame.css`). Drawings:
+`v2/scripts/screens-minimum.js` @ `246cc97…`.
+
+Target PNG directory:
+`~/.codex/workflows/screenshots/2026-11-12-harflowweb-minimum-window/verified-1000x620/`
+
+Captured 2026-11-12 from `/preview?scenario=…` with the scenario panel hidden,
+CDP clip of `.hw-preview__app--minimum` inset by its 1px border, then verified
+with `sips` at **1000×620**. Light and dark for every state below (18 files:
+`<scenario>-light.png` / `<scenario>-dark.png`).
+
+| Design state | Preview scenario |
+| --- | --- |
+| `needs-you/waiting-minimum` | `needs-you-waiting-minimum` |
+| `parallel-group/lanes-minimum` | `parallel-group-lanes-minimum` |
+| `workflow-run/parallel-minimum` | `workflow-run-parallel-minimum` |
+| `workflow-editor/node-selected-minimum` | `workflow-editor-node-selected-minimum` |
+| `workflow-editor/orchestrator-minimum` | `workflow-editor-orchestrator-minimum` |
+| `needs-you/loading-minimum` | `needs-you-loading-minimum` |
+| `parallel-group/loading-minimum` | `parallel-group-loading-minimum` |
+| `workflow-run/loading-parallel-minimum` | `workflow-run-loading-parallel-minimum` |
+| `workflow-editor/loading-minimum` | `workflow-editor-loading-minimum` |
+
+Out of scope (not captured): `menu-bar/*-minimum`, task-screen minima.
+
 ### Remaining first-load skeletons — 2026-11-11
 
 Design pin: HarflowDesign `9d19fd70cc385c551004db4a8054cc85dc93fe86`. Target

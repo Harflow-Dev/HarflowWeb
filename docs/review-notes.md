@@ -13,14 +13,23 @@ grant approvals, answer questions, or touch the task store.
 - Approved first-load skeletons at Design `9d19fd7` are implemented for every
   mirrored screen that already exists in this mock (see
   `scenarioCatalogLoading.ts`). Unavailable and partial-sidebar treatments
-  remain **proposals**. Needs you loading stays main-pane only (no full `SB`,
-  no minimum window).
-- **Skipped** approved loading states (mirrored loaded screen missing or
-  out of scope): `task/loading-pane` (no `task/pane-running-open`),
-  `menu-bar/loading` (no menu-bar surface), 1000×620 minimum-window variants,
-  partial loads (`task/changes-loading`, `events-loading`,
-  `artifacts-loading`, `sidebar/history-older`, `new-task/centered-loading`),
-  app-states / harness-runtime first loads, and pending launches.
+  remain **proposals**. Needs you loading stays main-pane only for the
+  1280×800 specimen (no full Design `SB`); its 1000×620 companion is
+  `needs-you/loading-minimum`.
+- Approved 1000×620 minimum-window states from Design `246cc97` are
+  implemented for Needs you, Parallel group, Workflow run Parallel, and
+  Workflow editor (node-selected + orchestrator), plus their loading
+  companions (see `scenarioCatalogMinimum.ts`). Layout rules are responsive
+  (main ≤ 800px / preview minimum frame): lanes keep a 360 floor, inspector
+  is 288, top-bar meta drops to a focusable named dot, canvas scrolls. Normal
+  1280×800 presentation is unchanged.
+- **Skipped** approved states (out of scope for this slice):
+  `task/loading-pane` (no `task/pane-running-open`), `menu-bar/loading` and
+  `menu-bar/busy-minimum` / `menu-bar/loading-minimum` (no menu-bar surface),
+  task-screen minimum states, partial loads (`task/changes-loading`,
+  `events-loading`, `artifacts-loading`, `sidebar/history-older`,
+  `new-task/centered-loading`), app-states / harness-runtime first loads, and
+  pending launches.
 - `settings/loading-general` is driven by a dedicated settings-general
   observation (`observeSettingsGeneral`: runtime readiness and task store
   compatibility, `'defer'` scenario value). The skeleton keeps the loaded
@@ -56,8 +65,8 @@ grant approvals, answer questions, or touch the task store.
   (HarflowDesign `9d64bfd`): compact growing prompt, centered group, and `+`
   Task options. Effort, turn limit, and approvals are presentation-only; they
   gate Start with the specimen rules and are not sent on `startTask`.
-- Narrow-width layout is a responsive proposal; desktop specimens are approved at
-  1280×800.
+- Narrow-width layout for the approved minimum-window screens follows Design
+  `246cc97` / `cd606f0`. Other desktop specimens remain approved at 1280×800.
 - Settings General is live. Appearance is the same session System/Light/Dark
   value as the sidebar and collapsed rail; it is not persisted. Behaviour
   switches are disabled specimen values with an accessible explanation; they

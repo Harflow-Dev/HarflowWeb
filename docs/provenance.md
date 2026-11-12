@@ -33,9 +33,10 @@
     `resources/loading`, `statistics/loading`, `settings/loading-general`,
     `settings/loading-harnesses`, `settings/loading-mcp-approvals`
     (`menu-bar/loading` skipped; no menu-bar surface).
-  Needs you remains main-pane scope only (no full Design `SB` sidebar-data
-  skeleton, no `246cc97` minimum window). Observed checks and remaining
-  visual limits are in `docs/visual-validation.md`.
+  Needs you 1280×800 loading remains main-pane scope only (no full Design
+  `SB` sidebar-data skeleton). The `246cc97` minimum-window companions are
+  listed under Minimum window below. Observed checks and remaining visual
+  limits are in `docs/visual-validation.md`.
 - Centered New task composer amendment (owner-approved 2026-11-06), separate
   from the baseline `new-task/*` templates: HarflowDesign
   `9d64bfda7bed735d42c761c3149516c7f3e6ca01`
@@ -182,7 +183,17 @@
 | Settings harnesses | Design `settings/harnesses` and `settings/mcp-approvals` | **Mock-only presentation** — independent fixture facts; the disclosure shows that harness’s list only; unknown or missing approvals stay unavailable; no PATH probe, install, registration change, or approval edit |
 | Needs you waiting | Design `needs-you/waiting` approvals and one question | **Mock-only presentation** — fixture requests, not this computer; the Nightly publish card uses the same snapshot as the run detail; exact-action labels; no approval authority |
 | Needs you empty | Design `needs-you/empty` | **Mock-only presentation** — complete coverage and zero items only; unknown is not this state |
-| Needs you loading | Design `needs-you/loading` at HarflowDesign `9d19fd7` (`v2/scripts/screens-loading-more.js`, skeleton spec `needs-you`) | **Mock-only main-pane** — title real; waiting badge and three request cards are shimmer placeholders (measured 1280×800 geometry from that pin); sidebar Running/Recent stay independently known; full Design `SB` sidebar-data skeleton and `246cc97` minimum window are **not** accepted in this slice |
+| Needs you loading | Design `needs-you/loading` at HarflowDesign `9d19fd7` (`v2/scripts/screens-loading-more.js`, skeleton spec `needs-you`) | **Mock-only main-pane** — title real; waiting badge and three request cards are shimmer placeholders (measured 1280×800 geometry from that pin); sidebar Running/Recent stay independently known; full Design `SB` sidebar-data skeleton remains a separate prerequisite. The 1000 × 620 companion is `needs-you/loading-minimum` below |
+| Minimum window (1000 × 620) | Design approval `246cc97ca47643422af67ff7b00acc494d3e1d42`; drawings `v2/scripts/screens-minimum.js` @ `246cc97…`, frame helpers `v2/scripts/minimum-frame.js` and `v2/styles/minimum-frame.css` @ `cd606f0e83b97fd79c807e3376b3fdbfae93ef2d`; inventory/decision rows last touched at `2934681218ff98d13fcffc012ebaa19640f64c23` | **Mock-only layout** — responsive narrow rules (lanes 360, inspector 288, meta drops to a focusable named dot, canvas scrolls). Preview uses the existing `seed.frame: 'minimum'` → `hw-preview__app--minimum` chrome. Menu-bar and task-screen minima are out of scope |
+| Needs you waiting-minimum | Design `needs-you/waiting-minimum` (of `needs-you/waiting`) | Sidebar body scrolls; representative drawing of the shared sidebar rule |
+| Parallel group lanes-minimum | Design `parallel-group/lanes-minimum` (of `parallel-group/lanes`) | 360pt lanes; top-bar meta drops to a focusable dot |
+| Workflow run parallel-minimum | Design `workflow-run/parallel-minimum` (of `workflow-run/parallel`) | Same lane and meta rules on the Nightly Parallel view |
+| Workflow editor node-selected-minimum | Design `workflow-editor/node-selected-minimum` (of `workflow-editor/node-selected`) | Inspector 288; canvas scrolls; meta drops |
+| Workflow editor orchestrator-minimum | Design `workflow-editor/orchestrator-minimum` (of `workflow-editor/orchestrator`) | Same editor narrow rules with the locked orchestrator selected |
+| Needs you loading-minimum | Design `needs-you/loading-minimum` | Waiting skeleton in the 1000 × 620 frame; deferred `observeNeedsYou` |
+| Parallel group loading-minimum | Design `parallel-group/loading-minimum` | Lane skeleton; meta shimmer omitted so loading has no focusable meta |
+| Workflow run loading-parallel-minimum | Design `workflow-run/loading-parallel-minimum` | Parallel skeleton at 1000 × 620; no focusable meta |
+| Workflow editor loading-minimum | Design `workflow-editor/loading-minimum` | Editor skeleton; inspector 288; no focusable meta |
 | New task loading | Design `new-task/loading` @ `9d19fd7` (`screens-loading-work.js`, spec `new-task`) | **Mock-only** — deferred context; greeting and composer frame real; options/repo placeholders |
 | Sidebar loading | Design `sidebar/loading` @ `9d19fd7` (`screens-loading-work.js`, spec `sidebar`) | **Mock-only** — Running/Recent and Needs you count placeholders; nav headings real; main area stays centered empty composer |
 | Task loading | Design `task/loading` @ `9d19fd7` (`screens-loading-work.js`, spec `task`) | **Mock-only** — mirrors `task/running-stop`; known title when the sidebar supplies it; transcript/status placeholders |

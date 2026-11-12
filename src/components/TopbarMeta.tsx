@@ -29,15 +29,14 @@ function CompactMeta({ text }: { readonly text: string }) {
   // Hover-only reveal has no focus, so keydown never reaches the element.
   // Listen on the document only while the pointer is over the dot.
   useEffect(() => {
-    if (!hovered) return
+    if (!hovered || dismissed) return
     const onKey = (event: globalThis.KeyboardEvent) => {
       if (event.key !== 'Escape') return
       setDismissed(true)
-      event.stopPropagation()
     }
     document.addEventListener('keydown', onKey)
     return () => document.removeEventListener('keydown', onKey)
-  }, [hovered])
+  }, [hovered, dismissed])
 
   const onKeyDown = (event: KeyboardEvent<HTMLSpanElement>) => {
     if (event.key !== 'Escape' || dismissed) return

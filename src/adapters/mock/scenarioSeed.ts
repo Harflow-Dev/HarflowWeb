@@ -36,6 +36,8 @@ export type NewTaskScenarioSeed = {
     | 'settings'
     | 'needs-you'
   readonly openWorkflowEditorId?: string
+  /** Select a node after the editor observation is ready (e.g. orchestrator). */
+  readonly openWorkflowEditorNodeId?: string
   readonly openWorkflowExecutionId?: string
   readonly openParallelGroupId?: string
   readonly workflowRunView?: 'graph' | 'parallel'

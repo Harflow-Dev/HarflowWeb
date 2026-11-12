@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { type ScenarioId } from '../adapters/mock'
 import { LOADING_SCENARIOS } from '../adapters/mock/scenarioCatalogLoading'
+import { MINIMUM_LOADING_SCENARIOS } from '../adapters/mock/scenarioCatalogMinimum'
 import { populatedHarnessesLoad } from '../adapters/mock/harnessFixtures'
 import { PRELOAD_PARALLEL_GROUP_ID, parallelGroupLoadFor } from '../adapters/mock/parallelGroupFixtures'
 import { populatedResourcesLoad } from '../adapters/mock/resourceFixtures'
@@ -247,6 +248,8 @@ type Expected =
   | { readonly role: 'group'; readonly name: string }
   | { readonly role: 'region'; readonly name: string }
 
+const CATALOG_LOADING = [...LOADING_SCENARIOS, ...MINIMUM_LOADING_SCENARIOS]
+
 const BUSY: Readonly<Record<string, Expected>> = {
   'new-task-loading': { role: 'group', name: 'Loading New task' },
   'sidebar-loading': { role: 'group', name: 'Loading tasks' },
@@ -261,6 +264,19 @@ const BUSY: Readonly<Record<string, Expected>> = {
   'settings-loading-general': { role: 'region', name: 'Task store' },
   'settings-loading-harnesses': { role: 'group', name: 'Loading Harnesses' },
   'settings-loading-mcp-approvals': { role: 'group', name: 'Loading MCP approvals' },
+  'needs-you-loading-minimum': { role: 'group', name: 'Loading Needs you' },
+  'parallel-group-loading-minimum': {
+    role: 'group',
+    name: 'Loading Parallel group',
+  },
+  'workflow-run-loading-parallel-minimum': {
+    role: 'group',
+    name: 'Loading Workflow run',
+  },
+  'workflow-editor-loading-minimum': {
+    role: 'group',
+    name: 'Loading Workflow editor',
+  },
 }
 
 describe('loading scenario catalog through the preview seeding path', () => {
@@ -270,11 +286,11 @@ describe('loading scenario catalog through the preview seeding path', () => {
 
   it('covers every catalog entry', () => {
     expect(Object.keys(BUSY).sort()).toEqual(
-      LOADING_SCENARIOS.map((scenario) => scenario.id).sort(),
+      CATALOG_LOADING.map((scenario) => scenario.id).sort(),
     )
   })
 
-  it.each(LOADING_SCENARIOS.map((scenario) => [scenario.id]))(
+  it.each(CATALOG_LOADING.map((scenario) => [scenario.id]))(
     'boots %s and shows its busy region',
     async (id) => {
       const expected = BUSY[id as string]!
@@ -289,7 +305,11 @@ describe('loading scenario catalog through the preview seeding path', () => {
         return found
       })
       expect(busy).toBeInTheDocument()
-      if (id === 'workflow-run-loading-parallel') {
+      if (
+        id === 'workflow-run-loading-parallel' ||
+        id === 'workflow-run-loading-parallel-minimum' ||
+        id === 'parallel-group-loading-minimum'
+      ) {
         expect(screen.getByLabelText('Parallel lanes')).toBeInTheDocument()
       }
     },

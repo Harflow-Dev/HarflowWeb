@@ -4,6 +4,7 @@ import { emptyNeedsYouLoad } from './needsYouFixtures'
 import { accepted, base, readyContext } from './scenarioBase'
 import { CENTERED_SCENARIOS } from './scenarioCatalogCentered'
 import { LOADING_SCENARIOS } from './scenarioCatalogLoading'
+import { MINIMUM_SCENARIOS } from './scenarioCatalogMinimum'
 import { TRANSCRIPT_SCENARIOS } from './scenarioCatalogTranscript'
 import type { ScenarioDefinition } from './scenarios'
 import { statisticsLoadFor } from './statisticsFixtures'
@@ -192,6 +193,7 @@ export const SCENARIOS: readonly ScenarioDefinition[] = [
     holdStart: false,
   }),
   ...LOADING_SCENARIOS,
+  ...MINIMUM_SCENARIOS,
   ...CENTERED_SCENARIOS,
   ...TRANSCRIPT_SCENARIOS,
 ]

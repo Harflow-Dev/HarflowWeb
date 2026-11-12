@@ -3,6 +3,7 @@ import {
   asParallelGroupId,
   asTaskId,
   asWorkflowId,
+  asWorkflowNodeId,
   asWorkflowRunId,
 } from '../model'
 import type {
@@ -55,6 +56,14 @@ export function applyNewTaskSeed(
   }
   if (seed.openWorkflowEditorId !== undefined) {
     presenter.openWorkflowEditor(asWorkflowId(seed.openWorkflowEditorId))
+    if (seed.openWorkflowEditorNodeId !== undefined) {
+      const nodeId = asWorkflowNodeId(seed.openWorkflowEditorNodeId)
+      const unsub = presenter.subscribe((state) => {
+        if (state.workflowEditor.load.kind !== 'ready') return
+        unsub()
+        presenter.selectWorkflowNode(nodeId)
+      })
+    }
   }
   if (seed.openWorkflowExecutionId !== undefined) {
     presenter.openWorkflowExecution(

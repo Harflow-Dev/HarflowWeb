@@ -277,6 +277,8 @@ const BUSY: Readonly<Record<string, Expected>> = {
     role: 'group',
     name: 'Loading Workflow editor',
   },
+  'task-changes-loading': { role: 'group', name: 'Reading stored changes' },
+  'task-events-loading': { role: 'group', name: 'Loading Events' },
 }
 
 describe('loading scenario catalog through the preview seeding path', () => {

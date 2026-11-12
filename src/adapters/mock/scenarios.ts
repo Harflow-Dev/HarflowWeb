@@ -62,6 +62,8 @@ export type ScenarioId =
   | 'settings-loading-general'
   | 'settings-loading-harnesses'
   | 'settings-loading-mcp-approvals'
+  | 'task-changes-loading'
+  | 'task-events-loading'
   | 'resources-slots'
   | 'statistics-overview'
   | 'task-running'

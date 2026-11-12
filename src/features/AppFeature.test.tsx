@@ -709,12 +709,11 @@ describe('AppFeature navigation', () => {
 
     await user.type(screen.getByLabelText('Task prompt'), 'held launch')
     await user.click(screen.getByRole('button', { name: 'Start task' }))
-    expect(document.querySelector('.hw-compose-status')?.textContent).toBe(
-      'Starting task…',
-    )
-    expect(document.querySelector('.hw-compose-status')).not.toHaveAttribute(
-      'role',
-    )
+    // centered-starting-plain: no visible status row under the composer.
+    expect(document.querySelector('.hw-compose-status')).toBeNull()
+    expect(
+      screen.getByRole('button', { name: 'Starting task' }),
+    ).toBeDisabled()
     const live = document.querySelector('.hw-status')
     expect(live?.textContent).toBe('Starting task…')
     expect(live).toHaveAttribute('role', 'status')
@@ -1323,8 +1322,8 @@ describe('AppFeature navigation', () => {
       within(pane).queryByRole('group', { name: 'Diff of queue.py' }),
     ).not.toBeInTheDocument()
     expect(
-      within(pane).getByText(/Loading changes… \(proposal/),
-    ).toBeInTheDocument()
+      within(pane).getByRole('group', { name: 'Reading diff' }),
+    ).toHaveAttribute('aria-busy', 'true')
     expect(
       within(pane).getByRole('button', { name: CONFIG_PY_PATH }),
     ).toHaveFocus()

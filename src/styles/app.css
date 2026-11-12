@@ -302,6 +302,63 @@ body,
   min-height: 0;
 }
 
+/*
+ * Task right-pane loading (Design M05 changes-loading / events-loading).
+ * Shimmer uses existing .hd-skel; panenote/caption mirror m05-proposal.css.
+ */
+.hd-m05-panebody {
+  padding: var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-height: 0;
+}
+
+.hd-m05-panebody > p {
+  margin: 0;
+}
+
+.hd-m05-h {
+  margin: var(--space-2) 0 0;
+  font-size: 13px;
+  line-height: 18px;
+  font-weight: 600;
+}
+
+.hd-m05-panenote {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  background: var(--surface-sunken);
+  font-size: 13px;
+  line-height: 19px;
+}
+
+.hd-m05-panenote--info {
+  background: var(--surface-sunken);
+}
+
+.hd-m05-caption {
+  margin: 0;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--text-tertiary);
+}
+
+.hw-pane-skel-lines {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.hw-changes-diff-skel {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
 .hw-compose-help {
   margin: 0;
   text-align: center;

@@ -1,3 +1,5 @@
+import { RETRY_BUDGET_DONE_TASK_ID } from './taskFixtures'
+import { TRANSCRIPT_TASK_IDS } from './transcriptFixtures'
 import { accepted, base, readyContext } from './scenarioBase'
 import type { ScenarioDefinition } from './scenarios'
 
@@ -160,6 +162,33 @@ export const LOADING_SCENARIOS: readonly ScenarioDefinition[] = [
       openRoute: 'settings',
       settingsSection: 'harnesses',
       settingsExpandedHarnessId: 'claude-code',
+    },
+  }),
+  base({
+    id: 'task-changes-loading',
+    label: 'Task Changes loading',
+    description:
+      'Approved task/changes-loading (M05 / Design route-map). Deferred Changes observation on the completed fixture; pane open.',
+    context: readyContext(),
+    taskChanges: 'defer',
+    startOutcome: accepted,
+    holdStart: false,
+    seed: {
+      openTaskId: RETRY_BUDGET_DONE_TASK_ID,
+      eventsPaneOpen: true,
+    },
+  }),
+  base({
+    id: 'task-events-loading',
+    label: 'Task Events loading',
+    description:
+      'Approved task/events-loading (M05). Transcript observation with history/summary loading; Events pane open.',
+    context: readyContext(),
+    startOutcome: accepted,
+    holdStart: false,
+    seed: {
+      openTaskId: TRANSCRIPT_TASK_IDS.loading,
+      eventsPaneOpen: true,
     },
   }),
 ]

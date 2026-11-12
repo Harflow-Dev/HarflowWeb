@@ -5,6 +5,10 @@ import type {
   TaskChangesLoad,
 } from '../model'
 import { Icon } from './Icon'
+import {
+  ChangesDiffLoadingBody,
+  ChangesLoadingBody,
+} from './skeletonTaskPane'
 
 type Props = {
   readonly load: TaskChangesLoad
@@ -96,10 +100,8 @@ function PaneBody({
       )
     }
     return (
-      <div className="hd-scroll" style={{ padding: 'var(--space-3)' }}>
-        <p className="caption hd-faint" role="status">
-          Loading changes… (proposal — not a design-approved specimen)
-        </p>
+      <div className="hd-scroll">
+        <ChangesLoadingBody />
       </div>
     )
   }
@@ -166,11 +168,7 @@ function DiffRegion({
   readonly selectedPath: string | null
 }) {
   if (load.kind === 'loading') {
-    return (
-      <p className="caption hd-faint" role="status">
-        Loading changes… (proposal — not a design-approved specimen)
-      </p>
-    )
+    return <ChangesDiffLoadingBody />
   }
   if (load.kind === 'unavailable') {
     return (

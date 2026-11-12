@@ -16,6 +16,22 @@ afterEach(() => {
 })
 
 describe('TaskChangesPane', () => {
+  it('shows the approved Changes loading skeleton before files arrive', () => {
+    render(
+      <TaskChangesPane
+        load={{ kind: 'loading' }}
+        files={null}
+        selectedPath={null}
+        onSelectFile={() => undefined}
+        onUnavailable={() => undefined}
+      />,
+    )
+    const busy = screen.getByRole('group', { name: 'Reading stored changes' })
+    expect(busy).toHaveAttribute('aria-busy', 'true')
+    expect(screen.queryByText(/proposal/)).toBeNull()
+    expect(screen.queryByRole('list', { name: 'Changed files' })).toBeNull()
+  })
+
   it('renders file rows, counts, and literal HTML-like / Unicode diff text', async () => {
     const user = userEvent.setup()
     const onSelect = vi.fn()
@@ -97,8 +113,8 @@ describe('TaskChangesPane', () => {
       screen.queryByRole('group', { name: 'Diff of queue.py' }),
     ).not.toBeInTheDocument()
     expect(
-      screen.getByText(/Loading changes… \(proposal/),
-    ).toBeInTheDocument()
+      screen.getByRole('group', { name: 'Reading diff' }),
+    ).toHaveAttribute('aria-busy', 'true')
     expect(
       screen.getByRole('button', { name: CONFIG_PY_PATH }),
     ).toBeInTheDocument()

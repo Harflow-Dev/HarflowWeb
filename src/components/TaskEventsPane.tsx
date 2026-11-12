@@ -80,7 +80,9 @@ export function TaskEventsPane({
           <div className="hd-d2b-facts hd-tr-facts" data-d2b-facts>
             <h3>Captured activity facts</h3>
             <p>{activity.countLabel}</p>
-            <p className="hd-muted">{activity.reason}</p>
+            {activity.reason !== null && (
+              <p className="hd-muted">{activity.reason}</p>
+            )}
             <hr />
             <h3>Task snapshot</h3>
             <p>

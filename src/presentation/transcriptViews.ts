@@ -20,7 +20,8 @@ export type ActivityView = {
   readonly title: string
   readonly toolCount: number | null
   readonly countLabel: string
-  readonly reason: string
+  /** Null while the summary loads: the count line already says so. */
+  readonly reason: string | null
   readonly summaryCoverage: TranscriptSummaryCoverage
 }
 
@@ -101,7 +102,7 @@ export function activityView(obs: TranscriptObservation): ActivityView {
           : 'Tool activity unavailable',
     reason:
       coverage === 'loading'
-        ? 'The activity summary is still being read.'
+        ? null
         : coverage === 'limited'
         ? 'The activity summary reached its limit; tool activity totals are unavailable.'
         : sound

@@ -1,6 +1,7 @@
 import type { ParallelGroupLoad, WorkflowRunLane } from '../model'
 import { PARALLEL_GROUP_UNAVAILABLE } from '../model'
 import { ParallelGroupLoadingPage } from './skeleton'
+import { TopbarMeta } from './TopbarMeta'
 import { WorkflowRunLane as Lane } from './WorkflowRunLane'
 import {
   PARALLEL_GROUP_ACTION_EXPLANATION,
@@ -47,7 +48,7 @@ export function ParallelGroupView({ load }: Props) {
           <span className="hd-badge__spin" aria-hidden="true" />
           {group.statusLabel}
         </span>
-        <span className="hd-topbar__meta">{group.enforcementLabel}</span>
+        <TopbarMeta>{group.enforcementLabel}</TopbarMeta>
         <span className="hd-topbar__spacer" />
         <button
           type="button"

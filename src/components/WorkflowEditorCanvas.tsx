@@ -19,6 +19,7 @@ export function WorkflowEditorCanvas({ definition, selectedId, onSelect }: Props
     <div className="hd-canvas">
       <div
         className="hd-canvas__port hd-thin-scroll"
+        role="region"
         aria-label="Workflow canvas"
         tabIndex={0}
         data-content-width={scene.width}

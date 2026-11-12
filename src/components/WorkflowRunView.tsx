@@ -15,6 +15,7 @@ import {
   WorkflowRunLoadingPage,
   WorkflowRunParallelLoadingPage,
 } from './skeleton'
+import { TopbarMeta } from './TopbarMeta'
 import { WorkflowRunCanvas } from './WorkflowRunCanvas'
 import { WorkflowRunDetail } from './WorkflowRunDetail'
 import { WorkflowRunOnDemandPane } from './WorkflowRunOnDemandPane'
@@ -91,7 +92,7 @@ export function WorkflowRunView({
           <Icon name="hand" size="sm" />
           {run.statusLabel}
         </span>
-        <span className="hd-topbar__meta">{run.progressLabel}</span>
+        <TopbarMeta>{run.progressLabel}</TopbarMeta>
         <span className="hd-topbar__spacer" />
         <WorkflowRunViewToggle
           activeView={activeView}

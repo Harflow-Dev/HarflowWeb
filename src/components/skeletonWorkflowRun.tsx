@@ -18,7 +18,9 @@ function RunTopbarSkeleton({ actions }: { readonly actions: ReactNode }) {
     <div className="hd-topbar">
       <SkelLine width={173} height={14} />
       <SkelBlock width={72} height={22} shape="pill" />
-      <SkelLine width={105} height={10} />
+      <span className="hw-topbar-meta-skel">
+        <SkelLine width={105} height={10} />
+      </span>
       <span className="hd-topbar__spacer" />
       {actions}
     </div>
@@ -220,7 +222,9 @@ export function ParallelGroupLoadingPage(): ReactNode {
       <div className="hd-topbar">
         <SkelLine width={150} height={14} />
         <SkelBlock width={72} height={22} shape="pill" />
-        <SkelLine width={300} height={10} />
+        <span className="hw-topbar-meta-skel">
+          <SkelLine width={300} height={10} />
+        </span>
         <span className="hd-topbar__spacer" />
         <button
           type="button"

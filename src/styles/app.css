@@ -722,3 +722,101 @@ body,
     scroll-behavior: auto !important;
   }
 }
+
+/*
+ * Narrow main column (1000 × 620 and below). Layout rules from HarflowDesign
+ * minimum window (246cc97 approval; cd606f0 / c147372 frame CSS): lanes keep a
+ * 360 floor, inspector is 288, top-bar meta drops first behind a focusable
+ * dot, and the workflow canvas scrolls. Same screens at a wide main column
+ * keep the loaded 1280 × 800 presentation.
+ */
+.hd-main {
+  container-type: inline-size;
+  container-name: hd-main;
+}
+
+.hw-topbar-meta__compact {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px;
+  margin: -5px;
+  position: relative;
+  z-index: 6;
+  border-radius: var(--radius-sm);
+  color: inherit;
+  font: inherit;
+}
+
+.hw-topbar-meta__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: var(--radius-full);
+  background: var(--text-tertiary);
+  flex: none;
+}
+
+.hw-topbar-meta__compact:hover:not(.is-dismissed) > .hw-topbar-meta__tip,
+.hw-topbar-meta__compact:focus-visible:not(.is-dismissed) > .hw-topbar-meta__tip {
+  position: absolute;
+  left: 0;
+  top: 100%;
+  z-index: 1;
+  width: max-content;
+  max-width: 320px;
+  height: auto;
+  clip: auto;
+  overflow: visible;
+  white-space: normal;
+  padding: 4px 8px;
+  border-top: 6px solid transparent;
+  background-clip: padding-box;
+  border-radius: var(--radius-sm);
+  background-color: var(--text);
+  color: var(--bg);
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.hd-inspector__body {
+  position: relative;
+}
+
+@container hd-main (max-width: 800px) {
+  .hd-inspector {
+    width: 288px;
+    flex: 0 0 288px;
+  }
+
+  .hd-lane {
+    flex: 0 0 360px;
+    min-width: 360px;
+  }
+
+  .hw-topbar-meta-skel {
+    display: none;
+  }
+
+  .hw-editor-title-skel {
+    width: 117px !important;
+  }
+}
+
+/* Preview 1000 × 620 frame: same rules without relying on container queries. */
+.hw-preview__app--minimum .hd-inspector {
+  width: 288px;
+  flex: 0 0 288px;
+}
+
+.hw-preview__app--minimum .hd-lane {
+  flex: 0 0 360px !important;
+  min-width: 360px !important;
+}
+
+.hw-preview__app--minimum .hw-topbar-meta-skel {
+  display: none;
+}
+
+.hw-preview__app--minimum .hw-editor-title-skel {
+  width: 117px !important;
+}

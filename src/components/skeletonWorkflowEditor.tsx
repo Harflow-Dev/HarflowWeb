@@ -14,8 +14,12 @@ function EditorTopbarSkeleton({ onClose }: { readonly onClose: () => void }) {
         <Icon name="arrow-left" size="sm" />
         Workflows
       </button>
-      <SkelLine width={150} height={14} />
-      <SkelLine width={150} height={10} />
+      <span className="hw-editor-title-skel">
+        <SkelLine width={150} height={14} />
+      </span>
+      <span className="hw-topbar-meta-skel">
+        <SkelLine width={150} height={10} />
+      </span>
       <span className="hd-topbar__spacer" />
       <button
         type="button"

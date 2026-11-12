@@ -87,7 +87,7 @@ export function LanesSkeleton({ count = 3 }: { readonly count?: number }) {
         <section
           key={index}
           className="hd-lane"
-          style={{ flex: '1 0 320px', minWidth: 320 }}
+          style={{ flex: '1 0 360px', minWidth: 360 }}
         >
           <LaneHeadSkeleton />
           <LaneBodySkeleton index={index} />

@@ -1,6 +1,7 @@
 import type { WorkflowEditorDefinition, WorkflowEditorNode, WorkflowNodeId } from '../model'
 import { findWorkflowEditorNode } from '../model'
 import { Icon } from './Icon'
+import { TopbarMeta } from './TopbarMeta'
 import { WorkflowEditorCanvas } from './WorkflowEditorCanvas'
 import { WorkflowEditorInspector } from './WorkflowEditorInspector'
 
@@ -29,7 +30,7 @@ export function WorkflowEditorView({ definition, selectedId, onClose, onSelect }
           Workflows
         </button>
         <span className="hd-topbar__title">{definition.title}</span>
-        <span className="hd-topbar__meta">{definition.revisionLabel}</span>
+        <TopbarMeta>{definition.revisionLabel}</TopbarMeta>
         <span className="hd-topbar__spacer" />
         <LockedButton label="Edit with agent" icon="sparkle" />
         <LockedButton label="More actions" iconOnly />

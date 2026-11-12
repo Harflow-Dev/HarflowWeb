@@ -38,13 +38,23 @@ grant approvals, answer questions, or touch the task store.
   actions. Neither was changed here.
 - Known: the production bundle is above 500 kB (Vite warning). No dependency
   or code-splitting change was made for it in this slice.
-- **Skipped** approved states (out of scope for this slice):
+- **Skipped** approved states (out of scope or missing surface):
   `task/loading-pane` (no `task/pane-running-open`), `menu-bar/loading` and
   `menu-bar/busy-minimum` / `menu-bar/loading-minimum` (no menu-bar surface),
-  task-screen minimum states, partial loads (`task/changes-loading`,
-  `events-loading`, `artifacts-loading`, `sidebar/history-older`,
-  `new-task/centered-loading`), app-states / harness-runtime first loads, and
-  pending launches.
+  task-screen minimum states, `task/artifacts-loading` and other
+  `task/artifacts-*` (provisional), `sidebar/history-older` (Web has no
+  sidebar history paging / “load older”; not built),
+  `new-task/centered-loading` (separate first-load path already covered by
+  `new-task-loading`), app-states / harness-runtime first loads, and pending
+  launches.
+- `new-task/centered-starting` is retired for
+  `new-task/centered-starting-plain` (Design 76ad937): no visible status row
+  under the composer while starting; Start’s accessible name is
+  “Starting task”; “Starting task…” is announced once through `StatusRegion`.
+- `task/changes-loading` and `task/events-loading` replace the former
+  proposal “Loading changes…” copy. Busy regions use `role="group"` /
+  `aria-busy` (not a second live region); Design’s pane `role="status"` is
+  not mirrored.
 - `settings/loading-general` is driven by a dedicated settings-general
   observation (`observeSettingsGeneral`: runtime readiness and task store
   compatibility, `'defer'` scenario value). The skeleton keeps the loaded

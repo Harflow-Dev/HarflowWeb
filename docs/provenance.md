@@ -68,7 +68,7 @@
   `v2/docs/decisions/README.md`), `v2/scripts/m04-proposal.js`,
   `v2/styles/m04-proposal.css`. Pinned routes: `new-task/centered-empty`,
   `centered-loading`, `centered-unqualified`, `centered-invalid`,
-  `centered-starting`, `centered-refused`, `centered-options-closed`,
+  `centered-refused`, `centered-options-closed`,
   `centered-harness-open`, and sidebar `sidebar/centered-collapsed`,
   `sidebar/centered-minimum` (`sidebar/expanded` and `sidebar/centered-expanded`
   redirect to `new-task/centered-empty` in Design). Qualification
@@ -83,6 +83,21 @@
   line). Sidebar body (nav + Running + Recent) scrolls as one region; header
   and Settings/theme footer stay fixed. Minimum frame is the preview `1000×620`
   chrome.
+- Starting without a status row (owner-approved 2026-11-09): HarflowDesign
+  `76ad937038924ee9b7d2b37f045c458c3b5e3091`, drawing in
+  `v2/scripts/m04-proposal.js` @ that commit, state
+  `new-task/centered-starting-plain`. Retires `new-task/centered-starting`.
+  No visible row under the composer while starting; Start’s accessible name is
+  “Starting task”; “Starting task…” is announced once through `StatusRegion`.
+- Task Changes / Events partial loads (M05 task-screen approval): drawings in
+  `v2/scripts/screens-m05-proposal.js` and `v2/scripts/m05-proposal.js` @
+  `6e31cd7f4a7b63beb329c6a4b4d79ca5eef57863` (approval record
+  `v2/docs/decisions/m05-task-screen-approval.md` at the same commit); routes
+  `task/changes-loading` and `task/events-loading` (aliases
+  `m05-proposal/changes-loading`, `m05-proposal/events-loading` in
+  `v2/docs/route-map.md` @ `76ad937…`). Mock preview scenarios
+  `task-changes-loading` (deferred `observeTaskChanges`) and
+  `task-events-loading` (transcript loading observation with Events open).
 - Task transcript + Events redraw (owner-approved 2026-11-08), mock-only:
   HarflowDesign `854caae4d474536f84e6e911ff96d48c4ada008b`,
   `v2/docs/decisions/README.md` (Centered and transcript redraws),
@@ -104,8 +119,9 @@
 - States implemented:
   - `new-task/centered-empty` (and prior `new-task/default`) light/dark
   - `new-task/centered-loading`, `centered-unqualified`, `centered-invalid`,
-    `centered-starting`, `centered-refused`, `centered-options-closed`,
+    `centered-starting-plain`, `centered-refused`, `centered-options-closed`,
     `centered-harness-open` light/dark (mock scenarios)
+  - `task/changes-loading`, `task/events-loading` light/dark (mock scenarios)
   - `new-task/harness-menu/light` and `/dark`
   - `sidebar/centered-collapsed` and `sidebar/centered-minimum` light/dark
   - `new-task/sidebar-collapsed/light` and `/dark` (same rail as centered-collapsed)

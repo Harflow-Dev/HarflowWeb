@@ -37,7 +37,9 @@ populated fixture and shows a single “Mock engine” badge.
 | Composer loading | Design `new-task/centered-loading` — observation `qualification: checking` |
 | Composer unqualified | Design `new-task/centered-unqualified` — `qualification: unqualified` |
 | Composer invalid | Design `new-task/centered-invalid` — turns `0`, Task options open |
-| Composer starting | Design `new-task/centered-starting` — held in-flight Start; Resolve held start |
+| Composer starting | Design `new-task/centered-starting-plain` (76ad937) — no visible status row; Start named Starting task; StatusRegion announces Starting task…; Resolve held start |
+| Task Changes loading | Design `task/changes-loading` (M05) — deferred Changes on the completed fixture; pane open |
+| Task Events loading | Design `task/events-loading` (M05) — transcript loading observation; Events pane open |
 | Composer refused | Design `new-task/centered-refused` — refuse code+reason; draft kept |
 | Composer options closed | Design `new-task/centered-options-closed` — effort high, options collapsed |
 | Composer harness open | Design `new-task/centered-harness-open` — Unavailable harness selected+disabled; hint in menu |

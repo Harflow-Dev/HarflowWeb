@@ -327,6 +327,26 @@ the browser's reduced-motion preference was not forced on, so runtime behavior
 under that preference remains unverified. These checks do not establish full
 sidebar-skeleton or minimum-window parity.
 
+### Starting plain + task pane loads — 2026-11-12
+
+Design pins: starting-plain HarflowDesign
+`76ad937038924ee9b7d2b37f045c458c3b5e3091` (`v2/scripts/m04-proposal.js`);
+Changes/Events loading `6e31cd7f4a7b63beb329c6a4b4d79ca5eef57863`
+(`v2/scripts/screens-m05-proposal.js`, `v2/scripts/m05-proposal.js`).
+
+Target PNG directory:
+`~/.codex/workflows/screenshots/2026-11-12-harflowweb-starting-pane-loads/verified-1280x800/`
+
+Capture from `/preview?scenario=…` with the scenario panel hidden; CDP clip
+`{x:0,y:0,width:1280,height:800}` after `Emulation.setDeviceMetricsOverride`
+to 1280×800. Light and dark for each state below.
+
+| Design state | Preview scenario |
+| --- | --- |
+| `new-task/centered-starting-plain` | `composer-starting` |
+| `task/changes-loading` | `task-changes-loading` |
+| `task/events-loading` | `task-events-loading` |
+
 ### Minimum window 1000 × 620 — 2026-11-12
 
 Design approval: HarflowDesign `246cc97ca47643422af67ff7b00acc494d3e1d42`.
@@ -677,7 +697,7 @@ commit’s `v2/index.html` (do not use a later Design HEAD).
 | `new-task/centered-loading` | Composer loading | Status “Choose a qualified harness and model.”; Start disabled |
 | `new-task/centered-unqualified` | Composer unqualified | Same qualification copy; Start disabled |
 | `new-task/centered-invalid` | Composer invalid | Options open; turns `0`; validation covers greeting at minimum |
-| `new-task/centered-starting` | Composer starting | “Starting task…”; Start disabled; no second submit until resolve |
+| `new-task/centered-starting-plain` | Composer starting | No visible status row; Start named “Starting task”; StatusRegion announces “Starting task…”; Resolve held start |
 | `new-task/centered-refused` | Composer refused | Refuse shows code+reason; draft preserved |
 | `new-task/centered-options-closed` | Composer options closed | Customized dot; options collapsed |
 | `new-task/centered-harness-open` | Composer harness open | Labelled Harness/Model selects; Unavailable selected+always disabled; `aria-describedby` hint; Escape leaves picker open |

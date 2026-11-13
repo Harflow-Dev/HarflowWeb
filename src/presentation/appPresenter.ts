@@ -34,6 +34,7 @@ import type {
 } from '../model'
 import { AppSession, type AppListener } from './appSession'
 import type { AppRoute, AppScreenState, SettingsSection } from './appState'
+import type { PendingLaunchStopOutcome } from './pendingLaunchesState'
 import type { OpenMenu } from './screenState'
 import type { ApprovalsMode, EffortLevel } from './taskOptions'
 import type { WorkflowRunViewMode } from './workflowRunParallel'
@@ -64,6 +65,7 @@ export type AppPresenter = {
   openPendingLaunches(): void
   openPendingLaunch(id: PendingLaunchId): void
   setPendingLaunchStopConfirm(open: boolean): void
+  seedPendingLaunchStopOutcome(outcome: PendingLaunchStopOutcome): void
   openWorkflowEditor(id: WorkflowId): void
   closeWorkflowEditor(): void
   selectWorkflowNode(id: WorkflowNodeId): void
@@ -140,6 +142,8 @@ export function createAppPresenter(deps: Deps): AppPresenter {
     openPendingLaunch: (id) => session.openPendingLaunch(id),
     setPendingLaunchStopConfirm: (open) =>
       session.setPendingLaunchStopConfirm(open),
+    seedPendingLaunchStopOutcome: (outcome) =>
+      session.seedPendingLaunchStopOutcome(outcome),
     openWorkflowEditor: (id) => session.openWorkflowEditor(id),
     closeWorkflowEditor: () => session.closeWorkflowEditor(),
     selectWorkflowNode: (id) => session.selectWorkflowNode(id),

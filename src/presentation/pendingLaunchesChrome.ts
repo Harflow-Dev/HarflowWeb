@@ -1,14 +1,14 @@
+import { pendingLaunchDetailView } from './pendingLaunchViews'
 import type { PendingLaunchesScreenState } from './pendingLaunchesState'
 
-/** Stop sheet covers the app only for a ready detail with Stop available. */
+/** Stop sheet covers the app only for a ready detail that shows Stop. */
 export function pendingStopDialogOpen(
   state: PendingLaunchesScreenState,
 ): boolean {
   if (!state.stopConfirm || state.selectedLaunchId === null) return false
   if (state.status.kind !== 'ready') return false
-  const { status } = state.status
-  if (status.stopOutcome !== null) return false
-  return status.stopSupport === 'available'
+  if (state.stopOutcome !== null) return false
+  return pendingLaunchDetailView(state.status.status).showStop
 }
 
 /** Capability gate for the Pending launches nav item. */

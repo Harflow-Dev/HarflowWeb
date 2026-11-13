@@ -38,7 +38,6 @@ import {
   pendingCapabilityUnsupported,
   pendingInventoryReady,
   pendingStatusLoadFor,
-  type PendingLaunchStatusFixtureId,
 } from './pendingLaunchFixtures'
 import type { ScenarioDefinition } from './scenarios'
 import { workflowEditorLoadFor } from './workflowEditorFixtures'
@@ -170,18 +169,13 @@ function republishPendingLaunches(
     }
   }
   for (const listener of listeners.pendingStatus) {
-    if (scenario.pendingLaunchStatus === 'defer') {
-      listener.send({ kind: 'loading' })
-    } else if (scenario.pendingLaunchStatus === 'default') {
-      listener.send(pendingStatusLoadFor(listener.key))
-    } else {
-      listener.send(
-        pendingStatusLoadFor(
-          listener.key,
-          scenario.pendingLaunchStatus as PendingLaunchStatusFixtureId,
-        ),
-      )
-    }
+    listener.send(
+      pendingStatusLoadFor(
+        listener.key,
+        scenario.pendingLaunchStatus,
+        scenario.seed?.openPendingLaunchId,
+      ),
+    )
   }
 }
 

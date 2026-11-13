@@ -2,15 +2,16 @@ import { useEffect, useRef, type ReactNode, type RefObject } from 'react'
 import type {
   PendingLaunchId,
   PendingLaunchInventoryEntry,
-  PendingLaunchStatusObservation,
 } from '../model'
 import { PENDING_COPY } from '../presentation/pendingLaunchCopy'
 import {
   pendingLaunchDetailView,
+  pendingLaunchInventoryRow,
   type PendingLaunchDetailView,
+  type PendingLaunchFact,
 } from '../presentation/pendingLaunchViews'
 import type { PendingLaunchesScreenState } from '../presentation/pendingLaunchesState'
-import { SkelLine, SkelStatus } from './skeletonPrimitives'
+import { SkelLine } from './skeletonPrimitives'
 
 type Props = {
   readonly state: PendingLaunchesScreenState
@@ -64,7 +65,6 @@ function PendingInventory({
         aria-busy="true"
         aria-label={PENDING_COPY.loadingHeading}
       >
-        <SkelStatus>{PENDING_COPY.loadingLead}</SkelStatus>
         <PendingChrome title={PENDING_COPY.inventoryHeading}>
           <section className="hd-pending-card">
             <h2>{PENDING_COPY.loadingHeading}</h2>
@@ -79,6 +79,7 @@ function PendingInventory({
               </div>
             ))}
           </div>
+          <UnavailableCheck label={PENDING_COPY.checkAgain} />
         </PendingChrome>
       </div>
     )
@@ -150,17 +151,16 @@ function InventoryRow({
   readonly entry: PendingLaunchInventoryEntry
   readonly onOpen: (id: PendingLaunchId) => void
 }) {
+  const row = pendingLaunchInventoryRow(entry)
   return (
     <button
       type="button"
       className="hd-pending-launch"
-      onClick={() => onOpen(entry.launchId)}
+      onClick={() => onOpen(row.launchId)}
     >
-      <strong>{entry.title}</strong>
-      <small>
-        {entry.harness} · {entry.repository} · {entry.statusLabel}
-      </small>
-      <code>{entry.launchId}</code>
+      <strong>{row.title}</strong>
+      <small>{row.meta}</small>
+      <code>{row.launchId}</code>
     </button>
   )
 }
@@ -180,8 +180,11 @@ function PendingDetail({
       <div className="hd-pending">
         <PendingChrome title={PENDING_COPY.neutralTitle}>
           <section className="hd-pending-card" aria-busy="true">
-            <h2>{PENDING_COPY.loadingHeading}</h2>
-            <p>{PENDING_COPY.loadingLead}</p>
+            <div aria-hidden="true" data-skel-region="">
+              <SkelLine width={180} height={14} />
+              <SkelLine width={320} height={10} />
+              <SkelLine width={260} height={10} />
+            </div>
           </section>
         </PendingChrome>
       </div>
@@ -201,12 +204,11 @@ function PendingDetail({
       </div>
     )
   }
-  const view = pendingLaunchDetailView(load.status)
+  const view = pendingLaunchDetailView(load.status, state.stopOutcome)
   return (
     <div className="hd-pending">
       <PendingChrome title={view.topbarTitle}>
         <DetailBody
-          status={load.status}
           view={view}
           stopRef={stopRef}
           onStopConfirm={onStopConfirm}
@@ -217,12 +219,10 @@ function PendingDetail({
 }
 
 function DetailBody({
-  status,
   view,
   stopRef,
   onStopConfirm,
 }: {
-  readonly status: PendingLaunchStatusObservation
   readonly view: PendingLaunchDetailView
   readonly stopRef: RefObject<HTMLButtonElement | null>
   readonly onStopConfirm: (open: boolean) => void
@@ -233,31 +233,17 @@ function DetailBody({
         <h2>{view.heading}</h2>
         <p>{view.lead}</p>
       </section>
-      {view.showFacts ? <Facts status={status} /> : null}
+      <Facts facts={view.facts} />
       <div className="hd-row">
         {view.showStop ? (
           <button
             ref={stopRef}
             type="button"
             className="hd-btn hd-btn--danger"
-            disabled={view.stopUnavailable}
-            aria-disabled={view.stopUnavailable || undefined}
-            title={view.stopUnavailableExplanation ?? undefined}
-            aria-describedby={
-              view.stopUnavailable ? 'pending-stop-handshake' : undefined
-            }
-            onClick={() => {
-              if (view.stopUnavailable) return
-              onStopConfirm(true)
-            }}
+            onClick={() => onStopConfirm(true)}
           >
             {PENDING_COPY.stop}
           </button>
-        ) : null}
-        {view.stopUnavailable ? (
-          <span id="pending-stop-handshake" className="hd-sr">
-            {view.stopUnavailableExplanation}
-          </span>
         ) : null}
         {view.showCheckAgain ? (
           <UnavailableCheck label={PENDING_COPY.checkAgain} />
@@ -282,39 +268,22 @@ function DetailBody({
   )
 }
 
-function Facts({ status }: { readonly status: PendingLaunchStatusObservation }) {
-  const idLabel = status.title !== null ? 'Launch ID' : 'Selected ID'
+function Facts({ facts }: { readonly facts: readonly PendingLaunchFact[] }) {
   return (
     <dl className="hd-pending-facts">
-      <dt>{idLabel}</dt>
-      <dd>
-        <code>{status.launchId}</code>
-      </dd>
-      {status.harness ? (
-        <>
-          <dt>Harness</dt>
-          <dd>{status.harness}</dd>
-        </>
-      ) : null}
-      {status.repository ? (
-        <>
-          <dt>Repository</dt>
-          <dd>{status.repository}</dd>
-        </>
-      ) : null}
-      {status.createdLabel ? (
-        <>
-          <dt>Created</dt>
-          <dd>{status.createdLabel}</dd>
-        </>
-      ) : null}
-      {status.resourcesLabel ? (
-        <>
-          <dt>Resources</dt>
-          <dd>{status.resourcesLabel}</dd>
-        </>
-      ) : null}
+      {facts.map((fact) => (
+        <Fact key={fact.label} fact={fact} />
+      ))}
     </dl>
+  )
+}
+
+function Fact({ fact }: { readonly fact: PendingLaunchFact }) {
+  return (
+    <>
+      <dt>{fact.label}</dt>
+      <dd>{fact.code ? <code>{fact.value}</code> : fact.value}</dd>
+    </>
   )
 }
 

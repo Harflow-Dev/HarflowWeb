@@ -13,22 +13,14 @@ type PendingObs = Pick<
   | 'observePendingLaunchStatus'
 >
 
-/** Default unsupported pending observations for EnginePort test stubs. */
-export function unusedPendingLaunchPort(
-  options?: {
-    readonly supported?: boolean
-    readonly deferInventory?: boolean
-  },
-): PendingObs {
+/**
+ * Pending-launch observations for EnginePort test stubs: capability
+ * unsupported, the default inventory, and per-ID default status.
+ */
+export function stubPendingLaunchPort(): PendingObs {
   return {
     observePendingLaunchCapability(onUpdate) {
-      queueMicrotask(() =>
-        onUpdate(
-          options?.supported === true
-            ? { kind: 'ready', supported: true }
-            : pendingCapabilityUnsupported(),
-        ),
-      )
+      queueMicrotask(() => onUpdate(pendingCapabilityUnsupported()))
       return {
         id: asObservationId('test-pending-cap'),
         cancel() {
@@ -37,13 +29,7 @@ export function unusedPendingLaunchPort(
       }
     },
     observePendingLaunchInventory(onUpdate) {
-      queueMicrotask(() =>
-        onUpdate(
-          options?.deferInventory === true
-            ? { kind: 'loading' }
-            : pendingInventoryReady(),
-        ),
-      )
+      queueMicrotask(() => onUpdate(pendingInventoryReady()))
       return {
         id: asObservationId('test-pending-inv'),
         cancel() {

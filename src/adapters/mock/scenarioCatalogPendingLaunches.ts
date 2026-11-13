@@ -14,6 +14,7 @@ import type { ScenarioDefinition } from './scenarios'
 function pendingSeed(options?: {
   readonly launchId?: string
   readonly stopConfirm?: boolean
+  readonly stopOutcome?: 'requested' | 'uncertain' | 'refused'
   readonly frame?: 'minimum'
 }): NonNullable<ScenarioDefinition['seed']> {
   return {
@@ -23,6 +24,9 @@ function pendingSeed(options?: {
       : {}),
     ...(options?.stopConfirm === true
       ? { pendingLaunchStopConfirm: true }
+      : {}),
+    ...(options?.stopOutcome !== undefined
+      ? { pendingLaunchStopOutcome: options.stopOutcome }
       : {}),
     ...(options?.frame === 'minimum' ? { frame: 'minimum' as const } : {}),
   }
@@ -34,7 +38,11 @@ function detail(
   description: string,
   status: PendingLaunchStatusFixtureId,
   launchId: string,
-  extra?: { readonly stopConfirm?: boolean; readonly frame?: 'minimum' },
+  extra?: {
+    readonly stopConfirm?: boolean
+    readonly stopOutcome?: 'requested' | 'uncertain' | 'refused'
+    readonly frame?: 'minimum'
+  },
 ): ScenarioDefinition {
   return base({
     id,
@@ -49,6 +57,9 @@ function detail(
     seed: pendingSeed({
       launchId,
       ...(extra?.stopConfirm === true ? { stopConfirm: true } : {}),
+      ...(extra?.stopOutcome !== undefined
+        ? { stopOutcome: extra.stopOutcome }
+        : {}),
       ...(extra?.frame === 'minimum' ? { frame: 'minimum' as const } : {}),
     }),
   })
@@ -185,22 +196,25 @@ export const PENDING_LAUNCH_SCENARIOS: readonly ScenarioDefinition[] = [
     'pending-launches-stop-requested',
     'Pending launches · Stop requested',
     'Approved task/pending-stop-requested (Design 83d820f).',
-    'stop-requested',
+    'waiting',
     PENDING_LAUNCH_A,
+    { stopOutcome: 'requested' },
   ),
   detail(
     'pending-launches-stop-uncertain',
     'Pending launches · Stop uncertain',
     'Approved task/pending-stop-uncertain (Design 83d820f).',
-    'stop-uncertain',
+    'waiting',
     PENDING_LAUNCH_A,
+    { stopOutcome: 'uncertain' },
   ),
   detail(
     'pending-launches-stop-refused',
     'Pending launches · Stop refused',
     'Approved task/pending-stop-refused (Design 83d820f).',
-    'stop-refused',
+    'waiting',
     PENDING_LAUNCH_A,
+    { stopOutcome: 'refused' },
   ),
   detail(
     'pending-launches-waiting-minimum',
@@ -222,8 +236,8 @@ export const PENDING_LAUNCH_SCENARIOS: readonly ScenarioDefinition[] = [
     'pending-launches-stop-requested-minimum',
     'Pending launches · Stop requested · 1000×620',
     'Approved task/pending-stop-requested-minimum (Design 83d820f).',
-    'stop-requested',
+    'waiting',
     PENDING_LAUNCH_A,
-    { frame: 'minimum' },
+    { stopOutcome: 'requested', frame: 'minimum' },
   ),
 ]

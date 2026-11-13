@@ -11,6 +11,7 @@ import { afterEach, describe, expect, it } from 'vitest'
 import { scenarioById, type ScenarioId } from '../adapters/mock'
 import {
   PENDING_LAUNCH_A,
+  PENDING_LAUNCH_B,
   pendingInventoryReady,
 } from '../adapters/mock/pendingLaunchFixtures'
 import {
@@ -152,18 +153,15 @@ describe('Pending launches detail family', () => {
     expect(screen.queryByRole('button', { name: 'Take over' })).toBeNull()
   })
 
-  it('shows preparing-handshake Stop unavailable with its explanation', async () => {
+  it('shows preparing-handshake with its explanation and no Stop control', async () => {
     await mount('pending-launches-preparing-handshake')
     expect(
       screen.getByRole('heading', {
         name: PENDING_COPY.preparingHandshakeHeading,
       }),
     ).toBeInTheDocument()
-    const stop = screen.getByRole('button', { name: PENDING_COPY.stop })
-    expect(stop).toBeDisabled()
-    expect(stop).toHaveAccessibleDescription(
-      PENDING_COPY.stopHandshakeUnavailable,
-    )
+    expect(screen.getByText(PENDING_COPY.preparingHandshakeLead)).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: PENDING_COPY.stop })).toBeNull()
   })
 
   it('shows recorded Check task status unavailable without fabricating a task handoff', async () => {
@@ -191,6 +189,50 @@ describe('Pending launches detail family', () => {
     ).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Continue' })).toBeNull()
     expect(screen.queryByRole('button', { name: 'Send' })).toBeNull()
+  })
+
+  it('shows only the neutral title and the Selected ID for refused detail states', async () => {
+    for (const [scenario, heading] of [
+      ['pending-launches-unavailable', PENDING_COPY.unavailableHeading],
+      ['pending-launches-missing', PENDING_COPY.missingHeading],
+      ['pending-launches-recorded', PENDING_COPY.recordedHeading],
+      ['pending-launches-handoff-failed', PENDING_COPY.handoffFailedHeading],
+    ] as const) {
+      await mount(scenario)
+      expect(screen.getByRole('heading', { name: heading })).toBeInTheDocument()
+      expect(
+        document.querySelector('.hd-topbar__title')?.textContent,
+      ).toBe(PENDING_COPY.neutralTitle)
+      const terms = [...document.querySelectorAll('.hd-pending-facts dt')].map(
+        (node) => node.textContent,
+      )
+      expect(terms).toEqual(['Selected ID'])
+      expect(
+        document.querySelector('.hd-pending-facts dd code')?.textContent,
+      ).toBe(PENDING_LAUNCH_A)
+      cleanup()
+    }
+  })
+
+  it('shows the selected launch its own data after switching from the seeded launch', async () => {
+    const user = userEvent.setup()
+    const app = await mount('pending-launches-waiting')
+    await user.click(mainNav().getByRole('button', { name: 'Pending launches' }))
+    await user.click(
+      screen.getByRole('button', { name: /Prepare local environment/ }),
+    )
+    expect(app.presenter.getState().pendingLaunches.selectedLaunchId).toBe(
+      PENDING_LAUNCH_B,
+    )
+    expect(
+      screen.getByRole('heading', {
+        name: PENDING_COPY.preparingHandshakeHeading,
+      }),
+    ).toBeInTheDocument()
+    expect(document.querySelector('.hd-topbar__title')?.textContent).toBe(
+      'Prepare local environment',
+    )
+    expect(screen.getByText(PENDING_LAUNCH_B)).toBeInTheDocument()
   })
 
   it('shows stop-requested, stop-uncertain, and stop-refused as their own scenarios', async () => {
@@ -256,6 +298,17 @@ describe('Pending launches Stop sheet at app level', () => {
     expect(sidebar()).toHaveAttribute('inert')
   })
 
+  it('clears Stop confirm when Pending launches is selected again from the nav', async () => {
+    const user = userEvent.setup()
+    const app = await mount('pending-launches-waiting')
+    await user.click(screen.getByRole('button', { name: PENDING_COPY.stop }))
+    expect(app.presenter.getState().pendingLaunches.stopConfirm).toBe(true)
+    await act(async () => app.presenter.navigate('pending-launches'))
+    expect(app.presenter.getState().pendingLaunches.stopConfirm).toBe(false)
+    expect(app.presenter.getState().pendingLaunches.selectedLaunchId).toBeNull()
+    expect(screen.queryByRole('dialog')).toBeNull()
+  })
+
   it('resets Stop confirm when the pending route is reopened', async () => {
     const user = userEvent.setup()
     const app = await mount('pending-launches-waiting')
@@ -277,6 +330,11 @@ describe('Pending launches deferred inventory load', () => {
     ).toHaveAttribute('aria-busy', 'true')
     expect(app.presenter.getState().pendingLaunches.inventory.kind).toBe(
       'loading',
+    )
+    const check = screen.getByRole('button', { name: PENDING_COPY.checkAgain })
+    expect(check).toBeDisabled()
+    expect(check).toHaveAccessibleDescription(
+      PENDING_COPY.checkAgainUnavailable,
     )
     act(() => {
       app.mock.publishPendingLaunchInventory(pendingInventoryReady())

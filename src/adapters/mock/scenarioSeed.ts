@@ -49,6 +49,8 @@ export type NewTaskScenarioSeed = {
   readonly openPendingLaunches?: boolean
   readonly openPendingLaunchId?: string
   readonly pendingLaunchStopConfirm?: boolean
+  /** Prior Stop request outcome shown on the detail (result of the Stop command). */
+  readonly pendingLaunchStopOutcome?: 'requested' | 'uncertain' | 'refused'
   readonly workflowRunView?: 'graph' | 'parallel'
   readonly settingsSection?: 'general' | 'harnesses'
   /** Harness id whose MCP approvals start expanded (Settings Harnesses). */

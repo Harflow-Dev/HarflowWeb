@@ -1,9 +1,9 @@
 import {
   asPendingLaunchId,
-  PENDING_LAUNCH_INVENTORY_UNAVAILABLE,
   type PendingLaunchCapabilityLoad,
   type PendingLaunchId,
   type PendingLaunchInventoryLoad,
+  type PendingLaunchInventoryEntry,
   type PendingLaunchInventoryObservation,
   type PendingLaunchStatusLoad,
   type PendingLaunchStatusObservation,
@@ -18,7 +18,7 @@ import {
 export const PENDING_LAUNCH_A = asPendingLaunchId('20261110-093000-a17c92')
 export const PENDING_LAUNCH_B = asPendingLaunchId('20261110-093200-b28d03')
 
-const CREATED = '10 Nov 2026, 09:30'
+const CREATED = '2026-11-10T09:30:00Z'
 const REPO = '/projects/Harflow'
 
 export function pendingCapabilityUnsupported(): PendingLaunchCapabilityLoad {
@@ -33,13 +33,13 @@ function inventoryObservation(
   coverage: PendingLaunchInventoryObservation['coverage'],
   includeSecond = true,
 ): PendingLaunchInventoryObservation {
-  const entries = [
+  const entries: PendingLaunchInventoryEntry[] = [
     {
       launchId: PENDING_LAUNCH_A,
       title: 'Review launch admission checks',
       harness: 'Claude',
       repository: 'Harflow',
-      statusLabel: 'Waiting for resources',
+      phase: 'waiting_for_resources' as const,
     },
   ]
   if (includeSecond) {
@@ -48,7 +48,7 @@ function inventoryObservation(
       title: 'Prepare local environment',
       harness: 'Codex',
       repository: 'Harflow',
-      statusLabel: 'Preparing',
+      phase: 'claimed' as const,
     })
   }
   return { coverage, entries }
@@ -70,10 +70,7 @@ export function pendingInventoryIncomplete(): PendingLaunchInventoryLoad {
 }
 
 export function pendingInventoryFailed(): PendingLaunchInventoryLoad {
-  return {
-    kind: 'unavailable',
-    message: PENDING_LAUNCH_INVENTORY_UNAVAILABLE,
-  }
+  return { kind: 'unavailable' }
 }
 
 function baseStatus(
@@ -84,12 +81,10 @@ function baseStatus(
     title: 'Review launch admission checks',
     harness: 'Claude',
     repository: REPO,
-    createdLabel: CREATED,
-    resourcesLabel: 'Claude slots · Shared checkout',
+    createdAt: CREATED,
+    resources: ['Claude slots', 'Shared checkout'],
     notStartedReason: null,
-    waitingResourcesLabel: 'Claude slots and Shared checkout',
     stopSupport: 'none',
-    stopOutcome: null,
     ...partial,
   }
 }
@@ -118,8 +113,7 @@ export function pendingStatusPreparingHandshake(): PendingLaunchStatusObservatio
     phase: 'claimed',
     title: 'Prepare local environment',
     harness: 'Codex',
-    resourcesLabel: 'None requested',
-    waitingResourcesLabel: null,
+    resources: [],
     stopSupport: 'unavailable',
   })
 }
@@ -148,23 +142,23 @@ export function pendingStatusUnavailable(): PendingLaunchStatusObservation {
     title: null,
     harness: null,
     repository: null,
-    createdLabel: null,
-    resourcesLabel: null,
-    waitingResourcesLabel: null,
+    createdAt: null,
+    resources: null,
     stopSupport: 'none',
   })
 }
 
-export function pendingStatusMissing(): PendingLaunchStatusObservation {
+export function pendingStatusMissing(
+  launchId: PendingLaunchId = PENDING_LAUNCH_A,
+): PendingLaunchStatusObservation {
   return baseStatus({
-    launchId: PENDING_LAUNCH_A,
+    launchId,
     phase: 'not_found',
     title: null,
     harness: null,
     repository: null,
-    createdLabel: null,
-    resourcesLabel: null,
-    waitingResourcesLabel: null,
+    createdAt: null,
+    resources: null,
     stopSupport: 'none',
   })
 }
@@ -173,6 +167,11 @@ export function pendingStatusRecorded(): PendingLaunchStatusObservation {
   return baseStatus({
     launchId: PENDING_LAUNCH_A,
     phase: 'recorded',
+    title: null,
+    harness: null,
+    repository: null,
+    createdAt: null,
+    resources: null,
     stopSupport: 'none',
   })
 }
@@ -181,32 +180,13 @@ export function pendingStatusHandoffFailed(): PendingLaunchStatusObservation {
   return baseStatus({
     launchId: PENDING_LAUNCH_A,
     phase: 'recorded_status_unavailable',
+    title: null,
+    harness: null,
+    repository: null,
+    createdAt: null,
+    resources: null,
     stopSupport: 'none',
   })
-}
-
-export function pendingStatusStopRequested(): PendingLaunchStatusObservation {
-  return {
-    ...pendingStatusWaiting(),
-    stopOutcome: 'requested',
-    stopSupport: 'none',
-  }
-}
-
-export function pendingStatusStopUncertain(): PendingLaunchStatusObservation {
-  return {
-    ...pendingStatusWaiting(),
-    stopOutcome: 'uncertain',
-    stopSupport: 'none',
-  }
-}
-
-export function pendingStatusStopRefused(): PendingLaunchStatusObservation {
-  return {
-    ...pendingStatusWaiting(),
-    stopOutcome: 'refused',
-    stopSupport: 'none',
-  }
 }
 
 const STATUS_BY_ID = new Map<PendingLaunchId, PendingLaunchStatusObservation>([
@@ -224,9 +204,6 @@ export type PendingLaunchStatusFixtureId =
   | 'missing'
   | 'recorded'
   | 'handoff-failed'
-  | 'stop-requested'
-  | 'stop-uncertain'
-  | 'stop-refused'
 
 const STATUS_FIXTURES: Record<
   PendingLaunchStatusFixtureId,
@@ -241,9 +218,6 @@ const STATUS_FIXTURES: Record<
   missing: pendingStatusMissing(),
   recorded: pendingStatusRecorded(),
   'handoff-failed': pendingStatusHandoffFailed(),
-  'stop-requested': pendingStatusStopRequested(),
-  'stop-uncertain': pendingStatusStopUncertain(),
-  'stop-refused': pendingStatusStopRefused(),
 }
 
 export function pendingStatusFixture(
@@ -252,20 +226,23 @@ export function pendingStatusFixture(
   return STATUS_FIXTURES[id]
 }
 
+/**
+ * Status load for one requested ID. A scenario's fixture override applies
+ * only to the ID the scenario seeds; every other ID keeps its own default
+ * status, so a read never answers with another launch's data.
+ */
 export function pendingStatusLoadFor(
   launchId: PendingLaunchId,
-  override: PendingLaunchStatusFixtureId | 'default' | 'defer' = 'default',
+  setting: PendingLaunchStatusFixtureId | 'default' | 'defer' = 'default',
+  seededId?: string,
 ): PendingLaunchStatusLoad {
-  if (override === 'defer') return { kind: 'loading' }
-  if (override !== 'default') {
-    return { kind: 'ready', status: pendingStatusFixture(override) }
+  if (setting === 'defer') return { kind: 'loading' }
+  if (setting !== 'default' && launchId === seededId) {
+    return { kind: 'ready', status: pendingStatusFixture(setting) }
   }
   const status = STATUS_BY_ID.get(launchId)
-  if (!status) {
-    return {
-      kind: 'ready',
-      status: pendingStatusMissing(),
-    }
+  return {
+    kind: 'ready',
+    status: status ?? pendingStatusMissing(launchId),
   }
-  return { kind: 'ready', status }
 }

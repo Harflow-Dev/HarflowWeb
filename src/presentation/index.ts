@@ -89,6 +89,7 @@ export {
 export {
   initialPendingLaunchesState,
   type PendingLaunchesScreenState,
+  type PendingLaunchStopOutcome,
 } from './pendingLaunchesState'
 export { PendingLaunchesSession } from './pendingLaunchesSession'
 export {
@@ -98,7 +99,10 @@ export {
 export { PENDING_COPY } from './pendingLaunchCopy'
 export {
   pendingLaunchDetailView,
+  pendingLaunchInventoryRow,
   type PendingLaunchDetailView,
+  type PendingLaunchFact,
+  type PendingLaunchInventoryRow,
 } from './pendingLaunchViews'
 export { workflowRunScene } from './workflowRunScene'
 export {

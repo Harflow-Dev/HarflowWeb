@@ -11,10 +11,7 @@ export function mainLoadingLabel(state: AppScreenState): string | null {
         ? 'Loading parallel group'
         : null
     case 'pending-launches':
-      return state.pendingLaunches.selectedLaunchId === null &&
-        state.pendingLaunches.inventory.kind === 'loading'
-        ? 'Checking pending launches'
-        : null
+      return pendingLaunchesLabel(state)
     case 'workflows':
       return workflowsLabel(state)
     case 'new-task':
@@ -32,6 +29,16 @@ export function mainLoadingLabel(state: AppScreenState): string | null {
     case 'task':
       return state.task.load.kind === 'loading' ? 'Loading task' : null
   }
+}
+
+function pendingLaunchesLabel(state: AppScreenState): string | null {
+  const pending = state.pendingLaunches
+  if (pending.selectedLaunchId !== null) {
+    return pending.status.kind === 'loading' ? 'Checking launch status' : null
+  }
+  return pending.inventory.kind === 'loading'
+    ? 'Checking pending launches'
+    : null
 }
 
 function workflowsLabel(state: AppScreenState): string | null {

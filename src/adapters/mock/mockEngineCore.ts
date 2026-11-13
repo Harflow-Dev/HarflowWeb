@@ -46,7 +46,6 @@ import {
   pendingCapabilityUnsupported,
   pendingInventoryReady,
   pendingStatusLoadFor,
-  type PendingLaunchStatusFixtureId,
 } from './pendingLaunchFixtures'
 import { workflowExecutionLoadFor } from './workflowExecutionFixtures'
 import { workflowRunLoadFor } from './workflowRunFixtures'
@@ -296,15 +295,10 @@ export function buildMockEnginePort(options: {
         onUpdate,
         (id): PendingLaunchStatusLoad => {
           const scenario = getScenario()
-          if (scenario.pendingLaunchStatus === 'defer') {
-            return { kind: 'loading' }
-          }
-          if (scenario.pendingLaunchStatus === 'default') {
-            return pendingStatusLoadFor(id)
-          }
           return pendingStatusLoadFor(
             id,
-            scenario.pendingLaunchStatus as PendingLaunchStatusFixtureId,
+            scenario.pendingLaunchStatus,
+            scenario.seed?.openPendingLaunchId,
           )
         },
       )

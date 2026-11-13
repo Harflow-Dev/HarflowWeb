@@ -65,6 +65,27 @@ grant approvals, answer questions, or touch the task store.
   card lead under the sheet to “Waiting for Claude slots and Shared checkout.”;
   this mock keeps the approved waiting sentence from the decision table while
   the sheet is open.
+  Further deviations and gaps:
+  - `task/pending-loading` skeletonizes the sidebar history rows too; Web keeps
+    the real Running/Recent sidebar because it is a separate observation.
+  - Design gap: the drawings have no state for a single launch ID whose status
+    read is pending. This app shows the neutral top-bar title “Pending launch”,
+    an aria-busy skeleton with no claim-bearing copy, and announces “Checking
+    launch status” through the status region. Needs a Design state before it is
+    treated as approved.
+  - Unknown, missing, recorded, and handoff-failed details show only the
+    “Selected ID” fact and the neutral title; a Stop outcome is presentation
+    state seeded by the Stop scenarios; the preparing handshake renders no Stop
+    control (the heading and lead carry the explanation).
+  - A scenario's status fixture applies only to the launch ID it seeds; other
+    IDs keep their own default status and an unknown ID reads as not found.
+    The session rejects any ready status whose launch ID differs from the
+    requested one.
+  - Created time is formatted in UTC from a structured timestamp so previews are
+    stable across viewer time zones.
+  - No invented copy: a waiting status without named resources and a
+    not-started status without a stored reason render as “Launch status
+    unavailable”.
 - **Follow-up (D21):** workflow-run Parallel view lanes were covered by the
   Design approval for lane decisions, but this Web slice does not change
   workflow-run Parallel; it keeps the existing `workflow-run/parallel`

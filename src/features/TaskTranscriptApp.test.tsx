@@ -27,7 +27,7 @@ import {
   type TaskId,
 } from '../model'
 import { populatedComposer, populatedSidebar } from '../adapters/mock/fixtures'
-import { unusedPendingLaunchPort } from '../adapters/mock/unusedPendingLaunchPort'
+import { stubPendingLaunchPort } from '../adapters/mock/stubPendingLaunchPort'
 import { populatedHarnessesLoad } from '../adapters/mock/harnessFixtures'
 import { emptyNeedsYouLoad } from '../adapters/mock/needsYouFixtures'
 import { populatedResourcesLoad } from '../adapters/mock/resourceFixtures'
@@ -89,7 +89,7 @@ function transcriptEngine(): EnginePort {
       )
       return handle('pg')
     },
-    ...unusedPendingLaunchPort(),
+    ...stubPendingLaunchPort(),
     observeResources(onUpdate) {
       queueMicrotask(() => onUpdate(populatedResourcesLoad()))
       return handle('res')

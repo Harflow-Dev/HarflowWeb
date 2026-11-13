@@ -64,7 +64,7 @@ import {
   parallelGroupLoadFor,
   PRELOAD_PARALLEL_GROUP_ID,
 } from '../adapters/mock/parallelGroupFixtures'
-import { unusedPendingLaunchPort } from '../adapters/mock/unusedPendingLaunchPort'
+import { stubPendingLaunchPort } from '../adapters/mock/stubPendingLaunchPort'
 import { SLOT_RELEASE_TASK_ID } from '../adapters/mock/taskFixtures'
 import {
   workflowEditorLoadFor,
@@ -290,7 +290,7 @@ function createTestEngine(options?: {
         },
       }
     },
-    ...unusedPendingLaunchPort(),
+    ...stubPendingLaunchPort(),
     observeResources(onUpdate) {
       resourceListeners.add(onUpdate)
       queueMicrotask(() =>

@@ -10,9 +10,11 @@ import type {
   PendingLaunchInventoryLoad,
   PendingLaunchStatusLoad,
 } from '../model'
+import { pendingStopDialogOpen } from './pendingLaunchesChrome'
 import {
   initialPendingLaunchesState,
   type PendingLaunchesScreenState,
+  type PendingLaunchStopOutcome,
 } from './pendingLaunchesState'
 
 export type PendingLaunchesListener = (
@@ -22,7 +24,8 @@ export type PendingLaunchesListener = (
 /**
  * Pending-launch capability, inventory, and per-ID status.
  * Leaving the route or selecting another ID cancels the prior status watch.
- * Reopening clears Stop-confirm chrome.
+ * Reopening clears Stop-confirm chrome and any shown Stop outcome.
+ * A status payload for a different launch ID is never shown.
  */
 export class PendingLaunchesSession {
   private state = initialPendingLaunchesState()
@@ -90,6 +93,7 @@ export class PendingLaunchesSession {
       selectedLaunchId: null,
       status: { kind: 'loading' },
       stopConfirm: false,
+      stopOutcome: null,
     })
     this.ensureInventory()
   }
@@ -109,6 +113,7 @@ export class PendingLaunchesSession {
       inventory: { kind: 'loading' },
       status: { kind: 'loading' },
       stopConfirm: false,
+      stopOutcome: null,
     })
   }
 
@@ -121,6 +126,7 @@ export class PendingLaunchesSession {
       selectedLaunchId: id,
       status: { kind: 'loading' },
       stopConfirm: false,
+      stopOutcome: null,
     })
     this.ensureInventory()
     this.statusObs = this.loadStatus.observe(id, (load) =>
@@ -128,9 +134,18 @@ export class PendingLaunchesSession {
     )
   }
 
+  /** Opens the Stop sheet only while Stop is available; closing always works. */
   setStopConfirm(open: boolean): void {
     if (this.state.stopConfirm === open) return
-    this.publish({ ...this.state, stopConfirm: open })
+    const next = { ...this.state, stopConfirm: open }
+    if (open && !pendingStopDialogOpen(next)) return
+    this.publish(next)
+  }
+
+  /** Seeds a prior Stop outcome (preview scenarios; the mock cannot request Stop). */
+  setStopOutcome(outcome: PendingLaunchStopOutcome | null): void {
+    if (this.state.selectedLaunchId === null) return
+    this.publish({ ...this.state, stopOutcome: outcome, stopConfirm: false })
   }
 
   private watchCapability(): void {
@@ -182,7 +197,16 @@ export class PendingLaunchesSession {
     ) {
       return
     }
-    this.publish({ ...this.state, status: load })
+    const status: PendingLaunchStatusLoad =
+      load.kind === 'ready' && load.status.launchId !== id
+        ? { kind: 'unavailable' }
+        : load
+    const next = { ...this.state, status }
+    this.publish(
+      next.stopConfirm && !pendingStopDialogOpen(next)
+        ? { ...next, stopConfirm: false }
+        : next,
+    )
   }
 
   private publish(next: PendingLaunchesScreenState): void {

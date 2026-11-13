@@ -80,13 +80,11 @@ export const PENDING_COPY = {
     'Unavailable. Check next page does not invent a new read in this mock.',
   checkTaskUnavailable:
     'Unavailable. Task status is not opened from this mock handoff.',
-  stopHandshakeUnavailable:
-    'This engine cannot stop this preparation yet. Stop becomes available after Harflow confirms the task has started.',
   neutralTitle: 'Pending launch',
 } as const
 
-export function waitingLead(resourcesLabel: string): string {
-  return `Waiting for ${resourcesLabel}. Harflow has not confirmed a running task yet.`
+export function waitingLead(resourcesText: string): string {
+  return `Waiting for ${resourcesText}. Harflow has not confirmed a running task yet.`
 }
 
 export function notStartedLead(reason: string): string {

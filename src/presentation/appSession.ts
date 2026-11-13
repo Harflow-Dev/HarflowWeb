@@ -30,6 +30,7 @@ import {
 } from './appNavigation'
 import type { AppRoute, AppScreenState, SettingsSection } from './appState'
 import type { PresenterSession } from './presenterSession'
+import type { PendingLaunchStopOutcome } from './pendingLaunchesState'
 import type { OpenMenu } from './screenState'
 import type { WorkflowRunViewMode } from './workflowRunParallel'
 
@@ -131,6 +132,11 @@ export class AppSession {
     this.children.pendingLaunches.setStopConfirm(open)
   }
 
+  /** Preview seeding: show a prior Stop outcome on the selected launch. */
+  seedPendingLaunchStopOutcome(outcome: PendingLaunchStopOutcome): void {
+    this.children.pendingLaunches.setStopOutcome(outcome)
+  }
+
   setParallelGroupShowPrompt(show: boolean): void {
     this.children.parallelGroup.setShowPrompt(show)
   }
@@ -152,6 +158,7 @@ export class AppSession {
   }
 
   openWorkflowRun(id: WorkflowId): void {
+    closePendingLaunches(this.children.pendingLaunches)
     this.route = 'workflows'
     this.children.workflows.openRun(id)
     this.emit()
@@ -180,6 +187,7 @@ export class AppSession {
   }
 
   openWorkflowEditor(id: WorkflowId): void {
+    closePendingLaunches(this.children.pendingLaunches)
     this.route = 'workflows'
     this.children.workflowEditor.open(id)
     this.emit()

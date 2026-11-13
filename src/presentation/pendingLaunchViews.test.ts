@@ -1,10 +1,15 @@
 import { describe, expect, it } from 'vitest'
 import {
+  PENDING_LAUNCH_A,
+  pendingInventoryReady,
   pendingStatusFixture,
   pendingStatusWaiting,
 } from '../adapters/mock/pendingLaunchFixtures'
 import { PENDING_COPY } from './pendingLaunchCopy'
-import { pendingLaunchDetailView } from './pendingLaunchViews'
+import {
+  pendingLaunchDetailView,
+  pendingLaunchInventoryRow,
+} from './pendingLaunchViews'
 
 describe('pendingLaunchDetailView', () => {
   it('maps waiting_for_resources to Waiting for resources with Stop available', () => {
@@ -14,21 +19,17 @@ describe('pendingLaunchDetailView', () => {
       'Waiting for Claude slots and Shared checkout. Harflow has not confirmed a running task yet.',
     )
     expect(view.showStop).toBe(true)
-    expect(view.stopUnavailable).toBe(false)
     expect(view.showStopAvailabilityNote).toBe(true)
   })
 
-  it('maps claimed handshake preparation to Stop unavailable with explanation', () => {
+  it('maps claimed handshake preparation to the Stop-unavailable heading with no Stop control', () => {
     const view = pendingLaunchDetailView(
       pendingStatusFixture('preparing-handshake'),
     )
     expect(view.heading).toBe(PENDING_COPY.preparingHandshakeHeading)
     expect(view.lead).toBe(PENDING_COPY.preparingHandshakeLead)
-    expect(view.showStop).toBe(true)
-    expect(view.stopUnavailable).toBe(true)
-    expect(view.stopUnavailableExplanation).toBe(
-      PENDING_COPY.stopHandshakeUnavailable,
-    )
+    expect(view.showStop).toBe(false)
+    expect(view.showStopAvailabilityNote).toBe(false)
   })
 
   it('maps reserved preparation to Preparing with Stop available', () => {
@@ -80,26 +81,90 @@ describe('pendingLaunchDetailView', () => {
     expect(failed.showStop).toBe(false)
   })
 
+  it('shows only the Selected ID for unknown, missing, recorded, and handoff-failed launches', () => {
+    for (const id of [
+      'unavailable',
+      'missing',
+      'recorded',
+      'handoff-failed',
+    ] as const) {
+      const view = pendingLaunchDetailView(pendingStatusFixture(id))
+      expect(view.topbarTitle).toBe(PENDING_COPY.neutralTitle)
+      expect(view.facts).toEqual([
+        { label: 'Selected ID', value: PENDING_LAUNCH_A, code: true },
+      ])
+    }
+  })
+
+  it('formats qualified facts from structured values', () => {
+    const view = pendingLaunchDetailView(pendingStatusWaiting())
+    expect(view.topbarTitle).toBe('Review launch admission checks')
+    expect(view.facts.map((fact) => [fact.label, fact.value])).toEqual([
+      ['Launch ID', PENDING_LAUNCH_A],
+      ['Harness', 'Claude'],
+      ['Repository', '/projects/Harflow'],
+      ['Created', '10 Nov 2026, 09:30'],
+      ['Resources', 'Claude slots · Shared checkout'],
+    ])
+    const handshake = pendingLaunchDetailView(
+      pendingStatusFixture('preparing-handshake'),
+    )
+    expect(handshake.facts.at(-1)).toEqual({
+      label: 'Resources',
+      value: 'None requested',
+      code: false,
+    })
+  })
+
+  it('maps not_started without a stored reason to the unavailable view', () => {
+    const view = pendingLaunchDetailView({
+      ...pendingStatusFixture('not-started'),
+      notStartedReason: null,
+    })
+    expect(view.heading).toBe(PENDING_COPY.unavailableHeading)
+    expect(view.lead).toBe(PENDING_COPY.unavailableLead)
+    expect(view.facts).toHaveLength(1)
+  })
+
+  it('maps waiting without named resources to the unavailable view', () => {
+    for (const resources of [null, []] as const) {
+      const view = pendingLaunchDetailView({
+        ...pendingStatusWaiting(),
+        resources,
+      })
+      expect(view.heading).toBe(PENDING_COPY.unavailableHeading)
+      expect(view.showStop).toBe(false)
+    }
+  })
+
   it('maps stop outcomes to their headings and unconfirmed note where required', () => {
-    expect(
-      pendingLaunchDetailView(pendingStatusFixture('stop-requested')),
-    ).toMatchObject({
+    const waiting = pendingStatusWaiting()
+    expect(pendingLaunchDetailView(waiting, 'requested')).toMatchObject({
       heading: PENDING_COPY.stopRequestedHeading,
       lead: PENDING_COPY.stopRequestedLead,
       showUnconfirmedStopNote: true,
       showStop: false,
     })
-    expect(
-      pendingLaunchDetailView(pendingStatusFixture('stop-uncertain')),
-    ).toMatchObject({
+    expect(pendingLaunchDetailView(waiting, 'uncertain')).toMatchObject({
       heading: PENDING_COPY.stopUncertainHeading,
       showUnconfirmedStopNote: true,
     })
-    expect(
-      pendingLaunchDetailView(pendingStatusFixture('stop-refused')),
-    ).toMatchObject({
+    expect(pendingLaunchDetailView(waiting, 'refused')).toMatchObject({
       heading: PENDING_COPY.stopRefusedHeading,
       showUnconfirmedStopNote: false,
     })
+  })
+})
+
+describe('pendingLaunchInventoryRow', () => {
+  it('labels rows from the observed phase', () => {
+    const load = pendingInventoryReady()
+    if (load.kind !== 'ready') throw new Error('expected ready inventory')
+    expect(
+      load.inventory.entries.map((entry) => pendingLaunchInventoryRow(entry).meta),
+    ).toEqual([
+      'Claude · Harflow · Waiting for resources',
+      'Codex · Harflow · Preparing',
+    ])
   })
 })

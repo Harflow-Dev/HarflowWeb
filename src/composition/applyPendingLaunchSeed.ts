@@ -25,6 +25,9 @@ export function applyPendingLaunchSeed(
   if (seed.openPendingLaunchId !== undefined) {
     const launchId = asPendingLaunchId(seed.openPendingLaunchId)
     presenter.openPendingLaunch(launchId)
+    if (seed.pendingLaunchStopOutcome !== undefined) {
+      presenter.seedPendingLaunchStopOutcome(seed.pendingLaunchStopOutcome)
+    }
     if (seed.pendingLaunchStopConfirm === true) {
       whenLoaded(
         presenter,

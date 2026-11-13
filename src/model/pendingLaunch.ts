@@ -16,8 +16,8 @@ export type PendingLaunchInventoryEntry = {
   readonly title: string
   readonly harness: string
   readonly repository: string
-  /** Short status label shown in the inventory row. */
-  readonly statusLabel: string
+  /** Observed phase; presentation derives the row's status label. */
+  readonly phase: PendingLaunchPhase
 }
 
 export type PendingLaunchInventoryCoverage = 'complete' | 'incomplete'
@@ -29,7 +29,7 @@ export type PendingLaunchInventoryObservation = {
 
 export type PendingLaunchInventoryLoad =
   | { readonly kind: 'loading' }
-  | { readonly kind: 'unavailable'; readonly message: string }
+  | { readonly kind: 'unavailable' }
   | {
       readonly kind: 'ready'
       readonly inventory: PendingLaunchInventoryObservation
@@ -56,12 +56,6 @@ export type PendingLaunchStopSupport =
   | 'unavailable'
   | 'none'
 
-/** Observed Stop request outcome when a prior request is shown. */
-export type PendingLaunchStopOutcome =
-  | 'requested'
-  | 'uncertain'
-  | 'refused'
-
 export type PendingLaunchStatusObservation = {
   readonly launchId: PendingLaunchId
   readonly phase: PendingLaunchPhase
@@ -69,26 +63,24 @@ export type PendingLaunchStatusObservation = {
   readonly title: string | null
   readonly harness: string | null
   readonly repository: string | null
-  readonly createdLabel: string | null
-  readonly resourcesLabel: string | null
+  /** ISO-8601 UTC timestamp, null when not qualified. */
+  readonly createdAt: string | null
+  /**
+   * Resources the launch requested. Null when not reported; an empty list
+   * means none were requested.
+   */
+  readonly resources: readonly string[] | null
   /** Qualified not-started reason, when phase is not_started. */
   readonly notStartedReason: string | null
-  /** Resources named in the waiting sentence, when waiting. */
-  readonly waitingResourcesLabel: string | null
   readonly stopSupport: PendingLaunchStopSupport
-  /** Non-null when the fixture shows a prior Stop outcome. */
-  readonly stopOutcome: PendingLaunchStopOutcome | null
 }
 
 export type PendingLaunchStatusLoad =
   | { readonly kind: 'loading' }
-  | { readonly kind: 'unavailable'; readonly message: string }
+  | { readonly kind: 'unavailable' }
   | {
       readonly kind: 'ready'
       readonly status: PendingLaunchStatusObservation
     }
 
 export const PENDING_LAUNCH_CAPABILITY = 'task-pending-launch.v1'
-
-export const PENDING_LAUNCH_INVENTORY_UNAVAILABLE =
-  'The engine could not be read. Pending launches may still exist.'

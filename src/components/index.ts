@@ -22,6 +22,7 @@ export { TranscriptSurface } from './TranscriptSurface'
 export { WorkflowEditorView } from './WorkflowEditorView'
 export { WorkflowRunForm } from './WorkflowRunForm'
 export { WorkflowRunView } from './WorkflowRunView'
+export { ParallelGroupCancelDialog } from './ParallelGroupCancelDialog'
 export { ParallelGroupView } from './ParallelGroupView'
 export { WORKFLOW_RUN_ACTION_EXPLANATION } from './workflowRunUnavailable'
 export {

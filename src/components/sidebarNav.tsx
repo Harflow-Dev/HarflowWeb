@@ -93,6 +93,7 @@ export function CollapsedRail({
   onCollapse,
   onAppearance,
   onNavigate,
+  inert,
 }: {
   appearance: Appearance
   activeRoute: AppRoute
@@ -101,9 +102,10 @@ export function CollapsedRail({
   onCollapse: (collapsed: boolean) => void
   onAppearance: (appearance: Appearance) => void
   onNavigate: (route: AppRoute) => void
+  inert?: boolean
 }) {
   return (
-    <aside className="hd-rail" aria-label="Sidebar">
+    <aside className="hd-rail" aria-label="Sidebar" inert={inert || undefined}>
       <div className="hd-rail__top">
         <button
           type="button"

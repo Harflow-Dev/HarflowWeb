@@ -31,6 +31,8 @@ type Props = {
   readonly onOpenTask: (taskId: TaskId) => void
   readonly onOpenParallelGroup: (groupId: ParallelGroupId) => void
   readonly onUnavailable: (label: string) => void
+  /** A modal dialog covers the app: the sidebar takes no focus or input. */
+  readonly inert?: boolean
 }
 
 export function Sidebar({
@@ -49,6 +51,7 @@ export function Sidebar({
   onOpenTask,
   onOpenParallelGroup,
   onUnavailable,
+  inert = false,
 }: Props) {
   const runningCount = sidebar?.running.length ?? 0
   const taskActiveId = activeRoute === 'task' ? activeTaskId : null
@@ -65,6 +68,7 @@ export function Sidebar({
         onCollapse={onCollapse}
         onAppearance={onAppearance}
         onNavigate={onNavigate}
+        inert={inert}
       />
     )
   }
@@ -73,6 +77,7 @@ export function Sidebar({
     <aside
       className="hd-sidebar"
       aria-label="Sidebar"
+      inert={inert || undefined}
     >
       <div className="hd-sidebar__top">
         <span className="hd-brand">

@@ -832,7 +832,8 @@ body,
   position: relative;
 }
 
-/* Lane floor: 320 at a wide main column (1280 x 800), 360 when narrow. */
+/* Lane floor: 320 at a wide main column (1280 x 800), 360 when narrow.
+   Titled Parallel group lanes override this below (.hd-pl--titled). */
 .hd-lane {
   flex: 1 0 320px;
   min-width: 320px;
@@ -840,7 +841,9 @@ body,
 
 /*
  * Parallel group lane decisions (Design 2153ab1 / parallel-lanes.css).
- * Legacy specimens keep .hd-pl--floor-320; titled family uses 360 everywhere.
+ * Harness-titled specimens keep the shared 320 floor at a wide main column;
+ * titled lanes use the drawing's `flex: 1 0 360px` so they fill the width.
+ * The narrow container rule below wins for both.
  */
 .hd-pl {
   position: relative;
@@ -850,8 +853,8 @@ body,
   flex-direction: column;
 }
 
-.hd-pl--floor-360 .hd-lane {
-  flex: 0 0 360px;
+.hd-pl--titled .hd-lane {
+  flex: 1 0 360px;
   min-width: 360px;
 }
 
@@ -964,7 +967,11 @@ body,
   margin-bottom: 0;
 }
 
-.hd-pl .hd-dialog {
+.hd-pl-scrim {
+  z-index: 30;
+}
+
+.hd-pl-dialog {
   width: 440px;
   max-width: calc(100% - 48px);
 }
@@ -986,7 +993,8 @@ body,
     flex: 0 0 288px;
   }
 
-  .hd-lane {
+  .hd-lane,
+  .hd-pl .hd-lane {
     flex: 0 0 360px;
     min-width: 360px;
   }

@@ -1,7 +1,12 @@
 import { useSyncExternalStore } from 'react'
-import { MockBadge, Sidebar, StatusRegion } from '../components'
+import {
+  MockBadge,
+  ParallelGroupCancelDialog,
+  Sidebar,
+  StatusRegion,
+} from '../components'
 import { needsYouBadge } from '../model'
-import type { AppPresenter } from '../presentation'
+import { cancelAllDialogOpen, type AppPresenter } from '../presentation'
 import { mainLoadingLabel } from './mainLoadingLabel'
 import { NeedsYouMain } from './NeedsYouMain'
 import { NewTaskMain } from './NewTaskMain'
@@ -24,6 +29,8 @@ export function AppFeature({ presenter }: Props) {
   const ephemeral = useEphemeralNote()
   const systemDark = useSystemPrefersDark()
   const newTask = state.newTask
+  const dialogOpen =
+    state.route === 'parallel-group' && cancelAllDialogOpen(state.parallelGroup)
 
   const resolvedTheme =
     newTask.appearance === 'system'
@@ -63,8 +70,9 @@ export function AppFeature({ presenter }: Props) {
           onOpenTask={(taskId) => presenter.openTask(taskId)}
           onOpenParallelGroup={(groupId) => presenter.openParallelGroup(groupId)}
           onUnavailable={(label) => ephemeral.show(label)}
+          inert={dialogOpen}
         />
-        <main className="hd-main">
+        <main className="hd-main" inert={dialogOpen || undefined}>
           {state.route === 'parallel-group' ? (
             <ParallelGroupMain
               state={state.parallelGroup}
@@ -137,6 +145,11 @@ export function AppFeature({ presenter }: Props) {
             />
           )}
         </main>
+        {dialogOpen ? (
+          <ParallelGroupCancelDialog
+            onClose={() => presenter.setParallelGroupCancelAllConfirm(false)}
+          />
+        ) : null}
       </div>
       <StatusRegion
         submission={newTask.submission}

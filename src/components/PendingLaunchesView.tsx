@@ -28,11 +28,17 @@ export function PendingLaunchesView({
   onStopConfirm,
 }: Props) {
   const stopRef = useRef<HTMLButtonElement>(null)
+  const headingRef = useRef<HTMLHeadingElement>(null)
   const wasConfirm = useRef(false)
 
   useEffect(() => {
     if (wasConfirm.current && !state.stopConfirm) {
-      queueMicrotask(() => stopRef.current?.focus())
+      queueMicrotask(() => {
+        // Stop may be gone (status republished, outcome seeded): keep focus
+        // in the detail instead of dropping to the body.
+        const target = stopRef.current ?? headingRef.current
+        target?.focus()
+      })
     }
     wasConfirm.current = state.stopConfirm
   }, [state.stopConfirm])
@@ -42,6 +48,7 @@ export function PendingLaunchesView({
       <PendingDetail
         state={state}
         stopRef={stopRef}
+        headingRef={headingRef}
         onStopConfirm={onStopConfirm}
       />
     )
@@ -168,10 +175,12 @@ function InventoryRow({
 function PendingDetail({
   state,
   stopRef,
+  headingRef,
   onStopConfirm,
 }: {
   readonly state: PendingLaunchesScreenState
   readonly stopRef: RefObject<HTMLButtonElement | null>
+  readonly headingRef: RefObject<HTMLHeadingElement | null>
   readonly onStopConfirm: (open: boolean) => void
 }) {
   const load = state.status
@@ -211,6 +220,7 @@ function PendingDetail({
         <DetailBody
           view={view}
           stopRef={stopRef}
+          headingRef={headingRef}
           onStopConfirm={onStopConfirm}
         />
       </PendingChrome>
@@ -221,16 +231,20 @@ function PendingDetail({
 function DetailBody({
   view,
   stopRef,
+  headingRef,
   onStopConfirm,
 }: {
   readonly view: PendingLaunchDetailView
   readonly stopRef: RefObject<HTMLButtonElement | null>
+  readonly headingRef: RefObject<HTMLHeadingElement | null>
   readonly onStopConfirm: (open: boolean) => void
 }) {
   return (
     <>
       <section className="hd-pending-card">
-        <h2>{view.heading}</h2>
+        <h2 ref={headingRef} tabIndex={-1}>
+          {view.heading}
+        </h2>
         <p>{view.lead}</p>
       </section>
       <Facts facts={view.facts} />

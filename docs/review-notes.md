@@ -83,6 +83,9 @@ grant approvals, answer questions, or touch the task store.
     requested one.
   - Created time is formatted in UTC from a structured timestamp so previews are
     stable across viewer time zones.
+  - Open item: the Created time is UTC with no zone label so the mock renders
+    match the drawing. Before a real adapter, it must switch to the viewer's
+    local time or show a zone label.
   - No invented copy: a waiting status without named resources and a
     not-started status without a stored reason render as “Launch status
     unavailable”.

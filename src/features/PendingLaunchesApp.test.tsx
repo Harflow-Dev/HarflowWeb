@@ -13,6 +13,7 @@ import {
   PENDING_LAUNCH_A,
   PENDING_LAUNCH_B,
   pendingInventoryReady,
+  pendingStatusWaiting,
 } from '../adapters/mock/pendingLaunchFixtures'
 import {
   applyNewTaskSeed,
@@ -319,6 +320,28 @@ describe('Pending launches Stop sheet at app level', () => {
     await act(async () => app.presenter.openPendingLaunch(PENDING_LAUNCH_A))
     expect(app.presenter.getState().pendingLaunches.stopConfirm).toBe(false)
     expect(screen.queryByRole('dialog')).toBeNull()
+  })
+})
+
+describe('Pending launches Stop sheet focus return', () => {
+  it('moves focus to the detail heading when a republish withdraws Stop while the sheet is open', async () => {
+    const user = userEvent.setup()
+    const app = await mount('pending-launches-waiting')
+    await user.click(screen.getByRole('button', { name: PENDING_COPY.stop }))
+    expect(screen.getByRole('dialog')).toBeInTheDocument()
+    act(() => {
+      app.mock.publishPendingLaunchStatus(PENDING_LAUNCH_A, {
+        kind: 'ready',
+        status: { ...pendingStatusWaiting(), stopSupport: 'none' },
+      })
+    })
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+    expect(screen.queryByRole('button', { name: PENDING_COPY.stop })).toBeNull()
+    await waitFor(() =>
+      expect(
+        screen.getByRole('heading', { name: PENDING_COPY.waitingHeading }),
+      ).toHaveFocus(),
+    )
   })
 })
 

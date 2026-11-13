@@ -410,6 +410,12 @@ CDP clip rules as the Parallel group captures (1280×800 viewport clip, or
 `prefers-color-scheme`. Captured 2026-11-13: 36 PNGs at 1280×800 and 6 at
 1000×620 (`sips`-verified). Panel and Mock engine badge hidden.
 
+All 42 captures (21 states, light and dark) were retaken after commit
+`4ee982f`. The headless-Chrome script (`cap.mjs` driven by `run-pending.sh`)
+lives outside this repository in the session scratchpad. Detail status loading
+(a single launch ID whose read is pending) is undesigned and has no scenario or
+capture.
+
 | Design state | Preview scenario | Frame |
 | --- | --- | --- |
 | `task/pending-inventory` | `pending-launches-inventory` | 1280×800 |

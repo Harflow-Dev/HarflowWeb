@@ -2,7 +2,6 @@ import { cleanup, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import {
-  PARALLEL_GROUP_EMPTY_MESSAGE,
   PARALLEL_GROUP_UNAVAILABLE,
   type ParallelGroupLoad,
 } from '../model'
@@ -10,15 +9,16 @@ import {
   emptyParallelGroup,
   parallelGroupLoadFor,
   PRELOAD_PARALLEL_GROUP_ID,
-  preloadParallelGroup,
   titledParallelGroup,
   TITLED_PARALLEL_GROUP_ID,
 } from '../adapters/mock/parallelGroupFixtures'
 import { PRELOAD_TASK_ID } from '../adapters/mock/taskFixtures'
+import { PARALLEL_GROUP_EMPTY_MESSAGE } from '../presentation'
 import { ParallelGroupView } from './ParallelGroupView'
 import {
-  PARALLEL_GROUP_ACTION_EXPLANATION,
   PARALLEL_GROUP_LANE_EXPLANATION,
+  PARALLEL_GROUP_OPEN_TASK_EXPLANATION,
+  PARALLEL_GROUP_PROMPT_EXPLANATION,
   PARALLEL_GROUP_TOOL_EXPLANATION,
 } from './parallelGroupUnavailable'
 
@@ -89,7 +89,7 @@ describe('ParallelGroupView', () => {
     ).toBeInTheDocument()
   })
 
-  it('keeps Send and tools unavailable; View prompt and lane menu work', async () => {
+  it('keeps Send, tools, and View prompt unavailable for the legacy specimen', async () => {
     const user = userEvent.setup()
     const onShowPrompt = vi.fn()
     const onOpenMenuLaneId = vi.fn()
@@ -102,9 +102,13 @@ describe('ParallelGroupView', () => {
     )
 
     const viewPrompt = screen.getByRole('button', { name: 'View prompt' })
-    expect(viewPrompt).not.toBeDisabled()
+    expect(viewPrompt).toBeDisabled()
+    expect(viewPrompt).toHaveAttribute('aria-disabled', 'true')
+    expect(viewPrompt).toHaveAccessibleDescription(
+      PARALLEL_GROUP_PROMPT_EXPLANATION,
+    )
     await user.click(viewPrompt)
-    expect(onShowPrompt).toHaveBeenCalledWith(true)
+    expect(onShowPrompt).not.toHaveBeenCalled()
 
     const cancelAll = screen.getByRole('button', { name: 'Cancel all' })
     expect(cancelAll).not.toBeDisabled()
@@ -144,29 +148,13 @@ describe('ParallelGroupView', () => {
     expect(working).not.toHaveClass('is-animated')
   })
 
-  it('shows unavailable for missing groups and empty lanes without emptyMessage', () => {
-    const { rerender } = render(
+  it('shows unavailable for a missing group', () => {
+    render(
       <ParallelGroupView
         load={{ kind: 'unavailable', message: PARALLEL_GROUP_UNAVAILABLE }}
       />,
     )
-    expect(
-      screen.getByText(PARALLEL_GROUP_UNAVAILABLE),
-    ).toBeInTheDocument()
-
-    const empty = preloadParallelGroup()
-    rerender(
-      <ParallelGroupView
-        load={{
-          kind: 'ready',
-          group: { ...empty, lanes: [], emptyMessage: null },
-        }}
-      />,
-    )
-    expect(
-      screen.getByText(PARALLEL_GROUP_UNAVAILABLE),
-    ).toBeInTheDocument()
-    expect(screen.queryByText('Claude Code')).not.toBeInTheDocument()
+    expect(screen.getByText(PARALLEL_GROUP_UNAVAILABLE)).toBeInTheDocument()
   })
 
   it('shows the approved empty group message', () => {
@@ -237,6 +225,7 @@ describe('ParallelGroupView titled lanes', () => {
     await user.keyboard('{Escape}')
     expect(onOpenMenuLaneId).toHaveBeenCalledWith(null)
     expect(menuId).toBeNull()
+    expect(firstTrigger).toHaveFocus()
   })
 
   it('navigates Open task when mapped', async () => {
@@ -262,36 +251,61 @@ describe('ParallelGroupView titled lanes', () => {
     expect(screen.getByText(prompt!)).toBeInTheDocument()
   })
 
-  it('opens Cancel all confirm, Escape dismisses and returns focus', async () => {
+  it('opens the Cancel all confirmation request from the top bar', async () => {
     const user = userEvent.setup()
     const onCancelAllConfirm = vi.fn()
-    const { rerender } = render(
+    render(
       <ParallelGroupView
         load={titledLoad()}
-        cancelAllConfirm={false}
         onCancelAllConfirm={onCancelAllConfirm}
       />,
     )
     await user.click(screen.getByRole('button', { name: 'Cancel all' }))
     expect(onCancelAllConfirm).toHaveBeenCalledWith(true)
+  })
+
+  it('returns focus to Cancel all once the confirmation closes', () => {
+    const { rerender } = render(<ParallelGroupView load={titledLoad()} />)
+    rerender(<ParallelGroupView load={titledLoad()} cancelAllConfirm />)
+    expect(screen.getByRole('button', { name: 'Cancel all' })).not.toHaveFocus()
+    rerender(<ParallelGroupView load={titledLoad()} />)
+    expect(screen.getByRole('button', { name: 'Cancel all' })).toHaveFocus()
+  })
+
+  it('explains the unavailable Open task item for a lane without a task', () => {
+    render(
+      <ParallelGroupView
+        load={titledLoad()}
+        openMenuLaneId="lane-codex-titled"
+        onOpenMenuLaneId={() => {}}
+      />,
+    )
+    const item = screen.getByRole('menuitem', { name: /Open task/ })
+    expect(item).toBeDisabled()
+    expect(item).toHaveAttribute('aria-disabled', 'true')
+    expect(item).toHaveAccessibleDescription(PARALLEL_GROUP_OPEN_TASK_EXPLANATION)
+  })
+
+  it('does not steal focus back when the parent rerenders with new callbacks', async () => {
+    const user = userEvent.setup()
+    const { rerender } = render(
+      <ParallelGroupView
+        load={titledLoad()}
+        openMenuLaneId="lane-claude-titled"
+        onOpenMenuLaneId={() => {}}
+      />,
+    )
+    const item = screen.getByRole('menuitem', { name: /Open task/ })
+    expect(item).toHaveFocus()
+    ;(screen.getAllByRole('button', { name: 'Lane actions' })[1] as HTMLElement).focus()
     rerender(
       <ParallelGroupView
         load={titledLoad()}
-        cancelAllConfirm
-        onCancelAllConfirm={onCancelAllConfirm}
+        openMenuLaneId="lane-claude-titled"
+        onOpenMenuLaneId={() => {}}
       />,
     )
-    expect(
-      screen.getByRole('dialog', {
-        name: 'Cancel every running task in this group?',
-      }),
-    ).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Cancel' })).toHaveFocus()
-    const dialog = screen.getByRole('dialog')
-    const danger = within(dialog).getByRole('button', { name: 'Cancel all' })
-    expect(danger).toBeDisabled()
-    expect(danger).toHaveAccessibleDescription(PARALLEL_GROUP_ACTION_EXPLANATION)
+    expect(item).not.toHaveFocus()
     await user.keyboard('{Escape}')
-    expect(onCancelAllConfirm).toHaveBeenCalledWith(false)
   })
 })

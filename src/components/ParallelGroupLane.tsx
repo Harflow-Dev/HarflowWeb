@@ -1,4 +1,4 @@
-import { useEffect, useRef, type RefObject } from 'react'
+import { useEffect, useRef } from 'react'
 import type { ParallelGroupLane as LaneModel, TaskId } from '../model'
 import { Icon } from './Icon'
 import {
@@ -11,6 +11,7 @@ import {
 import {
   PARALLEL_GROUP_LANE_EXPLANATION,
   PARALLEL_GROUP_LANE_UNAVAILABLE_ID,
+  PARALLEL_GROUP_OPEN_TASK_UNAVAILABLE_ID,
 } from './parallelGroupUnavailable'
 
 type Props = {
@@ -20,7 +21,6 @@ type Props = {
   readonly onToggleMenu: () => void
   readonly onCloseMenu: (focusTrigger: boolean) => void
   readonly onOpenTask: (taskId: TaskId) => void
-  readonly menuTriggerRef?: RefObject<HTMLButtonElement | null>
 }
 
 /** One Parallel group lane with titled head, prompt, menu, and Send-only composer. */
@@ -31,10 +31,9 @@ export function ParallelGroupLane({
   onToggleMenu,
   onCloseMenu,
   onOpenTask,
-  menuTriggerRef,
 }: Props) {
-  const internalTriggerRef = useRef<HTMLButtonElement>(null)
-  const triggerRef = menuTriggerRef ?? internalTriggerRef
+  const triggerRef = useRef<HTMLButtonElement>(null)
+  const closeMenuRef = useRef(onCloseMenu)
   const menuRef = useRef<HTMLDivElement>(null)
   const openItemRef = useRef<HTMLButtonElement>(null)
   const messageLabel = `Message ${lane.composerName}`
@@ -45,13 +44,18 @@ export function ParallelGroupLane({
       ? lane.composer.placeholder
       : messageLabel
 
+  // Latest callback without re-running the menu effect (it would re-steal focus).
+  useEffect(() => {
+    closeMenuRef.current = onCloseMenu
+  })
+
   useEffect(() => {
     if (!menuOpen) return
     openItemRef.current?.focus()
     function onKey(event: KeyboardEvent): void {
       if (event.key === 'Escape' || event.key === 'Tab') {
         event.preventDefault()
-        onCloseMenu(true)
+        closeMenuRef.current(true)
         triggerRef.current?.focus()
       }
     }
@@ -64,7 +68,7 @@ export function ParallelGroupLane({
       ) {
         return
       }
-      onCloseMenu(false)
+      closeMenuRef.current(false)
     }
     document.addEventListener('keydown', onKey)
     document.addEventListener('mousedown', onPointer)
@@ -72,7 +76,7 @@ export function ParallelGroupLane({
       document.removeEventListener('keydown', onKey)
       document.removeEventListener('mousedown', onPointer)
     }
-  }, [menuOpen, onCloseMenu, triggerRef])
+  }, [menuOpen])
 
   return (
     <section className="hd-lane" aria-label={lane.title}>
@@ -109,6 +113,11 @@ export function ParallelGroupLane({
                 role="menuitem"
                 disabled={lane.taskId === null}
                 aria-disabled={lane.taskId === null || undefined}
+                aria-describedby={
+                  lane.taskId === null
+                    ? PARALLEL_GROUP_OPEN_TASK_UNAVAILABLE_ID
+                    : undefined
+                }
                 onClick={() => {
                   if (lane.taskId === null) return
                   onCloseMenu(false)

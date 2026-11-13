@@ -1,6 +1,5 @@
 import {
   asParallelGroupId,
-  PARALLEL_GROUP_EMPTY_MESSAGE,
   PARALLEL_GROUP_UNAVAILABLE,
   type ParallelGroupId,
   type ParallelGroupLane,
@@ -14,6 +13,7 @@ import {
   PROMPTS,
   claudeCodeFindingBlocks,
   claudeCodeOpeningBlocks,
+  claudeCodeWorkingBlocks,
   codexBodyBlocks,
   legacyClaudeLane,
   legacyCodexLane,
@@ -69,13 +69,8 @@ export function preloadParallelGroup(): ParallelGroupObservation {
     groupId: PRELOAD_PARALLEL_GROUP_ID,
     title: 'Review preload bridge',
     statusLabel: '1 running · 2 done',
-    badgeTone: 'running',
     enforcementLabel: ENFORCEMENT,
-    showCancelAll: true,
-    viewPromptEnabled: true,
-    laneFloorPts: 320,
     lanes: [legacyClaudeLane(), legacyCodexLane(), legacyOpencodeLane()],
-    emptyMessage: null,
   }
 }
 
@@ -89,7 +84,11 @@ function titledClaudeRunning(overrides: Partial<ParallelGroupLane> = {}): Parall
     composerName: 'Claude',
     taskId: PRELOAD_TASK_ID,
     prompt: PROMPTS.claude,
-    blocks: [...claudeCodeOpeningBlocks(), ...claudeCodeFindingBlocks()],
+    blocks: [
+      ...claudeCodeOpeningBlocks(),
+      ...claudeCodeFindingBlocks(),
+      ...claudeCodeWorkingBlocks(),
+    ],
     end: null,
     composer: ENABLED_COMPOSER,
     historyBoundary: null,
@@ -144,13 +143,8 @@ function titledBase(
     groupId,
     title: 'Review preload bridge',
     statusLabel: '1 running · 2 done',
-    badgeTone: 'running',
     enforcementLabel: ENFORCEMENT,
-    showCancelAll: true,
-    viewPromptEnabled: true,
-    laneFloorPts: 360,
     lanes: [titledClaudeRunning(), titledCodexDone(), titledOpencodeDone()],
-    emptyMessage: null,
     ...overrides,
   }
 }
@@ -162,13 +156,11 @@ export function titledParallelGroup(): ParallelGroupObservation {
 export function settledParallelGroup(): ParallelGroupObservation {
   return titledBase(SETTLED_PARALLEL_GROUP_ID, {
     statusLabel: '3 done',
-    badgeTone: 'done',
-    showCancelAll: false,
     lanes: [
       titledClaudeRunning({
         status: 'done',
         statusMeta: 'Done 05:02',
-        blocks: [...claudeCodeOpeningBlocks()],
+        blocks: [...claudeCodeOpeningBlocks(), ...claudeCodeFindingBlocks()],
         end: { kind: 'done', clock: '05:02', extra: null },
       }),
       titledCodexDone(),
@@ -180,13 +172,11 @@ export function settledParallelGroup(): ParallelGroupObservation {
 export function failedParallelGroup(): ParallelGroupObservation {
   return titledBase(FAILED_PARALLEL_GROUP_ID, {
     statusLabel: '2 done · 1 failed',
-    badgeTone: 'failed',
-    showCancelAll: false,
     lanes: [
       titledClaudeRunning({
         status: 'failed',
         statusMeta: 'Failed 07:48',
-        blocks: [...claudeCodeOpeningBlocks()],
+        blocks: [...claudeCodeOpeningBlocks(), ...claudeCodeFindingBlocks()],
         end: { kind: 'failed', clock: '07:48', extra: null },
       }),
       titledCodexDone(),
@@ -198,13 +188,11 @@ export function failedParallelGroup(): ParallelGroupObservation {
 export function cancelledParallelGroup(): ParallelGroupObservation {
   return titledBase(CANCELLED_PARALLEL_GROUP_ID, {
     statusLabel: '2 done · 1 cancelled',
-    badgeTone: 'neutral',
-    showCancelAll: false,
     lanes: [
       titledClaudeRunning({
         status: 'cancelled',
         statusMeta: 'Cancelled 04:31',
-        blocks: [...claudeCodeOpeningBlocks()],
+        blocks: [...claudeCodeOpeningBlocks(), ...claudeCodeFindingBlocks()],
         end: { kind: 'cancelled', clock: '04:31', extra: null },
       }),
       titledCodexDone(),
@@ -216,18 +204,15 @@ export function cancelledParallelGroup(): ParallelGroupObservation {
 export function takenOverParallelGroup(): ParallelGroupObservation {
   return titledBase(TAKEN_OVER_PARALLEL_GROUP_ID, {
     statusLabel: '2 done · 1 cancelled',
-    badgeTone: 'neutral',
-    showCancelAll: false,
     lanes: [
       titledClaudeRunning({
         status: 'cancelled',
         statusMeta: 'Cancelled 04:31',
         agentLabel: 'Claude · Opus 5.5 · taken over',
-        blocks: [...claudeCodeOpeningBlocks()],
+        blocks: [...claudeCodeOpeningBlocks(), ...claudeCodeFindingBlocks()],
         end: { kind: 'cancelled', clock: '04:31', extra: 'taken over' },
         composer: {
           locked: true,
-          disabled: true,
           placeholder:
             'Messages are off — you took this task over in Terminal',
           note: null,
@@ -248,7 +233,6 @@ export function activityUnavailableParallelGroup(): ParallelGroupObservation {
         activityNote: 'Activity log unavailable.',
         composer: {
           locked: false,
-          disabled: true,
           placeholder: null,
           note: 'Messaging is unavailable for this activity view.',
         },
@@ -277,12 +261,8 @@ export function historyBoundaryParallelGroup(): ParallelGroupObservation {
 export function emptyParallelGroup(): ParallelGroupObservation {
   return titledBase(EMPTY_PARALLEL_GROUP_ID, {
     statusLabel: null,
-    badgeTone: null,
     enforcementLabel: null,
-    showCancelAll: false,
-    viewPromptEnabled: false,
     lanes: [],
-    emptyMessage: PARALLEL_GROUP_EMPTY_MESSAGE,
   })
 }
 
@@ -307,9 +287,6 @@ const BY_ID = new Map<ParallelGroupId, ParallelGroupObservation>([
 ])
 
 export function parallelGroupLoadFor(groupId: ParallelGroupId): ParallelGroupLoad {
-  if (groupId === LOADING_TWO_PARALLEL_GROUP_ID) {
-    return { kind: 'loading', laneCount: 2 }
-  }
   const group = BY_ID.get(groupId)
   if (!group) {
     return { kind: 'unavailable', message: PARALLEL_GROUP_UNAVAILABLE }
@@ -317,14 +294,13 @@ export function parallelGroupLoadFor(groupId: ParallelGroupId): ParallelGroupLoa
   return { kind: 'ready', group }
 }
 
-/** Deferred first-load: match known member count, or two when unknown / empty. */
+/**
+ * Deferred first-load: the member count of a known group with lanes. Unknown
+ * and empty groups report null; the loading-two specimen is such a group.
+ */
 export function deferredParallelGroupLoading(
   groupId: ParallelGroupId,
 ): ParallelGroupLoad {
-  const load = parallelGroupLoadFor(groupId)
-  if (load.kind === 'loading') return load
-  if (load.kind === 'ready' && load.group.lanes.length > 0) {
-    return { kind: 'loading', laneCount: load.group.lanes.length }
-  }
-  return { kind: 'loading', laneCount: 2 }
+  const lanes = BY_ID.get(groupId)?.lanes.length ?? 0
+  return { kind: 'loading', memberCount: lanes > 0 ? lanes : null }
 }

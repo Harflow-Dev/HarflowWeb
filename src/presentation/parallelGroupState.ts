@@ -14,7 +14,7 @@ export type ParallelGroupScreenState = {
 export function initialParallelGroupState(): ParallelGroupScreenState {
   return {
     groupId: null,
-    load: { kind: 'loading' },
+    load: { kind: 'loading', memberCount: null },
     showPrompt: false,
     openMenuLaneId: null,
     cancelAllConfirm: false,

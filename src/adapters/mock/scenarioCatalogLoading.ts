@@ -109,12 +109,12 @@ export const LOADING_SCENARIOS: readonly ScenarioDefinition[] = [
     id: 'parallel-group-loading-two',
     label: 'Parallel group loading · two lanes',
     description:
-      'Approved parallel-group/loading-two (Design 2153ab1): two skeleton lanes while member count is unknown.',
+      'Approved parallel-group/loading-two (Design 2153ab1): two skeleton lanes while the member count is unknown (null).',
     context: readyContext(),
     parallelGroups: 'defer',
     startOutcome: accepted,
     holdStart: false,
-    seed: { openParallelGroupId: 'parallel-group-two-lanes' },
+    seed: { openParallelGroupId: 'parallel-group-loading-two' },
   }),
   base({
     id: 'resources-loading',

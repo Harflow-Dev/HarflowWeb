@@ -1,16 +1,22 @@
 import { useEffect, useRef } from 'react'
 import type { ParallelGroupLoad, ParallelGroupObservation, TaskId } from '../model'
-import { PARALLEL_GROUP_UNAVAILABLE } from '../model'
+import {
+  PARALLEL_GROUP_EMPTY_MESSAGE,
+  parallelGroupSkeletonLanes,
+  parallelGroupTopBar,
+} from '../presentation'
 import { ParallelGroupLane } from './ParallelGroupLane'
 import { ParallelGroupLoadingPage } from './skeleton'
 import { TopbarMeta } from './TopbarMeta'
 import {
-  PARALLEL_GROUP_ACTION_EXPLANATION,
-  PARALLEL_GROUP_ACTION_UNAVAILABLE_ID,
   PARALLEL_GROUP_HISTORY_EXPLANATION,
   PARALLEL_GROUP_HISTORY_UNAVAILABLE_ID,
   PARALLEL_GROUP_LANE_EXPLANATION,
   PARALLEL_GROUP_LANE_UNAVAILABLE_ID,
+  PARALLEL_GROUP_OPEN_TASK_EXPLANATION,
+  PARALLEL_GROUP_OPEN_TASK_UNAVAILABLE_ID,
+  PARALLEL_GROUP_PROMPT_EXPLANATION,
+  PARALLEL_GROUP_PROMPT_UNAVAILABLE_ID,
   PARALLEL_GROUP_TOOL_EXPLANATION,
   PARALLEL_GROUP_TOOL_UNAVAILABLE_ID,
 } from './parallelGroupUnavailable'
@@ -28,8 +34,9 @@ type Props = {
 
 /**
  * Parallel group screen.
- * View prompt, lane menu, and Cancel-all dialog are interactive; Cancel all
- * confirm, Send, and Load current activity stay unavailable (no mutation).
+ * View prompt, the lane menu, and the Cancel-all trigger are interactive. The
+ * Cancel-all dialog itself is app-level (ParallelGroupCancelDialog); Send,
+ * Load current activity, and Cancel-all confirm stay unavailable (no mutation).
  */
 export function ParallelGroupView({
   load,
@@ -42,25 +49,22 @@ export function ParallelGroupView({
   onOpenTask,
 }: Props) {
   if (load.kind === 'loading') {
-    return <ParallelGroupLoadingPage laneCount={load.laneCount ?? 3} />
+    return <ParallelGroupLoadingPage laneCount={parallelGroupSkeletonLanes(load)} />
   }
   if (load.kind === 'unavailable') {
     return <p role="status">{load.message}</p>
   }
   const group = load.group
   if (group.lanes.length === 0) {
-    if (group.emptyMessage) {
-      return (
-        <ParallelGroupChrome
-          group={group}
-          showPrompt={false}
-          openMenuLaneId={null}
-          cancelAllConfirm={false}
-          empty
-        />
-      )
-    }
-    return <p role="status">{PARALLEL_GROUP_UNAVAILABLE}</p>
+    return (
+      <ParallelGroupChrome
+        group={group}
+        showPrompt={false}
+        openMenuLaneId={null}
+        cancelAllConfirm={false}
+        empty
+      />
+    )
   }
   return (
     <ParallelGroupChrome
@@ -98,55 +102,32 @@ function ParallelGroupChrome({
   readonly onOpenTask?: (taskId: TaskId) => void
 }) {
   const cancelAllRef = useRef<HTMLButtonElement>(null)
-  const dismissRef = useRef<HTMLButtonElement>(null)
-  const floorClass =
-    group.laneFloorPts === 360 ? ' hd-pl--floor-360' : ' hd-pl--floor-320'
+  const wasConfirmOpen = useRef(false)
+  const topBar = parallelGroupTopBar(group)
   const badgeClass =
-    group.badgeTone === 'done'
+    topBar.badgeTone === 'done'
       ? 'hd-badge hd-badge--done'
-      : group.badgeTone === 'failed'
+      : topBar.badgeTone === 'failed'
         ? 'hd-badge hd-badge--failed'
-        : group.badgeTone === 'running'
+        : topBar.badgeTone === 'running'
           ? 'hd-badge hd-badge--running'
-          : group.badgeTone === 'neutral'
+          : topBar.badgeTone === 'neutral'
             ? 'hd-badge'
             : null
 
+  // Return focus to the trigger after the dialog closed and the app regions
+  // are no longer inert (focus() on an inert element is lost to body).
   useEffect(() => {
-    if (!cancelAllConfirm) return
-    dismissRef.current?.focus()
-    function onKey(event: KeyboardEvent): void {
-      if (event.key === 'Escape') {
-        event.preventDefault()
-        onCancelAllConfirm?.(false)
-        cancelAllRef.current?.focus()
-        return
-      }
-      if (event.key !== 'Tab') return
-      const dialog = document.getElementById('pl-cancel-dialog')
-      if (!dialog) return
-      const buttons = [...dialog.querySelectorAll('button')]
-      const first = buttons[0]
-      const last = buttons[buttons.length - 1]
-      if (!first || !last) return
-      if (event.shiftKey && document.activeElement === first) {
-        event.preventDefault()
-        last.focus()
-      } else if (!event.shiftKey && document.activeElement === last) {
-        event.preventDefault()
-        first.focus()
-      }
+    if (wasConfirmOpen.current && !cancelAllConfirm) {
+      cancelAllRef.current?.focus()
     }
-    document.addEventListener('keydown', onKey)
-    return () => document.removeEventListener('keydown', onKey)
-  }, [cancelAllConfirm, onCancelAllConfirm])
+    wasConfirmOpen.current = cancelAllConfirm
+  }, [cancelAllConfirm])
 
-  const viewPromptDisabled = !group.viewPromptEnabled
-  const main = (
-    <>
-      <p id={PARALLEL_GROUP_ACTION_UNAVAILABLE_ID} className="hd-sr">
-        {PARALLEL_GROUP_ACTION_EXPLANATION}
-      </p>
+  const viewPromptDisabled = !topBar.viewPromptEnabled
+  const layoutClass = topBar.harnessTitled ? '' : ' hd-pl--titled'
+  return (
+    <div className={`hd-pl${layoutClass}`}>
       <p id={PARALLEL_GROUP_LANE_UNAVAILABLE_ID} className="hd-sr">
         {PARALLEL_GROUP_LANE_EXPLANATION}
       </p>
@@ -156,11 +137,17 @@ function ParallelGroupChrome({
       <p id={PARALLEL_GROUP_HISTORY_UNAVAILABLE_ID} className="hd-sr">
         {PARALLEL_GROUP_HISTORY_EXPLANATION}
       </p>
+      <p id={PARALLEL_GROUP_PROMPT_UNAVAILABLE_ID} className="hd-sr">
+        {PARALLEL_GROUP_PROMPT_EXPLANATION}
+      </p>
+      <p id={PARALLEL_GROUP_OPEN_TASK_UNAVAILABLE_ID} className="hd-sr">
+        {PARALLEL_GROUP_OPEN_TASK_EXPLANATION}
+      </p>
       <div className="hd-topbar">
         <span className="hd-topbar__title">{group.title}</span>
         {group.statusLabel && badgeClass ? (
           <span className={badgeClass}>
-            {group.badgeTone === 'running' ? (
+            {topBar.badgeTone === 'running' ? (
               <span className="hd-badge__spin" aria-hidden="true" />
             ) : null}
             {group.statusLabel}
@@ -175,6 +162,9 @@ function ParallelGroupChrome({
           className="hd-btn hd-btn--ghost"
           disabled={viewPromptDisabled}
           aria-disabled={viewPromptDisabled || undefined}
+          aria-describedby={
+            viewPromptDisabled ? PARALLEL_GROUP_PROMPT_UNAVAILABLE_ID : undefined
+          }
           aria-pressed={viewPromptDisabled ? undefined : showPrompt}
           onClick={() => {
             if (viewPromptDisabled) return
@@ -183,7 +173,7 @@ function ParallelGroupChrome({
         >
           View prompt
         </button>
-        {group.showCancelAll ? (
+        {topBar.showCancelAll ? (
           <button
             ref={cancelAllRef}
             type="button"
@@ -195,13 +185,12 @@ function ParallelGroupChrome({
         ) : null}
       </div>
       {empty ? (
-        <div className="hd-pl-empty">{group.emptyMessage}</div>
+        <div className="hd-pl-empty">{PARALLEL_GROUP_EMPTY_MESSAGE}</div>
       ) : (
         <div
           className="hd-lanes"
           role="region"
           aria-label="Parallel group lanes"
-          inert={cancelAllConfirm || undefined}
         >
           {group.lanes.map((lane) => (
             <ParallelGroupLane
@@ -220,50 +209,6 @@ function ParallelGroupChrome({
           ))}
         </div>
       )}
-    </>
-  )
-
-  return (
-    <div className={`hd-pl${floorClass}`} data-pl-state="">
-      <div inert={cancelAllConfirm || undefined}>{main}</div>
-      {cancelAllConfirm ? (
-        <div className="hd-scrim">
-          <div
-            id="pl-cancel-dialog"
-            className="hd-dialog"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="pl-cancel-title"
-          >
-            <h2 className="hd-dialog__title" id="pl-cancel-title">
-              Cancel every running task in this group?
-            </h2>
-            <div className="hd-dialog__actions">
-              <button
-                ref={dismissRef}
-                type="button"
-                className="hd-btn hd-btn--secondary"
-                onClick={() => {
-                  onCancelAllConfirm?.(false)
-                  cancelAllRef.current?.focus()
-                }}
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                className="hd-btn hd-btn--danger"
-                disabled
-                aria-disabled="true"
-                aria-describedby={PARALLEL_GROUP_ACTION_UNAVAILABLE_ID}
-                title={PARALLEL_GROUP_ACTION_EXPLANATION}
-              >
-                Cancel all
-              </button>
-            </div>
-          </div>
-        </div>
-      ) : null}
     </div>
   )
 }

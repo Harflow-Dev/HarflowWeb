@@ -6,7 +6,6 @@ import {
 
 export const ENABLED_COMPOSER: ParallelGroupLaneComposer = {
   locked: false,
-  disabled: false,
   placeholder: null,
   note: null,
 }
@@ -79,11 +78,12 @@ export function claudeCodeFindingBlocks(): readonly WorkflowRunLaneBlock[] {
       icon: 'terminal',
       summaryKind: 'ran-code',
     },
-    {
-      kind: 'working',
-      text: 'Reading src/preload/bridge.ts…',
-    },
   ]
+}
+
+/** Trailing row of a lane that is still running. */
+export function claudeCodeWorkingBlocks(): readonly WorkflowRunLaneBlock[] {
+  return [{ kind: 'working', text: 'Reading src/preload/bridge.ts…' }]
 }
 
 function codexFindingsLegacy(): WorkflowRunLaneBlock[] {
@@ -229,7 +229,11 @@ export function legacyClaudeLane(): ParallelGroupLane {
     status: 'running',
     statusMeta: 'Running 03:24',
     composerName: 'Claude Code',
-    blocks: [...claudeCodeOpeningBlocks(), ...claudeCodeFindingBlocks()],
+    blocks: [
+      ...claudeCodeOpeningBlocks(),
+      ...claudeCodeFindingBlocks(),
+      ...claudeCodeWorkingBlocks(),
+    ],
   })
 }
 

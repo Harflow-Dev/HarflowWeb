@@ -66,7 +66,7 @@ export class ParallelGroupSession {
     this.observation?.cancel()
     this.publish({
       groupId: id,
-      load: { kind: 'loading' },
+      load: { kind: 'loading', memberCount: null },
       showPrompt: false,
       openMenuLaneId: null,
       cancelAllConfirm: false,
@@ -80,7 +80,7 @@ export class ParallelGroupSession {
     this.observation = null
     this.publish({
       groupId: null,
-      load: { kind: 'loading' },
+      load: { kind: 'loading', memberCount: null },
       showPrompt: false,
       openMenuLaneId: null,
       cancelAllConfirm: false,
@@ -131,7 +131,10 @@ export class ParallelGroupSession {
     this.epoch += 1
     const gen = this.epoch
     this.observation?.cancel()
-    this.publish({ ...this.state, load: { kind: 'loading' } })
+    this.publish({
+      ...this.state,
+      load: { kind: 'loading', memberCount: null },
+    })
     this.watch(id, gen)
   }
 

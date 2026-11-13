@@ -162,3 +162,61 @@ describe('ParallelGroupSession', () => {
     session.dispose()
   })
 })
+
+describe('ParallelGroupSession chrome reset', () => {
+  async function openedWithChrome(): Promise<{
+    session: ParallelGroupSession
+    port: ReturnType<typeof port>
+  }> {
+    const p = port()
+    const session = sessionFor(p.engine)
+    session.open(PRELOAD_PARALLEL_GROUP_ID)
+    await flush()
+    session.applyChrome({
+      showPrompt: true,
+      openMenuLaneId: 'lane-claude-code',
+    })
+    session.setCancelAllConfirm(true)
+    return { session, port: p }
+  }
+
+  it('applyChrome and the setters drive prompt, menu, and dialog state', async () => {
+    const { session } = await openedWithChrome()
+    const state = session.getState()
+    expect(state.showPrompt).toBe(true)
+    expect(state.cancelAllConfirm).toBe(true)
+    // Opening the dialog closes the lane menu.
+    expect(state.openMenuLaneId).toBeNull()
+  })
+
+  it('close resets prompt, menu, and dialog, and a reopen starts clean', async () => {
+    const { session } = await openedWithChrome()
+    session.close()
+    expect(session.getState()).toMatchObject({
+      groupId: null,
+      showPrompt: false,
+      openMenuLaneId: null,
+      cancelAllConfirm: false,
+    })
+    session.open(PRELOAD_PARALLEL_GROUP_ID)
+    await flush()
+    expect(session.getState()).toMatchObject({
+      groupId: PRELOAD_PARALLEL_GROUP_ID,
+      showPrompt: false,
+      openMenuLaneId: null,
+      cancelAllConfirm: false,
+    })
+    expect(session.getState().load.kind).toBe('ready')
+  })
+
+  it('opening another group without closing also resets', async () => {
+    const { session } = await openedWithChrome()
+    session.open(asParallelGroupId('parallel-group-two-lanes'))
+    expect(session.getState()).toMatchObject({
+      showPrompt: false,
+      openMenuLaneId: null,
+      cancelAllConfirm: false,
+      load: { kind: 'loading', memberCount: null },
+    })
+  })
+})

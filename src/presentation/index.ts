@@ -78,6 +78,14 @@ export {
   type ParallelGroupScreenState,
 } from './parallelGroupState'
 export { ParallelGroupSession } from './parallelGroupSession'
+export {
+  cancelAllDialogOpen,
+  PARALLEL_GROUP_EMPTY_MESSAGE,
+  parallelGroupSkeletonLanes,
+  parallelGroupTopBar,
+  type ParallelGroupBadgeTone,
+  type ParallelGroupTopBar,
+} from './parallelGroupChrome'
 export { workflowRunScene } from './workflowRunScene'
 export {
   resolveWorkflowRunSelection,

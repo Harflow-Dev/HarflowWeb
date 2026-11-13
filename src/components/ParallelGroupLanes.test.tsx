@@ -3,17 +3,17 @@ import { afterEach, describe, expect, it } from 'vitest'
 import {
   activityUnavailableParallelGroup,
   cancelledParallelGroup,
+  emptyParallelGroup,
   failedParallelGroup,
   historyBoundaryParallelGroup,
-  parallelGroupLoadFor,
+  preloadParallelGroup,
   settledParallelGroup,
   takenOverParallelGroup,
+  titledParallelGroup,
   twoLanesParallelGroup,
-  LOADING_TWO_PARALLEL_GROUP_ID,
-  TWO_LANES_PARALLEL_GROUP_ID,
 } from '../adapters/mock/parallelGroupFixtures'
+import { parallelGroupTopBar } from '../presentation'
 import { ParallelGroupView } from './ParallelGroupView'
-import { ParallelGroupLoadingPage } from './skeleton'
 
 afterEach(() => {
   cleanup()
@@ -121,31 +121,81 @@ describe('Parallel group lane end states', () => {
 })
 
 describe('Parallel group loading-two', () => {
-  it('shows two skeleton lanes for loading-two', () => {
-    const load = parallelGroupLoadFor(LOADING_TWO_PARALLEL_GROUP_ID)
-    expect(load).toEqual({ kind: 'loading', laneCount: 2 })
-    render(<ParallelGroupView load={load} />)
+  it('shows two skeleton lanes while the member count is unknown', () => {
+    render(<ParallelGroupView load={{ kind: 'loading', memberCount: null }} />)
     const busy = screen.getByRole('group', { name: 'Loading Parallel group' })
     expect(busy).toHaveAttribute('aria-busy', 'true')
     expect(busy.querySelectorAll('.hd-lane')).toHaveLength(2)
   })
 
-  it('resolves to two lanes without changing lane count', () => {
-    const { rerender } = render(
-      <ParallelGroupLoadingPage laneCount={2} />,
-    )
+  it('shows the known member count while loading', () => {
+    render(<ParallelGroupView load={{ kind: 'loading', memberCount: 3 }} />)
     expect(
-      screen.getByRole('group', { name: 'Loading Parallel group' })
+      screen
+        .getByRole('group', { name: 'Loading Parallel group' })
         .querySelectorAll('.hd-lane'),
-    ).toHaveLength(2)
-    rerender(
+    ).toHaveLength(3)
+  })
+})
+
+describe('Parallel group top bar derivation', () => {
+  it('derives badge tone, Cancel all and View prompt from the lanes', () => {
+    expect(parallelGroupTopBar(titledParallelGroup())).toEqual({
+      badgeTone: 'running',
+      showCancelAll: true,
+      viewPromptEnabled: true,
+      harnessTitled: false,
+    })
+    expect(parallelGroupTopBar(settledParallelGroup())).toMatchObject({
+      badgeTone: 'done',
+      showCancelAll: false,
+    })
+    expect(parallelGroupTopBar(failedParallelGroup()).badgeTone).toBe('failed')
+    expect(parallelGroupTopBar(cancelledParallelGroup()).badgeTone).toBe(
+      'neutral',
+    )
+    expect(parallelGroupTopBar(emptyParallelGroup())).toEqual({
+      badgeTone: null,
+      showCancelAll: false,
+      viewPromptEnabled: false,
+      harnessTitled: false,
+    })
+    expect(parallelGroupTopBar(preloadParallelGroup())).toMatchObject({
+      viewPromptEnabled: false,
+      harnessTitled: true,
+    })
+  })
+})
+
+describe('Parallel group lane bodies', () => {
+  const FINDING = /exposeInMainWorld/
+  const WORKING = 'Reading src/preload/bridge.ts…'
+  const cases = [
+    ['settled', settledParallelGroup],
+    ['failed', failedParallelGroup],
+    ['cancelled', cancelledParallelGroup],
+    ['taken over', takenOverParallelGroup],
+  ] as const
+
+  it.each(cases)('keeps the full body without a working row when %s', (_n, make) => {
+    render(<ParallelGroupView load={{ kind: 'ready', group: make() }} />)
+    const claude = screen.getByRole('region', {
+      name: 'Audit what the preload bridge exposes',
+    })
+    expect(within(claude).getByText('Read 6 files')).toBeInTheDocument()
+    expect(within(claude).getByText(FINDING)).toBeInTheDocument()
+    expect(
+      within(claude).getByText('rg "ipcRenderer" src/preload'),
+    ).toBeInTheDocument()
+    expect(within(claude).queryByText(WORKING)).not.toBeInTheDocument()
+  })
+
+  it('shows the working row only while the lane runs', () => {
+    render(
       <ParallelGroupView
-        load={parallelGroupLoadFor(TWO_LANES_PARALLEL_GROUP_ID)}
+        load={{ kind: 'ready', group: titledParallelGroup() }}
       />,
     )
-    const region = screen.getByRole('region', {
-      name: 'Parallel group lanes',
-    })
-    expect(within(region).getAllByRole('region')).toHaveLength(2)
+    expect(screen.getByText(WORKING)).toBeInTheDocument()
   })
 })

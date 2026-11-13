@@ -40,6 +40,10 @@ export type NewTaskScenarioSeed = {
   readonly openWorkflowEditorNodeId?: string
   readonly openWorkflowExecutionId?: string
   readonly openParallelGroupId?: string
+  /** Parallel group chrome after the group observation is ready. */
+  readonly parallelGroupShowPrompt?: boolean
+  readonly parallelGroupOpenMenuLaneId?: string | null
+  readonly parallelGroupCancelAllConfirm?: boolean
   readonly workflowRunView?: 'graph' | 'parallel'
   readonly settingsSection?: 'general' | 'harnesses'
   /** Harness id whose MCP approvals start expanded (Settings Harnesses). */

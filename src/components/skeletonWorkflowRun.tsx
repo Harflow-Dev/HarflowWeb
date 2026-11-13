@@ -209,8 +209,12 @@ export function WorkflowRunParallelLoadingPage(): ReactNode {
   )
 }
 
-/** Parallel group first-load — Design `parallel-group/loading`. */
-export function ParallelGroupLoadingPage(): ReactNode {
+/** Parallel group first-load — Design `parallel-group/loading` (or loading-two). */
+export function ParallelGroupLoadingPage({
+  laneCount = 3,
+}: {
+  readonly laneCount?: number
+} = {}): ReactNode {
   return (
     <div
       role="group"
@@ -243,7 +247,7 @@ export function ParallelGroupLoadingPage(): ReactNode {
           Cancel all
         </button>
       </div>
-      <LanesSkeleton />
+      <LanesSkeleton count={laneCount} />
     </div>
   )
 }

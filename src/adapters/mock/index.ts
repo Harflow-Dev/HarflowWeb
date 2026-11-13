@@ -83,7 +83,20 @@ export {
   populatedWorkflowsLoad,
 } from './workflowFixtures'
 export {
+  ACTIVITY_UNAVAILABLE_PARALLEL_GROUP_ID,
+  CANCELLED_PARALLEL_GROUP_ID,
+  deferredParallelGroupLoading,
+  EMPTY_PARALLEL_GROUP_ID,
+  emptyParallelGroup,
+  FAILED_PARALLEL_GROUP_ID,
+  HISTORY_BOUNDARY_PARALLEL_GROUP_ID,
+  LOADING_TWO_PARALLEL_GROUP_ID,
   parallelGroupLoadFor,
   PRELOAD_PARALLEL_GROUP_ID,
   preloadParallelGroup,
+  SETTLED_PARALLEL_GROUP_ID,
+  TAKEN_OVER_PARALLEL_GROUP_ID,
+  TITLED_PARALLEL_GROUP_ID,
+  titledParallelGroup,
+  TWO_LANES_PARALLEL_GROUP_ID,
 } from './parallelGroupFixtures'

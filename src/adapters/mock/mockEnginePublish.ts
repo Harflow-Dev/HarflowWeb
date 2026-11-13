@@ -25,7 +25,10 @@ import {
   taskChangesKey,
   type MockListenerSets,
 } from './mockEngineCore'
-import { parallelGroupLoadFor } from './parallelGroupFixtures'
+import {
+  deferredParallelGroupLoading,
+  parallelGroupLoadFor,
+} from './parallelGroupFixtures'
 import type { ScenarioDefinition } from './scenarios'
 import { workflowEditorLoadFor } from './workflowEditorFixtures'
 import { workflowExecutionLoadFor } from './workflowExecutionFixtures'
@@ -124,7 +127,7 @@ function republishSurfaces(
   for (const listener of listeners.parallelGroups) {
     listener.send(
       scenario.parallelGroups === 'defer'
-        ? { kind: 'loading' }
+        ? deferredParallelGroupLoading(listener.key)
         : parallelGroupLoadFor(listener.key),
     )
   }

@@ -98,6 +98,26 @@ export class AppSession {
     this.emit()
   }
 
+  setParallelGroupShowPrompt(show: boolean): void {
+    this.children.parallelGroup.setShowPrompt(show)
+  }
+
+  setParallelGroupOpenMenuLaneId(laneId: string | null): void {
+    this.children.parallelGroup.setOpenMenuLaneId(laneId)
+  }
+
+  setParallelGroupCancelAllConfirm(open: boolean): void {
+    this.children.parallelGroup.setCancelAllConfirm(open)
+  }
+
+  applyParallelGroupChrome(chrome: {
+    readonly showPrompt?: boolean
+    readonly openMenuLaneId?: string | null
+    readonly cancelAllConfirm?: boolean
+  }): void {
+    this.children.parallelGroup.applyChrome(chrome)
+  }
+
   openWorkflowRun(id: WorkflowId): void {
     this.route = 'workflows'
     this.children.workflows.openRun(id)

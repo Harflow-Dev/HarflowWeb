@@ -49,6 +49,14 @@ export type AppPresenter = {
   selectWorkflowRunOverride(id: WorkflowOverrideId): void
   openWorkflowExecution(id: WorkflowRunId): void
   openParallelGroup(id: ParallelGroupId): void
+  setParallelGroupShowPrompt(show: boolean): void
+  setParallelGroupOpenMenuLaneId(laneId: string | null): void
+  setParallelGroupCancelAllConfirm(open: boolean): void
+  applyParallelGroupChrome(chrome: {
+    readonly showPrompt?: boolean
+    readonly openMenuLaneId?: string | null
+    readonly cancelAllConfirm?: boolean
+  }): void
   openWorkflowEditor(id: WorkflowId): void
   closeWorkflowEditor(): void
   selectWorkflowNode(id: WorkflowNodeId): void
@@ -110,6 +118,14 @@ export function createAppPresenter(deps: Deps): AppPresenter {
     selectWorkflowRunOverride: (id) => session.selectWorkflowRunOverride(id),
     openWorkflowExecution: (id) => session.openWorkflowExecution(id),
     openParallelGroup: (id) => session.openParallelGroup(id),
+    setParallelGroupShowPrompt: (show) =>
+      session.setParallelGroupShowPrompt(show),
+    setParallelGroupOpenMenuLaneId: (laneId) =>
+      session.setParallelGroupOpenMenuLaneId(laneId),
+    setParallelGroupCancelAllConfirm: (open) =>
+      session.setParallelGroupCancelAllConfirm(open),
+    applyParallelGroupChrome: (chrome) =>
+      session.applyParallelGroupChrome(chrome),
     openWorkflowEditor: (id) => session.openWorkflowEditor(id),
     closeWorkflowEditor: () => session.closeWorkflowEditor(),
     selectWorkflowNode: (id) => session.selectWorkflowNode(id),

@@ -33,7 +33,10 @@ import { statisticsLoadFor } from './statisticsFixtures'
 import { taskChangesLoadFor } from './taskChangesFixtures'
 import { taskLoadFor } from './taskFixtures'
 import { workflowEditorLoadFor } from './workflowEditorFixtures'
-import { parallelGroupLoadFor } from './parallelGroupFixtures'
+import {
+  deferredParallelGroupLoading,
+  parallelGroupLoadFor,
+} from './parallelGroupFixtures'
 import { workflowExecutionLoadFor } from './workflowExecutionFixtures'
 import { workflowRunLoadFor } from './workflowRunFixtures'
 
@@ -209,7 +212,7 @@ export function buildMockEnginePort(options: {
         (id): ParallelGroupLoad => {
           const scenario = getScenario()
           if (scenario.parallelGroups === 'defer') {
-            return { kind: 'loading' }
+            return deferredParallelGroupLoading(id)
           }
           return parallelGroupLoadFor(id)
         },

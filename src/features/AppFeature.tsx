@@ -66,7 +66,10 @@ export function AppFeature({ presenter }: Props) {
         />
         <main className="hd-main">
           {state.route === 'parallel-group' ? (
-            <ParallelGroupMain state={state.parallelGroup} />
+            <ParallelGroupMain
+              state={state.parallelGroup}
+              presenter={presenter}
+            />
           ) : state.workflowExecution.runId !== null &&
             state.route === 'workflows' ? (
             <WorkflowRunMain

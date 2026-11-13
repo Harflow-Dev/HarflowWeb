@@ -1,6 +1,5 @@
 import type { NewTaskScenarioSeed } from '../adapters/mock'
 import {
-  asParallelGroupId,
   asTaskId,
   asWorkflowId,
   asWorkflowNodeId,
@@ -13,6 +12,7 @@ import type {
   EffortLevel,
   OpenMenu,
 } from '../presentation'
+import { applyParallelGroupSeed } from './applyParallelGroupSeed'
 
 /**
  * Applies preview-only presentation chrome after context is ready.
@@ -82,9 +82,7 @@ export function applyNewTaskSeed(
       presenter.setWorkflowRunViewMode('parallel')
     }
   }
-  if (seed.openParallelGroupId !== undefined) {
-    presenter.openParallelGroup(asParallelGroupId(seed.openParallelGroupId))
-  }
+  applyParallelGroupSeed(presenter, seed, whenLoaded)
 }
 
 type LoadProbe = {

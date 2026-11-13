@@ -12,8 +12,14 @@ import {
 
 export type ParallelGroupListener = (state: ParallelGroupScreenState) => void
 
+export type ParallelGroupChrome = {
+  readonly showPrompt?: boolean
+  readonly openMenuLaneId?: string | null
+  readonly cancelAllConfirm?: boolean
+}
+
 /**
- * Read-only Parallel group observation.
+ * Parallel group observation plus local chrome (prompt, menu, confirm).
  * A callback applies only for the open group id and observation generation.
  */
 export class ParallelGroupSession {
@@ -61,6 +67,9 @@ export class ParallelGroupSession {
     this.publish({
       groupId: id,
       load: { kind: 'loading' },
+      showPrompt: false,
+      openMenuLaneId: null,
+      cancelAllConfirm: false,
     })
     this.watch(id, gen)
   }
@@ -72,6 +81,49 @@ export class ParallelGroupSession {
     this.publish({
       groupId: null,
       load: { kind: 'loading' },
+      showPrompt: false,
+      openMenuLaneId: null,
+      cancelAllConfirm: false,
+    })
+  }
+
+  setShowPrompt(show: boolean): void {
+    if (this.state.showPrompt === show) return
+    this.publish({
+      ...this.state,
+      showPrompt: show,
+      openMenuLaneId: null,
+    })
+  }
+
+  setOpenMenuLaneId(laneId: string | null): void {
+    if (this.state.openMenuLaneId === laneId) return
+    this.publish({
+      ...this.state,
+      openMenuLaneId: laneId,
+      cancelAllConfirm: laneId !== null ? false : this.state.cancelAllConfirm,
+    })
+  }
+
+  setCancelAllConfirm(open: boolean): void {
+    if (this.state.cancelAllConfirm === open) return
+    this.publish({
+      ...this.state,
+      cancelAllConfirm: open,
+      openMenuLaneId: open ? null : this.state.openMenuLaneId,
+    })
+  }
+
+  applyChrome(chrome: ParallelGroupChrome): void {
+    this.publish({
+      ...this.state,
+      showPrompt: chrome.showPrompt ?? this.state.showPrompt,
+      openMenuLaneId:
+        chrome.openMenuLaneId !== undefined
+          ? chrome.openMenuLaneId
+          : this.state.openMenuLaneId,
+      cancelAllConfirm:
+        chrome.cancelAllConfirm ?? this.state.cancelAllConfirm,
     })
   }
 
@@ -97,6 +149,7 @@ export class ParallelGroupSession {
     if (this.disposed || gen !== this.epoch || this.state.groupId !== id) return
     if (load.kind === 'ready' && load.group.groupId !== id) {
       this.publish({
+        ...this.state,
         groupId: id,
         load: {
           kind: 'unavailable',
@@ -106,6 +159,7 @@ export class ParallelGroupSession {
       return
     }
     this.publish({
+      ...this.state,
       groupId: id,
       load,
     })

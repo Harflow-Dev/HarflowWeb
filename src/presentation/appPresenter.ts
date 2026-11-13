@@ -3,6 +3,9 @@ import type {
   LoadHarnessesUseCase,
   LoadNeedsYouUseCase,
   LoadParallelGroupUseCase,
+  LoadPendingLaunchCapabilityUseCase,
+  LoadPendingLaunchInventoryUseCase,
+  LoadPendingLaunchStatusUseCase,
   LoadResourcesUseCase,
   LoadSettingsGeneralUseCase,
   LoadWorkflowEditorUseCase,
@@ -20,6 +23,7 @@ import type {
   HarnessId,
   ModelId,
   ParallelGroupId,
+  PendingLaunchId,
   RepositoryId,
   StatisticsRangeId,
   TaskId,
@@ -57,6 +61,9 @@ export type AppPresenter = {
     readonly openMenuLaneId?: string | null
     readonly cancelAllConfirm?: boolean
   }): void
+  openPendingLaunches(): void
+  openPendingLaunch(id: PendingLaunchId): void
+  setPendingLaunchStopConfirm(open: boolean): void
   openWorkflowEditor(id: WorkflowId): void
   closeWorkflowEditor(): void
   selectWorkflowNode(id: WorkflowNodeId): void
@@ -99,6 +106,9 @@ type Deps = {
   readonly loadWorkflowEditor: LoadWorkflowEditorUseCase
   readonly loadWorkflowExecution: LoadWorkflowExecutionUseCase
   readonly loadParallelGroup: LoadParallelGroupUseCase
+  readonly loadPendingLaunchCapability: LoadPendingLaunchCapabilityUseCase
+  readonly loadPendingLaunchInventory: LoadPendingLaunchInventoryUseCase
+  readonly loadPendingLaunchStatus: LoadPendingLaunchStatusUseCase
 }
 
 export function createAppPresenter(deps: Deps): AppPresenter {
@@ -126,6 +136,10 @@ export function createAppPresenter(deps: Deps): AppPresenter {
       session.setParallelGroupCancelAllConfirm(open),
     applyParallelGroupChrome: (chrome) =>
       session.applyParallelGroupChrome(chrome),
+    openPendingLaunches: () => session.openPendingLaunches(),
+    openPendingLaunch: (id) => session.openPendingLaunch(id),
+    setPendingLaunchStopConfirm: (open) =>
+      session.setPendingLaunchStopConfirm(open),
     openWorkflowEditor: (id) => session.openWorkflowEditor(id),
     closeWorkflowEditor: () => session.closeWorkflowEditor(),
     selectWorkflowNode: (id) => session.selectWorkflowNode(id),

@@ -3,6 +3,9 @@ import type {
   LoadHarnessesUseCase,
   LoadNeedsYouUseCase,
   LoadParallelGroupUseCase,
+  LoadPendingLaunchCapabilityUseCase,
+  LoadPendingLaunchInventoryUseCase,
+  LoadPendingLaunchStatusUseCase,
   LoadResourcesUseCase,
   LoadSettingsGeneralUseCase,
   LoadWorkflowEditorUseCase,
@@ -18,6 +21,7 @@ import type { AppRoute, AppScreenState, SettingsSection } from './appState'
 import { HarnessesSession } from './harnessesSession'
 import { NeedsYouSession } from './needsYouSession'
 import { ParallelGroupSession } from './parallelGroupSession'
+import { PendingLaunchesSession } from './pendingLaunchesSession'
 import { PresenterSession } from './presenterSession'
 import { ResourcesSession } from './resourcesSession'
 import { SettingsGeneralSession } from './settingsGeneralSession'
@@ -42,6 +46,9 @@ export type AppSessionDeps = {
   readonly loadWorkflowEditor: LoadWorkflowEditorUseCase
   readonly loadWorkflowExecution: LoadWorkflowExecutionUseCase
   readonly loadParallelGroup: LoadParallelGroupUseCase
+  readonly loadPendingLaunchCapability: LoadPendingLaunchCapabilityUseCase
+  readonly loadPendingLaunchInventory: LoadPendingLaunchInventoryUseCase
+  readonly loadPendingLaunchStatus: LoadPendingLaunchStatusUseCase
 }
 
 export type AppChildSessions = {
@@ -56,6 +63,7 @@ export type AppChildSessions = {
   readonly workflowEditor: WorkflowEditorSession
   readonly workflowExecution: WorkflowExecutionSession
   readonly parallelGroup: ParallelGroupSession
+  readonly pendingLaunches: PendingLaunchesSession
 }
 
 export function createAppChildSessions(deps: AppSessionDeps): AppChildSessions {
@@ -74,6 +82,11 @@ export function createAppChildSessions(deps: AppSessionDeps): AppChildSessions {
     workflowEditor: new WorkflowEditorSession(deps.loadWorkflowEditor),
     workflowExecution: new WorkflowExecutionSession(deps.loadWorkflowExecution),
     parallelGroup: new ParallelGroupSession(deps.loadParallelGroup),
+    pendingLaunches: new PendingLaunchesSession(
+      deps.loadPendingLaunchCapability,
+      deps.loadPendingLaunchInventory,
+      deps.loadPendingLaunchStatus,
+    ),
   }
 }
 
@@ -92,6 +105,7 @@ export function subscribeAppChildSessions(
   children.workflowEditor.subscribe(onChange)
   children.workflowExecution.subscribe(onChange)
   children.parallelGroup.subscribe(onChange)
+  children.pendingLaunches.subscribe(onChange)
 }
 
 export function startAppChildSessions(children: AppChildSessions): void {
@@ -106,6 +120,7 @@ export function startAppChildSessions(children: AppChildSessions): void {
   children.workflowEditor.start()
   children.workflowExecution.start()
   children.parallelGroup.start()
+  children.pendingLaunches.start()
 }
 
 export function disposeAppChildSessions(children: AppChildSessions): void {
@@ -120,6 +135,7 @@ export function disposeAppChildSessions(children: AppChildSessions): void {
   children.workflowEditor.dispose()
   children.workflowExecution.dispose()
   children.parallelGroup.dispose()
+  children.pendingLaunches.dispose()
 }
 
 export function buildAppSnapshot(
@@ -141,5 +157,6 @@ export function buildAppSnapshot(
     workflowEditor: children.workflowEditor.getState(),
     workflowExecution: children.workflowExecution.getState(),
     parallelGroup: children.parallelGroup.getState(),
+    pendingLaunches: children.pendingLaunches.getState(),
   }
 }

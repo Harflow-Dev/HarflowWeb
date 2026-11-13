@@ -5,6 +5,10 @@ import type {
   ObservationHandle,
   ParallelGroupId,
   ParallelGroupLoad,
+  PendingLaunchCapabilityLoad,
+  PendingLaunchId,
+  PendingLaunchInventoryLoad,
+  PendingLaunchStatusLoad,
   ResourcesLoad,
   SettingsGeneralLoad,
   StartTaskOutcome,
@@ -150,6 +154,31 @@ export type EnginePort = {
    */
   observeNeedsYou(
     onUpdate: (load: NeedsYouLoad) => void,
+  ): ObservationHandle
+
+  /**
+   * Whether this engine reports `task-pending-launch.v1`.
+   * Mock-only — not a public ctl capability probe claim.
+   */
+  observePendingLaunchCapability(
+    onUpdate: (load: PendingLaunchCapabilityLoad) => void,
+  ): ObservationHandle
+
+  /**
+   * Bounded pending-launch inventory page.
+   * Mock-only — not a public ctl inventory claim.
+   */
+  observePendingLaunchInventory(
+    onUpdate: (load: PendingLaunchInventoryLoad) => void,
+  ): ObservationHandle
+
+  /**
+   * Status for one exact pending-launch ID.
+   * Unmapped ids yield not_found. Mock-only.
+   */
+  observePendingLaunchStatus(
+    launchId: PendingLaunchId,
+    onUpdate: (load: PendingLaunchStatusLoad) => void,
   ): ObservationHandle
 
   /**

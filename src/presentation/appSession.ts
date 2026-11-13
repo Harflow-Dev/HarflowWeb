@@ -4,6 +4,7 @@ import type {
   HarnessId,
   ModelId,
   ParallelGroupId,
+  PendingLaunchId,
   RepositoryId,
   StatisticsRangeId,
   TaskId,
@@ -23,6 +24,7 @@ import {
 } from './appChildSessions'
 import {
   closeParallelGroup,
+  closePendingLaunches,
   closeWorkflowExecution,
   navigationUpdatesRoute,
 } from './appNavigation'
@@ -73,19 +75,29 @@ export class AppSession {
   }
 
   navigate(route: AppRoute): void {
+    if (route === 'pending-launches' && this.route === 'pending-launches') {
+      this.children.pendingLaunches.openInventory()
+      this.emit()
+      return
+    }
     const update = navigationUpdatesRoute(
       this.route,
       route,
       this.children.workflowExecution,
       this.children.parallelGroup,
+      this.children.pendingLaunches,
     )
     if (!update) return
     this.route = route
+    if (route === 'pending-launches') {
+      this.children.pendingLaunches.openInventory()
+    }
     this.emit()
   }
 
   openWorkflowExecution(id: WorkflowRunId): void {
     closeParallelGroup(this.children.parallelGroup)
+    closePendingLaunches(this.children.pendingLaunches)
     this.route = 'workflows'
     this.children.workflowExecution.open(id)
     this.emit()
@@ -93,9 +105,30 @@ export class AppSession {
 
   openParallelGroup(id: ParallelGroupId): void {
     closeWorkflowExecution(this.children.workflowExecution)
+    closePendingLaunches(this.children.pendingLaunches)
     this.route = 'parallel-group'
     this.children.parallelGroup.open(id)
     this.emit()
+  }
+
+  openPendingLaunches(): void {
+    closeWorkflowExecution(this.children.workflowExecution)
+    closeParallelGroup(this.children.parallelGroup)
+    this.route = 'pending-launches'
+    this.children.pendingLaunches.openInventory()
+    this.emit()
+  }
+
+  openPendingLaunch(id: PendingLaunchId): void {
+    closeWorkflowExecution(this.children.workflowExecution)
+    closeParallelGroup(this.children.parallelGroup)
+    this.route = 'pending-launches'
+    this.children.pendingLaunches.openLaunch(id)
+    this.emit()
+  }
+
+  setPendingLaunchStopConfirm(open: boolean): void {
+    this.children.pendingLaunches.setStopConfirm(open)
   }
 
   setParallelGroupShowPrompt(show: boolean): void {
@@ -169,6 +202,7 @@ export class AppSession {
   openTask(taskId: TaskId): void {
     closeWorkflowExecution(this.children.workflowExecution)
     closeParallelGroup(this.children.parallelGroup)
+    closePendingLaunches(this.children.pendingLaunches)
     this.route = 'task'
     this.children.task.openTask(taskId)
     this.emit()

@@ -7,6 +7,9 @@ import {
   createLoadNeedsYouUseCase,
   createLoadSettingsGeneralUseCase,
   createLoadParallelGroupUseCase,
+  createLoadPendingLaunchCapabilityUseCase,
+  createLoadPendingLaunchInventoryUseCase,
+  createLoadPendingLaunchStatusUseCase,
   createLoadResourcesUseCase,
   createLoadStatisticsUseCase,
   createLoadTaskChangesUseCase,
@@ -61,6 +64,7 @@ import {
   parallelGroupLoadFor,
   PRELOAD_PARALLEL_GROUP_ID,
 } from '../adapters/mock/parallelGroupFixtures'
+import { unusedPendingLaunchPort } from '../adapters/mock/unusedPendingLaunchPort'
 import { SLOT_RELEASE_TASK_ID } from '../adapters/mock/taskFixtures'
 import {
   workflowEditorLoadFor,
@@ -286,6 +290,7 @@ function createTestEngine(options?: {
         },
       }
     },
+    ...unusedPendingLaunchPort(),
     observeResources(onUpdate) {
       resourceListeners.add(onUpdate)
       queueMicrotask(() =>
@@ -470,6 +475,10 @@ function renderApp(engine: EnginePort) {
     loadWorkflowEditor: createLoadWorkflowEditorUseCase(engine),
     loadWorkflowExecution: createLoadWorkflowExecutionUseCase(engine),
     loadParallelGroup: createLoadParallelGroupUseCase(engine),
+    loadPendingLaunchCapability:
+      createLoadPendingLaunchCapabilityUseCase(engine),
+    loadPendingLaunchInventory: createLoadPendingLaunchInventoryUseCase(engine),
+    loadPendingLaunchStatus: createLoadPendingLaunchStatusUseCase(engine),
   })
   const view = render(<AppFeature presenter={presenter} />)
   return { presenter, ...view }

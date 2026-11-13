@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { unusedPendingLaunchPort } from '../adapters/mock/unusedPendingLaunchPort'
 import {
   createLoadTaskChangesUseCase,
   createLoadTaskUseCase,
@@ -80,6 +81,7 @@ function createCapturingPort(
     observeParallelGroup() {
       return noopHandle('parallel-group')
     },
+    ...unusedPendingLaunchPort(),
     observeStatistics() {
       return noopHandle('stats')
     },
@@ -168,6 +170,7 @@ function createDeferredPort(): {
       observeParallelGroup() {
         return noopHandle('parallel-group')
       },
+      ...unusedPendingLaunchPort(),
       observeStatistics() {
         return noopHandle('stats')
       },

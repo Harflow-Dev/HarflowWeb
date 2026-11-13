@@ -25,6 +25,7 @@ import {
   populatedComposer,
   populatedSidebar,
 } from '../adapters/mock/fixtures'
+import { unusedPendingLaunchPort } from '../adapters/mock/unusedPendingLaunchPort'
 import type { ComposerContext } from '../model'
 import { createNewTaskPresenter } from './presenter'
 import {
@@ -139,6 +140,7 @@ function createTestEngine(options?: {
         },
       }
     },
+    ...unusedPendingLaunchPort(),
     observeResources(onUpdate) {
       queueMicrotask(() =>
         onUpdate({

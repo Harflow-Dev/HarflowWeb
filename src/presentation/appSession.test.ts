@@ -5,6 +5,9 @@ import {
   createLoadNeedsYouUseCase,
   createLoadSettingsGeneralUseCase,
   createLoadParallelGroupUseCase,
+  createLoadPendingLaunchCapabilityUseCase,
+  createLoadPendingLaunchInventoryUseCase,
+  createLoadPendingLaunchStatusUseCase,
   createLoadResourcesUseCase,
   createLoadStatisticsUseCase,
   createLoadTaskChangesUseCase,
@@ -50,6 +53,7 @@ import {
   PRELOAD_PARALLEL_GROUP_ID,
   preloadParallelGroup,
 } from '../adapters/mock/parallelGroupFixtures'
+import { unusedPendingLaunchPort } from '../adapters/mock/unusedPendingLaunchPort'
 import {
   NIGHTLY_AUDIT_RUN_ID,
   nightlyAuditRun,
@@ -192,6 +196,7 @@ function createTestEngine(options?: {
         },
       }
     },
+    ...unusedPendingLaunchPort(),
     observeResources(onUpdate) {
       queueMicrotask(() => onUpdate(initialResources))
       return {
@@ -307,6 +312,10 @@ function createPresenter(engine: EnginePort) {
     loadWorkflowEditor: createLoadWorkflowEditorUseCase(engine),
     loadWorkflowExecution: createLoadWorkflowExecutionUseCase(engine),
     loadParallelGroup: createLoadParallelGroupUseCase(engine),
+    loadPendingLaunchCapability:
+      createLoadPendingLaunchCapabilityUseCase(engine),
+    loadPendingLaunchInventory: createLoadPendingLaunchInventoryUseCase(engine),
+    loadPendingLaunchStatus: createLoadPendingLaunchStatusUseCase(engine),
   })
 }
 

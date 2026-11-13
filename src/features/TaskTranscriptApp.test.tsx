@@ -7,6 +7,9 @@ import {
   createLoadNeedsYouUseCase,
   createLoadSettingsGeneralUseCase,
   createLoadParallelGroupUseCase,
+  createLoadPendingLaunchCapabilityUseCase,
+  createLoadPendingLaunchInventoryUseCase,
+  createLoadPendingLaunchStatusUseCase,
   createLoadResourcesUseCase,
   createLoadStatisticsUseCase,
   createLoadTaskChangesUseCase,
@@ -24,6 +27,7 @@ import {
   type TaskId,
 } from '../model'
 import { populatedComposer, populatedSidebar } from '../adapters/mock/fixtures'
+import { unusedPendingLaunchPort } from '../adapters/mock/unusedPendingLaunchPort'
 import { populatedHarnessesLoad } from '../adapters/mock/harnessFixtures'
 import { emptyNeedsYouLoad } from '../adapters/mock/needsYouFixtures'
 import { populatedResourcesLoad } from '../adapters/mock/resourceFixtures'
@@ -85,6 +89,7 @@ function transcriptEngine(): EnginePort {
       )
       return handle('pg')
     },
+    ...unusedPendingLaunchPort(),
     observeResources(onUpdate) {
       queueMicrotask(() => onUpdate(populatedResourcesLoad()))
       return handle('res')
@@ -165,6 +170,10 @@ function renderApp(engine: EnginePort) {
     loadWorkflowEditor: createLoadWorkflowEditorUseCase(engine),
     loadWorkflowExecution: createLoadWorkflowExecutionUseCase(engine),
     loadParallelGroup: createLoadParallelGroupUseCase(engine),
+    loadPendingLaunchCapability:
+      createLoadPendingLaunchCapabilityUseCase(engine),
+    loadPendingLaunchInventory: createLoadPendingLaunchInventoryUseCase(engine),
+    loadPendingLaunchStatus: createLoadPendingLaunchStatusUseCase(engine),
   })
   render(<AppFeature presenter={presenter} />)
   return presenter

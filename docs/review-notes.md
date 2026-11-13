@@ -54,12 +54,37 @@ grant approvals, answer questions, or touch the task store.
   workflow-run Parallel; it keeps the existing `workflow-run/parallel`
   drawing. Apply titled lanes / Open task / Send-only there in a later pass.
 - Parallel group titled family (Design `2153ab1` / `4ff7d83`): View prompt,
-  lane menu, and Cancel-all dialog are interactive; Cancel-all confirm, Send,
-  Copy original request, and Load current activity stay unavailable (no
+  lane menu, and the Cancel-all trigger are interactive; Cancel-all confirm,
+  Send, Copy original request, and Load current activity stay unavailable (no
   mock mutation). Prompt disclosures reuse the task screen’s
   `hd-d2b-request` (Design drawing uses `hd-m05-request`). Legacy
   `parallel-group/lanes` keeps harness titles, findings end rows, and the
-  320pt wide floor; titled specimens use a 360pt floor via `.hd-pl--floor-360`.
+  shared 320pt wide floor; titled lanes use the drawing’s `flex: 1 0 360px`
+  (`.hd-pl--titled`) so two lanes fill the width at 1280×800, and the
+  `hd-main` container rule (`0 0 360px`, ≤ 800px) wins at narrow widths.
+  The model carries no layout field: presentation derives the legacy layout
+  from lanes without stored prompts (`parallelGroupTopBar`).
+- Parallel group presentation derivations (review round 2026-11-13): badge
+  tone, Cancel all, and View prompt availability are derived from lane
+  statuses and prompts in `presentation/parallelGroupChrome.ts`; the empty
+  copy lives there too (a ready group with zero lanes is the empty state).
+  View prompt is unavailable, with an accessible explanation, for a group
+  without stored prompts (legacy specimen, empty group). Open task is
+  unavailable with an explanation on lanes with no mapped task. A loading
+  observation carries `memberCount: number | null`; null (unknown) shows two
+  skeleton lanes, and the `loading-two` scenario opens a group whose member
+  count the mock deliberately reports as null. There is no non-deferred
+  loading path.
+- Cancel-all dialog (review round 2026-11-13): rendered by `AppFeature` inside
+  `.hd-app` (scrim over the whole window, as in the drawing). The sidebar and
+  main pane are `inert` while it is open; the lanes region is no longer
+  separately inert. The trap uses focusable controls only (one control keeps
+  focus on it for Tab and Shift+Tab). Focus returns to the Cancel all trigger
+  in a `ParallelGroupView` effect after the commit that removes `inert`.
+  Lane menu effect depends only on `menuOpen` (callbacks held in a ref) so a
+  parent render never re-steals focus. Running lanes append the working row;
+  settled, failed, cancelled, and taken-over Claude lanes use the full body
+  from the drawing (opening, Read 6 files, finding, `rg` tool) without it.
 - `new-task/centered-starting` is retired for
   `new-task/centered-starting-plain` (Design 76ad937): no visible status row
   under the composer while starting; Start’s accessible name is

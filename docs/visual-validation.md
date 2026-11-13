@@ -357,8 +357,17 @@ Target PNG directory:
 `~/.codex/workflows/screenshots/2026-11-13-harflowweb-parallel-lanes/`
 with `verified-1280x800/` for normal states and `verified-1000x620/` for
 minimum twins. Capture from `/preview?scenario=…` with the scenario panel
-hidden; CDP clip after `Emulation.setDeviceMetricsOverride`. Light and dark
-for each row.
+and the “Mock engine” badge hidden by injected capture CSS (the badge would
+otherwise sit over Cancel all) and page overflow hidden; the preview grid is
+switched to a block so the frame is not offset by the hidden panel column.
+`Emulation.setDeviceMetricsOverride` at 1280×800 for normal states (clip the
+whole viewport) or 1400×900 for minimum twins (clip `.hw-preview__app--minimum`
+inset by its 1px border: 1000×620). Light and dark via emulated
+`prefers-color-scheme`. All 13 normal states and 8 minimum twins were
+recaptured on 2026-11-13 after the review fixes (full-height lanes, lanes
+filling the width, full Claude lane bodies, app-level Cancel-all dialog); PNG
+sizes verified with `sips` (1280×800 and 1000×620). Earlier 1000×620 captures
+were misframed and are replaced.
 
 | Design state | Preview scenario | Frame |
 | --- | --- | --- |

@@ -23,7 +23,7 @@ populated fixture and shows a single “Mock engine” badge.
 | Workflow run loading | Approved `workflow-run/loading` (Design `9d19fd7`) mirroring on-demand. Deferred Nightly execution |
 | Workflow run loading · Parallel | Approved `workflow-run/loading-parallel` (Design `9d19fd7`). Same deferred run with Parallel preference |
 | Parallel group loading | Approved `parallel-group/loading` (Design `9d19fd7`). Deferred Review preload bridge group |
-| Parallel group loading · two | Approved `parallel-group/loading-two` (Design `2153ab1`). Deferred two-lane group; two skeleton frames |
+| Parallel group loading · two | Approved `parallel-group/loading-two` (Design `2153ab1`). Deferred group with unknown member count (`memberCount: null`); two skeleton frames |
 | Parallel group · lanes titled | Approved `parallel-group/lanes-titled` (Design `2153ab1`). Task titles; Harness · model captions |
 | Parallel group · lane menu open | Approved `parallel-group/lane-menu-open`. Open task only |
 | Parallel group · prompt shown | Approved `parallel-group/prompt-shown`. View prompt pressed |

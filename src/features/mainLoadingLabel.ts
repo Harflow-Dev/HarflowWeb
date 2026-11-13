@@ -10,6 +10,11 @@ export function mainLoadingLabel(state: AppScreenState): string | null {
       return state.parallelGroup.load.kind === 'loading'
         ? 'Loading parallel group'
         : null
+    case 'pending-launches':
+      return state.pendingLaunches.selectedLaunchId === null &&
+        state.pendingLaunches.inventory.kind === 'loading'
+        ? 'Checking pending launches'
+        : null
     case 'workflows':
       return workflowsLabel(state)
     case 'new-task':

@@ -14,6 +14,7 @@ export const NAV: readonly {
   { id: 'workflows', label: 'Workflows', icon: 'workflow' },
   { id: 'resources', label: 'Resources', icon: 'gauge' },
   { id: 'statistics', label: 'Statistics', icon: 'chart' },
+  { id: 'pending-launches', label: 'Pending launches', icon: 'clock' },
 ]
 
 export function isAppRoute(id: NavId): id is AppRoute {
@@ -23,6 +24,7 @@ export function isAppRoute(id: NavId): id is AppRoute {
     id === 'workflows' ||
     id === 'resources' ||
     id === 'statistics' ||
+    id === 'pending-launches' ||
     id === 'settings' ||
     id === 'task'
   )

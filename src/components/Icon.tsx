@@ -34,6 +34,7 @@ type IconName =
   | 'more'
   | 'flag'
   | 'lock'
+  | 'clock'
   | 'zap'
   | 'sparkle'
   | 'target'

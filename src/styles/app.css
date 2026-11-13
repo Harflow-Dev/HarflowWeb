@@ -1026,3 +1026,145 @@ body,
     width: 117px !important;
   }
 }
+
+/*
+ * Pending launches (Design 83d820f / pending-launches.css).
+ * Main content scrolls; composer stays locked at the bottom.
+ */
+.hd-pending {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  font-size: 13px;
+}
+
+.hd-pending-content {
+  padding: 28px 36px;
+  overflow: auto;
+  flex: 1;
+  min-height: 0;
+}
+
+.hd-pending-card {
+  max-width: 720px;
+  padding: 20px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  margin-bottom: 20px;
+}
+
+.hd-pending h2 {
+  font-size: 18px;
+  line-height: 26px;
+  margin: 0 0 8px;
+}
+
+.hd-pending p {
+  margin: 6px 0;
+  line-height: 20px;
+}
+
+.hd-pending-launch {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 10px 12px;
+  color: var(--text);
+  text-decoration: none;
+  border-radius: 8px;
+  overflow-wrap: anywhere;
+  border: 1px solid var(--border);
+  background: transparent;
+  width: 100%;
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+}
+
+.hd-pending-launch:hover,
+.hd-pending-launch.is-active {
+  background: var(--surface);
+}
+
+.hd-pending-launch small,
+.hd-pending-note {
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+
+.hd-pending-facts {
+  display: grid;
+  grid-template-columns: 100px minmax(0, 1fr);
+  gap: 10px;
+  margin: 20px 0 24px;
+}
+
+.hd-pending-facts dt {
+  color: var(--text-secondary);
+}
+
+.hd-pending-facts dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.hd-pending-inventory {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 18px;
+  max-width: 720px;
+}
+
+.hd-pending-composer {
+  margin: 12px 36px 24px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  color: var(--text-secondary);
+}
+
+.hd-pending-composer textarea {
+  display: block;
+  width: 100%;
+  height: 38px;
+  resize: none;
+  background: transparent;
+  border: 0;
+  font: inherit;
+  color: var(--text-secondary);
+}
+
+.hd-pending-composer p {
+  font-size: 12px;
+}
+
+.hd-pending .hd-row {
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.hd-pending .hd-topbar {
+  border-bottom: 1px solid var(--border);
+}
+
+.hd-pending-scrim {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+}
+
+.hd-pending-dialog {
+  width: 440px;
+  max-width: calc(100% - 48px);
+  max-height: calc(100% - 48px);
+  overflow: auto;
+}
+
+.hd-pending .hd-mono,
+.hd-pending-dialog .hd-mono {
+  overflow-wrap: anywhere;
+  font-family: var(--font-mono, ui-monospace, monospace);
+}

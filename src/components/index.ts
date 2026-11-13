@@ -23,6 +23,8 @@ export { WorkflowEditorView } from './WorkflowEditorView'
 export { WorkflowRunForm } from './WorkflowRunForm'
 export { WorkflowRunView } from './WorkflowRunView'
 export { ParallelGroupCancelDialog } from './ParallelGroupCancelDialog'
+export { PendingLaunchStopDialog } from './PendingLaunchStopDialog'
+export { PendingLaunchesView } from './PendingLaunchesView'
 export { ParallelGroupView } from './ParallelGroupView'
 export { WORKFLOW_RUN_ACTION_EXPLANATION } from './workflowRunUnavailable'
 export {

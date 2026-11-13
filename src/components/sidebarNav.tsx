@@ -94,6 +94,7 @@ export function CollapsedRail({
   onAppearance,
   onNavigate,
   inert,
+  navItems = NAV,
 }: {
   appearance: Appearance
   activeRoute: AppRoute
@@ -103,6 +104,7 @@ export function CollapsedRail({
   onAppearance: (appearance: Appearance) => void
   onNavigate: (route: AppRoute) => void
   inert?: boolean
+  navItems?: typeof NAV
 }) {
   return (
     <aside className="hd-rail" aria-label="Sidebar" inert={inert || undefined}>
@@ -117,7 +119,7 @@ export function CollapsedRail({
           <span className="hd-brand__mark" aria-hidden="true" />
         </button>
       </div>
-      {NAV.map((item) => {
+      {navItems.map((item) => {
         if (!isAppRoute(item.id)) return null
         const route = item.id
         const active = route === activeRoute

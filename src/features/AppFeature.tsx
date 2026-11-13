@@ -2,15 +2,22 @@ import { useSyncExternalStore } from 'react'
 import {
   MockBadge,
   ParallelGroupCancelDialog,
+  PendingLaunchStopDialog,
   Sidebar,
   StatusRegion,
 } from '../components'
 import { needsYouBadge } from '../model'
-import { cancelAllDialogOpen, type AppPresenter } from '../presentation'
+import {
+  cancelAllDialogOpen,
+  pendingLaunchesNavVisible,
+  pendingStopDialogOpen,
+  type AppPresenter,
+} from '../presentation'
 import { mainLoadingLabel } from './mainLoadingLabel'
 import { NeedsYouMain } from './NeedsYouMain'
 import { NewTaskMain } from './NewTaskMain'
 import { ParallelGroupMain } from './ParallelGroupMain'
+import { PendingLaunchesMain } from './PendingLaunchesMain'
 import { ResourcesMain } from './ResourcesMain'
 import { SettingsMain } from './SettingsMain'
 import { StatisticsMain } from './StatisticsMain'
@@ -29,8 +36,13 @@ export function AppFeature({ presenter }: Props) {
   const ephemeral = useEphemeralNote()
   const systemDark = useSystemPrefersDark()
   const newTask = state.newTask
-  const dialogOpen =
+  const cancelAllOpen =
     state.route === 'parallel-group' && cancelAllDialogOpen(state.parallelGroup)
+  const stopOpen =
+    state.route === 'pending-launches' &&
+    pendingStopDialogOpen(state.pendingLaunches)
+  const dialogOpen = cancelAllOpen || stopOpen
+  const showPendingLaunches = pendingLaunchesNavVisible(state.pendingLaunches)
 
   const resolvedTheme =
     newTask.appearance === 'system'
@@ -71,11 +83,17 @@ export function AppFeature({ presenter }: Props) {
           onOpenParallelGroup={(groupId) => presenter.openParallelGroup(groupId)}
           onUnavailable={(label) => ephemeral.show(label)}
           inert={dialogOpen}
+          showPendingLaunches={showPendingLaunches}
         />
         <main className="hd-main" inert={dialogOpen || undefined}>
           {state.route === 'parallel-group' ? (
             <ParallelGroupMain
               state={state.parallelGroup}
+              presenter={presenter}
+            />
+          ) : state.route === 'pending-launches' ? (
+            <PendingLaunchesMain
+              state={state.pendingLaunches}
               presenter={presenter}
             />
           ) : state.workflowExecution.runId !== null &&
@@ -145,9 +163,15 @@ export function AppFeature({ presenter }: Props) {
             />
           )}
         </main>
-        {dialogOpen ? (
+        {cancelAllOpen ? (
           <ParallelGroupCancelDialog
             onClose={() => presenter.setParallelGroupCancelAllConfirm(false)}
+          />
+        ) : null}
+        {stopOpen && state.pendingLaunches.selectedLaunchId ? (
+          <PendingLaunchStopDialog
+            launchId={state.pendingLaunches.selectedLaunchId}
+            onClose={() => presenter.setPendingLaunchStopConfirm(false)}
           />
         ) : null}
       </div>

@@ -33,6 +33,8 @@ type Props = {
   readonly onUnavailable: (label: string) => void
   /** A modal dialog covers the app: the sidebar takes no focus or input. */
   readonly inert?: boolean
+  /** Capability `task-pending-launch.v1` is reported. */
+  readonly showPendingLaunches?: boolean
 }
 
 export function Sidebar({
@@ -52,11 +54,15 @@ export function Sidebar({
   onOpenParallelGroup,
   onUnavailable,
   inert = false,
+  showPendingLaunches = false,
 }: Props) {
   const runningCount = sidebar?.running.length ?? 0
   const taskActiveId = activeRoute === 'task' ? activeTaskId : null
   const groupActiveId =
     activeRoute === 'parallel-group' ? activeParallelGroupId : null
+  const navItems = showPendingLaunches
+    ? NAV
+    : NAV.filter((item) => item.id !== 'pending-launches')
 
   if (collapsed) {
     return (
@@ -69,6 +75,7 @@ export function Sidebar({
         onAppearance={onAppearance}
         onNavigate={onNavigate}
         inert={inert}
+        navItems={navItems}
       />
     )
   }
@@ -95,7 +102,7 @@ export function Sidebar({
       </div>
       <div className="hw-sidebar-scroll">
         <nav className="hd-nav" aria-label="Main">
-          {NAV.map((item) => (
+          {navItems.map((item) => (
             <ExpandedNavItem
               key={item.id}
               item={item}

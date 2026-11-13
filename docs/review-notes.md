@@ -63,7 +63,14 @@ grant approvals, answer questions, or touch the task store.
   (`.hd-pl--titled`) so two lanes fill the width at 1280×800, and the
   `hd-main` container rule (`0 0 360px`, ≤ 800px) wins at narrow widths.
   The model carries no layout field: presentation derives the legacy layout
-  from lanes without stored prompts (`parallelGroupTopBar`).
+  from lanes without stored prompts (`parallelGroupTopBar`). This is an
+  inference: a later `prompt: string | null` model, or retiring the legacy
+  specimen, would remove the heuristic.
+- Cancel all is shown only while a lane is running. A group with only pending
+  lanes was not drawn, so whether it offers Cancel all is an open design
+  question. The session also clears the Cancel-all dialog when a ready update
+  leaves no running lane, so it cannot reopen later. `loading-two` is the
+  two-lanes content under its own group id; loading reports an unknown count.
 - Parallel group presentation derivations (review round 2026-11-13): badge
   tone, Cancel all, and View prompt availability are derived from lane
   statuses and prompts in `presentation/parallelGroupChrome.ts`; the empty

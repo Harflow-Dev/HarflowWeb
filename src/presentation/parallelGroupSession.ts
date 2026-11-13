@@ -5,6 +5,7 @@ import {
   type ParallelGroupId,
   type ParallelGroupLoad,
 } from '../model'
+import { parallelGroupTopBar } from './parallelGroupChrome'
 import {
   initialParallelGroupState,
   type ParallelGroupScreenState,
@@ -161,10 +162,16 @@ export class ParallelGroupSession {
       })
       return
     }
+    // The dialog only makes sense while a lane runs; do not let it reopen later.
+    const cancellable =
+      load.kind === 'ready' && parallelGroupTopBar(load.group).showCancelAll
     this.publish({
       ...this.state,
       groupId: id,
       load,
+      cancelAllConfirm: load.kind === 'loading' || cancellable
+        ? this.state.cancelAllConfirm
+        : false,
     })
   }
 

@@ -14,6 +14,8 @@ import {
   parallelGroupLoadFor,
   PRELOAD_PARALLEL_GROUP_ID,
   preloadParallelGroup,
+  settledParallelGroup,
+  TITLED_PARALLEL_GROUP_ID,
 } from '../adapters/mock/parallelGroupFixtures'
 import { ParallelGroupSession } from './parallelGroupSession'
 
@@ -218,5 +220,35 @@ describe('ParallelGroupSession chrome reset', () => {
       cancelAllConfirm: false,
       load: { kind: 'loading', memberCount: null },
     })
+  })
+})
+
+describe('ParallelGroupSession cancel-all dialog', () => {
+  it('clears the dialog when a ready update leaves no running lane', async () => {
+    const { engine, saved } = port({ auto: false })
+    const session = sessionFor(engine)
+    session.open(TITLED_PARALLEL_GROUP_ID)
+    saved[0]?.send(parallelGroupLoadFor(TITLED_PARALLEL_GROUP_ID))
+    session.setCancelAllConfirm(true)
+    saved[0]?.send({
+      kind: 'ready',
+      group: {
+        ...settledParallelGroup(),
+        groupId: TITLED_PARALLEL_GROUP_ID,
+      },
+    })
+    expect(session.getState().cancelAllConfirm).toBe(false)
+    saved[0]?.send(parallelGroupLoadFor(TITLED_PARALLEL_GROUP_ID))
+    expect(session.getState().cancelAllConfirm).toBe(false)
+  })
+
+  it('keeps the dialog across a running update', () => {
+    const { engine, saved } = port({ auto: false })
+    const session = sessionFor(engine)
+    session.open(TITLED_PARALLEL_GROUP_ID)
+    saved[0]?.send(parallelGroupLoadFor(TITLED_PARALLEL_GROUP_ID))
+    session.setCancelAllConfirm(true)
+    saved[0]?.send(parallelGroupLoadFor(TITLED_PARALLEL_GROUP_ID))
+    expect(session.getState().cancelAllConfirm).toBe(true)
   })
 })

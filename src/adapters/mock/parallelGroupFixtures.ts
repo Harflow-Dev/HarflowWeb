@@ -284,6 +284,11 @@ const BY_ID = new Map<ParallelGroupId, ParallelGroupObservation>([
   [HISTORY_BOUNDARY_PARALLEL_GROUP_ID, historyBoundaryParallelGroup()],
   [EMPTY_PARALLEL_GROUP_ID, emptyParallelGroup()],
   [TWO_LANES_PARALLEL_GROUP_ID, twoLanesParallelGroup()],
+  // Design loading-two is the skeleton of two-lanes: same content, own id.
+  [
+    LOADING_TWO_PARALLEL_GROUP_ID,
+    { ...twoLanesParallelGroup(), groupId: LOADING_TWO_PARALLEL_GROUP_ID },
+  ],
 ])
 
 export function parallelGroupLoadFor(groupId: ParallelGroupId): ParallelGroupLoad {
@@ -296,11 +301,15 @@ export function parallelGroupLoadFor(groupId: ParallelGroupId): ParallelGroupLoa
 
 /**
  * Deferred first-load: the member count of a known group with lanes. Unknown
- * and empty groups report null; the loading-two specimen is such a group.
+ * and empty groups report null; loading-two always reports null while its
+ * ready payload is the two-lanes fixture.
  */
 export function deferredParallelGroupLoading(
   groupId: ParallelGroupId,
 ): ParallelGroupLoad {
+  if (groupId === LOADING_TWO_PARALLEL_GROUP_ID) {
+    return { kind: 'loading', memberCount: null }
+  }
   const lanes = BY_ID.get(groupId)?.lanes.length ?? 0
   return { kind: 'loading', memberCount: lanes > 0 ? lanes : null }
 }

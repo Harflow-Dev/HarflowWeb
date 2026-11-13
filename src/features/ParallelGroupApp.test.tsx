@@ -160,6 +160,15 @@ describe('Parallel group deferred observation', () => {
         .getByRole('group', { name: 'Loading Parallel group' })
         .querySelectorAll('.hd-lane'),
     ).toHaveLength(2)
+    await act(async () => {
+      app.mock.publishParallelGroup(
+        LOADING_TWO_PARALLEL_GROUP_ID,
+        parallelGroupLoadFor(LOADING_TWO_PARALLEL_GROUP_ID),
+      )
+      await Promise.resolve()
+    })
+    const region = screen.getByRole('region', { name: 'Parallel group lanes' })
+    expect(within(region).getAllByRole('region')).toHaveLength(2)
   })
 
   it('shows three skeleton lanes for a known three-member group', async () => {

@@ -5,6 +5,10 @@ import type {
   NeedsYouLoad,
   ParallelGroupId,
   ParallelGroupLoad,
+  PendingLaunchCapabilityLoad,
+  PendingLaunchId,
+  PendingLaunchInventoryLoad,
+  PendingLaunchStatusLoad,
   ResourcesLoad,
   SettingsGeneralLoad,
   StartTaskOutcome,
@@ -47,6 +51,12 @@ export type MockEngineControls = {
   publishWorkflowRun(workflowId: WorkflowId, load: WorkflowRunContextLoad): void
   publishWorkflowEditor(workflowId: WorkflowId, load: WorkflowEditorLoad): void
   publishParallelGroup(groupId: ParallelGroupId, load: ParallelGroupLoad): void
+  publishPendingLaunchCapability(load: PendingLaunchCapabilityLoad): void
+  publishPendingLaunchInventory(load: PendingLaunchInventoryLoad): void
+  publishPendingLaunchStatus(
+    launchId: PendingLaunchId,
+    load: PendingLaunchStatusLoad,
+  ): void
   resolveHeldStart(outcome?: StartTaskOutcome): void
   readonly startRequestCount: () => number
   readonly lastStartRequest: () => StartTaskRequest | null

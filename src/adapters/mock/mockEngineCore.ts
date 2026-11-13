@@ -5,6 +5,10 @@ import type {
   NeedsYouLoad,
   ParallelGroupId,
   ParallelGroupLoad,
+  PendingLaunchCapabilityLoad,
+  PendingLaunchId,
+  PendingLaunchInventoryLoad,
+  PendingLaunchStatusLoad,
   ResourcesLoad,
   SettingsGeneralLoad,
   StartTaskOutcome,
@@ -37,6 +41,13 @@ import {
   deferredParallelGroupLoading,
   parallelGroupLoadFor,
 } from './parallelGroupFixtures'
+import {
+  pendingCapabilitySupported,
+  pendingCapabilityUnsupported,
+  pendingInventoryReady,
+  pendingStatusLoadFor,
+  type PendingLaunchStatusFixtureId,
+} from './pendingLaunchFixtures'
 import { workflowExecutionLoadFor } from './workflowExecutionFixtures'
 import { workflowRunLoadFor } from './workflowRunFixtures'
 
@@ -60,6 +71,11 @@ export type MockListenerSets = {
   readonly workflowEditors: Set<KeyedListener<WorkflowId, WorkflowEditorLoad>>
   readonly workflowExecutions: Set<KeyedListener<WorkflowRunId, WorkflowRunLoad>>
   readonly parallelGroups: Set<KeyedListener<ParallelGroupId, ParallelGroupLoad>>
+  readonly pendingCapability: Set<(load: PendingLaunchCapabilityLoad) => void>
+  readonly pendingInventory: Set<(load: PendingLaunchInventoryLoad) => void>
+  readonly pendingStatus: Set<
+    KeyedListener<PendingLaunchId, PendingLaunchStatusLoad>
+  >
 }
 
 export function createListenerSets(): MockListenerSets {
@@ -77,6 +93,9 @@ export function createListenerSets(): MockListenerSets {
     workflowEditors: new Set(),
     workflowExecutions: new Set(),
     parallelGroups: new Set(),
+    pendingCapability: new Set(),
+    pendingInventory: new Set(),
+    pendingStatus: new Set(),
   }
 }
 
@@ -245,6 +264,50 @@ export function buildMockEnginePort(options: {
           scenario.needsYou === 'defer' ? { kind: 'loading' } : scenario.needsYou
         return load
       })
+    },
+    observePendingLaunchCapability(onUpdate) {
+      return createObservation(listeners.pendingCapability, onUpdate, () => {
+        const scenario = getScenario()
+        const load: PendingLaunchCapabilityLoad =
+          scenario.pendingLaunchCapability === 'defer'
+            ? { kind: 'loading' }
+            : scenario.pendingLaunchCapability
+              ? pendingCapabilitySupported()
+              : pendingCapabilityUnsupported()
+        return load
+      })
+    },
+    observePendingLaunchInventory(onUpdate) {
+      return createObservation(listeners.pendingInventory, onUpdate, () => {
+        const scenario = getScenario()
+        const load: PendingLaunchInventoryLoad =
+          scenario.pendingLaunchInventory === 'defer'
+            ? { kind: 'loading' }
+            : scenario.pendingLaunchInventory === 'default'
+              ? pendingInventoryReady()
+              : scenario.pendingLaunchInventory
+        return load
+      })
+    },
+    observePendingLaunchStatus(launchId, onUpdate) {
+      return createKeyedObservation(
+        listeners.pendingStatus,
+        launchId,
+        onUpdate,
+        (id): PendingLaunchStatusLoad => {
+          const scenario = getScenario()
+          if (scenario.pendingLaunchStatus === 'defer') {
+            return { kind: 'loading' }
+          }
+          if (scenario.pendingLaunchStatus === 'default') {
+            return pendingStatusLoadFor(id)
+          }
+          return pendingStatusLoadFor(
+            id,
+            scenario.pendingLaunchStatus as PendingLaunchStatusFixtureId,
+          )
+        },
+      )
     },
     startTask(request) {
       return onStart(request)

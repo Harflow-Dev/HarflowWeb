@@ -49,6 +49,9 @@ const settingsGeneral = populatedSettingsGeneralLoad()
 const workflowEditors: DeferredSurface = 'default'
 const workflowExecutions: DeferredSurface = 'default'
 const parallelGroups: DeferredSurface = 'default'
+const pendingLaunchCapability = false
+const pendingLaunchInventory = 'default' as const
+const pendingLaunchStatus = 'default' as const
 
 export function base(
   partial: Omit<
@@ -64,6 +67,9 @@ export function base(
     | 'workflowEditors'
     | 'workflowExecutions'
     | 'parallelGroups'
+    | 'pendingLaunchCapability'
+    | 'pendingLaunchInventory'
+    | 'pendingLaunchStatus'
   > &
     Partial<
       Pick<
@@ -79,6 +85,9 @@ export function base(
         | 'workflowEditors'
         | 'workflowExecutions'
         | 'parallelGroups'
+        | 'pendingLaunchCapability'
+        | 'pendingLaunchInventory'
+        | 'pendingLaunchStatus'
         | 'seed'
       >
     >,
@@ -95,6 +104,9 @@ export function base(
     workflowEditors,
     workflowExecutions,
     parallelGroups,
+    pendingLaunchCapability,
+    pendingLaunchInventory,
+    pendingLaunchStatus,
     ...partial,
   }
 }

@@ -5,6 +5,10 @@ import type {
   NeedsYouLoad,
   ParallelGroupId,
   ParallelGroupLoad,
+  PendingLaunchCapabilityLoad,
+  PendingLaunchId,
+  PendingLaunchInventoryLoad,
+  PendingLaunchStatusLoad,
   ResourcesLoad,
   SettingsGeneralLoad,
   StatisticsLoad,
@@ -29,6 +33,13 @@ import {
   deferredParallelGroupLoading,
   parallelGroupLoadFor,
 } from './parallelGroupFixtures'
+import {
+  pendingCapabilitySupported,
+  pendingCapabilityUnsupported,
+  pendingInventoryReady,
+  pendingStatusLoadFor,
+  type PendingLaunchStatusFixtureId,
+} from './pendingLaunchFixtures'
 import type { ScenarioDefinition } from './scenarios'
 import { workflowEditorLoadFor } from './workflowEditorFixtures'
 import { workflowExecutionLoadFor } from './workflowExecutionFixtures'
@@ -131,6 +142,47 @@ function republishSurfaces(
         : parallelGroupLoadFor(listener.key),
     )
   }
+  republishPendingLaunches(scenario, listeners)
+}
+
+function republishPendingLaunches(
+  scenario: ScenarioDefinition,
+  listeners: MockListenerSets,
+): void {
+  for (const listener of listeners.pendingCapability) {
+    if (scenario.pendingLaunchCapability === 'defer') {
+      listener({ kind: 'loading' })
+    } else {
+      listener(
+        scenario.pendingLaunchCapability
+          ? pendingCapabilitySupported()
+          : pendingCapabilityUnsupported(),
+      )
+    }
+  }
+  for (const listener of listeners.pendingInventory) {
+    if (scenario.pendingLaunchInventory === 'defer') {
+      listener({ kind: 'loading' })
+    } else if (scenario.pendingLaunchInventory === 'default') {
+      listener(pendingInventoryReady())
+    } else {
+      listener(scenario.pendingLaunchInventory)
+    }
+  }
+  for (const listener of listeners.pendingStatus) {
+    if (scenario.pendingLaunchStatus === 'defer') {
+      listener.send({ kind: 'loading' })
+    } else if (scenario.pendingLaunchStatus === 'default') {
+      listener.send(pendingStatusLoadFor(listener.key))
+    } else {
+      listener.send(
+        pendingStatusLoadFor(
+          listener.key,
+          scenario.pendingLaunchStatus as PendingLaunchStatusFixtureId,
+        ),
+      )
+    }
+  }
 }
 
 export function republishScenario(
@@ -190,6 +242,20 @@ export function surfacePublishers(listeners: MockListenerSets) {
     publishParallelGroup(groupId: ParallelGroupId, load: ParallelGroupLoad) {
       for (const listener of listeners.parallelGroups) {
         if (listener.key === groupId) listener.send(load)
+      }
+    },
+    publishPendingLaunchCapability(load: PendingLaunchCapabilityLoad) {
+      for (const listener of listeners.pendingCapability) listener(load)
+    },
+    publishPendingLaunchInventory(load: PendingLaunchInventoryLoad) {
+      for (const listener of listeners.pendingInventory) listener(load)
+    },
+    publishPendingLaunchStatus(
+      launchId: PendingLaunchId,
+      load: PendingLaunchStatusLoad,
+    ) {
+      for (const listener of listeners.pendingStatus) {
+        if (listener.key === launchId) listener.send(load)
       }
     },
     publishTaskChanges(query: TaskChangesQuery, load: TaskChangesLoad) {

@@ -2,6 +2,7 @@ import type {
   ContextLoad,
   HarnessesLoad,
   NeedsYouLoad,
+  PendingLaunchInventoryLoad,
   ResourcesLoad,
   SettingsGeneralLoad,
   StartTaskOutcome,
@@ -13,6 +14,7 @@ import type {
   TaskLoad,
   WorkflowsLoad,
 } from '../../model'
+import type { PendingLaunchStatusFixtureId } from './pendingLaunchFixtures'
 import { SCENARIOS } from './scenarioCatalog'
 import { resolveScenarioRoute } from './scenarioRoute'
 import type { NewTaskScenarioSeed } from './scenarioSeed'
@@ -129,6 +131,32 @@ export type ScenarioId =
   | 'parallel-group-lane-cancelled-minimum'
   | 'parallel-group-lane-failed-minimum'
   | 'parallel-group-group-empty-minimum'
+  | 'pending-launches-inventory'
+  | 'pending-launches-loading'
+  | 'pending-launches-empty'
+  | 'pending-launches-failed'
+  | 'pending-launches-incomplete'
+  | 'pending-launches-waiting'
+  | 'pending-launches-preparing'
+  | 'pending-launches-preparing-handshake'
+  | 'pending-launches-granted'
+  | 'pending-launches-not-started'
+  | 'pending-launches-unavailable'
+  | 'pending-launches-missing'
+  | 'pending-launches-recorded'
+  | 'pending-launches-handoff-failed'
+  | 'pending-launches-stop-confirm'
+  | 'pending-launches-stop-requested'
+  | 'pending-launches-stop-uncertain'
+  | 'pending-launches-stop-refused'
+  | 'pending-launches-waiting-minimum'
+  | 'pending-launches-stop-confirm-minimum'
+  | 'pending-launches-stop-requested-minimum'
+
+export type PendingLaunchStatusScenario =
+  | 'default'
+  | 'defer'
+  | PendingLaunchStatusFixtureId
 
 export type ScenarioDefinition = {
   readonly id: ScenarioId
@@ -146,6 +174,13 @@ export type ScenarioDefinition = {
   readonly workflowEditors: DeferredSurface
   readonly workflowExecutions: DeferredSurface
   readonly parallelGroups: DeferredSurface
+  /** When false (default), Pending launches nav is hidden. */
+  readonly pendingLaunchCapability: boolean | 'defer'
+  readonly pendingLaunchInventory:
+    | 'default'
+    | 'defer'
+    | PendingLaunchInventoryLoad
+  readonly pendingLaunchStatus: PendingLaunchStatusScenario
   readonly startOutcome: StartTaskOutcome
   readonly holdStart: boolean
   readonly seed?: NewTaskScenarioSeed

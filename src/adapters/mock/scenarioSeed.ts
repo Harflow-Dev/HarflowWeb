@@ -35,6 +35,7 @@ export type NewTaskScenarioSeed = {
     | 'statistics'
     | 'settings'
     | 'needs-you'
+    | 'pending-launches'
   readonly openWorkflowEditorId?: string
   /** Select a node after the editor observation is ready (e.g. orchestrator). */
   readonly openWorkflowEditorNodeId?: string
@@ -44,6 +45,10 @@ export type NewTaskScenarioSeed = {
   readonly parallelGroupShowPrompt?: boolean
   readonly parallelGroupOpenMenuLaneId?: string | null
   readonly parallelGroupCancelAllConfirm?: boolean
+  /** Open Pending launches (inventory or a launch detail). */
+  readonly openPendingLaunches?: boolean
+  readonly openPendingLaunchId?: string
+  readonly pendingLaunchStopConfirm?: boolean
   readonly workflowRunView?: 'graph' | 'parallel'
   readonly settingsSection?: 'general' | 'harnesses'
   /** Harness id whose MCP approvals start expanded (Settings Harnesses). */

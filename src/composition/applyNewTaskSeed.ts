@@ -13,6 +13,7 @@ import type {
   OpenMenu,
 } from '../presentation'
 import { applyParallelGroupSeed } from './applyParallelGroupSeed'
+import { applyPendingLaunchSeed } from './applyPendingLaunchSeed'
 
 /**
  * Applies preview-only presentation chrome after context is ready.
@@ -83,6 +84,7 @@ export function applyNewTaskSeed(
     }
   }
   applyParallelGroupSeed(presenter, seed, whenLoaded)
+  applyPendingLaunchSeed(presenter, seed, whenLoaded)
 }
 
 type LoadProbe = {

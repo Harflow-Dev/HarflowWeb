@@ -106,6 +106,17 @@ export const LOADING_SCENARIOS: readonly ScenarioDefinition[] = [
     seed: { openParallelGroupId: 'parallel-group-preload-bridge' },
   }),
   base({
+    id: 'parallel-group-loading-two',
+    label: 'Parallel group loading · two lanes',
+    description:
+      'Approved parallel-group/loading-two (Design 2153ab1): two skeleton lanes while member count is unknown.',
+    context: readyContext(),
+    parallelGroups: 'defer',
+    startOutcome: accepted,
+    holdStart: false,
+    seed: { openParallelGroupId: 'parallel-group-two-lanes' },
+  }),
+  base({
     id: 'resources-loading',
     label: 'Resources loading',
     description:

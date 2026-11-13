@@ -259,6 +259,7 @@ const BUSY: Readonly<Record<string, Expected>> = {
   'workflow-run-loading': { role: 'group', name: 'Loading Workflow run' },
   'workflow-run-loading-parallel': { role: 'group', name: 'Loading Workflow run' },
   'parallel-group-loading': { role: 'group', name: 'Loading Parallel group' },
+  'parallel-group-loading-two': { role: 'group', name: 'Loading Parallel group' },
   'resources-loading': { role: 'group', name: 'Loading Resources' },
   'statistics-loading': { role: 'group', name: 'Loading Statistics' },
   'settings-loading-general': { role: 'region', name: 'Task store' },
@@ -313,6 +314,9 @@ describe('loading scenario catalog through the preview seeding path', () => {
         id === 'parallel-group-loading-minimum'
       ) {
         expect(screen.getByLabelText('Parallel lanes')).toBeInTheDocument()
+      }
+      if (id === 'parallel-group-loading-two') {
+        expect(busy.querySelectorAll('.hd-lane')).toHaveLength(2)
       }
     },
   )

@@ -347,6 +347,43 @@ to 1280×800. Light and dark for each state below.
 | `task/changes-loading` | `task-changes-loading` |
 | `task/events-loading` | `task-events-loading` |
 
+### Parallel group lane decisions — 2026-11-13
+
+Design pin: HarflowDesign `2153ab1d963709d8fbe77cd0bfd678292202a863`
+(`v2/scripts/states-parallel-lanes.js`, `v2/styles/parallel-lanes.css`);
+approval / history-boundary copy at `4ff7d83`.
+
+Target PNG directory:
+`~/.codex/workflows/screenshots/2026-11-13-harflowweb-parallel-lanes/`
+with `verified-1280x800/` for normal states and `verified-1000x620/` for
+minimum twins. Capture from `/preview?scenario=…` with the scenario panel
+hidden; CDP clip after `Emulation.setDeviceMetricsOverride`. Light and dark
+for each row.
+
+| Design state | Preview scenario | Frame |
+| --- | --- | --- |
+| `parallel-group/lanes-titled` | `parallel-group-lanes-titled` | 1280×800 |
+| `parallel-group/lane-menu-open` | `parallel-group-lane-menu-open` | 1280×800 |
+| `parallel-group/prompt-shown` | `parallel-group-prompt-shown` | 1280×800 |
+| `parallel-group/cancel-all-confirm` | `parallel-group-cancel-all-confirm` | 1280×800 |
+| `parallel-group/lanes-settled` | `parallel-group-lanes-settled` | 1280×800 |
+| `parallel-group/lane-failed` | `parallel-group-lane-failed` | 1280×800 |
+| `parallel-group/lane-cancelled` | `parallel-group-lane-cancelled` | 1280×800 |
+| `parallel-group/lane-taken-over` | `parallel-group-lane-taken-over` | 1280×800 |
+| `parallel-group/lane-activity-unavailable` | `parallel-group-lane-activity-unavailable` | 1280×800 |
+| `parallel-group/lane-history-boundary` | `parallel-group-lane-history-boundary` | 1280×800 |
+| `parallel-group/group-empty` | `parallel-group-group-empty` | 1280×800 |
+| `parallel-group/two-lanes` | `parallel-group-two-lanes` | 1280×800 |
+| `parallel-group/loading-two` | `parallel-group-loading-two` | 1280×800 |
+| `parallel-group/lanes-titled-minimum` | `parallel-group-lanes-titled-minimum` | 1000×620 |
+| `parallel-group/lane-menu-open-minimum` | `parallel-group-lane-menu-open-minimum` | 1000×620 |
+| `parallel-group/prompt-shown-minimum` | `parallel-group-prompt-shown-minimum` | 1000×620 |
+| `parallel-group/cancel-all-confirm-minimum` | `parallel-group-cancel-all-confirm-minimum` | 1000×620 |
+| `parallel-group/lanes-settled-minimum` | `parallel-group-lanes-settled-minimum` | 1000×620 |
+| `parallel-group/lane-cancelled-minimum` | `parallel-group-lane-cancelled-minimum` | 1000×620 |
+| `parallel-group/lane-failed-minimum` | `parallel-group-lane-failed-minimum` | 1000×620 |
+| `parallel-group/group-empty-minimum` | `parallel-group-group-empty-minimum` | 1000×620 |
+
 ### Minimum window 1000 × 620 — 2026-11-12
 
 Design approval: HarflowDesign `246cc97ca47643422af67ff7b00acc494d3e1d42`.

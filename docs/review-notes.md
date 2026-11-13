@@ -45,8 +45,21 @@ grant approvals, answer questions, or touch the task store.
   `task/artifacts-*` (provisional), `sidebar/history-older` (Web has no
   sidebar history paging / “load older”; not built),
   `new-task/centered-loading` (separate first-load path already covered by
-  `new-task-loading`), app-states / harness-runtime first loads, and pending
-  launches.
+  `new-task-loading`), app-states / harness-runtime first loads, pending
+  launches, and the four queued-message parallel-group lane states
+  (`lane-messages-queued`, `lane-message-delivering`, `lane-message-uncertain`,
+  `lane-message-cancelled`).
+- **Follow-up (D21):** workflow-run Parallel view lanes were covered by the
+  Design approval for lane decisions, but this Web slice does not change
+  workflow-run Parallel; it keeps the existing `workflow-run/parallel`
+  drawing. Apply titled lanes / Open task / Send-only there in a later pass.
+- Parallel group titled family (Design `2153ab1` / `4ff7d83`): View prompt,
+  lane menu, and Cancel-all dialog are interactive; Cancel-all confirm, Send,
+  Copy original request, and Load current activity stay unavailable (no
+  mock mutation). Prompt disclosures reuse the task screen’s
+  `hd-d2b-request` (Design drawing uses `hd-m05-request`). Legacy
+  `parallel-group/lanes` keeps harness titles, findings end rows, and the
+  320pt wide floor; titled specimens use a 360pt floor via `.hd-pl--floor-360`.
 - `new-task/centered-starting` is retired for
   `new-task/centered-starting-plain` (Design 76ad937): no visible status row
   under the composer while starting; Start’s accessible name is

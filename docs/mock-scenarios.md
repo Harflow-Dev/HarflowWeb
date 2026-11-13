@@ -23,6 +23,27 @@ populated fixture and shows a single “Mock engine” badge.
 | Workflow run loading | Approved `workflow-run/loading` (Design `9d19fd7`) mirroring on-demand. Deferred Nightly execution |
 | Workflow run loading · Parallel | Approved `workflow-run/loading-parallel` (Design `9d19fd7`). Same deferred run with Parallel preference |
 | Parallel group loading | Approved `parallel-group/loading` (Design `9d19fd7`). Deferred Review preload bridge group |
+| Parallel group loading · two | Approved `parallel-group/loading-two` (Design `2153ab1`). Deferred two-lane group; two skeleton frames |
+| Parallel group · lanes titled | Approved `parallel-group/lanes-titled` (Design `2153ab1`). Task titles; Harness · model captions |
+| Parallel group · lane menu open | Approved `parallel-group/lane-menu-open`. Open task only |
+| Parallel group · prompt shown | Approved `parallel-group/prompt-shown`. View prompt pressed |
+| Parallel group · Cancel all confirm | Approved `parallel-group/cancel-all-confirm`. Dialog open; confirm unavailable |
+| Parallel group · settled | Approved `parallel-group/lanes-settled`. Badge “3 done”; no Cancel all |
+| Parallel group · lane failed | Approved `parallel-group/lane-failed` |
+| Parallel group · lane cancelled | Approved `parallel-group/lane-cancelled` |
+| Parallel group · lane taken over | Approved `parallel-group/lane-taken-over` |
+| Parallel group · activity unavailable | Approved `parallel-group/lane-activity-unavailable` |
+| Parallel group · history boundary | Approved `parallel-group/lane-history-boundary` (Design `4ff7d83`) |
+| Parallel group · empty | Approved `parallel-group/group-empty` |
+| Parallel group · two lanes | Approved `parallel-group/two-lanes` |
+| Parallel group · lanes titled · minimum | Approved `lanes-titled-minimum` at 1000×620 |
+| Parallel group · lane menu · minimum | Approved `lane-menu-open-minimum` |
+| Parallel group · prompt · minimum | Approved `prompt-shown-minimum` |
+| Parallel group · Cancel confirm · minimum | Approved `cancel-all-confirm-minimum` |
+| Parallel group · settled · minimum | Approved `lanes-settled-minimum` |
+| Parallel group · cancelled · minimum | Approved `lane-cancelled-minimum` |
+| Parallel group · failed · minimum | Approved `lane-failed-minimum` |
+| Parallel group · empty · minimum | Approved `group-empty-minimum` |
 | Resources loading | Approved `resources/loading` (Design `9d19fd7`). Deferred resources; opens Resources |
 | Statistics loading | Approved `statistics/loading` (Design `9d19fd7`). Deferred statistics; opens Statistics |
 | Settings loading · General | Approved `settings/loading-general` (Design `9d19fd7`). Deferred settings-general observation; opens Settings · General |
@@ -84,13 +105,14 @@ the skeleton with the loaded screen without a layout jump.
 Sidebar navigation between **New task**, **Workflows**, **Resources**,
 **Statistics**, **Settings**, and **Needs you** is live. Explicitly mapped
 Running / Recent task rows open the matching task transcript. The Running row
-**Review preload bridge** (parallel glyph, meta `1/3`) opens the read-only
-Parallel group screen through `observeParallelGroup(groupId, …)` — Claude Code,
-Codex, and Opencode lanes from Design `parallel-group/lanes` (HarflowDesign
-`17739e4`). An unmapped group id or empty lanes stay unavailable and do not
-borrow another fixture. Leaving the group cancels its observation; reopening
-loads again. View prompt, Cancel all, lane actions, tool heads, and lane
-composers stay disabled. On New task the composer matches the M04 centered
+**Review preload bridge** (parallel glyph, meta `1/3`) opens the Parallel
+group screen through `observeParallelGroup(groupId, …)` — legacy
+`parallel-group/lanes` (HarflowDesign `17739e4`) on the sidebar mapping.
+Titled-lane preview scenarios use Design `2153ab1` fixtures. An unmapped
+group id stays unavailable; a ready empty group shows the approved empty
+message. Leaving cancels the observation. View prompt, lane menu (Open task),
+and Cancel-all dialog open/close work; Send, Cancel-all confirm, and Load
+current activity stay unavailable. On New task the composer matches the M04 centered
 amendment and the 854caae redraw: one-line prompt that grows to six lines,
 visual status line (live announcements stay in `StatusRegion`), and a `+` Task
 options control for effort, turn limit, and approvals. Escape returns focus to

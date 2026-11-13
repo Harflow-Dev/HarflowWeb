@@ -45,10 +45,26 @@ grant approvals, answer questions, or touch the task store.
   `task/artifacts-*` (provisional), `sidebar/history-older` (Web has no
   sidebar history paging / “load older”; not built),
   `new-task/centered-loading` (separate first-load path already covered by
-  `new-task-loading`), app-states / harness-runtime first loads, pending
-  launches, and the four queued-message parallel-group lane states
-  (`lane-messages-queued`, `lane-message-delivering`, `lane-message-uncertain`,
+  `new-task-loading`), app-states / harness-runtime first loads, and the four
+  queued-message parallel-group lane states (`lane-messages-queued`,
+  `lane-message-delivering`, `lane-message-uncertain`,
   `lane-message-cancelled`).
+- **Pending launches** (Design `83d820f` / approval `2934681`): all 21 approved
+  `task/pending-*` states are reachable from `/preview`. The “Pending launches”
+  nav item appears only when the mock engine reports capability
+  `task-pending-launch.v1` (`pendingLaunchCapability: true` on those scenarios).
+  Existing scenarios leave capability unsupported, so their sidebars stay
+  unchanged. Sparse sidebar history in the drawings is specimen content only;
+  this app does not truncate Running/Recent. Request Stop never mutates; stop
+  outcomes are separate scenarios. Check again / Check next page / Check task
+  status stay on the current fixture. Provisional queued-message and approval
+  pending states, and `task/launch-unknown`, stay out of scope. Inventory rows
+  follow the drawing (`title` / harness · repository · status / full ID); created
+  time and resource names appear on the locked detail facts when qualified.
+  Known drawing difference: `task/pending-stop-confirm` shortens the waiting
+  card lead under the sheet to “Waiting for Claude slots and Shared checkout.”;
+  this mock keeps the approved waiting sentence from the decision table while
+  the sheet is open.
 - **Follow-up (D21):** workflow-run Parallel view lanes were covered by the
   Design approval for lane decisions, but this Web slice does not change
   workflow-run Parallel; it keeps the existing `workflow-run/parallel`

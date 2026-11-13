@@ -393,6 +393,47 @@ were misframed and are replaced.
 | `parallel-group/lane-failed-minimum` | `parallel-group-lane-failed-minimum` | 1000×620 |
 | `parallel-group/group-empty-minimum` | `parallel-group-group-empty-minimum` | 1000×620 |
 
+### Pending launches — 2026-11-13
+
+Design pin: HarflowDesign `83d820f57e6ec2d82cccd3a1e335128332fdb672`
+(`v2/scripts/screens-pending-launches.js`, `v2/styles/pending-launches.css`);
+approval recorded in `2934681`; decision
+`v2/docs/decisions/pending-launch-discovery.md`.
+
+Target PNG directory:
+`~/.codex/workflows/screenshots/2026-11-13-harflowweb-pending-launches/`
+with `verified-1280x800/` for normal states and `verified-1000x620/` for the
+three minimum twins. Capture from `/preview?scenario=…` with the scenario
+panel and “Mock engine” badge hidden, page overflow hidden, and the same
+CDP clip rules as the Parallel group captures (1280×800 viewport clip, or
+1000×620 from `.hw-preview__app--minimum`). Light and dark via emulated
+`prefers-color-scheme`. Captured 2026-11-13: 36 PNGs at 1280×800 and 6 at
+1000×620 (`sips`-verified). Panel and Mock engine badge hidden.
+
+| Design state | Preview scenario | Frame |
+| --- | --- | --- |
+| `task/pending-inventory` | `pending-launches-inventory` | 1280×800 |
+| `task/pending-loading` | `pending-launches-loading` | 1280×800 |
+| `task/pending-empty` | `pending-launches-empty` | 1280×800 |
+| `task/pending-failed` | `pending-launches-failed` | 1280×800 |
+| `task/pending-incomplete` | `pending-launches-incomplete` | 1280×800 |
+| `task/pending-waiting` | `pending-launches-waiting` | 1280×800 |
+| `task/pending-preparing` | `pending-launches-preparing` | 1280×800 |
+| `task/pending-preparing-handshake` | `pending-launches-preparing-handshake` | 1280×800 |
+| `task/pending-granted` | `pending-launches-granted` | 1280×800 |
+| `task/pending-not-started` | `pending-launches-not-started` | 1280×800 |
+| `task/pending-unavailable` | `pending-launches-unavailable` | 1280×800 |
+| `task/pending-missing` | `pending-launches-missing` | 1280×800 |
+| `task/pending-recorded` | `pending-launches-recorded` | 1280×800 |
+| `task/pending-handoff-failed` | `pending-launches-handoff-failed` | 1280×800 |
+| `task/pending-stop-confirm` | `pending-launches-stop-confirm` | 1280×800 |
+| `task/pending-stop-requested` | `pending-launches-stop-requested` | 1280×800 |
+| `task/pending-stop-uncertain` | `pending-launches-stop-uncertain` | 1280×800 |
+| `task/pending-stop-refused` | `pending-launches-stop-refused` | 1280×800 |
+| `task/pending-waiting-minimum` | `pending-launches-waiting-minimum` | 1000×620 |
+| `task/pending-stop-confirm-minimum` | `pending-launches-stop-confirm-minimum` | 1000×620 |
+| `task/pending-stop-requested-minimum` | `pending-launches-stop-requested-minimum` | 1000×620 |
+
 ### Minimum window 1000 × 620 — 2026-11-12
 
 Design approval: HarflowDesign `246cc97ca47643422af67ff7b00acc494d3e1d42`.

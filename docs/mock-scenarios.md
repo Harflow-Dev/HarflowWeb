@@ -44,6 +44,27 @@ populated fixture and shows a single “Mock engine” badge.
 | Parallel group · cancelled · minimum | Approved `lane-cancelled-minimum` |
 | Parallel group · failed · minimum | Approved `lane-failed-minimum` |
 | Parallel group · empty · minimum | Approved `group-empty-minimum` |
+| Pending launches · Inventory | Approved `task/pending-inventory` (Design `83d820f`). Capability on; opens inventory |
+| Pending launches · Loading | Approved `task/pending-loading`. Deferred inventory |
+| Pending launches · Empty | Approved `task/pending-empty` |
+| Pending launches · Failed | Approved `task/pending-failed` |
+| Pending launches · Incomplete | Approved `task/pending-incomplete`. Entries kept + coverage warning |
+| Pending launches · Waiting | Approved `task/pending-waiting` |
+| Pending launches · Preparing | Approved `task/pending-preparing` |
+| Pending launches · Preparing handshake | Approved `task/pending-preparing-handshake`. Stop unavailable |
+| Pending launches · Granted | Approved `task/pending-granted` |
+| Pending launches · Not started | Approved `task/pending-not-started` |
+| Pending launches · Unavailable | Approved `task/pending-unavailable` |
+| Pending launches · Missing | Approved `task/pending-missing` |
+| Pending launches · Recorded | Approved `task/pending-recorded`. Check task status unavailable |
+| Pending launches · Handoff failed | Approved `task/pending-handoff-failed` |
+| Pending launches · Stop confirm | Approved `task/pending-stop-confirm`. Sheet open; Request Stop unavailable |
+| Pending launches · Stop requested | Approved `task/pending-stop-requested` |
+| Pending launches · Stop uncertain | Approved `task/pending-stop-uncertain` |
+| Pending launches · Stop refused | Approved `task/pending-stop-refused` |
+| Pending launches · Waiting · 1000×620 | Approved `task/pending-waiting-minimum` |
+| Pending launches · Stop confirm · 1000×620 | Approved `task/pending-stop-confirm-minimum` |
+| Pending launches · Stop requested · 1000×620 | Approved `task/pending-stop-requested-minimum` |
 | Resources loading | Approved `resources/loading` (Design `9d19fd7`). Deferred resources; opens Resources |
 | Statistics loading | Approved `statistics/loading` (Design `9d19fd7`). Deferred statistics; opens Statistics |
 | Settings loading · General | Approved `settings/loading-general` (Design `9d19fd7`). Deferred settings-general observation; opens Settings · General |

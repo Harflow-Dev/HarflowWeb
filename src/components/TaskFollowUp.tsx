@@ -1,5 +1,9 @@
 import type { TaskStatusComposer } from '../presentation/taskStatusView'
 import { Icon } from './Icon'
+import {
+  TASK_STOP_UNAVAILABLE_EXPLANATION,
+  TASK_STOP_UNAVAILABLE_ID,
+} from './taskUnavailable'
 
 type Props = {
   readonly composer: TaskStatusComposer
@@ -51,9 +55,14 @@ export function TaskFollowUp({ composer, onUnavailable }: Props) {
             <button
               type="button"
               className="hd-btn hd-btn--secondary hd-btn--sm"
-              aria-label="Stop (unavailable in this slice)"
-              title="Stop — unavailable in this slice"
-              onClick={() => onUnavailable('Stop')}
+              aria-disabled="true"
+              aria-describedby={TASK_STOP_UNAVAILABLE_ID}
+              aria-label="Stop"
+              title={TASK_STOP_UNAVAILABLE_EXPLANATION}
+              onClick={(event) => {
+                event.preventDefault()
+                onUnavailable('Stop')
+              }}
             >
               <Icon name="stop" size="sm" /> Stop
             </button>
@@ -62,8 +71,13 @@ export function TaskFollowUp({ composer, onUnavailable }: Props) {
             <button
               type="button"
               className="hd-btn hd-btn--secondary hd-btn--sm"
-              disabled
-              aria-label="Stopping (unavailable in this slice)"
+              aria-disabled="true"
+              aria-describedby={TASK_STOP_UNAVAILABLE_ID}
+              aria-label="Stopping…"
+              title={TASK_STOP_UNAVAILABLE_EXPLANATION}
+              onClick={(event) => {
+                event.preventDefault()
+              }}
             >
               <Icon name="stop" size="sm" /> Stopping…
             </button>

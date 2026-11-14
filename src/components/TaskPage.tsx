@@ -12,6 +12,7 @@ import { TaskFailureBanner } from './TaskFailureBanner'
 import { TaskFollowUp } from './TaskFollowUp'
 import { TaskStatusNotice } from './TaskStatusNotice'
 import { TaskSummarySection } from './TaskSummarySection'
+import { TaskUnavailableHints } from './TaskUnavailableHints'
 import { TranscriptSurface } from './TranscriptSurface'
 
 type Props = {
@@ -141,6 +142,7 @@ function TranscriptTaskBody({
         composer={statusView.composer}
         onUnavailable={onUnavailable}
       />
+      <TaskUnavailableHints />
     </>
   )
 

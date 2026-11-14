@@ -3,6 +3,7 @@ import { badgeForStatus } from './taskStatusBadgeMap'
 import { bannerFor } from './taskStatusBannerMap'
 import { composerFor } from './taskStatusComposerMap'
 import { noticeFor } from './taskStatusNoticeMap'
+import type { TaskCommandChrome, TaskStatusView } from './taskStatusTypes'
 
 export type {
   TaskCommandChrome,
@@ -20,8 +21,6 @@ export type {
 } from './taskStatusTypes'
 
 /** Map domain observation and session chrome to approved M05 task status UI. */
-import type { TaskCommandChrome, TaskStatusView } from './taskStatusTypes'
-
 export function taskStatusView(
   observation: TaskObservation,
   commandChrome: TaskCommandChrome = null,

@@ -117,8 +117,9 @@ describe('overflowItemAvailability', () => {
 const running = { kind: 'observed', status: 'running' } as const
 
 function labels(view: ReturnType<typeof overflowMenuView>): string[] {
-  if (!view) return []
-  return [...view.primary, ...view.repository.items].map((item) => item.label)
+  return [...view.primary, ...(view.repository?.items ?? [])].map(
+    (item) => item.label,
+  )
 }
 
 describe('overflowMenuVariant', () => {
@@ -188,15 +189,15 @@ describe('overflowMenuVariant', () => {
 describe('overflowMenuView', () => {
   it('orders running items like the design overflow()', () => {
     const view = overflowMenuView(observation({ statusRead: running }), null)
-    expect(view?.variant).toBe('running')
-    expect(view?.primary.map((item) => item.label)).toEqual([
+    expect(view.variant).toBe('running')
+    expect(view.primary.map((item) => item.label)).toEqual([
       'Stop task…',
       'Take over in terminal…',
       'Copy resume command',
       'Copy task ID',
     ])
-    expect(view?.repository.name).toBe('HarflowMCP')
-    expect(view?.repository.items.map((item) => item.label)).toEqual([
+    expect(view.repository?.name).toBe('HarflowMCP')
+    expect(view.repository?.items.map((item) => item.label)).toEqual([
       'Open in Finder',
       'Copy path',
     ])
@@ -207,7 +208,7 @@ describe('overflowMenuView', () => {
       observation({ statusRead: running }),
       'stop-requested',
     )
-    expect(view?.variant).toBe('stopping')
+    expect(view.variant).toBe('stopping')
     expect(labels(view)).toEqual([
       'Open in terminal…',
       'Copy resume command',
@@ -215,7 +216,7 @@ describe('overflowMenuView', () => {
       'Open in Finder',
       'Copy path',
     ])
-    const terminal = view?.primary.find((item) => item.id === 'openTerminal')
+    const terminal = view.primary.find((item) => item.id === 'openTerminal')
     expect(terminal?.availability).toBe('unavailable')
   })
 
@@ -230,7 +231,7 @@ describe('overflowMenuView', () => {
       }),
       null,
     )
-    const parent = view?.primary.find((item) => item.id === 'openParent')
+    const parent = view.primary.find((item) => item.id === 'openParent')
     expect(parent?.hint).toBe('Started by Nightly dependency audit')
   })
 
@@ -243,27 +244,18 @@ describe('overflowMenuView', () => {
     expect(labels(view)).toContain('Stop task…')
   })
 
-  it('draws no menu when the observation omits it or has no repository', () => {
-    expect(
-      overflowMenuView(
-        observation({ statusRead: running, overflowMenu: 'omitted' }),
-        null,
-      ),
-    ).toBeNull()
+  it('omits only the repository group when no repository is recorded', () => {
     const { repository: _unused, ...rest } = observation({
       statusRead: running,
     })
-    expect(overflowMenuView(rest, null)).toBeNull()
-    expect(
-      overflowMenuView(
-        {
-          ...observation({ statusRead: { kind: 'unread' } }),
-          transcript: transcriptObservationFor('observed'),
-          overflowMenu: 'omitted',
-        },
-        null,
-      ),
-    ).toBeNull()
+    const view = overflowMenuView(rest, null)
+    expect(view.repository).toBeNull()
+    expect(labels(view)).toEqual([
+      'Stop task…',
+      'Take over in terminal…',
+      'Copy resume command',
+      'Copy task ID',
+    ])
   })
 
   it('derives wont-be-stopped titles from the earlier-turn read', () => {

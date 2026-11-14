@@ -18,10 +18,13 @@ export function applyTaskOverflowSeed(
   ) => void,
 ): void {
   if (seed.openTaskId === undefined) return
+  const taskId = asTaskId(seed.openTaskId)
+  if (seed.taskOverflowAnchorOmitted === true) {
+    presenter.seedTaskOverflowChrome(taskId, { anchorOmitted: true })
+  }
   const wantsOverflow =
     seed.taskOverflowMenuOpen === true || seed.taskDialog !== undefined
   if (!wantsOverflow) return
-  const taskId = asTaskId(seed.openTaskId)
   whenLoaded(
     presenter,
     (state) => ({

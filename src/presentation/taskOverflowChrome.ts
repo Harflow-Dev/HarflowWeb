@@ -1,6 +1,5 @@
 import type { TaskId } from '../model'
 import { taskDialogView } from './taskDialogView'
-import { overflowMenuView } from './taskOverflowMenu'
 import type {
   TaskDialogKind,
   TaskDialogOpener,
@@ -42,13 +41,17 @@ export function withSeededOverflowChrome(
   chrome: TaskOverflowChrome,
 ): TaskScreenState | null {
   if (state.selectedTaskId !== taskId) return null
-  if (state.load.kind !== 'ready') return null
+  const anchorOmitted = chrome.anchorOmitted ?? state.overflowAnchorOmitted
+  if (state.load.kind !== 'ready') {
+    // Only screen identity can be seeded before the observation is ready.
+    return anchorOmitted === state.overflowAnchorOmitted
+      ? null
+      : { ...state, overflowAnchorOmitted: anchorOmitted }
+  }
   return {
     ...state,
-    overflowMenuOpen:
-      chrome.overflowMenuOpen !== undefined
-        ? chrome.overflowMenuOpen
-        : state.overflowMenuOpen,
+    overflowAnchorOmitted: anchorOmitted,
+    overflowMenuOpen: chrome.overflowMenuOpen ?? state.overflowMenuOpen,
     dialog: chrome.dialog !== undefined ? chrome.dialog : state.dialog,
     dialogOpener:
       chrome.dialogOpener !== undefined
@@ -65,9 +68,7 @@ export function withSeededOverflowChrome(
 export function reconcileOverflowChrome(
   state: TaskScreenState,
 ): TaskScreenState {
-  const menuValid =
-    state.load.kind === 'ready' &&
-    overflowMenuView(state.load.observation, state.commandChrome) !== null
+  const menuValid = state.load.kind === 'ready' && !state.overflowAnchorOmitted
   const closeMenu = state.overflowMenuOpen && !menuValid
   const closeDialog = state.dialog !== null && taskDialogView(state) === null
   if (!closeMenu && !closeDialog) return state

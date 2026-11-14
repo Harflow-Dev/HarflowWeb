@@ -25,6 +25,7 @@ import {
   PRELOAD_TASK_ID,
   RETRY_BUDGET_DONE_TASK_ID,
   SLOT_RELEASE_TASK_ID,
+  slotReleaseObservation,
   taskLoadFor,
 } from '../adapters/mock/taskFixtures'
 import { TaskSession } from './taskSession'
@@ -304,6 +305,25 @@ describe('TaskSession', () => {
     expect(session.getState().dialog).toBeNull()
     session.openTaskDialog('takeover', 'more')
     expect(session.getState().dialog).toBeNull()
+    session.dispose()
+  })
+
+  it('refuses the Take over dialog without an observed access level', async () => {
+    const { accessLevel: _unused, ...withoutAccess } =
+      slotReleaseObservation()
+    const { port } = createCapturingPort((taskId) =>
+      taskId === SLOT_RELEASE_TASK_ID
+        ? { kind: 'ready', observation: withoutAccess }
+        : taskLoadFor(taskId),
+    )
+    const session = sessionFor(port)
+    session.start()
+    session.openTask(SLOT_RELEASE_TASK_ID)
+    await flush()
+    session.openTaskDialog('takeover', 'more')
+    expect(session.getState().dialog).toBeNull()
+    session.openTaskDialog('stop', 'more')
+    expect(session.getState().dialog).toBe('stop')
     session.dispose()
   })
 

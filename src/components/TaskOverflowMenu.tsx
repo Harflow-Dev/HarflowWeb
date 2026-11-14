@@ -131,11 +131,15 @@ export function TaskOverflowMenu({
               onAction={onAction}
             />
           ))}
-          <div className="hd-menu__sep" />
-          <div className="hd-menu__label">{menu.repository.name}</div>
-          {menu.repository.items.map((item) => (
-            <MenuItem key={item.id} item={item} onAction={onAction} />
-          ))}
+          {menu.repository ? (
+            <>
+              <div className="hd-menu__sep" />
+              <div className="hd-menu__label">{menu.repository.name}</div>
+              {menu.repository.items.map((item) => (
+                <MenuItem key={item.id} item={item} onAction={onAction} />
+              ))}
+            </>
+          ) : null}
         </div>
       ) : null}
     </span>

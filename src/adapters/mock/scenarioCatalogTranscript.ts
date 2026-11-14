@@ -48,6 +48,7 @@ function transcriptScenario(
     seed: {
       openTaskId: TRANSCRIPT_TASK_IDS[mount],
       eventsPaneOpen,
+      taskOverflowAnchorOmitted: true,
     },
   })
 }

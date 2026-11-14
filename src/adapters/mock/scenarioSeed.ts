@@ -36,6 +36,8 @@ export type NewTaskScenarioSeed = {
   readonly taskCommandChrome?: TaskCommandChromeSeed
   /** Open the task overflow More-actions menu after the observation is ready. */
   readonly taskOverflowMenuOpen?: boolean
+  /** Screen identity: the approved transcript routes draw no More anchor. */
+  readonly taskOverflowAnchorOmitted?: boolean
   /** Open a task confirmation dialog after the observation is ready. */
   readonly taskDialog?: 'stop' | 'takeover'
   /** Open the right pane (Events for transcript states; Changes otherwise). */

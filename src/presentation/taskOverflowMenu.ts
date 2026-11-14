@@ -46,25 +46,23 @@ export function overflowMenuVariant(
 }
 
 /**
- * Overflow menu for a ready task observation, or null when the screen draws
- * no More anchor: the observation says so (`overflowMenu: 'omitted'`, the
- * approved transcript screens) or records no repository to label the group.
+ * Overflow menu for a ready task observation. Whether the screen draws a More
+ * anchor at all is screen identity (`TaskScreenState.overflowAnchorOmitted`),
+ * decided by the caller. Without a recorded repository only the repository
+ * group is left out.
  */
 export function overflowMenuView(
   observation: TaskObservation,
   chrome: TaskCommandChrome,
-): OverflowMenuView | null {
-  if (observation.overflowMenu === 'omitted') return null
-  const repository = observation.repository
-  if (!repository) return null
+): OverflowMenuView {
   const variant = overflowMenuVariant(observation, chrome)
+  const repository = observation.repository
   return {
     variant,
     primary: buildPrimaryItems(variant, observation),
-    repository: {
-      name: repository.name,
-      items: buildRepositoryItems(variant),
-    },
+    repository: repository
+      ? { name: repository.name, items: buildRepositoryItems(variant) }
+      : null,
   }
 }
 

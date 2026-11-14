@@ -219,6 +219,7 @@ export class TaskSession {
       load: { kind: 'loading' },
       commandChrome: null,
       overflowMenuOpen: false,
+      overflowAnchorOmitted: false,
       dialog: null,
       dialogOpener: null,
       changesPaneOpen: false,

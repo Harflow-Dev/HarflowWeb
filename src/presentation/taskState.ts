@@ -24,6 +24,11 @@ export type TaskScreenState = {
   readonly commandChrome: TaskCommandChrome
   /** Overflow More-actions menu open (presentation chrome). */
   readonly overflowMenuOpen: boolean
+  /**
+   * Screen identity, seeded by composition: the approved transcript routes
+   * draw no More anchor. Not an engine observation.
+   */
+  readonly overflowAnchorOmitted: boolean
   /** Stop or takeover confirmation dialog (presentation chrome). */
   readonly dialog: TaskDialogKind | null
   /** Which control opened the dialog; null when seeded without a trigger. */
@@ -51,6 +56,7 @@ export function initialTaskState(): TaskScreenState {
     load: { kind: 'loading' },
     commandChrome: null,
     overflowMenuOpen: false,
+    overflowAnchorOmitted: false,
     dialog: null,
     dialogOpener: null,
     changesPaneOpen: false,
@@ -64,6 +70,7 @@ export function initialTaskState(): TaskScreenState {
 /** Preview / session chrome for the overflow menu and confirmation dialogs. */
 export type TaskOverflowChrome = {
   readonly overflowMenuOpen?: boolean
+  readonly anchorOmitted?: boolean
   readonly dialog?: TaskDialogKind | null
   readonly dialogOpener?: TaskDialogOpener | null
 }

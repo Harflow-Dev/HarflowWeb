@@ -63,9 +63,10 @@ export function TaskMain({
   const readyMeta = ready
     ? taskStatusView(ready, state.commandChrome).meta
     : null
-  const overflowMenu = ready
-    ? overflowMenuView(ready, state.commandChrome)
-    : null
+  const overflowMenu =
+    ready && !state.overflowAnchorOmitted
+      ? overflowMenuView(ready, state.commandChrome)
+      : null
   const moreRef = useRef<HTMLButtonElement>(null)
   const titleRef = useRef<HTMLSpanElement>(null)
   const focusTitleFor = useRef<TaskId | null>(null)

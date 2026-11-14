@@ -348,10 +348,12 @@ grant approvals, answer questions, or touch the task store.
   `cancel-dialog`, `cancel-dialog-lineage`, `takeover-dialog`) seed through
   composition. The M05 task top bar shows More actions; the approved
   transcript screens (`transcript-*`, with or without the Events pane) do not,
-  because the design draws no More anchor there (identity `menu: false`). That
-  is an observed fact on the observation (`overflowMenu: 'omitted'`), not a
-  guess; a menu also needs a recorded repository for its label, so no
-  placeholder repository name or empty copy is invented. Menu items follow the
+  because the design draws no More anchor there
+  (identity `menu: false`). That is screen identity, not an engine
+  observation: composition seeds `TaskScreenState.overflowAnchorOmitted` from
+  the transcript scenarios, so the model carries no such flag. Without a
+  recorded repository only the repository group (separator, label, Open in
+  Finder, Copy path) is left out; nothing is invented. Menu items follow the
   observed-status availability map, including the stop-requested ("stopping")
   composer state (no Stop, no Take over, Open in terminal unavailable).
   Take over is offered only when the access level is observed

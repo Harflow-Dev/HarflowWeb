@@ -60,11 +60,14 @@ export type OverflowMenuView = {
   readonly variant: OverflowMenuVariant
   /** Items before the separator. */
   readonly primary: readonly OverflowMenuItemView[]
-  /** Items after the separator, introduced by the repository label. */
+  /**
+   * Items after the separator, introduced by the repository label. Null when
+   * no repository is recorded: the group is omitted, not given a made-up name.
+   */
   readonly repository: {
     readonly name: string
     readonly items: readonly OverflowMenuItemView[]
-  }
+  } | null
 }
 
 /**

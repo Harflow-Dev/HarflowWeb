@@ -143,12 +143,6 @@ export type TaskObservation = {
    */
   readonly accessLevel?: AccessLevel
   /**
-   * Observed fact: this screen draws no task actions menu (the approved
-   * transcript screens carry no More anchor). Absent means the menu is drawn
-   * when a repository is also recorded.
-   */
-  readonly overflowMenu?: 'omitted'
-  /**
    * Task-list read: tasks this run started in earlier turns that were running
    * when last read. Presentation derives the labelled "won't be stopped" list.
    */

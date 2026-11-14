@@ -1,5 +1,14 @@
 import type { ParallelGroupId, ParallelGroupLoad } from '../model'
 
+/**
+ * Result of a queued-message command, fenced to the lane it ran in.
+ * Not an observation fact.
+ */
+export type ParallelGroupQueuedOutcome = {
+  readonly laneId: string
+  readonly kind: 'cancelled'
+}
+
 export type ParallelGroupScreenState = {
   readonly groupId: ParallelGroupId | null
   readonly load: ParallelGroupLoad
@@ -9,11 +18,8 @@ export type ParallelGroupScreenState = {
   readonly openMenuLaneId: string | null
   /** Cancel-all confirmation dialog open. */
   readonly cancelAllConfirm: boolean
-  /**
-   * Outcome of cancelling a queued message (command result).
-   * Not an observation fact; cleared when the route reopens.
-   */
-  readonly queuedCancelOutcome: string | null
+  /** Cancelled-message outcome for one lane; cleared when the route reopens. */
+  readonly queuedCancelOutcome: ParallelGroupQueuedOutcome | null
 }
 
 export function initialParallelGroupState(): ParallelGroupScreenState {

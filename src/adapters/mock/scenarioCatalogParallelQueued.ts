@@ -1,10 +1,11 @@
+import { TITLED_RUNNING_LANE_ID } from './parallelGroupQueuedFixtures'
 import { accepted, base, readyContext } from './scenarioBase'
 import type { ScenarioDefinition } from './scenarios'
 
 function parallelSeed(
   openParallelGroupId: string,
   chrome?: {
-    readonly queuedCancelOutcome?: string
+    readonly queuedCancelOutcome?: { readonly laneId: string; readonly kind: 'cancelled' }
   },
 ): NonNullable<ScenarioDefinition['seed']> {
   return {
@@ -56,7 +57,7 @@ export const PARALLEL_QUEUED_SCENARIOS: readonly ScenarioDefinition[] = [
     startOutcome: accepted,
     holdStart: false,
     seed: parallelSeed('parallel-group-lane-message-cancelled', {
-      queuedCancelOutcome: 'Queued message cancelled.',
+      queuedCancelOutcome: { laneId: TITLED_RUNNING_LANE_ID, kind: 'cancelled' },
     }),
   }),
 ]

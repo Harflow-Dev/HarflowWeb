@@ -8,6 +8,7 @@ import {
 import { parallelGroupTopBar } from './parallelGroupChrome'
 import {
   initialParallelGroupState,
+  type ParallelGroupQueuedOutcome,
   type ParallelGroupScreenState,
 } from './parallelGroupState'
 
@@ -17,7 +18,7 @@ export type ParallelGroupChrome = {
   readonly showPrompt?: boolean
   readonly openMenuLaneId?: string | null
   readonly cancelAllConfirm?: boolean
-  readonly queuedCancelOutcome?: string | null
+  readonly queuedCancelOutcome?: ParallelGroupQueuedOutcome | null
 }
 
 /**
@@ -89,12 +90,6 @@ export class ParallelGroupSession {
       cancelAllConfirm: false,
       queuedCancelOutcome: null,
     })
-  }
-
-  /** Preview seeding: show a prior queued-message Cancel outcome. */
-  seedQueuedCancelOutcome(outcome: string): void {
-    if (this.state.queuedCancelOutcome === outcome) return
-    this.publish({ ...this.state, queuedCancelOutcome: outcome })
   }
 
   setShowPrompt(show: boolean): void {

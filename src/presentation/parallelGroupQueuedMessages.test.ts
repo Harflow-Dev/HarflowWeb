@@ -1,15 +1,20 @@
 import { describe, expect, it } from 'vitest'
 import { asTaskId } from '../model'
-import { titledParallelGroup } from '../adapters/mock/parallelGroupFixtures'
+import {
+  QUEUE_FIRST as QUEUED_MESSAGE_FIRST,
+  QUEUE_SECOND as QUEUED_MESSAGE_SECOND,
+  TITLED_RUNNING_LANE_ID,
+  titledParallelGroup,
+} from '../adapters/mock/parallelGroupFixtures'
 import { PRELOAD_TASK_ID } from '../adapters/mock/taskFixtures'
 import {
   QUEUED_MESSAGE_COPY,
-  QUEUED_MESSAGE_FIRST,
   fencedQueuedMessages,
   queuedLaneTailView,
 } from './parallelGroupQueuedMessages'
 
 const TASK = PRELOAD_TASK_ID
+const CANCELLED_HERE = { laneId: TITLED_RUNNING_LANE_ID, kind: 'cancelled' } as const
 
 function laneWith(
   messages: Parameters<typeof queuedLaneTailView>[0]['queuedMessages'],
@@ -27,7 +32,6 @@ describe('queuedLaneTailView presentation mapping', () => {
         taskId: TASK,
         text: QUEUED_MESSAGE_FIRST,
         delivery: 'queued',
-        note: null,
       },
     ])
     const view = queuedLaneTailView(lane, null)
@@ -48,7 +52,6 @@ describe('queuedLaneTailView presentation mapping', () => {
         taskId: TASK,
         text: QUEUED_MESSAGE_FIRST,
         delivery: 'delivering',
-        note: null,
       },
     ])
     const view = queuedLaneTailView(lane, null)
@@ -66,7 +69,6 @@ describe('queuedLaneTailView presentation mapping', () => {
         taskId: TASK,
         text: QUEUED_MESSAGE_FIRST,
         delivery: 'uncertain',
-        note: QUEUED_MESSAGE_COPY.uncertainNote,
       },
     ])
     const view = queuedLaneTailView(lane, null)
@@ -79,19 +81,58 @@ describe('queuedLaneTailView presentation mapping', () => {
     expect(view.outcome).toBeNull()
   })
 
-  it('surfaces a seeded cancelled outcome without inventing observation fields', () => {
+  it('maps a cancelled outcome seeded for this lane to the cancelled copy', () => {
     const lane = laneWith([
       {
         id: 'm2',
         taskId: TASK,
-        text: 'Then summarise what changed in two sentences.',
+        text: QUEUED_MESSAGE_SECOND,
         delivery: 'queued',
-        note: null,
       },
     ])
-    const view = queuedLaneTailView(lane, QUEUED_MESSAGE_COPY.cancelledOutcome)
+    const view = queuedLaneTailView(lane, CANCELLED_HERE)
     expect(view.outcome).toBe(QUEUED_MESSAGE_COPY.cancelledOutcome)
     expect(view.messages[0]?.showCancel).toBe(true)
+  })
+})
+
+describe('queued outcome lane scoping', () => {
+  const queued = [
+    {
+      id: 'm1',
+      taskId: TASK,
+      text: QUEUED_MESSAGE_FIRST,
+      delivery: 'queued' as const,
+    },
+  ]
+
+  it('yields no outcome when the seeded lane id does not match', () => {
+    const view = queuedLaneTailView(laneWith(queued), {
+      laneId: 'another-lane',
+      kind: 'cancelled',
+    })
+    expect(view.outcome).toBeNull()
+  })
+
+  it('yields no outcome for a lane without queued messages', () => {
+    const view = queuedLaneTailView(laneWith([]), CANCELLED_HERE)
+    expect(view.outcome).toBeNull()
+  })
+
+  it('yields no outcome when every message is fenced out by task id', () => {
+    const view = queuedLaneTailView(
+      laneWith([{ ...queued[0]!, taskId: asTaskId('other-task') }]),
+      CANCELLED_HERE,
+    )
+    expect(view.outcome).toBeNull()
+  })
+
+  it('derives the uncertain note from delivery, not from the observation', () => {
+    const view = queuedLaneTailView(
+      laneWith([{ ...queued[0]!, delivery: 'uncertain' }]),
+      null,
+    )
+    expect(view.messages[0]?.note).toBe(QUEUED_MESSAGE_COPY.uncertainNote)
   })
 })
 
@@ -103,14 +144,12 @@ describe('fencedQueuedMessages', () => {
         taskId: TASK,
         text: 'mine',
         delivery: 'queued',
-        note: null,
       },
       {
         id: 'foreign',
         taskId: asTaskId('other-task'),
         text: 'theirs',
         delivery: 'queued',
-        note: null,
       },
     ])
     expect(fencedQueuedMessages(lane).map((m) => m.id)).toEqual(['ok'])
@@ -127,7 +166,6 @@ describe('fencedQueuedMessages', () => {
           taskId: TASK,
           text: 'mine',
           delivery: 'queued' as const,
-          note: null,
         },
       ]),
       taskId: null,

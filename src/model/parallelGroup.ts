@@ -44,8 +44,6 @@ export type ParallelGroupQueuedMessage = {
   readonly taskId: TaskId
   readonly text: string
   readonly delivery: ParallelGroupQueuedDelivery
-  /** Observed note on uncertain delivery; null otherwise. */
-  readonly note: string | null
 }
 
 /**

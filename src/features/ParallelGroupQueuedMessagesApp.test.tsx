@@ -10,13 +10,13 @@ import { scenarioById, type ScenarioId } from '../adapters/mock'
 import {
   MESSAGE_CANCELLED_PARALLEL_GROUP_ID,
   MESSAGES_QUEUED_PARALLEL_GROUP_ID,
+  QUEUE_FIRST as QUEUED_MESSAGE_FIRST,
+  QUEUE_SECOND as QUEUED_MESSAGE_SECOND,
+  TITLED_RUNNING_LANE_ID,
 } from '../adapters/mock/parallelGroupFixtures'
 import { applyNewTaskSeed, createApp, PreviewShell } from '../composition'
-import {
-  QUEUED_MESSAGE_COPY,
-  QUEUED_MESSAGE_FIRST,
-  QUEUED_MESSAGE_SECOND,
-} from '../presentation/parallelGroupQueuedMessages'
+import { PARALLEL_GROUP_QUEUED_CANCEL_EXPLANATION } from '../components/parallelGroupUnavailable'
+import { QUEUED_MESSAGE_COPY } from '../presentation/parallelGroupQueuedMessages'
 import { AppFeature } from './AppFeature'
 
 afterEach(() => {
@@ -39,9 +39,23 @@ async function mount(scenario: ScenarioId) {
   return app
 }
 
+const CANCEL_EXPLANATION_SELECTOR = '#parallel-group-queued-cancel-unavailable'
+
+function allLanes(): HTMLElement[] {
+  return [
+    ...screen
+      .getByRole('region', { name: 'Parallel group lanes' })
+      .querySelectorAll<HTMLElement>('section.hd-lane'),
+  ]
+}
+
+function expectUniqueElementIds() {
+  const ids = [...document.querySelectorAll('[id]')].map((el) => el.id)
+  expect(ids.filter((id, i) => ids.indexOf(id) !== i)).toEqual([])
+}
+
 function runningLane() {
-  return screen.getByRole('region', { name: 'Parallel group lanes' })
-    .querySelectorAll('section.hd-lane')[0] as HTMLElement
+  return allLanes()[0]!
 }
 
 describe('Parallel group queued message scenarios', () => {
@@ -61,20 +75,18 @@ describe('Parallel group queued message scenarios', () => {
     })
     expect(firstCancel).toBeDisabled()
     expect(firstCancel).toHaveAccessibleDescription(
-      QUEUED_MESSAGE_COPY.cancelUnavailable,
+      PARALLEL_GROUP_QUEUED_CANCEL_EXPLANATION,
     )
     expect(secondCancel).toBeDisabled()
     expect(screen.queryByText(QUEUED_MESSAGE_COPY.deliveryInProgress)).toBeNull()
-    const lanes = screen.getAllByRole('region', { name: /Done|Running/i })
-    void lanes
-    const doneLanes = [
-      ...screen
-        .getByRole('region', { name: 'Parallel group lanes' })
-        .querySelectorAll('section.hd-lane'),
-    ].slice(1)
-    for (const done of doneLanes) {
-      expect(within(done as HTMLElement).queryByText('Queued')).toBeNull()
+    for (const done of allLanes().slice(1)) {
+      expect(within(done).queryByText('Queued')).toBeNull()
     }
+    expect(document.querySelectorAll(CANCEL_EXPLANATION_SELECTOR)).toHaveLength(1)
+    expect(
+      document.querySelector(CANCEL_EXPLANATION_SELECTOR)?.textContent,
+    ).toBe(PARALLEL_GROUP_QUEUED_CANCEL_EXPLANATION)
+    expectUniqueElementIds()
   })
 
   it('renders delivering without Cancel and with the delivery outcome line', async () => {
@@ -88,6 +100,8 @@ describe('Parallel group queued message scenarios', () => {
     expect(
       within(lane).getByText(QUEUED_MESSAGE_COPY.deliveryInProgress),
     ).toBeInTheDocument()
+    expect(document.querySelectorAll(CANCEL_EXPLANATION_SELECTOR)).toHaveLength(0)
+    expectUniqueElementIds()
   })
 
   it('renders uncertain without Cancel and with the uncertain note', async () => {
@@ -102,6 +116,8 @@ describe('Parallel group queued message scenarios', () => {
     expect(
       within(lane).queryByRole('button', { name: /Cancel queued message/ }),
     ).toBeNull()
+    expect(document.querySelectorAll(CANCEL_EXPLANATION_SELECTOR)).toHaveLength(0)
+    expectUniqueElementIds()
   })
 
   it('seeds the cancelled outcome through composition and resets it on reopen', async () => {
@@ -111,9 +127,10 @@ describe('Parallel group queued message scenarios', () => {
     expect(
       within(lane).getByText(QUEUED_MESSAGE_COPY.cancelledOutcome),
     ).toBeInTheDocument()
-    expect(app.presenter.getState().parallelGroup.queuedCancelOutcome).toBe(
-      QUEUED_MESSAGE_COPY.cancelledOutcome,
-    )
+    expect(app.presenter.getState().parallelGroup.queuedCancelOutcome).toEqual({
+      laneId: TITLED_RUNNING_LANE_ID,
+      kind: 'cancelled',
+    })
     await act(async () => app.presenter.navigate('workflows'))
     expect(app.presenter.getState().parallelGroup.queuedCancelOutcome).toBeNull()
     await act(async () =>
@@ -121,6 +138,23 @@ describe('Parallel group queued message scenarios', () => {
     )
     expect(app.presenter.getState().parallelGroup.queuedCancelOutcome).toBeNull()
     expect(screen.queryByText(QUEUED_MESSAGE_COPY.cancelledOutcome)).toBeNull()
+  })
+
+  it('shows the cancelled outcome once, only in the running lane', async () => {
+    await mount('parallel-group-lane-message-cancelled')
+    expect(screen.getAllByText(QUEUED_MESSAGE_COPY.cancelledOutcome)).toHaveLength(1)
+    const [running, ...done] = allLanes()
+    expect(
+      within(running!).getAllByText(QUEUED_MESSAGE_COPY.cancelledOutcome),
+    ).toHaveLength(1)
+    expect(done).toHaveLength(2)
+    for (const lane of done) {
+      expect(
+        within(lane).queryByText(QUEUED_MESSAGE_COPY.cancelledOutcome),
+      ).toBeNull()
+    }
+    expect(document.querySelectorAll(CANCEL_EXPLANATION_SELECTOR)).toHaveLength(1)
+    expectUniqueElementIds()
   })
 
   it('boots the messages-queued preview scenario through the seeding path', async () => {
@@ -142,13 +176,9 @@ describe('Parallel group queued message scenarios', () => {
     expect(app.presenter.getState().parallelGroup.groupId).toBe(
       MESSAGES_QUEUED_PARALLEL_GROUP_ID,
     )
-    const sections = [
-      ...screen
-        .getByRole('region', { name: 'Parallel group lanes' })
-        .querySelectorAll('section.hd-lane'),
-    ]
-    expect(within(sections[0] as HTMLElement).getByText(QUEUED_MESSAGE_FIRST)).toBeInTheDocument()
-    expect(within(sections[1] as HTMLElement).queryByText(QUEUED_MESSAGE_FIRST)).toBeNull()
-    expect(within(sections[2] as HTMLElement).queryByText(QUEUED_MESSAGE_FIRST)).toBeNull()
+    const sections = allLanes()
+    expect(within(sections[0]!).getByText(QUEUED_MESSAGE_FIRST)).toBeInTheDocument()
+    expect(within(sections[1]!).queryByText(QUEUED_MESSAGE_FIRST)).toBeNull()
+    expect(within(sections[2]!).queryByText(QUEUED_MESSAGE_FIRST)).toBeNull()
   })
 })

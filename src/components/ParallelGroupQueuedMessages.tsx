@@ -1,20 +1,20 @@
 import type { QueuedLaneTailView } from '../presentation/parallelGroupQueuedMessages'
-import { QUEUED_MESSAGE_COPY } from '../presentation/parallelGroupQueuedMessages'
-
-const CANCEL_UNAVAILABLE_ID = 'parallel-group-queued-cancel-unavailable'
+import {
+  PARALLEL_GROUP_QUEUED_CANCEL_EXPLANATION,
+  PARALLEL_GROUP_QUEUED_CANCEL_UNAVAILABLE_ID,
+} from './parallelGroupUnavailable'
 
 type Props = {
   readonly tail: QueuedLaneTailView
 }
 
-/** Queued follow-ups below live activity; Cancel stays unavailable in the mock. */
+/**
+ * Queued follow-ups below live activity; Cancel stays unavailable in the mock.
+ * Rendered as direct children of the lane body so its flex gap spaces them.
+ */
 export function ParallelGroupQueuedMessages({ tail }: Props) {
-  if (tail.messages.length === 0 && tail.outcome === null) return null
   return (
-    <div className="hd-msgq-host">
-      <p id={CANCEL_UNAVAILABLE_ID} className="hd-sr">
-        {QUEUED_MESSAGE_COPY.cancelUnavailable}
-      </p>
+    <>
       {tail.messages.map((message) => (
         <div
           key={message.id}
@@ -34,8 +34,8 @@ export function ParallelGroupQueuedMessages({ tail }: Props) {
               disabled
               aria-disabled="true"
               aria-label={message.cancelLabel}
-              aria-describedby={CANCEL_UNAVAILABLE_ID}
-              title={QUEUED_MESSAGE_COPY.cancelUnavailable}
+              aria-describedby={PARALLEL_GROUP_QUEUED_CANCEL_UNAVAILABLE_ID}
+              title={PARALLEL_GROUP_QUEUED_CANCEL_EXPLANATION}
             >
               Cancel
             </button>
@@ -45,6 +45,6 @@ export function ParallelGroupQueuedMessages({ tail }: Props) {
       {tail.outcome ? (
         <p className="hd-m05-caption hd-msgq__outcome">{tail.outcome}</p>
       ) : null}
-    </div>
+    </>
   )
 }

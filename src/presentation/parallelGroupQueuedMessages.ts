@@ -3,6 +3,7 @@ import type {
   ParallelGroupQueuedDelivery,
   ParallelGroupQueuedMessage,
 } from '../model'
+import type { ParallelGroupQueuedOutcome } from './parallelGroupState'
 
 /** Exact copy from Design 2153ab1 / states-parallel-lanes.js. */
 export const QUEUED_MESSAGE_COPY = {
@@ -12,20 +13,14 @@ export const QUEUED_MESSAGE_COPY = {
   uncertainNote:
     'Delivery could not be confirmed. The message is not requeued.',
   cancelledOutcome: 'Queued message cancelled.',
-  cancelUnavailable:
-    'Unavailable. Cancel does not remove queued messages in this mock.',
 } as const
-
-export const QUEUED_MESSAGE_FIRST =
-  'Once the fix is in, run the whole slots suite one more time.'
-export const QUEUED_MESSAGE_SECOND =
-  'Then summarise what changed in two sentences.'
 
 /** Presentation view for one fenced queued message. */
 export type QueuedMessageView = {
   readonly id: string
   readonly text: string
   readonly caption: string
+  /** Derived from uncertain delivery; null otherwise. */
   readonly note: string | null
   readonly pinned: boolean
   readonly showCancel: boolean
@@ -60,29 +55,46 @@ function messageView(message: ParallelGroupQueuedMessage): QueuedMessageView {
     id: message.id,
     text: message.text,
     caption: captionFor(message.delivery),
-    note: message.note,
+    note:
+      message.delivery === 'uncertain' ? QUEUED_MESSAGE_COPY.uncertainNote : null,
     pinned: message.delivery !== 'uncertain',
     showCancel: message.delivery === 'queued',
     cancelLabel: `Cancel queued message: ${message.text}`,
   }
 }
 
+const OUTCOME_COPY: Record<ParallelGroupQueuedOutcome['kind'], string> = {
+  cancelled: QUEUED_MESSAGE_COPY.cancelledOutcome,
+}
+
 /**
  * Tail below live activity: fenced bubbles plus derived or seeded outcome.
- * `cancelledOutcome` is session/command state, not an observation fact.
+ * `queuedOutcome` is session/command state, not an observation fact; it
+ * applies only to the lane it names, and only when that lane has messages.
  */
 export function queuedLaneTailView(
   lane: ParallelGroupLane,
-  cancelledOutcome: string | null,
+  queuedOutcome: ParallelGroupQueuedOutcome | null,
 ): QueuedLaneTailView {
-  const messages = fencedQueuedMessages(lane).map(messageView)
-  const delivering = fencedQueuedMessages(lane).some(
-    (message) => message.delivery === 'delivering',
-  )
-  const outcome = cancelledOutcome
-    ? cancelledOutcome
-    : delivering
-      ? QUEUED_MESSAGE_COPY.deliveryInProgress
+  const fenced = fencedQueuedMessages(lane)
+  const messages = fenced.map(messageView)
+  const commandOutcome =
+    queuedOutcome !== null &&
+    queuedOutcome.laneId === lane.id &&
+    fenced.length > 0
+      ? OUTCOME_COPY[queuedOutcome.kind]
       : null
+  const delivering = fenced.some((message) => message.delivery === 'delivering')
+  const outcome =
+    commandOutcome ?? (delivering ? QUEUED_MESSAGE_COPY.deliveryInProgress : null)
   return { messages, outcome }
+}
+
+/** True when any lane shows an (unavailable) Cancel on a queued message. */
+export function groupShowsQueuedCancel(
+  lanes: readonly ParallelGroupLane[],
+): boolean {
+  return lanes.some((lane) =>
+    fencedQueuedMessages(lane).some((message) => message.delivery === 'queued'),
+  )
 }

@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import type { ParallelGroupLane as LaneModel, TaskId } from '../model'
+import type { ParallelGroupQueuedOutcome } from '../presentation'
 import { queuedLaneTailView } from '../presentation/parallelGroupQueuedMessages'
 import { Icon } from './Icon'
 import { ParallelGroupQueuedMessages } from './ParallelGroupQueuedMessages'
@@ -21,7 +22,7 @@ type Props = {
   readonly showPrompt: boolean
   readonly menuOpen: boolean
   /** Seeded Cancel outcome for this group; null when none. */
-  readonly queuedCancelOutcome: string | null
+  readonly queuedCancelOutcome: ParallelGroupQueuedOutcome | null
   readonly onToggleMenu: () => void
   readonly onCloseMenu: (focusTrigger: boolean) => void
   readonly onOpenTask: (taskId: TaskId) => void

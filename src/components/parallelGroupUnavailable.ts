@@ -27,3 +27,8 @@ export const PARALLEL_GROUP_OPEN_TASK_UNAVAILABLE_ID =
   'parallel-group-open-task-unavailable'
 export const PARALLEL_GROUP_OPEN_TASK_EXPLANATION =
   'Unavailable. This lane has no task to open in this mock.'
+
+export const PARALLEL_GROUP_QUEUED_CANCEL_UNAVAILABLE_ID =
+  'parallel-group-queued-cancel-unavailable'
+export const PARALLEL_GROUP_QUEUED_CANCEL_EXPLANATION =
+  'Unavailable. Cancel does not remove queued messages in this mock.'

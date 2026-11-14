@@ -3,7 +3,9 @@ import type { ParallelGroupLoad, ParallelGroupObservation, TaskId } from '../mod
 import {
   PARALLEL_GROUP_EMPTY_MESSAGE,
   parallelGroupSkeletonLanes,
+  groupShowsQueuedCancel,
   parallelGroupTopBar,
+  type ParallelGroupQueuedOutcome,
 } from '../presentation'
 import { ParallelGroupLane } from './ParallelGroupLane'
 import { ParallelGroupLoadingPage } from './skeleton'
@@ -16,6 +18,8 @@ import {
   PARALLEL_GROUP_OPEN_TASK_EXPLANATION,
   PARALLEL_GROUP_OPEN_TASK_UNAVAILABLE_ID,
   PARALLEL_GROUP_PROMPT_EXPLANATION,
+  PARALLEL_GROUP_QUEUED_CANCEL_EXPLANATION,
+  PARALLEL_GROUP_QUEUED_CANCEL_UNAVAILABLE_ID,
   PARALLEL_GROUP_PROMPT_UNAVAILABLE_ID,
   PARALLEL_GROUP_TOOL_EXPLANATION,
   PARALLEL_GROUP_TOOL_UNAVAILABLE_ID,
@@ -26,7 +30,7 @@ type Props = {
   readonly showPrompt?: boolean
   readonly openMenuLaneId?: string | null
   readonly cancelAllConfirm?: boolean
-  readonly queuedCancelOutcome?: string | null
+  readonly queuedCancelOutcome?: ParallelGroupQueuedOutcome | null
   readonly onShowPrompt?: (show: boolean) => void
   readonly onOpenMenuLaneId?: (laneId: string | null) => void
   readonly onCancelAllConfirm?: (open: boolean) => void
@@ -100,7 +104,7 @@ function ParallelGroupChrome({
   readonly showPrompt: boolean
   readonly openMenuLaneId: string | null
   readonly cancelAllConfirm: boolean
-  readonly queuedCancelOutcome: string | null
+  readonly queuedCancelOutcome: ParallelGroupQueuedOutcome | null
   readonly empty?: boolean
   readonly onShowPrompt?: (show: boolean) => void
   readonly onOpenMenuLaneId?: (laneId: string | null) => void
@@ -133,7 +137,7 @@ function ParallelGroupChrome({
   const viewPromptDisabled = !topBar.viewPromptEnabled
   const layoutClass = topBar.harnessTitled ? '' : ' hd-pl--titled'
   return (
-    <div className={`hd-pl${layoutClass}`}>
+    <div className={`hd-pl hd-msgq-host${layoutClass}`}>
       <p id={PARALLEL_GROUP_LANE_UNAVAILABLE_ID} className="hd-sr">
         {PARALLEL_GROUP_LANE_EXPLANATION}
       </p>
@@ -149,6 +153,11 @@ function ParallelGroupChrome({
       <p id={PARALLEL_GROUP_OPEN_TASK_UNAVAILABLE_ID} className="hd-sr">
         {PARALLEL_GROUP_OPEN_TASK_EXPLANATION}
       </p>
+      {groupShowsQueuedCancel(group.lanes) ? (
+        <p id={PARALLEL_GROUP_QUEUED_CANCEL_UNAVAILABLE_ID} className="hd-sr">
+          {PARALLEL_GROUP_QUEUED_CANCEL_EXPLANATION}
+        </p>
+      ) : null}
       <div className="hd-topbar">
         <span className="hd-topbar__title">{group.title}</span>
         {group.statusLabel && badgeClass ? (

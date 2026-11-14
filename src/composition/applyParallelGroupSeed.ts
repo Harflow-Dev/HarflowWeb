@@ -39,7 +39,7 @@ export function applyParallelGroupSeed(
         showPrompt?: boolean
         openMenuLaneId?: string | null
         cancelAllConfirm?: boolean
-        queuedCancelOutcome?: string | null
+        queuedCancelOutcome?: { laneId: string; kind: 'cancelled' } | null
       } = {}
       if (seed.parallelGroupShowPrompt !== undefined) {
         chrome.showPrompt = seed.parallelGroupShowPrompt

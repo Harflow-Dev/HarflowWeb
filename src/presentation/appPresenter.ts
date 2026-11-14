@@ -34,6 +34,7 @@ import type {
 } from '../model'
 import { AppSession, type AppListener } from './appSession'
 import type { AppRoute, AppScreenState, SettingsSection } from './appState'
+import type { ParallelGroupQueuedOutcome } from './parallelGroupState'
 import type { PendingLaunchStopOutcome } from './pendingLaunchesState'
 import type { OpenMenu } from './screenState'
 import type { ApprovalsMode, EffortLevel } from './taskOptions'
@@ -61,9 +62,8 @@ export type AppPresenter = {
     readonly showPrompt?: boolean
     readonly openMenuLaneId?: string | null
     readonly cancelAllConfirm?: boolean
-    readonly queuedCancelOutcome?: string | null
+    readonly queuedCancelOutcome?: ParallelGroupQueuedOutcome | null
   }): void
-  seedParallelGroupQueuedCancelOutcome(outcome: string): void
   openPendingLaunches(): void
   openPendingLaunch(id: PendingLaunchId): void
   setPendingLaunchStopConfirm(open: boolean): void
@@ -140,8 +140,6 @@ export function createAppPresenter(deps: Deps): AppPresenter {
       session.setParallelGroupCancelAllConfirm(open),
     applyParallelGroupChrome: (chrome) =>
       session.applyParallelGroupChrome(chrome),
-    seedParallelGroupQueuedCancelOutcome: (outcome) =>
-      session.seedParallelGroupQueuedCancelOutcome(outcome),
     openPendingLaunches: () => session.openPendingLaunches(),
     openPendingLaunch: (id) => session.openPendingLaunch(id),
     setPendingLaunchStopConfirm: (open) =>

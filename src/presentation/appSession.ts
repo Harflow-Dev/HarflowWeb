@@ -30,6 +30,7 @@ import {
 } from './appNavigation'
 import type { AppRoute, AppScreenState, SettingsSection } from './appState'
 import type { PresenterSession } from './presenterSession'
+import type { ParallelGroupQueuedOutcome } from './parallelGroupState'
 import type { PendingLaunchStopOutcome } from './pendingLaunchesState'
 import type { OpenMenu } from './screenState'
 import type { WorkflowRunViewMode } from './workflowRunParallel'
@@ -153,13 +154,9 @@ export class AppSession {
     readonly showPrompt?: boolean
     readonly openMenuLaneId?: string | null
     readonly cancelAllConfirm?: boolean
-    readonly queuedCancelOutcome?: string | null
+    readonly queuedCancelOutcome?: ParallelGroupQueuedOutcome | null
   }): void {
     this.children.parallelGroup.applyChrome(chrome)
-  }
-
-  seedParallelGroupQueuedCancelOutcome(outcome: string): void {
-    this.children.parallelGroup.seedQueuedCancelOutcome(outcome)
   }
 
   openWorkflowRun(id: WorkflowId): void {

@@ -7,11 +7,12 @@ import {
 import { PRELOAD_TASK_ID } from './taskFixtures'
 
 /** Design 2153ab1 queued follow-up texts (states-parallel-lanes.js). */
-const QUEUE_FIRST =
+export const QUEUE_FIRST =
   'Once the fix is in, run the whole slots suite one more time.'
-const QUEUE_SECOND = 'Then summarise what changed in two sentences.'
-const QUEUE_UNCERTAIN_NOTE =
-  'Delivery could not be confirmed. The message is not requeued.'
+export const QUEUE_SECOND = 'Then summarise what changed in two sentences.'
+
+/** Lane id of the running (Claude) lane in the titled Parallel group fixtures. */
+export const TITLED_RUNNING_LANE_ID = 'lane-claude-titled'
 
 export const MESSAGES_QUEUED_PARALLEL_GROUP_ID = asParallelGroupId(
   'parallel-group-lane-messages-queued',
@@ -44,14 +45,12 @@ function twoQueued(build: QueuedBuilder): ParallelGroupObservation {
       taskId: PRELOAD_TASK_ID,
       text: QUEUE_FIRST,
       delivery: 'queued',
-      note: null,
     }),
     msg({
       id: 'msg-queue-2',
       taskId: PRELOAD_TASK_ID,
       text: QUEUE_SECOND,
       delivery: 'queued',
-      note: null,
     }),
   ])
 }
@@ -63,7 +62,6 @@ function delivering(build: QueuedBuilder): ParallelGroupObservation {
       taskId: PRELOAD_TASK_ID,
       text: QUEUE_FIRST,
       delivery: 'delivering',
-      note: null,
     }),
   ])
 }
@@ -75,7 +73,6 @@ function uncertain(build: QueuedBuilder): ParallelGroupObservation {
       taskId: PRELOAD_TASK_ID,
       text: QUEUE_FIRST,
       delivery: 'uncertain',
-      note: QUEUE_UNCERTAIN_NOTE,
     }),
   ])
 }
@@ -87,7 +84,6 @@ function cancelled(build: QueuedBuilder): ParallelGroupObservation {
       taskId: PRELOAD_TASK_ID,
       text: QUEUE_SECOND,
       delivery: 'queued',
-      note: null,
     }),
   ])
 }

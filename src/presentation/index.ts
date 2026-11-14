@@ -75,6 +75,7 @@ export {
 export { WorkflowExecutionSession } from './workflowExecutionSession'
 export {
   initialParallelGroupState,
+  type ParallelGroupQueuedOutcome,
   type ParallelGroupScreenState,
 } from './parallelGroupState'
 export { ParallelGroupSession } from './parallelGroupSession'
@@ -88,9 +89,8 @@ export {
 } from './parallelGroupChrome'
 export {
   QUEUED_MESSAGE_COPY,
-  QUEUED_MESSAGE_FIRST,
-  QUEUED_MESSAGE_SECOND,
   fencedQueuedMessages,
+  groupShowsQueuedCancel,
   queuedLaneTailView,
   type QueuedLaneTailView,
   type QueuedMessageView,

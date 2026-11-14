@@ -859,7 +859,6 @@ body,
   flex-direction: column;
   gap: 4px;
   white-space: normal;
-  margin-top: var(--space-3);
 }
 
 .hd-msgq-host .hd-msgq__caption {
@@ -905,8 +904,12 @@ body,
   opacity: 0.7;
 }
 
-.hd-msgq-host .hd-msgq__outcome {
-  margin: var(--space-2) 0 0;
+/* Design m05-proposal.css .hd-m05-caption (outcome lines, stored-request caption). */
+.hd-m05-caption {
+  margin: 0;
+  font-size: 12px;
+  line-height: 17px;
+  color: var(--text-tertiary);
 }
 
 .hd-pl--titled .hd-lane {

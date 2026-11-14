@@ -27,6 +27,7 @@ import {
   MESSAGE_DELIVERING_PARALLEL_GROUP_ID,
   MESSAGE_UNCERTAIN_PARALLEL_GROUP_ID,
   MESSAGES_QUEUED_PARALLEL_GROUP_ID,
+  TITLED_RUNNING_LANE_ID,
 } from './parallelGroupQueuedFixtures'
 
 export {
@@ -34,6 +35,9 @@ export {
   MESSAGE_DELIVERING_PARALLEL_GROUP_ID,
   MESSAGE_UNCERTAIN_PARALLEL_GROUP_ID,
   MESSAGES_QUEUED_PARALLEL_GROUP_ID,
+  QUEUE_FIRST,
+  QUEUE_SECOND,
+  TITLED_RUNNING_LANE_ID,
 } from './parallelGroupQueuedFixtures'
 
 /**
@@ -105,7 +109,7 @@ export function preloadParallelGroup(): ParallelGroupObservation {
 
 function titledClaudeRunning(overrides: Partial<ParallelGroupLane> = {}): ParallelGroupLane {
   return {
-    id: 'lane-claude-titled',
+    id: TITLED_RUNNING_LANE_ID,
     title: 'Audit what the preload bridge exposes',
     agentLabel: 'Claude · Opus 5.5',
     status: 'running',

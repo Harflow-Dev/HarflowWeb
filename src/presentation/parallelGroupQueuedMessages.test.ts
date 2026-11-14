@@ -114,17 +114,23 @@ describe('queued outcome lane scoping', () => {
     expect(view.outcome).toBeNull()
   })
 
-  it('yields no outcome for a lane without queued messages', () => {
+  it('shows the outcome for the matching lane after its last message was cancelled', () => {
     const view = queuedLaneTailView(laneWith([]), CANCELLED_HERE)
+    expect(view.messages).toEqual([])
+    expect(view.outcome).toBe(QUEUED_MESSAGE_COPY.cancelledOutcome)
+  })
+
+  it('yields no outcome for a mismatched lane with an empty queue', () => {
+    const view = queuedLaneTailView(laneWith([]), {
+      laneId: 'another-lane',
+      kind: 'cancelled',
+    })
     expect(view.outcome).toBeNull()
   })
 
-  it('yields no outcome when every message is fenced out by task id', () => {
-    const view = queuedLaneTailView(
-      laneWith([{ ...queued[0]!, taskId: asTaskId('other-task') }]),
-      CANCELLED_HERE,
-    )
-    expect(view.outcome).toBeNull()
+  it('yields no outcome for a lane without a task', () => {
+    const lane = { ...laneWith(queued), taskId: null }
+    expect(queuedLaneTailView(lane, CANCELLED_HERE).outcome).toBeNull()
   })
 
   it('derives the uncertain note from delivery, not from the observation', () => {

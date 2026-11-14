@@ -4,7 +4,7 @@ Implementation is paused. This file is a session handoff, not product
 documentation. Do not start another feature, push, deploy, or publish from
 this note.
 
-- Written: 2026-11-13
+- Written: 2026-11-14
 - Repository: `/Users/Shared/Code/Harflow/HarflowWeb`
 - Branch: `main`
 - Tracking: `main` is ahead of `origin/main`. Pushing requires the owner's
@@ -55,7 +55,7 @@ npm run verify   # architecture + tests + build
 npm run lint     # oxlint; zero warnings required
 ```
 
-At handoff: **498 tests** across **60** files (`vitest run`). Re-count after
+At handoff: **499 tests** across **60** files (`vitest run`). Re-count after
 further commits.
 
 HEAD at handoff: `45baa72` (the commit that records this line

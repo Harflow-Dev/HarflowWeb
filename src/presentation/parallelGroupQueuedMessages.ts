@@ -70,7 +70,8 @@ const OUTCOME_COPY: Record<ParallelGroupQueuedOutcome['kind'], string> = {
 /**
  * Tail below live activity: fenced bubbles plus derived or seeded outcome.
  * `queuedOutcome` is session/command state, not an observation fact; it
- * applies only to the lane it names, and only when that lane has messages.
+ * applies only to the lane it names (a lane with a task), even when the
+ * cancelled message was the last one in its queue.
  */
 export function queuedLaneTailView(
   lane: ParallelGroupLane,
@@ -81,7 +82,7 @@ export function queuedLaneTailView(
   const commandOutcome =
     queuedOutcome !== null &&
     queuedOutcome.laneId === lane.id &&
-    fenced.length > 0
+    lane.taskId !== null
       ? OUTCOME_COPY[queuedOutcome.kind]
       : null
   const delivering = fenced.some((message) => message.delivery === 'delivering')
@@ -95,6 +96,6 @@ export function groupShowsQueuedCancel(
   lanes: readonly ParallelGroupLane[],
 ): boolean {
   return lanes.some((lane) =>
-    fencedQueuedMessages(lane).some((message) => message.delivery === 'queued'),
+    queuedLaneTailView(lane, null).messages.some((message) => message.showCancel),
   )
 }

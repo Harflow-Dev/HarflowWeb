@@ -405,6 +405,14 @@ Capture from `/preview?scenario=…` with the scenario panel and “Mock engine�
 badge hidden; 1280×800 viewport clip; light and dark via emulated
 `prefers-color-scheme`. No 1000×620 drawings for these four states.
 Captured 2026-11-13: 8 PNGs at 1280×800 (`sips`-verified).
+Retaken 2026-11-14 after the review fixes (lane-scoped cancelled outcome,
+card layout in the lane body, `hd-m05-caption` port): the same 8 PNGs were
+overwritten, and `parallel-group-prompt-shown` (1280×800) plus
+`parallel-group-prompt-shown-minimum` (`verified-1000x620/`, 1000×620) were
+recaptured because the caption rule restyles “Complete stored request”.
+Element boxes were measured in the running app at 1280×800: queued cards at
+x=346, y=434 and y=559 (262×113), Cancel at x=548, y=513; delivering card
+262×85 with the outcome at y=531; cancelled outcome at x=280, y=559, 12px.
 
 | Design state | Preview scenario | Frame |
 | --- | --- | --- |

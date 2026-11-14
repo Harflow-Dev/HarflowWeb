@@ -43,8 +43,9 @@ this handoff as a second copy).
 | Parallel group queued messages | `2153ab1` four `lane-message*` states | Observed queue + presentation mapping; Cancel unavailable; cancelled outcome seeded |
 | Pending launches | `83d820f` / approval `2934681` | Capability-gated nav; 21 states including Stop sheet and minima |
 
-Scenario count: **76** entries in `SCENARIOS`
-(`src/adapters/mock/scenarioCatalog.ts` and the catalog modules it spreads).
+Scenario count: **113** entries in `SCENARIOS` (`SCENARIOS.length` at handoff;
+re-count after adding scenarios) in `src/adapters/mock/scenarioCatalog.ts` and
+the catalog modules it spreads.
 Open `/preview` and use the scenario panel.
 
 ## Checks
@@ -54,8 +55,11 @@ npm run verify   # architecture + tests + build
 npm run lint     # oxlint; zero warnings required
 ```
 
-At handoff: **493 tests** across **60** files (`vitest run`). Re-count after
+At handoff: **498 tests** across **60** files (`vitest run`). Re-count after
 further commits.
+
+HEAD at handoff: `HEAD_PLACEHOLDER` (the commit that records this line
+follows it).
 
 ## Screenshots
 
@@ -65,12 +69,11 @@ queued-message captures:
 Pending-launch and Parallel-lane captures are sibling dated folders (see
 `docs/visual-validation.md`).
 
-Reusable headless Chrome capture script (keep outside the repo):
-
-`/private/tmp/claude-503/-Users-Shared-Code-Harflow/5c007164-f91a-47d1-84ef-6377a27bd4d0/scratchpad/capture/cap.mjs`
-
-Companion `run.sh` / `run-pending.sh` examples sit beside it. Hide the scenario
-panel and “Mock engine” badge; clip the app frame only.
+The capture script is kept outside the repo. Captures use headless Chrome
+(Playwright or CDP) on the built preview at the exact app frame (1280 × 800, or
+the 1000 × 620 minimum frame), with the scenario panel and the “Mock engine”
+badge hidden and the app frame clipped. Light and dark are captured through
+`prefers-color-scheme`.
 
 ## Open items (see review-notes)
 

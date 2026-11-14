@@ -51,9 +51,12 @@ grant approvals, answer questions, or touch the task store.
   `lane-message-uncertain`, and `lane-message-cancelled` are reachable from
   `/preview`. Observed queue fields live on the lane (id, text, delivery,
   taskId); presentation derives caption, Cancel visibility, and the delivering
-  outcome line. The cancelled outcome is seeded session chrome and resets on
-  reopen. Cancel is shown where drawn but unavailable (no mutation). Queues
-  render only when message `taskId` matches the lane `taskId`. There are no
+  outcome line. The cancelled outcome is seeded session chrome, fenced to the
+  lane it names (the running lane), and resets on reopen. The `hd-m05-caption`
+  rule is ported from `m05-proposal.css`; it also restyles the existing
+  “Complete stored request” caption in the View prompt states. Cancel is shown where drawn but unavailable (no mutation). Queues
+  render only when message `taskId` matches the lane `taskId`, and the
+  cancelled outcome only for a lane with such messages whose id matches the seed. There are no
   approved 1000 × 620 drawings for these four states; the existing narrow lane
   rules (360-point floor) still apply. Settled-lane queues and task-screen
   `messages/*` / caller approvals remain out of scope.

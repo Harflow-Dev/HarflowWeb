@@ -1,59 +1,52 @@
 import type { EngineTaskStatus, TaskObservation } from '../model'
+import { formatElapsed, runningSupervision } from './taskObservation'
 import type { TaskCommandChrome, TaskStatusBadge } from './taskStatusTypes'
 
-function elapsedSuffix(elapsedLabel: string | undefined): string {
-  return elapsedLabel ? ` ${elapsedLabel}` : ''
+function elapsedSuffix(observation: TaskObservation): string {
+  return observation.elapsedSeconds === undefined
+    ? ''
+    : ` ${formatElapsed(observation.elapsedSeconds)}`
 }
 
-function supervisionBadge(observation: TaskObservation): TaskStatusBadge | null {
-  if (observation.supervision === 'owner_lost') {
-    return {
-      tone: 'warning',
-      glyph: 'alert',
-      label: 'Running · owner lost',
-    }
+function runningBadge(observation: TaskObservation): TaskStatusBadge {
+  const supervision = runningSupervision(observation)
+  if (supervision === 'owner_lost') {
+    return { tone: 'warning', glyph: 'alert', label: 'Running · owner lost' }
   }
-  if (observation.supervision === 'unverified') {
-    return {
-      tone: 'warning',
-      glyph: 'alert',
-      label: 'Running · not verified',
-    }
+  if (supervision === 'unverified') {
+    return { tone: 'warning', glyph: 'alert', label: 'Running · not verified' }
   }
-  return null
+  return {
+    tone: 'running',
+    glyph: 'spin',
+    label: `Running${elapsedSuffix(observation)}`,
+  }
 }
 
-function outcomeBadge(
+function completedBadge(observation: TaskObservation): TaskStatusBadge {
+  if (observation.exitObserved === false) {
+    return { tone: 'done', glyph: 'check', label: 'Done · exit not observed' }
+  }
+  return {
+    tone: 'done',
+    glyph: 'check',
+    label: `Done${elapsedSuffix(observation)}`,
+  }
+}
+
+function failedBadge(
   observation: TaskObservation,
   chrome: TaskCommandChrome,
-): TaskStatusBadge | null {
-  const elapsed = elapsedSuffix(observation.elapsedLabel)
-  if (observation.statusRead.kind !== 'observed') return null
-  const status = observation.statusRead.status
-  if (status === 'completed') {
-    if (observation.exitObserved === false) {
-      return {
-        tone: 'done',
-        glyph: 'check',
-        label: 'Done · exit not observed',
-      }
-    }
-    return { tone: 'done', glyph: 'check', label: `Done${elapsed}` }
+): TaskStatusBadge {
+  // A Continue in flight keeps the plain failed clock; the banner carries it.
+  if (chrome !== 'continue-starting' && observation.exitObserved === false) {
+    return { tone: 'failed', glyph: 'x', label: 'Failed · exit not observed' }
   }
-  if (status === 'failed') {
-    if (chrome === 'continue-starting') {
-      return { tone: 'failed', glyph: 'x', label: `Failed${elapsed}` }
-    }
-    if (observation.exitObserved === false) {
-      return {
-        tone: 'failed',
-        glyph: 'x',
-        label: 'Failed · exit not observed',
-      }
-    }
-    return { tone: 'failed', glyph: 'x', label: `Failed${elapsed}` }
+  return {
+    tone: 'failed',
+    glyph: 'x',
+    label: `Failed${elapsedSuffix(observation)}`,
   }
-  return null
 }
 
 function badgeForEngineStatus(
@@ -61,34 +54,31 @@ function badgeForEngineStatus(
   observation: TaskObservation,
   chrome: TaskCommandChrome,
 ): TaskStatusBadge {
-  const outcome = outcomeBadge(observation, chrome)
-  if (outcome) return outcome
-
-  const elapsed = elapsedSuffix(observation.elapsedLabel)
-  const simple: Partial<Record<EngineTaskStatus, TaskStatusBadge>> = {
-    taken_over: {
-      tone: 'neutral',
-      glyph: 'stop',
-      label: `Cancelled${elapsed} · taken over`,
-    },
-    pending: { tone: 'neutral', glyph: 'queued', label: 'Pending' },
-    running: {
-      tone: 'running',
-      glyph: 'spin',
-      label: `Running${elapsed}`,
-    },
-    timed_out: {
-      tone: 'failed',
-      glyph: 'clock',
-      label: `Timed out${elapsed}`,
-    },
-    cancelled: {
-      tone: 'neutral',
-      glyph: 'stop',
-      label: `Cancelled${elapsed}`,
-    },
+  const elapsed = elapsedSuffix(observation)
+  switch (status) {
+    case 'running':
+      return runningBadge(observation)
+    case 'completed':
+      return completedBadge(observation)
+    case 'failed':
+      return failedBadge(observation, chrome)
+    case 'timed_out':
+      return { tone: 'failed', glyph: 'clock', label: `Timed out${elapsed}` }
+    case 'cancelled':
+      return { tone: 'neutral', glyph: 'stop', label: `Cancelled${elapsed}` }
+    case 'taken_over':
+      return {
+        tone: 'neutral',
+        glyph: 'stop',
+        label: `Cancelled${elapsed} · taken over`,
+      }
+    case 'pending':
+      return { tone: 'neutral', glyph: 'queued', label: 'Pending' }
+    default: {
+      const unreachable: never = status
+      return unreachable
+    }
   }
-  return simple[status] ?? { tone: 'neutral', glyph: 'none', label: 'Status unavailable' }
 }
 
 export function badgeForStatus(
@@ -98,9 +88,5 @@ export function badgeForStatus(
   if (observation.statusRead.kind === 'unread') {
     return { tone: 'neutral', glyph: 'alert', label: 'Status unavailable' }
   }
-
-  return (
-    supervisionBadge(observation) ??
-    badgeForEngineStatus(observation.statusRead.status, observation, chrome)
-  )
+  return badgeForEngineStatus(observation.statusRead.status, observation, chrome)
 }

@@ -39,7 +39,7 @@ export function composerFor(
     return lockedComposer(TASK_COMPOSER.placeholderLockedUnavailable)
   }
 
-  if (observation.continuationOutcome === 'unknown') {
+  if (chrome === 'continue-unknown') {
     return lockedComposer(TASK_COMPOSER.placeholderLockedUnknown)
   }
 
@@ -64,13 +64,6 @@ export function composerFor(
     const stopMode: TaskComposerStopMode =
       chrome === 'stop-requested' ? 'stopping' : 'stop'
     return runningComposer(stopMode)
-  }
-
-  if (
-    observation.supervision === 'owner_lost' ||
-    observation.supervision === 'unverified'
-  ) {
-    return runningComposer('stop')
   }
 
   return settledComposer()

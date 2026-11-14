@@ -546,6 +546,37 @@ describe('AppPresenter workflows slice', () => {
     presenter.dispose()
   })
 
+  it('drops seeded command chrome when the task route is left or the same task is reopened', async () => {
+    const { port } = createTestEngine()
+    const presenter = createPresenter(port)
+    presenter.start()
+    await flush()
+    presenter.openTask(SLOT_RELEASE_TASK_ID)
+    await flush()
+    presenter.seedTaskCommandChrome(SLOT_RELEASE_TASK_ID, 'stop-requested')
+    expect(presenter.getState().task.commandChrome).toBe('stop-requested')
+
+    // Another task id is not seedable.
+    presenter.seedTaskCommandChrome(PRELOAD_TASK_ID, 'continue-started')
+    expect(presenter.getState().task.commandChrome).toBe('stop-requested')
+
+    // Leaving the route drops the chrome; the task selection stays.
+    presenter.navigate('resources')
+    expect(presenter.getState().task.commandChrome).toBe(null)
+    expect(presenter.getState().task.selectedTaskId).toBe(SLOT_RELEASE_TASK_ID)
+    presenter.openTask(SLOT_RELEASE_TASK_ID)
+    await flush()
+    expect(presenter.getState().task.commandChrome).toBe(null)
+
+    // Reopening the same task from another task-route entry drops it too.
+    presenter.seedTaskCommandChrome(SLOT_RELEASE_TASK_ID, 'stop-requested')
+    expect(presenter.getState().task.commandChrome).toBe('stop-requested')
+    presenter.openTask(SLOT_RELEASE_TASK_ID)
+    expect(presenter.getState().task.commandChrome).toBe(null)
+    expect(presenter.getState().task.load.kind).toBe('ready')
+    presenter.dispose()
+  })
+
   it('keeps both run drafts when the current callback receives another definition', async () => {
     const engine = createTestEngine()
     const presenter = createPresenter(engine.port)

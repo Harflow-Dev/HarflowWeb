@@ -1,3 +1,10 @@
+/** Command lifecycle chrome a preview scenario seeds on its open task. */
+export type TaskCommandChromeSeed =
+  | 'stop-requested'
+  | 'continue-starting'
+  | 'continue-started'
+  | 'continue-unknown'
+
 /**
  * Presentation seed applied by the preview composition after context is ready.
  * Observation still owns qualification and start outcomes; this only sets
@@ -26,10 +33,7 @@ export type NewTaskScenarioSeed = {
   /** Open a mapped task after context is ready (transcript scenarios). */
   readonly openTaskId?: string
   /** Stop or Continue command lifecycle chrome after the task observation is ready. */
-  readonly taskCommandChrome?:
-    | 'stop-requested'
-    | 'continue-starting'
-    | 'continue-started'
+  readonly taskCommandChrome?: TaskCommandChromeSeed
   /** Open the right pane (Events for transcript states; Changes otherwise). */
   readonly eventsPaneOpen?: boolean
   /** Navigate to a main route after context is ready. */

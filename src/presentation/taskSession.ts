@@ -83,6 +83,8 @@ export class TaskSession {
       this.observation &&
       this.state.load.kind !== 'loading'
     ) {
+      // Reopening the same task keeps its observation but not seeded chrome.
+      this.clearCommandChrome()
       return
     }
     this.beginObservation(taskId)
@@ -117,10 +119,21 @@ export class TaskSession {
     if (!usesEvents) this.beginChangesObservation()
   }
 
-  /** Preview seeding: show command lifecycle chrome on the selected task. */
-  seedTaskCommandChrome(chrome: TaskCommandChrome): void {
+  /**
+   * Preview seeding: show command lifecycle chrome on one ready task. Ignored
+   * when another task is selected or the observation is not ready yet.
+   */
+  seedTaskCommandChrome(taskId: TaskId, chrome: TaskCommandChrome): void {
     if (this.disposed) return
+    if (this.state.selectedTaskId !== taskId) return
+    if (this.state.load.kind !== 'ready') return
     this.publish({ ...this.state, commandChrome: chrome })
+  }
+
+  /** Drop command lifecycle chrome; the selected task and observation stay. */
+  clearCommandChrome(): void {
+    if (this.disposed || this.state.commandChrome === null) return
+    this.publish({ ...this.state, commandChrome: null })
   }
 
   selectChangedFile(path: string): void {

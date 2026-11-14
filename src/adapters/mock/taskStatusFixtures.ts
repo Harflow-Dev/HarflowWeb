@@ -11,9 +11,12 @@ import {
   slotReleaseTranscript,
   stoppedTaskTranscript,
 } from './mappedTaskTranscripts'
-import { retryBudgetSummary } from './taskSummaryFixture'
-
-const RETRY_BUDGET_DONE_TASK_ID = asTaskId('task-retry-budget-done')
+import {
+  doneConversation,
+  failedConversation,
+  runningConversation,
+  stoppedConversation,
+} from './taskConversationFixtures'
 
 const RUNNING_TITLE = 'Fix flaky slot release test'
 const RUNNING_META = 'Claude · Opus 5.5 · HarflowMCP'
@@ -81,7 +84,8 @@ function runningObservation(
     title: RUNNING_TITLE,
     headerMeta: RUNNING_META,
     statusRead: { kind: 'observed', status: 'running' },
-    elapsedLabel: '04:12',
+    elapsedSeconds: 252,
+    conversation: runningConversation(),
     transcript: slotReleaseTranscript(),
     detailsPane: null,
     ...extra,
@@ -97,7 +101,27 @@ function stoppedObservation(
     title: STOPPED_TITLE,
     headerMeta: STOPPED_META,
     statusRead: { kind: 'observed', status: 'cancelled' },
+    conversation: stoppedConversation(),
     transcript: stoppedTaskTranscript(),
+    detailsPane: null,
+    ...extra,
+  }
+}
+
+/** The failed task without an exit explanation (timed out, launch states). */
+function failedTaskBase(
+  taskId: ReturnType<typeof asTaskId>,
+  extra?: Partial<TaskObservation>,
+): TaskObservation {
+  return {
+    taskId,
+    title: 'Migrate events.jsonl reader',
+    headerMeta: RUNNING_META,
+    statusRead: { kind: 'observed', status: 'failed' },
+    elapsedSeconds: 468,
+    exitObserved: true,
+    conversation: failedConversation(),
+    transcript: eventsReaderFailedTranscript(),
     detailsPane: null,
     ...extra,
   }
@@ -107,18 +131,7 @@ function failedObservation(
   taskId: ReturnType<typeof asTaskId>,
   extra?: Partial<TaskObservation>,
 ): TaskObservation {
-  return {
-    taskId,
-    title: 'Migrate events.jsonl reader',
-    headerMeta: RUNNING_META,
-    statusRead: { kind: 'observed', status: 'failed' },
-    elapsedLabel: '07:48',
-    exitObserved: true,
-    failure: FAILURE,
-    transcript: eventsReaderFailedTranscript(),
-    detailsPane: null,
-    ...extra,
-  }
+  return failedTaskBase(taskId, { failure: FAILURE, ...extra })
 }
 
 function retryBudgetBase(
@@ -130,8 +143,9 @@ function retryBudgetBase(
     title: 'Add retry budget to delivery queue',
     headerMeta: 'Claude · Opus 5.5 · HarflowWeb',
     statusRead: { kind: 'observed', status: 'completed' },
-    elapsedLabel: '21:04',
+    elapsedSeconds: 1264,
     exitObserved: true,
+    conversation: doneConversation(),
     transcript: retryBudgetDoneTranscript(),
     detailsPane: null,
     ...extra,
@@ -144,27 +158,22 @@ export function taskStatusObservations(): readonly TaskObservation[] {
     runningObservation(TASK_STATUS_STOP_REQUESTED_ID),
     stoppedObservation(TASK_STATUS_CANCELLED_ID, {
       statusRead: { kind: 'observed', status: 'cancelled' },
-      elapsedLabel: '04:31',
+      elapsedSeconds: 271,
     }),
-    stoppedObservation(TASK_STATUS_TIMED_OUT_ID, {
+    failedTaskBase(TASK_STATUS_TIMED_OUT_ID, {
       statusRead: { kind: 'observed', status: 'timed_out' },
-      elapsedLabel: '12:40',
+      elapsedSeconds: 760,
     }),
     retryBudgetBase(TASK_STATUS_SETTLING_ID, { settling: true }),
     failedObservation(TASK_STATUS_UNKNOWN_FAILED_ID, { exitObserved: false }),
-    retryBudgetBase(TASK_STATUS_UNKNOWN_DONE_ID, {
-      exitObserved: false,
-      summary: retryBudgetSummary(),
-    }),
+    retryBudgetBase(TASK_STATUS_UNKNOWN_DONE_ID, { exitObserved: false }),
     runningObservation(TASK_STATUS_OWNER_LOST_ID, {
       supervision: 'owner_lost',
     }),
     runningObservation(TASK_STATUS_UNVERIFIED_ID, {
       supervision: 'unverified',
     }),
-    failedObservation(TASK_STATUS_LAUNCH_UNKNOWN_ID, {
-      continuationOutcome: 'unknown',
-    }),
+    failedObservation(TASK_STATUS_LAUNCH_UNKNOWN_ID),
     stoppedObservation(TASK_STATUS_STATUS_UNAVAILABLE_ID, {
       statusRead: { kind: 'unread' },
     }),
@@ -173,15 +182,16 @@ export function taskStatusObservations(): readonly TaskObservation[] {
       title: PENDING_TITLE,
       headerMeta: PENDING_META,
       statusRead: { kind: 'observed', status: 'pending' },
+      launchWait: 'resources',
       transcript: pendingEmptyTranscript(),
       detailsPane: null,
     },
     stoppedObservation(TASK_STATUS_TAKEN_OVER_ID, {
       statusRead: { kind: 'observed', status: 'taken_over' },
-      elapsedLabel: '04:31',
+      elapsedSeconds: 271,
     }),
     failedObservation(TASK_STATUS_CONTINUE_STARTING_ID),
-    runningObservation(TASK_STATUS_CONTINUE_STARTED_ID),
+    runningObservation(TASK_STATUS_CONTINUE_STARTED_ID, { turnCount: 2 }),
     failedObservation(TASK_STATUS_FAILED_CONTINUE_ID),
   ]
 }
@@ -191,7 +201,6 @@ export const TASK_STATUS_BY_ID: ReadonlyMap<string, TaskObservation> = new Map(
   taskStatusObservations()
     .filter(
       (observation) =>
-        observation.taskId !== RETRY_BUDGET_DONE_TASK_ID &&
         observation.taskId !== TASK_STATUS_RUNNING_STOP_ID &&
         observation.taskId !== TASK_STATUS_FAILED_CONTINUE_ID,
     )

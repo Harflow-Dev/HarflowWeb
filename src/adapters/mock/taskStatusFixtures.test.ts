@@ -3,10 +3,12 @@ import { taskStatusView } from '../../presentation'
 import { TASK_NOTICES } from '../../presentation/taskStatusCopy'
 import { taskLoadFor } from './taskFixtures'
 import {
+  TASK_STATUS_CONTINUE_STARTED_ID,
   TASK_STATUS_FIXTURE_IDS,
   TASK_STATUS_PENDING_ID,
   TASK_STATUS_RUNNING_STOP_ID,
   TASK_STATUS_STOP_REQUESTED_ID,
+  TASK_STATUS_TIMED_OUT_ID,
 } from './taskStatusFixtures'
 
 const EXPECTED_LABELS: Record<string, string> = {
@@ -51,7 +53,11 @@ describe('taskStatusFixtures', () => {
   })
 
   it('maps every M05 fixture to an approved notice or banner title when present', () => {
-    const chromeByFixture: Record<string, 'stop-requested' | 'continue-starting' | 'continue-started' | null> = {
+    const chromeByFixture: Record<
+      string,
+      'stop-requested' | 'continue-starting' | 'continue-started' | 'continue-unknown' | null
+    > = {
+      'task-m05-launch-unknown': 'continue-unknown',
       'task-m05-stop-requested': 'stop-requested',
       'task-m05-continue-starting': 'continue-starting',
       'task-m05-continue-started': 'continue-started',
@@ -122,5 +128,45 @@ describe('taskStatusFixtures', () => {
     expect(taskStatusView(load.observation, 'continue-started').notice?.title).toBe(
       TASK_NOTICES.continued.title,
     )
+  })
+
+  it('gives every fixture except pending a conversation and pending a launch wait', () => {
+    for (const taskId of TASK_STATUS_FIXTURE_IDS) {
+      const load = taskLoadFor(taskId)
+      if (load.kind !== 'ready') throw new Error(taskId)
+      const { observation } = load
+      if (taskId === TASK_STATUS_PENDING_ID) {
+        expect(observation.conversation, taskId).toBeUndefined()
+        expect(observation.launchWait).toBe('resources')
+      } else {
+        expect(observation.conversation?.request, taskId).toBeTruthy()
+        expect(observation.conversation?.items.length, taskId).toBeGreaterThan(0)
+        expect(observation.launchWait, taskId).toBeUndefined()
+      }
+    }
+  })
+
+  it('builds timed-out on the failed task with no failure explanation', () => {
+    const load = taskLoadFor(TASK_STATUS_TIMED_OUT_ID)
+    if (load.kind !== 'ready') throw new Error('timed-out not ready')
+    const { observation } = load
+    expect(observation.title).toBe('Migrate events.jsonl reader')
+    expect(observation.headerMeta).toBe('Claude · Opus 5.5 · HarflowMCP')
+    expect(observation.failure).toBeUndefined()
+    expect(taskStatusView(observation).badge.label).toBe('Timed out 12:40')
+    expect(observation.conversation?.items[1]).toMatchObject({
+      kind: 'tool',
+      summary: [{ kind: 'text', value: 'Read 5 files' }],
+    })
+  })
+
+  it('carries two turns on continue-started only', () => {
+    for (const taskId of TASK_STATUS_FIXTURE_IDS) {
+      const load = taskLoadFor(taskId)
+      if (load.kind !== 'ready') throw new Error(taskId)
+      expect(load.observation.turnCount, taskId).toBe(
+        taskId === TASK_STATUS_CONTINUE_STARTED_ID ? 2 : undefined,
+      )
+    }
   })
 })

@@ -49,6 +49,14 @@ export const TASK_PENDING_BODY = {
   emptyActivity: 'No activity yet. This task has not started.',
 } as const
 
+/** Pending resource-wait card (Design m05-proposal.js `resourceCard('queued')`). */
+export const TASK_RESOURCE_WAIT = {
+  title: 'Waiting for resources',
+  detail: 'This task has no record yet and has not started.',
+  note: 'The engine reports launch state only here. Slot details are on the Resources screen.',
+  linkLabel: 'Open resource slots',
+} as const
+
 export const TASK_CONTINUE_LABEL = 'Continue in a new session'
 
 export const TASK_BANNER_CAPTION = {
@@ -81,6 +89,4 @@ export const TASK_BANNER_COPY = {
   launchUnknownBody:
     "The engine did not report back after Continue, so a task may exist. Don't resend yet.",
   launchUnknownAction: 'Check for a new task',
-  continueRefusedTitle: 'Continue was refused',
-  continueRefusedIntro: 'The engine refused this request.',
 } as const

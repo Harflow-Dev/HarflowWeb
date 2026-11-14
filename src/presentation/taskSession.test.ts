@@ -247,18 +247,48 @@ async function flush(): Promise<void> {
 }
 
 describe('TaskSession', () => {
-  it('clears seeded command chrome when the task is reopened', async () => {
+  it('clears seeded command chrome when a different task is opened', async () => {
     const { port } = createCapturingPort()
     const session = sessionFor(port)
     session.start()
     session.openTask(SLOT_RELEASE_TASK_ID)
     await flush()
-    session.seedTaskCommandChrome('stop-requested')
+    session.seedTaskCommandChrome(SLOT_RELEASE_TASK_ID, 'stop-requested')
     expect(session.getState().commandChrome).toBe('stop-requested')
     session.openTask(PRELOAD_TASK_ID)
     expect(session.getState().commandChrome).toBe(null)
     expect(session.getState().load.kind).toBe('loading')
     await flush()
+    expect(session.getState().commandChrome).toBe(null)
+    session.dispose()
+  })
+
+  it('clears seeded command chrome when the same task is reopened, keeping its observation', async () => {
+    const { port } = createCapturingPort()
+    const session = sessionFor(port)
+    session.start()
+    session.openTask(SLOT_RELEASE_TASK_ID)
+    await flush()
+    session.seedTaskCommandChrome(SLOT_RELEASE_TASK_ID, 'stop-requested')
+    expect(session.getState().commandChrome).toBe('stop-requested')
+    const loadBefore = session.getState().load
+    session.openTask(SLOT_RELEASE_TASK_ID)
+    expect(session.getState().commandChrome).toBe(null)
+    expect(session.getState().load).toBe(loadBefore)
+    session.dispose()
+  })
+
+  it('ignores seeding for a task that is not the ready selection', async () => {
+    const { port } = createCapturingPort()
+    const session = sessionFor(port)
+    session.start()
+    session.openTask(SLOT_RELEASE_TASK_ID)
+    // Still loading: not seedable.
+    session.seedTaskCommandChrome(SLOT_RELEASE_TASK_ID, 'stop-requested')
+    expect(session.getState().commandChrome).toBe(null)
+    await flush()
+    // Ready, but another task id: not seedable.
+    session.seedTaskCommandChrome(PRELOAD_TASK_ID, 'stop-requested')
     expect(session.getState().commandChrome).toBe(null)
     session.dispose()
   })

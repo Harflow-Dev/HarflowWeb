@@ -40,7 +40,7 @@ export function applyTaskOpenSeed(
         open: state.task.selectedTaskId === taskId,
         kind: state.task.load.kind,
       }),
-      () => presenter.seedTaskCommandChrome(chrome),
+      () => presenter.seedTaskCommandChrome(taskId, chrome),
     )
   }
 }

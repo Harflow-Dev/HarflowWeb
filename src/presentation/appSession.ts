@@ -91,7 +91,7 @@ export class AppSession {
       this.children.pendingLaunches,
     )
     if (!update) return
-    this.route = route
+    this.setRoute(route)
     if (route === 'pending-launches') {
       this.children.pendingLaunches.openInventory()
     }
@@ -101,7 +101,7 @@ export class AppSession {
   openWorkflowExecution(id: WorkflowRunId): void {
     closeParallelGroup(this.children.parallelGroup)
     closePendingLaunches(this.children.pendingLaunches)
-    this.route = 'workflows'
+    this.setRoute('workflows')
     this.children.workflowExecution.open(id)
     this.emit()
   }
@@ -109,7 +109,7 @@ export class AppSession {
   openParallelGroup(id: ParallelGroupId): void {
     closeWorkflowExecution(this.children.workflowExecution)
     closePendingLaunches(this.children.pendingLaunches)
-    this.route = 'parallel-group'
+    this.setRoute('parallel-group')
     this.children.parallelGroup.open(id)
     this.emit()
   }
@@ -117,7 +117,7 @@ export class AppSession {
   openPendingLaunches(): void {
     closeWorkflowExecution(this.children.workflowExecution)
     closeParallelGroup(this.children.parallelGroup)
-    this.route = 'pending-launches'
+    this.setRoute('pending-launches')
     this.children.pendingLaunches.openInventory()
     this.emit()
   }
@@ -125,7 +125,7 @@ export class AppSession {
   openPendingLaunch(id: PendingLaunchId): void {
     closeWorkflowExecution(this.children.workflowExecution)
     closeParallelGroup(this.children.parallelGroup)
-    this.route = 'pending-launches'
+    this.setRoute('pending-launches')
     this.children.pendingLaunches.openLaunch(id)
     this.emit()
   }
@@ -162,7 +162,7 @@ export class AppSession {
 
   openWorkflowRun(id: WorkflowId): void {
     closePendingLaunches(this.children.pendingLaunches)
-    this.route = 'workflows'
+    this.setRoute('workflows')
     this.children.workflows.openRun(id)
     this.emit()
   }
@@ -191,7 +191,7 @@ export class AppSession {
 
   openWorkflowEditor(id: WorkflowId): void {
     closePendingLaunches(this.children.pendingLaunches)
-    this.route = 'workflows'
+    this.setRoute('workflows')
     this.children.workflowEditor.open(id)
     this.emit()
   }
@@ -214,7 +214,7 @@ export class AppSession {
     closeWorkflowExecution(this.children.workflowExecution)
     closeParallelGroup(this.children.parallelGroup)
     closePendingLaunches(this.children.pendingLaunches)
-    this.route = 'task'
+    this.setRoute('task')
     this.children.task.openTask(taskId)
     this.emit()
   }
@@ -227,8 +227,8 @@ export class AppSession {
     this.children.task.selectChangedFile(path)
   }
 
-  seedTaskCommandChrome(chrome: TaskCommandChrome): void {
-    this.children.task.seedTaskCommandChrome(chrome)
+  seedTaskCommandChrome(taskId: TaskId, chrome: TaskCommandChrome): void {
+    this.children.task.seedTaskCommandChrome(taskId, chrome)
     this.emit()
   }
 
@@ -287,6 +287,12 @@ export class AppSession {
 
   submit(): void {
     this.children.newTask.submit()
+  }
+
+  /** Leaving the task route drops command lifecycle chrome seeded on it. */
+  private setRoute(next: AppRoute): void {
+    if (this.route === 'task' && next !== 'task') this.children.task.clearCommandChrome()
+    this.route = next
   }
 
   private buildSnapshot(): AppScreenState {

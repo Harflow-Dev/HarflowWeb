@@ -150,4 +150,6 @@ export {
   type TaskStatusNotice,
   type TaskStatusBanner,
   type TaskStatusComposer,
+  type TaskStatusBody,
+  type TaskStatusResourceCard,
 } from './taskStatusView'

@@ -1,4 +1,5 @@
 import type { TaskFailureExplanation, TaskObservation } from '../model'
+import { runningSupervision } from './taskObservation'
 import {
   TASK_BANNER_CAPTION,
   TASK_BANNER_COPY,
@@ -21,8 +22,8 @@ function failedBanner(failure: TaskFailureExplanation): TaskStatusBanner {
       },
     ],
     actions: [
-      { kind: 'continue', label: TASK_CONTINUE_LABEL },
-      { kind: 'copyResume', label: 'Copy resume command' },
+      { kind: 'continue', label: TASK_CONTINUE_LABEL, variant: 'secondary' },
+      { kind: 'copyResume', label: 'Copy resume command', variant: 'ghost' },
     ],
     caption: TASK_BANNER_CAPTION.failedContinue,
   }
@@ -37,47 +38,34 @@ function launchUnknownBanner(): TaskStatusBanner {
       {
         kind: 'checkNewTask',
         label: TASK_BANNER_COPY.launchUnknownAction,
+        variant: 'secondary',
       },
     ],
     caption: TASK_BANNER_CAPTION.launchUnknown,
   }
 }
 
-function continueRefusedBanner(reason: string): TaskStatusBanner {
-  return {
-    tone: 'warning',
-    title: TASK_BANNER_COPY.continueRefusedTitle,
-    body: [
-      { kind: 'text', value: TASK_BANNER_COPY.continueRefusedIntro },
-      { kind: 'lastError', intro: '', error: reason },
-    ],
-    actions: [
-      { kind: 'newTask', label: 'New task' },
-      { kind: 'copyResume', label: 'Copy resume command' },
-    ],
-  }
-}
-
 function supervisionBanner(observation: TaskObservation): TaskStatusBanner | null {
-  if (observation.supervision === 'owner_lost') {
+  const supervision = runningSupervision(observation)
+  if (supervision === 'owner_lost') {
     return {
       tone: 'warning',
       title: TASK_BANNER_COPY.ownerLostTitle,
       body: [{ kind: 'text', value: TASK_BANNER_COPY.ownerLostBody }],
       actions: [
-        { kind: 'stop', label: 'Stop task' },
-        { kind: 'refresh', label: 'Refresh' },
+        { kind: 'stop', label: 'Stop task', variant: 'danger' },
+        { kind: 'refresh', label: 'Refresh', variant: 'ghost' },
       ],
     }
   }
-  if (observation.supervision === 'unverified') {
+  if (supervision === 'unverified') {
     return {
       tone: 'warning',
       title: TASK_BANNER_COPY.unverifiedTitle,
       body: [{ kind: 'text', value: TASK_BANNER_COPY.unverifiedBody }],
       actions: [
-        { kind: 'refresh', label: 'Refresh' },
-        { kind: 'stop', label: 'Stop task' },
+        { kind: 'refresh', label: 'Refresh', variant: 'secondary' },
+        { kind: 'stop', label: 'Stop task', variant: 'danger' },
       ],
     }
   }
@@ -96,9 +84,14 @@ function terminalStatusBanner(
       title: TASK_BANNER_COPY.unknownFailedTitle,
       body: [{ kind: 'text', value: TASK_BANNER_COPY.unknownFailedBody }],
       actions: [
-        { kind: 'continue', label: TASK_CONTINUE_LABEL, disabled: true },
-        { kind: 'copyResume', label: 'Copy resume command' },
-        { kind: 'openEvents', label: 'Open Events' },
+        {
+          kind: 'continue',
+          label: TASK_CONTINUE_LABEL,
+          variant: 'secondary',
+          disabled: true,
+        },
+        { kind: 'copyResume', label: 'Copy resume command', variant: 'ghost' },
+        { kind: 'openEvents', label: 'Open Events', variant: 'ghost' },
       ],
       caption: TASK_BANNER_CAPTION.unknownFailedContinue,
     }
@@ -114,8 +107,8 @@ function terminalStatusBanner(
       title: TASK_BANNER_COPY.timedOutTitle,
       body: [{ kind: 'text', value: TASK_BANNER_COPY.timedOutBody }],
       actions: [
-        { kind: 'continue', label: TASK_CONTINUE_LABEL },
-        { kind: 'copyResume', label: 'Copy resume command' },
+        { kind: 'continue', label: TASK_CONTINUE_LABEL, variant: 'secondary' },
+        { kind: 'copyResume', label: 'Copy resume command', variant: 'ghost' },
       ],
     }
   }
@@ -125,7 +118,9 @@ function terminalStatusBanner(
       tone: 'warning',
       title: TASK_BANNER_COPY.cancelledTitle,
       body: [{ kind: 'text', value: TASK_BANNER_COPY.cancelledBody }],
-      actions: [{ kind: 'continue', label: TASK_CONTINUE_LABEL }],
+      actions: [
+        { kind: 'continue', label: TASK_CONTINUE_LABEL, variant: 'secondary' },
+      ],
     }
   }
 
@@ -138,13 +133,7 @@ export function bannerFor(
 ): TaskStatusBanner | null {
   if (observation.statusRead.kind === 'unread') return null
 
-  if (observation.continuationOutcome === 'unknown') {
-    return launchUnknownBanner()
-  }
-
-  if (observation.continueRefusedReason) {
-    return continueRefusedBanner(observation.continueRefusedReason)
-  }
+  if (chrome === 'continue-unknown') return launchUnknownBanner()
 
   if (chrome === 'continue-starting' && observation.failure) {
     return {
@@ -157,7 +146,14 @@ export function bannerFor(
           error: observation.failure.lastError,
         },
       ],
-      actions: [{ kind: 'starting', label: 'Starting…', disabled: true }],
+      actions: [
+        {
+          kind: 'starting',
+          label: 'Starting…',
+          variant: 'secondary',
+          disabled: true,
+        },
+      ],
     }
   }
 

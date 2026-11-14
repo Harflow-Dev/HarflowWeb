@@ -22,7 +22,7 @@ describe('taskStatusView', () => {
     const view = taskStatusView(
       baseObservation({
         statusRead: { kind: 'observed', status: 'running' },
-        elapsedLabel: '04:12',
+        elapsedSeconds: 252,
       }),
     )
     expect(view.badge.label).toBe('Running 04:12')
@@ -34,7 +34,7 @@ describe('taskStatusView', () => {
     const view = taskStatusView(
       baseObservation({
         statusRead: { kind: 'observed', status: 'running' },
-        elapsedLabel: '04:12',
+        elapsedSeconds: 252,
       }),
       'stop-requested',
     )
@@ -47,7 +47,7 @@ describe('taskStatusView', () => {
     const view = taskStatusView(
       baseObservation({
         statusRead: { kind: 'observed', status: 'cancelled' },
-        elapsedLabel: '04:31',
+        elapsedSeconds: 271,
       }),
     )
     expect(view.badge.label).toBe('Cancelled 04:31')
@@ -78,18 +78,22 @@ describe('taskStatusView', () => {
     const view = taskStatusView(
       baseObservation({
         statusRead: { kind: 'observed', status: 'failed' },
-        continuationOutcome: 'unknown',
       }),
+      'continue-unknown',
     )
     expect(view.banner?.title).toBe('A new session may have started')
     expect(view.banner?.actions[0]?.label).toBe('Check for a new task')
+    expect(view.composer.locked).toBe(true)
+    expect(view.composer.placeholder).toBe(
+      'Locked until the new session is checked',
+    )
   })
 
   it('keeps reported status on the badge when settling', () => {
     const view = taskStatusView(
       baseObservation({
         statusRead: { kind: 'observed', status: 'completed' },
-        elapsedLabel: '21:04',
+        elapsedSeconds: 1264,
         settling: true,
         exitObserved: true,
       }),
@@ -102,7 +106,7 @@ describe('taskStatusView', () => {
     const view = taskStatusView(
       baseObservation({
         statusRead: { kind: 'observed', status: 'timed_out' },
-        elapsedLabel: '12:40',
+        elapsedSeconds: 760,
       }),
     )
     expect(view.badge.label).toBe('Timed out 12:40')
@@ -169,7 +173,7 @@ describe('taskStatusView', () => {
     const view = taskStatusView(
       baseObservation({
         statusRead: { kind: 'observed', status: 'taken_over' },
-        elapsedLabel: '04:31',
+        elapsedSeconds: 271,
       }),
     )
     expect(view.badge.label).toBe('Cancelled 04:31 · taken over')
@@ -180,7 +184,7 @@ describe('taskStatusView', () => {
     const view = taskStatusView(
       baseObservation({
         statusRead: { kind: 'observed', status: 'failed' },
-        elapsedLabel: '07:48',
+        elapsedSeconds: 468,
         failure: {
           title: 'Task failed: the harness exited with code 1',
           intro: 'The last error was:',
@@ -193,23 +197,11 @@ describe('taskStatusView', () => {
     expect(view.banner?.actions[0]?.label).toBe('Starting…')
   })
 
-  it('maps continue refused on cancelled', () => {
-    const view = taskStatusView(
-      baseObservation({
-        statusRead: { kind: 'observed', status: 'cancelled' },
-        continueRefusedReason:
-          'Continuation chain was cancelled; start a new task explicitly',
-      }),
-    )
-    expect(view.badge.label.match(/^Cancelled/) ).toBeTruthy()
-    expect(view.banner?.title).toBe('Continue was refused')
-  })
-
   it('maps observed failed with failure banner', () => {
     const view = taskStatusView(
       baseObservation({
         statusRead: { kind: 'observed', status: 'failed' },
-        elapsedLabel: '07:48',
+        elapsedSeconds: 468,
         exitObserved: true,
         failure: {
           title: 'Task failed: the harness exited with code 1',
@@ -223,5 +215,87 @@ describe('taskStatusView', () => {
       'Task failed: the harness exited with code 1',
     )
     expect(view.banner?.actions[0]?.label).toBe('Continue in a new session')
+  })
+
+  it('applies supervision labels only while the status is running', () => {
+    const failed = taskStatusView(
+      baseObservation({
+        statusRead: { kind: 'observed', status: 'failed' },
+        elapsedSeconds: 468,
+        supervision: 'owner_lost',
+      }),
+    )
+    expect(failed.badge.label).toBe('Failed 07:48')
+    expect(failed.banner?.title).not.toBe('The process watching this run is gone')
+    const unread = taskStatusView(
+      baseObservation({
+        statusRead: { kind: 'unread' },
+        supervision: 'unverified',
+      }),
+    )
+    expect(unread.badge.label).toBe('Status unavailable')
+  })
+
+  it('formats the badge clock from elapsed seconds', () => {
+    const label = (elapsedSeconds: number) =>
+      taskStatusView(
+        baseObservation({
+          statusRead: { kind: 'observed', status: 'running' },
+          elapsedSeconds,
+        }),
+      ).badge.label
+    expect(label(252)).toBe('Running 04:12')
+    expect(label(1264)).toBe('Running 21:04')
+    expect(label(3725)).toBe('Running 1:02:05')
+  })
+
+  it('appends the turn count to the meta line only for continued tasks', () => {
+    const running = { kind: 'observed', status: 'running' } as const
+    expect(
+      taskStatusView(baseObservation({ statusRead: running })).meta,
+    ).toBe('Claude · Opus 5.5 · HarflowMCP')
+    expect(
+      taskStatusView(baseObservation({ statusRead: running, turnCount: 1 }))
+        .meta,
+    ).toBe('Claude · Opus 5.5 · HarflowMCP')
+    expect(
+      taskStatusView(baseObservation({ statusRead: running, turnCount: 2 }))
+        .meta,
+    ).toBe('Claude · Opus 5.5 · HarflowMCP · 2 turns')
+  })
+
+  it('hides the meta line and maps the resource card for a waiting pending launch', () => {
+    const pending = baseObservation({
+      statusRead: { kind: 'observed', status: 'pending' },
+      launchWait: 'resources',
+    })
+    const view = taskStatusView(pending)
+    expect(view.meta).toBeNull()
+    expect(view.body.kind).toBe('notStarted')
+    expect(view.resourceCard).toEqual({
+      title: 'Waiting for resources',
+      detail: 'This task has no record yet and has not started.',
+      note: 'The engine reports launch state only here. Slot details are on the Resources screen.',
+      linkLabel: 'Open resource slots',
+    })
+    const bare = taskStatusView(
+      baseObservation({ statusRead: { kind: 'observed', status: 'pending' } }),
+    )
+    expect(bare.resourceCard).toBeNull()
+  })
+
+  it('chooses the conversation body only when the observation has one', () => {
+    const running = { kind: 'observed', status: 'running' } as const
+    expect(
+      taskStatusView(baseObservation({ statusRead: running })).body.kind,
+    ).toBe('transcript')
+    expect(
+      taskStatusView(
+        baseObservation({
+          statusRead: running,
+          conversation: { request: 'Do the thing.', items: [] },
+        }),
+      ).body.kind,
+    ).toBe('conversation')
   })
 })

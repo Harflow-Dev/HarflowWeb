@@ -5,6 +5,7 @@
  */
 import { accepted, base, readyContext } from './scenarioBase'
 import type { ScenarioDefinition } from './scenarios'
+import type { TaskCommandChromeSeed } from './scenarioSeed'
 import { taskLoadFor } from './taskFixtures'
 import {
   TASK_STATUS_CANCELLED_ID,
@@ -32,7 +33,7 @@ function statusScenario(
   label: string,
   description: string,
   openTaskId: string,
-  taskCommandChrome?: 'stop-requested' | 'continue-starting' | 'continue-started',
+  taskCommandChrome?: TaskCommandChromeSeed,
 ): ScenarioDefinition {
   return base({
     id,
@@ -113,6 +114,7 @@ export const TASK_STATUS_SCENARIOS: readonly ScenarioDefinition[] = [
     'Task · launch unknown',
     'Approved task/launch-unknown (M05).',
     TASK_STATUS_LAUNCH_UNKNOWN_ID,
+    'continue-unknown',
   ),
   statusScenario(
     'task-status-unavailable',

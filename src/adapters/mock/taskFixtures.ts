@@ -10,6 +10,10 @@ import {
   retryBudgetDoneTranscript,
   slotReleaseTranscript,
 } from './mappedTaskTranscripts'
+import {
+  failedConversation,
+  runningConversation,
+} from './taskConversationFixtures'
 import { retryBudgetSummary } from './taskSummaryFixture'
 import {
   TRANSCRIPT_TASK_IDS,
@@ -36,7 +40,8 @@ export function slotReleaseObservation(): TaskObservation {
     title: 'Fix flaky slot release test',
     headerMeta: 'Claude · Opus 5.5 · HarflowMCP',
     statusRead: { kind: 'observed', status: 'running' },
-    elapsedLabel: '04:12',
+    elapsedSeconds: 252,
+    conversation: runningConversation(),
     transcript: slotReleaseTranscript(),
     detailsPane: null,
   }
@@ -48,7 +53,7 @@ export function preloadObservation(): TaskObservation {
     title: 'Review preload bridge',
     headerMeta: 'Claude · Opus 5.5 · HarflowMCP',
     statusRead: { kind: 'observed', status: 'running' },
-    elapsedLabel: '01:03',
+    elapsedSeconds: 63,
     transcript: preloadTranscript(),
     detailsPane: null,
   }
@@ -60,8 +65,9 @@ export function eventsReaderFailedObservation(): TaskObservation {
     title: 'Migrate events.jsonl reader',
     headerMeta: 'Claude · Opus 5.5 · HarflowMCP',
     statusRead: { kind: 'observed', status: 'failed' },
-    elapsedLabel: '07:48',
+    elapsedSeconds: 468,
     exitObserved: true,
+    conversation: failedConversation(),
     failure: {
       title: 'Task failed: the harness exited with code 1',
       intro: 'The last error was:',
@@ -79,7 +85,7 @@ export function retryBudgetCompletedObservation(): TaskObservation {
     title: 'Add retry budget to delivery queue',
     headerMeta: 'Claude · Opus 5.5 · HarflowWeb',
     statusRead: { kind: 'observed', status: 'completed' },
-    elapsedLabel: '21:04',
+    elapsedSeconds: 1264,
     exitObserved: true,
     summary: retryBudgetSummary(),
     transcript: retryBudgetDoneTranscript(),

@@ -46,6 +46,40 @@ export type TaskStatusRead =
 
 export type TaskSupervision = 'owner_lost' | 'unverified'
 
+/** Launch has no task record yet because it is waiting for slot resources. */
+export type TaskLaunchWait = 'resources'
+
+/** One line of tool output; `marker` is a leading outcome word such as FAILED. */
+export type ConversationOutputLine = {
+  readonly marker?: string
+  readonly text: string
+}
+
+/** Approved M05 conversation rows — fixture evidence, never HTML. */
+export type ConversationItem =
+  | {
+      readonly kind: 'agent'
+      readonly paragraphs: readonly (readonly InlineRun[])[]
+    }
+  | {
+      readonly kind: 'tool'
+      readonly tool: 'file' | 'pencil' | 'terminal'
+      readonly summary: readonly InlineRun[]
+      readonly output?: readonly ConversationOutputLine[]
+    }
+  | { readonly kind: 'working'; readonly label: string }
+  | { readonly kind: 'separator'; readonly label: string }
+
+/**
+ * Stored request plus the agent conversation read for the task screen
+ * (HarflowDesign m05-proposal `transcript(...)`). Separate from the captured
+ * activity `transcript`, which backs the D2B reading states and Events.
+ */
+export type TaskConversation = {
+  readonly request: string
+  readonly items: readonly ConversationItem[]
+}
+
 /**
  * Task screen observation — domain facts only.
  * Presentation maps badge, notices, banners, and composer chrome.
@@ -60,12 +94,14 @@ export type TaskObservation = {
   readonly exitObserved?: boolean
   /** Post-finish grace while last events or capture may still arrive. */
   readonly settling?: boolean
-  /** Clock suffix on the badge when the engine reports one (e.g. `04:12`). */
-  readonly elapsedLabel?: string
-  /** Continue answered but the successor record is not yet reliable. */
-  readonly continuationOutcome?: 'unknown'
-  /** Engine refusal text when Continue was rejected. */
-  readonly continueRefusedReason?: string
+  /** Observed run duration in seconds; presentation formats the badge clock. */
+  readonly elapsedSeconds?: number
+  /** Number of turns in the continuation chain, when the engine reports it. */
+  readonly turnCount?: number
+  /** Set while a pending launch has no record because it waits for resources. */
+  readonly launchWait?: TaskLaunchWait
+  /** Stored request and agent conversation for the M05 task column. */
+  readonly conversation?: TaskConversation
   readonly failure?: TaskFailureExplanation
   readonly summary?: TaskSummary
   readonly transcript: TranscriptObservation

@@ -3,6 +3,8 @@ export type TaskCommandChrome =
   | 'stop-requested'
   | 'continue-starting'
   | 'continue-started'
+  /** Continue answered with no reliable report; a successor may exist. */
+  | 'continue-unknown'
 
 export type TaskStatusBadgeTone =
   | 'running'
@@ -41,12 +43,16 @@ export type TaskStatusBannerActionKind =
   | 'refresh'
   | 'openEvents'
   | 'checkNewTask'
-  | 'newTask'
   | 'starting'
+
+/** Button emphasis as drawn: secondary is bordered, ghost is bare. */
+export type TaskStatusActionVariant = 'secondary' | 'ghost' | 'danger'
 
 export type TaskStatusBannerAction = {
   readonly kind: TaskStatusBannerActionKind
   readonly label: string
+  readonly variant: TaskStatusActionVariant
+  /** Drawn disabled (dimmed), as opposed to merely unavailable in the mock. */
   readonly disabled?: boolean
 }
 
@@ -75,8 +81,29 @@ export type TaskStatusComposer = {
   readonly stopMode: TaskComposerStopMode
 }
 
+/** Which surface fills the task column below the top bar. */
+export type TaskStatusBody =
+  | { readonly kind: 'transcript' }
+  | { readonly kind: 'conversation' }
+  | {
+      readonly kind: 'notStarted'
+      readonly requestNote: string
+      readonly emptyNote: string
+    }
+
+export type TaskStatusResourceCard = {
+  readonly title: string
+  readonly detail: string
+  readonly note: string
+  readonly linkLabel: string
+}
+
 export type TaskStatusView = {
   readonly badge: TaskStatusBadge
+  /** Top-bar meta line; null when the design draws none (pending). */
+  readonly meta: string | null
+  readonly body: TaskStatusBody
+  readonly resourceCard: TaskStatusResourceCard | null
   readonly notice: TaskStatusNotice | null
   readonly banner: TaskStatusBanner | null
   readonly composer: TaskStatusComposer

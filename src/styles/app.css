@@ -967,9 +967,110 @@ body,
   text-align: center;
 }
 
-.hd-btn[aria-disabled='true'] {
-  cursor: not-allowed;
-  opacity: 0.7;
+/* Design m05-proposal.css: request disclosure, resource card, column scroller. */
+.hd-m05-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.hd-m05-request summary {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  color: var(--text-secondary);
+  font-weight: 500;
+  list-style: none;
+}
+
+.hd-m05-request summary::-webkit-details-marker {
+  display: none;
+}
+
+.hd-m05-request[open] summary .hd-i {
+  transform: rotate(90deg);
+}
+
+.hd-m05-request pre {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font: inherit;
+  max-height: 160px;
+  overflow: auto;
+  margin: 6px 0;
+  padding: 8px;
+  background: var(--surface-sunken);
+  border-radius: var(--radius-sm);
+}
+
+.hd-m05-resource {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  font-size: 13px;
+}
+
+/* The design draws this as a link; here it is an unavailable control. */
+.hd-m05-resource__link {
+  align-self: flex-start;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--accent);
+  font: inherit;
+  cursor: default;
+  text-align: left;
+}
+
+.hd-m05-resource__link {
+  text-decoration: underline;
+}
+
+/* Tool rows with output are open disclosures; rows without output are static. */
+.hd-m05-tool > summary {
+  list-style: none;
+}
+
+.hd-m05-tool > summary::-webkit-details-marker {
+  display: none;
+}
+
+.hd-m05-tool:not([open]) > summary > .hd-i-chevron-down {
+  transform: rotate(-90deg);
+}
+
+.hd-m05-tool__static {
+  cursor: default;
+}
+
+.hd-m05-tool__static:hover {
+  background: transparent;
+  color: var(--text-secondary);
+}
+
+/* Design bundle.css composer geometry for the task screen (88 px at one row). */
+.hw-task-composer .hd-composer {
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-3) var(--space-2) var(--space-4);
+}
+
+.hw-task-composer .hd-composer__input {
+  resize: none;
+  padding: 2px 0;
+}
+
+.hw-task-composer .hd-composer__bar {
+  gap: 6px;
+}
+
+/* Notice in the older transcript column, outside the scroller. */
+.hw-task-notice-slot {
+  flex: none;
+  margin: var(--space-4) var(--space-6) 0;
 }
 
 .hd-pl--titled .hd-lane {

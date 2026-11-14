@@ -299,20 +299,37 @@ describe('M05 task status unavailable commands', () => {
     expectUniqueElementIds()
   })
 
-  it('clears seeded command chrome when remounting a different preview scenario', async () => {
-    const stopRequested = await mount('task-stop-requested')
-    expect(stopRequested.presenter.getState().task.commandChrome).toBe(
-      'stop-requested',
-    )
-    expect(stopRequested.presenter.getState().task.selectedTaskId).toBe(
+  it('drops seeded stop-requested chrome from the screen when the route is left and the task is reopened', async () => {
+    const app = await mount('task-stop-requested')
+    expect(screen.getByText('Stop requested')).toBeInTheDocument()
+    expect(app.presenter.getState().task.commandChrome).toBe('stop-requested')
+    await act(async () => {
+      app.presenter.navigate('resources')
+      await Promise.resolve()
+    })
+    expect(app.presenter.getState().task.commandChrome).toBe(null)
+    await act(async () => {
+      app.presenter.openTask(TASK_STATUS_STOP_REQUESTED_ID)
+      await Promise.resolve()
+      await Promise.resolve()
+    })
+    expect(app.presenter.getState().task.selectedTaskId).toBe(
       TASK_STATUS_STOP_REQUESTED_ID,
     )
-    cleanup()
-    const cancelled = await mount('task-cancelled')
-    expect(cancelled.presenter.getState().task.commandChrome).toBe(null)
-    expect(cancelled.presenter.getState().task.selectedTaskId).not.toBe(
-      TASK_STATUS_STOP_REQUESTED_ID,
-    )
+    expect(screen.queryByText('Stop requested')).not.toBeInTheDocument()
+    expect(screen.getByText('Running 04:12')).toBeInTheDocument()
+  })
+
+  it('drops seeded chrome from the screen when the same task is reopened in place', async () => {
+    const app = await mount('task-stop-requested')
+    expect(screen.getByText('Stop requested')).toBeInTheDocument()
+    await act(async () => {
+      app.presenter.openTask(TASK_STATUS_STOP_REQUESTED_ID)
+      await Promise.resolve()
+    })
+    expect(app.presenter.getState().task.commandChrome).toBe(null)
+    expect(screen.queryByText('Stop requested')).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Stop' })).toBeInTheDocument()
   })
 
   it('boots continue-started through PreviewShell seeding', async () => {

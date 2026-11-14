@@ -831,14 +831,15 @@ describe('AppFeature navigation', () => {
       .closest('details')
     expect(details).not.toBeNull()
     if (!details) return
-    // Native <details> disclosure on the transcript surface.
+    // Native <details> disclosure; the M05 column draws tool output open.
+    expect(details.open).toBe(true)
+    expect(details.querySelector('.hd-tool__body')?.textContent).toContain(
+      '2 failed, 18 passed',
+    )
+    await user.click(screen.getByText(/release --count 20/))
     expect(details.open).toBe(false)
     await user.click(screen.getByText(/release --count 20/))
     expect(details.open).toBe(true)
-    expect(details.querySelector('.hd-tool__body')?.textContent).toContain(
-      '2 failed, 18 passed in 38.52s',
-    )
-
     await user.click(screen.getByText(/release --count 20/))
     expect(details.open).toBe(false)
 
@@ -1023,7 +1024,10 @@ describe('AppFeature navigation', () => {
     expect(
       within(main).getByText('Task failed: the harness exited with code 1'),
     ).toBeInTheDocument()
-    const alert = within(main).getByRole('alert')
+    const alert = within(main).getByRole('group', {
+      name: 'Task failed: the harness exited with code 1',
+    })
+    expect(within(main).queryByRole('alert')).not.toBeInTheDocument()
     expect(alert.textContent).toContain(
       'json.decoder.JSONDecodeError: Unterminated string starting at: line 1 column 38',
     )

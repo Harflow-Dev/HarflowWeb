@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import { Icon } from './Icon'
+import { TASK_TRANSCRIPT_SKELETON_HEIGHT } from './skeletonConstants'
 import {
   SkelBlock,
   SkelLine,
@@ -110,7 +111,18 @@ export function NewTaskLoadingComposer(): ReactNode {
 /** Transcript placeholder pattern from Design `transcriptPattern`. */
 export function TaskTranscriptSkeleton() {
   return (
-    <div data-skel-region="" style={{ pointerEvents: 'none' }}>
+    <div
+      className="hd-transcript"
+      data-skel-region=""
+      style={{
+        pointerEvents: 'none',
+        // Pinned to the running-stop transcript box, as the design pins it.
+        boxSizing: 'border-box',
+        overflow: 'hidden',
+        height: TASK_TRANSCRIPT_SKELETON_HEIGHT,
+        flex: '0 0 auto',
+      }}
+    >
       <div
         style={{
           height: 36,
@@ -177,55 +189,59 @@ export function TaskLoadingPage({
           <Icon name="panel-right" />
         </button>
       </div>
-      <div
-        className="hd-scroll"
-        style={{
-          flex: '1 1 auto',
-          minHeight: 0,
-          padding: 'var(--space-5) var(--space-6)',
-        }}
-      >
+      <div className="hd-scroll hd-m05-scroll">
         <TaskTranscriptSkeleton />
       </div>
-      <div
-        style={{
-          flex: 'none',
-          width: '100%',
-          maxWidth: 'var(--content-width)',
-          margin: '0 auto',
-          padding: 'var(--space-2) var(--space-6) var(--space-5)',
-        }}
-      >
-        <form className="hd-composer" aria-label="Follow-up">
-          <label className="hd-sr" htmlFor="task-loading-followup">
-            Message this task
-          </label>
-          <textarea
-            id="task-loading-followup"
-            className="hd-composer__input"
-            rows={2}
-            placeholder="Queue a message…"
-            readOnly
-            aria-readonly="true"
+      <TaskLoadingComposer />
+    </div>
+  )
+}
+
+/** Follow-up frame drawn real and disabled while the task is read (Design `task/loading`). */
+function TaskLoadingComposer(): ReactNode {
+  return (
+    <div
+      className="hw-task-composer"
+      style={{
+        flex: 'none',
+        width: '100%',
+        maxWidth: 'var(--content-width)',
+        margin: '0 auto',
+        padding: 'var(--space-2) var(--space-6) var(--space-4)',
+      }}
+    >
+      <form className="hd-composer" aria-label="Follow-up">
+        <label className="hd-sr" htmlFor="task-loading-followup">
+          Message this task
+        </label>
+        <textarea
+          id="task-loading-followup"
+          className="hd-composer__input"
+          rows={1}
+          placeholder="Queue a message…"
+          readOnly
+          aria-readonly="true"
+          aria-disabled="true"
+          disabled
+          style={{ minHeight: 26 }}
+        />
+        <div className="hd-composer__bar">
+          <span className="caption hd-faint">
+            Send queues. Send now requests delivery when safe.
+          </span>
+          <span className="hd-composer__spacer" />
+          <SkelBlock width={65} height={26} shape="pill" />
+          <button
+            type="submit"
+            className="hd-composer__send"
+            aria-label="Send"
             aria-disabled="true"
             disabled
-            style={{ minHeight: 28 }}
-          />
-          <div className="hd-composer__bar">
-            <span className="hd-composer__spacer" />
-            <SkelBlock width={72} height={32} shape="pill" />
-            <button
-              type="button"
-              className="hd-btn hd-btn--primary hd-btn--sm"
-              aria-label="Send"
-              aria-disabled="true"
-              disabled
-            >
-              Send
-            </button>
-          </div>
-        </form>
-      </div>
+          >
+            <Icon name="arrow-up" />
+          </button>
+        </div>
+      </form>
     </div>
   )
 }

@@ -37,6 +37,9 @@ export function TaskMain({
   const usesChanges = ready?.detailsPane === 'changes'
   const showPane = state.changesPaneOpen
   const showToggle = usesEvents || usesChanges || showPane
+  const readyMeta = ready
+    ? taskStatusView(ready, state.commandChrome).meta
+    : null
 
   const topbar = (
     <div className="hd-topbar">
@@ -47,8 +50,8 @@ export function TaskMain({
           commandChrome={state.commandChrome}
         />
       ) : null}
-      {ready ? (
-        <span className="hd-topbar__meta">{ready.headerMeta}</span>
+      {ready && readyMeta !== null ? (
+        <span className="hd-topbar__meta">{readyMeta}</span>
       ) : null}
       <span className="hd-topbar__spacer" />
       {showToggle ? (

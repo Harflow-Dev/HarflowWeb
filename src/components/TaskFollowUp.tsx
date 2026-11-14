@@ -16,12 +16,13 @@ type Props = {
 export function TaskFollowUp({ composer, onUnavailable }: Props) {
   return (
     <div
+      className="hw-task-composer"
       style={{
         flex: 'none',
         width: '100%',
         maxWidth: 'var(--content-width)',
         margin: '0 auto',
-        padding: 'var(--space-2) var(--space-6) var(--space-5)',
+        padding: 'var(--space-2) var(--space-6) var(--space-4)',
       }}
     >
       <form
@@ -37,9 +38,9 @@ export function TaskFollowUp({ composer, onUnavailable }: Props) {
         <textarea
           id="followup"
           className="hd-composer__input"
-          rows={2}
+          rows={1}
           placeholder={composer.placeholder}
-          style={{ minHeight: 28 }}
+          style={{ minHeight: 26 }}
           readOnly
           aria-readonly="true"
           disabled={composer.locked}
@@ -70,7 +71,7 @@ export function TaskFollowUp({ composer, onUnavailable }: Props) {
           {composer.stopMode === 'stopping' ? (
             <button
               type="button"
-              className="hd-btn hd-btn--secondary hd-btn--sm"
+              className="hd-btn hd-btn--secondary hd-btn--sm is-disabled"
               aria-disabled="true"
               aria-describedby={TASK_STOP_UNAVAILABLE_ID}
               aria-label="Stopping…"

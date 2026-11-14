@@ -33,3 +33,13 @@ export const TASK_BANNER_ACTION_UNAVAILABLE_ID =
   'task-banner-action-unavailable'
 export const TASK_BANNER_ACTION_UNAVAILABLE_EXPLANATION =
   'Unavailable. This task command does not run in this mock.'
+
+export const TASK_COPY_REQUEST_UNAVAILABLE_ID = 'task-copy-request-unavailable'
+export const TASK_COPY_REQUEST_UNAVAILABLE_EXPLANATION =
+  'Unavailable. Copy original request does not copy in this mock.'
+
+export const TASK_OPEN_SLOTS_UNAVAILABLE_ID = 'task-open-slots-unavailable'
+export const TASK_OPEN_SLOTS_UNAVAILABLE_EXPLANATION =
+  'Unavailable. Open resource slots does not navigate in this mock.'
+
+export const TASK_BANNER_CAPTION_ID = 'task-banner-caption'

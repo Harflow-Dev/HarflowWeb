@@ -15,10 +15,7 @@ type Props = {
  */
 export function TaskStatusNotice({ notice, onUnavailable }: Props) {
   return (
-    <div
-      className={`hd-m05-notice hd-m05-notice--${notice.tone}`}
-      style={{ margin: 'var(--space-4) var(--space-6) 0' }}
-    >
+    <div className={`hd-m05-notice hd-m05-notice--${notice.tone}`}>
       <Icon name={notice.tone === 'warning' ? 'alert' : 'clock'} />
       <div>
         <strong>{notice.title}</strong>

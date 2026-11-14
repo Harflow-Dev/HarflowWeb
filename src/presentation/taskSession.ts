@@ -2,17 +2,25 @@ import type {
   LoadTaskChangesUseCase,
   LoadTaskUseCase,
 } from '../application'
-import type {
-  ObservationHandle,
-  TaskChangesLoad,
-  TaskId,
-  TaskLoad,
-} from '../model'
+import type { ObservationHandle, TaskId, TaskLoad } from '../model'
 import {
   initialTaskState,
   type TaskCommandChrome,
+  type TaskDialogKind,
+  type TaskDialogOpener,
+  type TaskOverflowChrome,
   type TaskScreenState,
 } from './taskState'
+import {
+  withoutTaskDialog,
+  withOverflowMenuOpen,
+  withSeededOverflowChrome,
+  withTaskDialog,
+} from './taskOverflowChrome'
+import {
+  applyTaskChangesLoad,
+  beginTaskChangesObservation,
+} from './taskSessionChanges'
 
 export type TaskListener = (state: TaskScreenState) => void
 
@@ -130,10 +138,50 @@ export class TaskSession {
     this.publish({ ...this.state, commandChrome: chrome })
   }
 
-  /** Drop command lifecycle chrome; the selected task and observation stay. */
+  /** Drop command lifecycle and overflow chrome; the selected task stays. */
   clearCommandChrome(): void {
-    if (this.disposed || this.state.commandChrome === null) return
-    this.publish({ ...this.state, commandChrome: null })
+    if (this.disposed) return
+    if (
+      this.state.commandChrome === null &&
+      !this.state.overflowMenuOpen &&
+      this.state.dialog === null
+    ) {
+      return
+    }
+    this.publish({
+      ...this.state,
+      commandChrome: null,
+      overflowMenuOpen: false,
+      dialog: null,
+      dialogOpener: null,
+    })
+  }
+
+  setOverflowMenuOpen(open: boolean): void {
+    if (this.disposed) return
+    const next = withOverflowMenuOpen(this.state, open)
+    if (next) this.publish(next)
+  }
+
+  openTaskDialog(
+    dialog: TaskDialogKind,
+    opener: TaskDialogOpener | null,
+  ): void {
+    if (this.disposed) return
+    this.publish(withTaskDialog(this.state, dialog, opener))
+  }
+
+  closeTaskDialog(): void {
+    if (this.disposed) return
+    const next = withoutTaskDialog(this.state)
+    if (next) this.publish(next)
+  }
+
+  /** Preview seeding: overflow menu and/or confirmation dialog when ready. */
+  seedTaskOverflowChrome(taskId: TaskId, chrome: TaskOverflowChrome): void {
+    if (this.disposed) return
+    const next = withSeededOverflowChrome(this.state, taskId, chrome)
+    if (next) this.publish(next)
   }
 
   selectChangedFile(path: string): void {
@@ -176,6 +224,9 @@ export class TaskSession {
       selectedTaskId: taskId,
       load: { kind: 'loading' },
       commandChrome: null,
+      overflowMenuOpen: false,
+      dialog: null,
+      dialogOpener: null,
       changesPaneOpen: false,
       changesQueryPath: null,
       selectedChangePath: null,
@@ -188,17 +239,29 @@ export class TaskSession {
   }
 
   private beginChangesObservation(): void {
-    const taskId = this.state.selectedTaskId
-    if (!taskId || !this.state.changesPaneOpen) return
-    this.changesEpoch += 1
-    const gen = this.changesEpoch
-    const queryPath = this.state.changesQueryPath
     this.changesObservation?.cancel()
-    this.changesObservation = null
-    this.changesObservation = this.loadTaskChanges.observe(
-      { taskId, selectedPath: queryPath },
-      (load) => this.applyChangesLoad(load, gen, taskId, queryPath),
-    )
+    beginTaskChangesObservation({
+      state: this.state,
+      loadTaskChanges: this.loadTaskChanges,
+      bumpEpoch: () => {
+        this.changesEpoch += 1
+        return this.changesEpoch
+      },
+      setHandle: (handle) => {
+        this.changesObservation = handle
+      },
+      apply: (load, gen, expectedTask, expectedQueryPath) =>
+        applyTaskChangesLoad({
+          state: this.state,
+          disposed: this.disposed,
+          epoch: this.changesEpoch,
+          gen,
+          expectedTask,
+          expectedQueryPath,
+          load,
+          publish: (next) => this.publish(next),
+        }),
+    })
   }
 
   private stopChangesObservation(): void {
@@ -212,37 +275,6 @@ export class TaskSession {
     if (expected !== this.state.selectedTaskId) return
     if (load.kind === 'ready' && load.observation.taskId !== expected) return
     this.publish({ ...this.state, load })
-  }
-
-  private applyChangesLoad(
-    load: TaskChangesLoad,
-    gen: number,
-    expectedTask: TaskId,
-    expectedQueryPath: string | null,
-  ): void {
-    if (this.disposed || gen !== this.changesEpoch) return
-    if (!this.state.changesPaneOpen) return
-    if (expectedTask !== this.state.selectedTaskId) return
-    // Fence by query identity — not the resolved display selection.
-    if (expectedQueryPath !== this.state.changesQueryPath) return
-    if (load.kind === 'ready') {
-      if (load.observation.taskId !== expectedTask) return
-      if (
-        expectedQueryPath !== null &&
-        load.observation.selectedPath !== expectedQueryPath
-      ) {
-        return
-      }
-      this.publish({
-        ...this.state,
-        // Keep changesQueryPath as the original query (null stays null).
-        selectedChangePath: load.observation.selectedPath,
-        changesFiles: load.observation.files,
-        changesLoad: load,
-      })
-      return
-    }
-    this.publish({ ...this.state, changesLoad: load })
   }
 
   private publish(next: TaskScreenState): void {

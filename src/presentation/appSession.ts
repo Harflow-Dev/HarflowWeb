@@ -25,16 +25,21 @@ import {
 import {
   closeParallelGroup,
   closePendingLaunches,
-  closeWorkflowExecution,
   navigationUpdatesRoute,
 } from './appNavigation'
 import type { AppRoute, AppScreenState, SettingsSection } from './appState'
 import type { PresenterSession } from './presenterSession'
+import * as parallelNav from './appSessionParallel'
 import type { ParallelGroupQueuedOutcome } from './parallelGroupState'
 import type { PendingLaunchStopOutcome } from './pendingLaunchesState'
 import type { OpenMenu } from './screenState'
 import type { WorkflowRunViewMode } from './workflowRunParallel'
-import type { TaskCommandChrome } from './taskState'
+import type {
+  TaskCommandChrome,
+  TaskDialogKind,
+  TaskDialogOpener,
+  TaskOverflowChrome,
+} from './taskState'
 
 export type AppListener = (state: AppScreenState) => void
 
@@ -46,7 +51,7 @@ export type AppListener = (state: AppScreenState) => void
  */
 export class AppSession {
   private route: AppRoute = 'new-task'
-  private readonly children: AppChildSessions
+  readonly children: AppChildSessions
   private settingsSection: SettingsSection = 'general'
   private readonly listeners = new Set<AppListener>()
   private snapshot: AppScreenState
@@ -102,53 +107,39 @@ export class AppSession {
     closeParallelGroup(this.children.parallelGroup)
     closePendingLaunches(this.children.pendingLaunches)
     this.setRoute('workflows')
-    this.children.workflowExecution.open(id)
-    this.emit()
+    this.children.workflowExecution.open(id); this.emit()
   }
 
   openParallelGroup(id: ParallelGroupId): void {
-    closeWorkflowExecution(this.children.workflowExecution)
-    closePendingLaunches(this.children.pendingLaunches)
-    this.setRoute('parallel-group')
-    this.children.parallelGroup.open(id)
-    this.emit()
+    parallelNav.openParallelGroup(this, id)
   }
 
   openPendingLaunches(): void {
-    closeWorkflowExecution(this.children.workflowExecution)
-    closeParallelGroup(this.children.parallelGroup)
-    this.setRoute('pending-launches')
-    this.children.pendingLaunches.openInventory()
-    this.emit()
+    parallelNav.openPendingLaunches(this)
   }
 
   openPendingLaunch(id: PendingLaunchId): void {
-    closeWorkflowExecution(this.children.workflowExecution)
-    closeParallelGroup(this.children.parallelGroup)
-    this.setRoute('pending-launches')
-    this.children.pendingLaunches.openLaunch(id)
-    this.emit()
+    parallelNav.openPendingLaunch(this, id)
   }
 
   setPendingLaunchStopConfirm(open: boolean): void {
-    this.children.pendingLaunches.setStopConfirm(open)
+    parallelNav.setPendingLaunchStopConfirm(this, open)
   }
 
-  /** Preview seeding: show a prior Stop outcome on the selected launch. */
   seedPendingLaunchStopOutcome(outcome: PendingLaunchStopOutcome): void {
-    this.children.pendingLaunches.setStopOutcome(outcome)
+    parallelNav.seedPendingLaunchStopOutcome(this, outcome)
   }
 
   setParallelGroupShowPrompt(show: boolean): void {
-    this.children.parallelGroup.setShowPrompt(show)
+    parallelNav.setParallelGroupShowPrompt(this, show)
   }
 
   setParallelGroupOpenMenuLaneId(laneId: string | null): void {
-    this.children.parallelGroup.setOpenMenuLaneId(laneId)
+    parallelNav.setParallelGroupOpenMenuLaneId(this, laneId)
   }
 
   setParallelGroupCancelAllConfirm(open: boolean): void {
-    this.children.parallelGroup.setCancelAllConfirm(open)
+    parallelNav.setParallelGroupCancelAllConfirm(this, open)
   }
 
   applyParallelGroupChrome(chrome: {
@@ -157,7 +148,7 @@ export class AppSession {
     readonly cancelAllConfirm?: boolean
     readonly queuedCancelOutcome?: ParallelGroupQueuedOutcome | null
   }): void {
-    this.children.parallelGroup.applyChrome(chrome)
+    parallelNav.applyParallelGroupChrome(this, chrome)
   }
 
   openWorkflowRun(id: WorkflowId): void {
@@ -168,23 +159,14 @@ export class AppSession {
   }
 
   closeWorkflowRun(): void { this.children.workflows.closeRun() }
-
-  setWorkflowRunTask(task: string): void {
-    this.children.workflows.setTask(task)
-  }
-
-  setWorkflowRunGoal(goal: string): void {
-    this.children.workflows.setGoal(goal)
-  }
-
+  setWorkflowRunTask(task: string): void { this.children.workflows.setTask(task) }
+  setWorkflowRunGoal(goal: string): void { this.children.workflows.setGoal(goal) }
   setWorkflowRunGoalOpen(open: boolean): void {
     this.children.workflows.setGoalOpen(open)
   }
-
   selectWorkflowRunRepository(id: RepositoryId): void {
     this.children.workflows.selectRepository(id)
   }
-
   selectWorkflowRunOverride(id: WorkflowOverrideId): void {
     this.children.workflows.selectOverride(id)
   }
@@ -211,12 +193,7 @@ export class AppSession {
   }
 
   openTask(taskId: TaskId): void {
-    closeWorkflowExecution(this.children.workflowExecution)
-    closeParallelGroup(this.children.parallelGroup)
-    closePendingLaunches(this.children.pendingLaunches)
-    this.setRoute('task')
-    this.children.task.openTask(taskId)
-    this.emit()
+    parallelNav.openTask(this, taskId)
   }
 
   setTaskChangesPaneOpen(open: boolean): void {
@@ -229,6 +206,23 @@ export class AppSession {
 
   seedTaskCommandChrome(taskId: TaskId, chrome: TaskCommandChrome): void {
     this.children.task.seedTaskCommandChrome(taskId, chrome)
+    this.emit()
+  }
+
+  setTaskOverflowMenuOpen(open: boolean): void {
+    this.children.task.setOverflowMenuOpen(open)
+  }
+
+  openTaskDialog(dialog: TaskDialogKind, opener: TaskDialogOpener | null): void {
+    this.children.task.openTaskDialog(dialog, opener)
+  }
+
+  closeTaskDialog(): void {
+    this.children.task.closeTaskDialog()
+  }
+
+  seedTaskOverflowChrome(taskId: TaskId, chrome: TaskOverflowChrome): void {
+    this.children.task.seedTaskOverflowChrome(taskId, chrome)
     this.emit()
   }
 
@@ -290,8 +284,10 @@ export class AppSession {
   }
 
   /** Leaving the task route drops command lifecycle chrome seeded on it. */
-  private setRoute(next: AppRoute): void {
-    if (this.route === 'task' && next !== 'task') this.children.task.clearCommandChrome()
+  setRoute(next: AppRoute): void {
+    if (this.route === 'task' && next !== 'task') {
+      this.children.task.clearCommandChrome()
+    }
     this.route = next
   }
 
@@ -299,7 +295,7 @@ export class AppSession {
     return buildAppSnapshot(this.route, this.settingsSection, this.children)
   }
 
-  private emit(): void {
+  emit(): void {
     this.snapshot = this.buildSnapshot()
     for (const listener of this.listeners) listener(this.snapshot)
   }

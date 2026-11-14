@@ -8,6 +8,12 @@ import type { TaskCommandChrome } from './taskStatusTypes'
 
 export type { TaskCommandChrome } from './taskStatusTypes'
 
+/** Which confirmation dialog is open (presentation chrome only). */
+export type TaskDialogKind = 'stop' | 'takeover'
+
+/** Control that opened the dialog; used to restore focus on close. */
+export type TaskDialogOpener = 'more' | 'composer-stop' | 'banner-stop'
+
 export type TaskScreenState = {
   readonly selectedTaskId: TaskId | null
   readonly load: TaskLoad
@@ -16,6 +22,12 @@ export type TaskScreenState = {
    * Cleared whenever task observation identity resets.
    */
   readonly commandChrome: TaskCommandChrome
+  /** Overflow More-actions menu open (presentation chrome). */
+  readonly overflowMenuOpen: boolean
+  /** Stop or takeover confirmation dialog (presentation chrome). */
+  readonly dialog: TaskDialogKind | null
+  /** Which control opened the dialog; null when seeded without a trigger. */
+  readonly dialogOpener: TaskDialogOpener | null
   /** Right pane open — Changes only in this slice. */
   readonly changesPaneOpen: boolean
   /**
@@ -38,10 +50,24 @@ export function initialTaskState(): TaskScreenState {
     selectedTaskId: null,
     load: { kind: 'loading' },
     commandChrome: null,
+    overflowMenuOpen: false,
+    dialog: null,
+    dialogOpener: null,
     changesPaneOpen: false,
     changesQueryPath: null,
     selectedChangePath: null,
     changesFiles: null,
     changesLoad: { kind: 'loading' },
   }
+}
+
+export function taskDialogOpen(state: TaskScreenState): boolean {
+  return state.dialog !== null
+}
+
+/** Preview / session chrome for the overflow menu and confirmation dialogs. */
+export type TaskOverflowChrome = {
+  readonly overflowMenuOpen?: boolean
+  readonly dialog?: TaskDialogKind | null
+  readonly dialogOpener?: TaskDialogOpener | null
 }

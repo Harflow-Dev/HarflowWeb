@@ -133,7 +133,11 @@ export { routeConnection } from './workflowConnectionRouter'
 export { occupancyCost } from './workflowRouteOccupancy'
 export {
   initialTaskState,
+  taskDialogOpen,
   type TaskCommandChrome,
+  type TaskDialogKind,
+  type TaskDialogOpener,
+  type TaskOverflowChrome,
   type TaskScreenState,
 } from './taskState'
 export { TaskSession } from './taskSession'
@@ -153,3 +157,29 @@ export {
   type TaskStatusBody,
   type TaskStatusResourceCard,
 } from './taskStatusView'
+export {
+  TASK_OVERFLOW_COPY,
+  TASK_COPY_RESUME_UNAVAILABLE_EXPLANATION,
+  TASK_COPY_RESUME_UNAVAILABLE_ID,
+  TASK_OPEN_FINDER_UNAVAILABLE_EXPLANATION,
+  TASK_OPEN_FINDER_UNAVAILABLE_ID,
+  TASK_OPEN_TERMINAL_UNAVAILABLE_EXPLANATION,
+  TASK_OPEN_TERMINAL_UNAVAILABLE_ID,
+  TASK_STOP_CONFIRM_UNAVAILABLE_EXPLANATION,
+  TASK_STOP_CONFIRM_UNAVAILABLE_ID,
+  TASK_TAKEOVER_CONFIRM_UNAVAILABLE_EXPLANATION,
+  TASK_TAKEOVER_CONFIRM_UNAVAILABLE_ID,
+} from './taskOverflowCopy'
+export {
+  overflowItemAvailability,
+  overflowMenuVariant,
+  overflowMenuView,
+  taskAllowsStopDialog,
+  wontBeStoppedTitles,
+  type OverflowItemAvailability,
+  type OverflowItemIcon,
+  type OverflowItemId,
+  type OverflowMenuItemView,
+  type OverflowMenuVariant,
+  type OverflowMenuView,
+} from './taskOverflowMenu'

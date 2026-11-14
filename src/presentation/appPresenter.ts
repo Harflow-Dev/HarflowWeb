@@ -39,7 +39,12 @@ import type { PendingLaunchStopOutcome } from './pendingLaunchesState'
 import type { OpenMenu } from './screenState'
 import type { ApprovalsMode, EffortLevel } from './taskOptions'
 import type { WorkflowRunViewMode } from './workflowRunParallel'
-import type { TaskCommandChrome } from './taskState'
+import type {
+  TaskCommandChrome,
+  TaskDialogKind,
+  TaskDialogOpener,
+  TaskOverflowChrome,
+} from './taskState'
 
 export type AppPresenter = {
   subscribe(listener: AppListener): () => void
@@ -78,6 +83,13 @@ export type AppPresenter = {
   setTaskChangesPaneOpen(open: boolean): void
   selectTaskChangedFile(path: string): void
   seedTaskCommandChrome(taskId: TaskId, chrome: TaskCommandChrome): void
+  setTaskOverflowMenuOpen(open: boolean): void
+  openTaskDialog(
+    dialog: TaskDialogKind,
+    opener: TaskDialogOpener | null,
+  ): void
+  closeTaskDialog(): void
+  seedTaskOverflowChrome(taskId: TaskId, chrome: TaskOverflowChrome): void
   selectStatisticsRange(range: StatisticsRangeId): void
   selectSettingsSection(section: SettingsSection): void
   setExpandedHarness(id: string | null): void
@@ -157,6 +169,12 @@ export function createAppPresenter(deps: Deps): AppPresenter {
     setTaskChangesPaneOpen: (open) => session.setTaskChangesPaneOpen(open),
     selectTaskChangedFile: (path) => session.selectTaskChangedFile(path),
     seedTaskCommandChrome: (id, c) => session.seedTaskCommandChrome(id, c),
+    setTaskOverflowMenuOpen: (open) => session.setTaskOverflowMenuOpen(open),
+    openTaskDialog: (dialog, opener) =>
+      session.openTaskDialog(dialog, opener),
+    closeTaskDialog: () => session.closeTaskDialog(),
+    seedTaskOverflowChrome: (id, chrome) =>
+      session.seedTaskOverflowChrome(id, chrome),
     selectStatisticsRange: (range) => session.selectStatisticsRange(range),
     selectSettingsSection: (section) => session.selectSettingsSection(section),
     setExpandedHarness: (id) => session.setExpandedHarness(id),

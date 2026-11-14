@@ -854,6 +854,57 @@ Pinned transcript states omit Summary; `task/done` still shows its fixture summa
 Earlier/fresh rows are per-observation prototypes; reading windows merge across
 later observations without discarding loaded rows.
 
+## M05 task status screen — verified 1280×800 captures
+
+Directory:
+`~/.codex/workflows/screenshots/2026-11-14-harflowweb-task-statuses/verified-1280x800/`
+
+Capture script (outside repo):
+`~/.codex/workflows/screenshots/2026-11-14-harflowweb-task-statuses/capture-task-statuses.mjs`
+
+Runs `vite preview` on the built app, opens `/preview#<scenario>` with Playwright,
+hides `.hw-preview__panel` and `.hw-mock-badge`, clamps `.hw-preview__app` to
+1280×800 without document scrollbars, and screenshots the app frame. Light and
+dark use `prefers-color-scheme` emulation. Dimensions verified with `sips` after
+capture.
+
+### Checklist (per scenario)
+
+- [ ] Badge label matches Design specimen (elapsed suffix where drawn)
+- [ ] Notice title/body when the state maps a notice (stop-requested, settling,
+      continued, reconstructed, status unavailable)
+- [ ] Banner title/body/actions when mapped (failed, cancelled, timed out,
+      supervision, launch-unknown, continue-refused)
+- [ ] Composer placeholder/Stop mode matches running vs locked states
+- [ ] No scenario panel or Mock engine badge visible in the clip
+- [ ] PNG is exactly 1280×800 (`sips -g pixelWidth -g pixelHeight`)
+
+### Files (16 M05 states + 3 migration recaptures × light/dark)
+
+| Scenario id | Design route (M05) |
+| --- | --- |
+| `task-running-stop` | `task/running-stop` |
+| `task-stop-requested` | `task/stop-requested` |
+| `task-cancelled` | `task/cancelled` |
+| `task-timed-out` | `task/timed-out` |
+| `task-settling` | `task/settling` |
+| `task-unknown-failed` | `task/unknown-failed` |
+| `task-unknown-done` | `task/unknown-done` |
+| `task-owner-lost` | `task/owner-lost` |
+| `task-unverified` | `task/unverified` |
+| `task-launch-unknown` | `task/launch-unknown` |
+| `task-status-unavailable` | `task/status-unavailable` |
+| `task-pending` | `task/pending` |
+| `task-taken-over` | `task/taken-over` |
+| `task-continue-starting` | `task/continue-starting` |
+| `task-continue-started` | `task/continue-started` |
+| `task-failed-continue` | `task/failed-continue` |
+| `task-running` | legacy alias of `task-running-stop` |
+| `task-failed` | legacy alias of `task-failed-continue` |
+| `task-loading` | `task/loading` skeleton (Design `9d19fd7`) |
+
+Filename pattern: `<scenario-id>-light.png` / `<scenario-id>-dark.png`.
+
 ## Limitations
 
 - Pixel fidelity to native materials is not claimed.

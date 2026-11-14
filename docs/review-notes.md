@@ -325,6 +325,20 @@ grant approvals, answer questions, or touch the task store.
   actually **1150×1360**; verified 1280×800 captures live in that directory’s
   `verified-1280x800/` subdirectory (see `docs/visual-validation.md`).
 
+- **M05 task status screen (mock-only).** Sixteen approved `task/*` states at
+  Design `6e31cd7` render through `taskStatusView` + `TaskPage`. Stop-requested /
+  continue-started notices sit **below the transcript** (not between the request
+  row and history). Settling omits opening the Changes pane. Pending keeps the
+  queue-copy composer without a resource card. Overflow menus, top-bar More
+  actions, status chips, and confirmation dialogs from later M05 drawings stay
+  out of scope. Continue-refused is held on fixtures. Cancel-partial, Artifacts,
+  message-approval, and takeover flows are not built (takeover is human-only in
+  Terminal per design). Task commands use `aria-disabled` + `aria-describedby`
+  rather than removing controls.
+- Prior running / failed / loading sidebar captures remain valid migration
+  targets; refreshed PNGs for those three plus all sixteen M05 states live under
+  `docs/visual-validation.md`.
+
 ## Unresolved questions
 
 - Exact public ctl projection for repositories, workflow definitions,

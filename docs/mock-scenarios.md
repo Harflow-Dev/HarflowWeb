@@ -104,9 +104,25 @@ populated fixture and shows a single “Mock engine” badge.
 | Workflows empty | Approved `workflows/empty` specimen |
 | Resources slots | Approved `resources/slots` harness cards + waiting list |
 | Statistics overview | Approved `statistics/overview` ranges (7d + 30d populated; All time incomplete) |
-| Task running | Approved `task/running` transcript for mapped sidebar rows |
-| Task failed | Approved `task/failed` transcript for the mapped recent-work row |
+| Task running | Approved `task/running-stop` (M05). Legacy id — same seed as **Task · running stop** |
+| Task failed | Approved `task/failed-continue` (M05). Legacy id — same seed as **Task · failed continue** |
 | Task done | Approved `task/done` transcript+summary + read-only Changes pane |
+| Task · stop requested | Approved `task/stop-requested` (M05 `6e31cd7`). Stop-requested chrome after seed |
+| Task · cancelled | Approved `task/cancelled` (M05) |
+| Task · timed out | Approved `task/timed-out` (M05) |
+| Task · settling | Approved `task/settling` (M05) |
+| Task · unknown failed | Approved `task/unknown-failed` (M05) |
+| Task · unknown done | Approved `task/unknown-done` (M05) |
+| Task · owner lost | Approved `task/owner-lost` (M05) |
+| Task · unverified | Approved `task/unverified` (M05) |
+| Task · launch unknown | Approved `task/launch-unknown` (M05) |
+| Task · status unavailable | Approved `task/status-unavailable` (M05) |
+| Task · pending | Approved `task/pending` (M05) |
+| Task · taken over | Approved `task/taken-over` (M05) |
+| Task · continue starting | Approved `task/continue-starting` (M05). `continue-starting` chrome after seed |
+| Task · continue started | Approved `task/continue-started` (M05). `continue-started` chrome after seed |
+| Task · running stop | Approved `task/running-stop` (M05). Alias scenario of **Task running** |
+| Task · failed continue | Approved `task/failed-continue` (M05). Alias scenario of **Task failed** |
 | Transcript observed | Design `task/transcript-observed` (Design 854caae) |
 | Transcript loading | Design `task/transcript-loading` |
 | Transcript partial | Design `task/transcript-partial` |

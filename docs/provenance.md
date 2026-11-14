@@ -150,6 +150,31 @@
   - `task/done/light` and `/dark` transcript surface + summary + **read-only
     Changes pane** (done badge, Summary section, follow-up send unavailable;
     Changes open/close with fixture file rows and selected diff)
+  - M05 task status screen (owner approval 2026-11-14): HarflowDesign
+    `6e31cd7f4a7b63beb329c6a4b4d79ca5eef57863`,
+    `v2/scripts/screens-m05-proposal.js`, `v2/scripts/m05-proposal.js`,
+    approval `v2/docs/decisions/m05-task-screen-approval.md`. Preview routes map
+  one-to-one to `task/*` states below (light/dark through session appearance).
+  Legacy preview ids `task-running`, `task-failed`, and the existing
+  `task-loading` skeleton stay for migration; aliased M05 ids `task-running-stop`
+  and `task-failed-continue` reuse the same `openTaskId` seeds. Commands are
+  `aria-disabled` with shared unavailable explanations (`taskUnavailable.ts`).
+    - `task/running-stop` → `task-running-stop` (also `task-running`)
+    - `task/stop-requested` → `task-stop-requested`
+    - `task/cancelled` → `task-cancelled`
+    - `task/timed-out` → `task-timed-out`
+    - `task/settling` → `task-settling`
+    - `task/unknown-failed` → `task-unknown-failed`
+    - `task/unknown-done` → `task-unknown-done`
+    - `task/owner-lost` → `task-owner-lost`
+    - `task/unverified` → `task-unverified`
+    - `task/launch-unknown` → `task-launch-unknown`
+    - `task/status-unavailable` → `task-status-unavailable`
+    - `task/pending` → `task-pending`
+    - `task/taken-over` → `task-taken-over`
+    - `task/continue-starting` → `task-continue-starting`
+    - `task/continue-started` → `task-continue-started`
+    - `task/failed-continue` → `task-failed-continue` (also `task-failed`)
   - `task/transcript-observed`, `transcript-loading`, `transcript-partial`,
     `transcript-unavailable`, `transcript-integrity-failed`,
     `transcript-reconnecting`, `transcript-capacity`, `transcript-sources`

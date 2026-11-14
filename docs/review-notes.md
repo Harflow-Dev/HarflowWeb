@@ -366,6 +366,15 @@ grant approvals, answer questions, or touch the task store.
   - The task/loading skeleton pins its transcript box to 447 px, the
     running-stop transcript height, as the design does. The visible
     `StatusRegion` bar ("Loading task") overlays the composer in captures.
+  - The D2B follow-up composer now follows the M05 composer at 854caae
+    (placeholder "Queue a message…", the hint text, 88 px height). The earlier
+    D2B captures used the retired `screens-task.js` placeholders; the
+    recaptures are in `previously-approved-recaptures/`.
+  - The send button is a disabled grey because it is unavailable in this mock;
+    the design shows it active.
+  - `task-done` opens the retry-budget task with its Changes pane and still
+    shows the older done screen; its drawing is now `task/changes-single`,
+    out of scope until a later slice.
   - Pixel fidelity to native is not claimed.
 - Prior running / failed / loading sidebar captures were retaken: the 16 M05
   states plus `task-running`, `task-failed` and `task-loading` live under

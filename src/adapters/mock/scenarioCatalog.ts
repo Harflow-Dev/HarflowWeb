@@ -174,11 +174,12 @@ export const SCENARIOS: readonly ScenarioDefinition[] = [
     id: 'task-done',
     label: 'Task done',
     description:
-      'Approved task/done transcript+summary with read-only Changes pane.',
+      'Older task/done screen: the retry-budget task on the transcript surface with its summary and the read-only Changes pane open. Design now draws it as task/changes-single (out of scope).',
     context: readyContext(),
     tasks: (taskId) => taskLoadFor(taskId),
     startOutcome: accepted,
     holdStart: false,
+    seed: { openTaskId: 'task-retry-budget-done', eventsPaneOpen: true },
   }),
   base({
     id: 'needs-you-empty',

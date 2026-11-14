@@ -346,3 +346,15 @@ describe('M05 disabled drawing', () => {
     ).not.toHaveClass('is-disabled')
   })
 })
+
+describe('task-done scenario', () => {
+  it('boots onto the retry-budget task with its Changes pane open', async () => {
+    const app = await mount('task-done')
+    const state = app.presenter.getState()
+    expect(state.task.selectedTaskId).toBe('task-retry-budget-done')
+    expect(state.task.changesPaneOpen).toBe(true)
+    expect(
+      within(screen.getByRole('main')).getByText('Add retry budget to delivery queue'),
+    ).toBeInTheDocument()
+  })
+})

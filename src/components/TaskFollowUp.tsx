@@ -33,7 +33,7 @@ export function TaskFollowUp({ composer, onUnavailable }: Props) {
         }}
       >
         <label className="hd-sr" htmlFor="followup">
-          Follow-up message
+          Message this task
         </label>
         <textarea
           id="followup"

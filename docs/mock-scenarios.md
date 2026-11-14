@@ -106,7 +106,7 @@ populated fixture and shows a single “Mock engine” badge.
 | Statistics overview | Approved `statistics/overview` ranges (7d + 30d populated; All time incomplete) |
 | Task running | Approved `task/running-stop` (M05). Legacy id — same seed as **Task · running stop** |
 | Task failed | Approved `task/failed-continue` (M05). Legacy id — same seed as **Task · failed continue** |
-| Task done | Approved `task/done` transcript+summary + read-only Changes pane |
+| Task done | Opens the retry-budget task (`task-retry-budget-done`) with its summary and the read-only Changes pane open. The older `task/done` screen; the design now draws it as `task/changes-single`, which is out of scope |
 | Task · stop requested | Approved `task/stop-requested` (M05 `6e31cd7`). Stop-requested chrome after seed |
 | Task · cancelled | Approved `task/cancelled` (M05) |
 | Task · timed out | Approved `task/timed-out` (M05) |

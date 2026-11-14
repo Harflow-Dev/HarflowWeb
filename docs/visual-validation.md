@@ -393,6 +393,26 @@ were misframed and are replaced.
 | `parallel-group/lane-failed-minimum` | `parallel-group-lane-failed-minimum` | 1000×620 |
 | `parallel-group/group-empty-minimum` | `parallel-group-group-empty-minimum` | 1000×620 |
 
+### Parallel group queued messages — 2026-11-13
+
+Design pin: HarflowDesign `2153ab1d963709d8fbe77cd0bfd678292202a863`
+(`v2/scripts/states-parallel-lanes.js` `queue` / `runningWith`; bubble styles
+from `v2/styles/messages-screen.css`). Owner approval 2026-11-12.
+
+Target PNG directory:
+`~/.codex/workflows/screenshots/2026-11-13-harflowweb-lane-queued-messages/verified-1280x800/`.
+Capture from `/preview?scenario=…` with the scenario panel and “Mock engine”
+badge hidden; 1280×800 viewport clip; light and dark via emulated
+`prefers-color-scheme`. No 1000×620 drawings for these four states.
+Captured 2026-11-13: 8 PNGs at 1280×800 (`sips`-verified).
+
+| Design state | Preview scenario | Frame |
+| --- | --- | --- |
+| `parallel-group/lane-messages-queued` | `parallel-group-lane-messages-queued` | 1280×800 |
+| `parallel-group/lane-message-delivering` | `parallel-group-lane-message-delivering` | 1280×800 |
+| `parallel-group/lane-message-uncertain` | `parallel-group-lane-message-uncertain` | 1280×800 |
+| `parallel-group/lane-message-cancelled` | `parallel-group-lane-message-cancelled` | 1280×800 |
+
 ### Pending launches — 2026-11-13
 
 Design pin: HarflowDesign `83d820f57e6ec2d82cccd3a1e335128332fdb672`

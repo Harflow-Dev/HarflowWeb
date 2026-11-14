@@ -34,6 +34,10 @@ populated fixture and shows a single “Mock engine” badge.
 | Parallel group · lane taken over | Approved `parallel-group/lane-taken-over` |
 | Parallel group · activity unavailable | Approved `parallel-group/lane-activity-unavailable` |
 | Parallel group · history boundary | Approved `parallel-group/lane-history-boundary` (Design `4ff7d83`) |
+| Parallel group · Messages queued | Approved `parallel-group/lane-messages-queued` (Design `2153ab1`) |
+| Parallel group · Message delivering | Approved `parallel-group/lane-message-delivering` (Design `2153ab1`) |
+| Parallel group · Message uncertain | Approved `parallel-group/lane-message-uncertain` (Design `2153ab1`) |
+| Parallel group · Message cancelled | Approved `parallel-group/lane-message-cancelled` (Design `2153ab1`); outcome seeded |
 | Parallel group · empty | Approved `parallel-group/group-empty` |
 | Parallel group · two lanes | Approved `parallel-group/two-lanes` |
 | Parallel group · lanes titled · minimum | Approved `lanes-titled-minimum` at 1000×620 |

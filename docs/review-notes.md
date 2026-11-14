@@ -45,10 +45,18 @@ grant approvals, answer questions, or touch the task store.
   `task/artifacts-*` (provisional), `sidebar/history-older` (Web has no
   sidebar history paging / “load older”; not built),
   `new-task/centered-loading` (separate first-load path already covered by
-  `new-task-loading`), app-states / harness-runtime first loads, and the four
-  queued-message parallel-group lane states (`lane-messages-queued`,
-  `lane-message-delivering`, `lane-message-uncertain`,
-  `lane-message-cancelled`).
+  `new-task-loading`), and app-states / harness-runtime first loads.
+- **Parallel group queued messages** (Design `2153ab1`, owner approval
+  2026-11-12): `lane-messages-queued`, `lane-message-delivering`,
+  `lane-message-uncertain`, and `lane-message-cancelled` are reachable from
+  `/preview`. Observed queue fields live on the lane (id, text, delivery,
+  taskId); presentation derives caption, Cancel visibility, and the delivering
+  outcome line. The cancelled outcome is seeded session chrome and resets on
+  reopen. Cancel is shown where drawn but unavailable (no mutation). Queues
+  render only when message `taskId` matches the lane `taskId`. There are no
+  approved 1000 × 620 drawings for these four states; the existing narrow lane
+  rules (360-point floor) still apply. Settled-lane queues and task-screen
+  `messages/*` / caller approvals remain out of scope.
 - **Pending launches** (Design `83d820f` / approval `2934681`): all 21 approved
   `task/pending-*` states are reachable from `/preview`. The “Pending launches”
   nav item appears only when the mock engine reports capability

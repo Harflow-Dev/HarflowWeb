@@ -4,14 +4,12 @@ Implementation is paused. This file is a session handoff, not product
 documentation. Do not start another feature, push, deploy, or publish from
 this note.
 
-- Written: 2026-11-11
+- Written: 2026-11-13
 - Repository: `/Users/Shared/Code/Harflow/HarflowWeb`
 - Branch: `main`
-- HEAD at handoff: `722ca31fa65520b830766096c3dc4578bb20beea` (plus the commit
-  that adds this file)
-- Tracking: `main` is ahead of `origin/main`. Nothing from 2026-11-06 onward
-  has been pushed. Pushing requires the owner's authorization.
-- Working tree: clean
+- Tracking: `main` is ahead of `origin/main`. Pushing requires the owner's
+  authorization.
+- Working tree: clean after the commits that land this handoff
 
 ## What this repository is
 
@@ -25,95 +23,79 @@ Read `AGENTS.md`, `docs/architecture.md`, `docs/migration-plan.md` and
 `adapters/mock`, `composition`. Construct concrete mock adapters only in
 `src/composition/`. Builds and tests must not depend on sibling checkouts.
 
-## Last completed slice: first-load skeletons
+## Implemented families
 
-Approved design: HarflowDesign `9d19fd70cc385c551004db4a8054cc85dc93fe86`
-(“Approve the loading states”), drawings in `v2/scripts/skeleton-specs.js`,
-`screens-loading-work.js` and `screens-loading-more.js`. Per-state citations
-are in `docs/provenance.md`.
+Per-state citations live in `docs/provenance.md`. Preview catalog:
+`docs/mock-scenarios.md`. Capture notes: `docs/visual-validation.md`. Open
+items and deviations: `docs/review-notes.md` (summarised below; do not treat
+this handoff as a second copy).
 
-| Commit | Purpose |
-| --- | --- |
-| `a32db38` | Skeletons for New task, Sidebar and Task |
-| `3abbdf3` | Skeletons for Workflows, editor, run and Parallel group |
-| `d2270b8` | Skeletons for Resources, Statistics and Settings |
-| `df20845` | Provenance and preview coverage docs |
-| `004106d` | Review fixes: editor Back while loading, Settings General observation port, harness expansion state, mid-load navigation tests |
-| `46ec345` | Docs for the review fixes |
-| `943f36e` | StatusRegion announces first loads; tighter skeleton semantics |
-| `722ca31` | Announce whichever of submission outcome and first load changed last |
+| Family | Design pin (summary) | Notes |
+| --- | --- | --- |
+| New task / centered composer / sidebar | `854caae` / `9d64bfd` / earlier M04 | Grow-to-cap composer; Task options; System appearance |
+| Workflows / editor / run / Parallel view | approved workflow specimens + `f2a30d7` Parallel | Read-only editor; Nightly run; Graph/Parallel |
+| Resources / Statistics / Settings / Needs you | baseline + harnesses | Mock observations; Settings General has its own port |
+| Running / failed / completed task + Changes / Events | task specimens + transcript `854caae` | Mapped fixture ids; follow-up Send unavailable |
+| First-load skeletons | `9d19fd7` | Deferred observations; `StatusRegion` announces first loads |
+| Minimum window 1000 × 620 | `246cc97` | Responsive `@container hd-main`; Needs you / Parallel / workflow editor & run |
+| Starting state / pane loads | `76ad937` and loading companions | Starting without status row; deferred pane loads |
+| Parallel group lanes | `2153ab1` / `4ff7d83` | Titled lanes, menus, prompts, Cancel-all at app level, outcomes, minima |
+| Parallel group queued messages | `2153ab1` four `lane-message*` states | Observed queue + presentation mapping; Cancel unavailable; cancelled outcome seeded |
+| Pending launches | `83d820f` / approval `2934681` | Capability-gated nav; 21 states including Stop sheet and minima |
 
-The first three commits were written in Cursor. The rest came from a Claude
-implementer after review.
+Scenario count: **76** entries in `SCENARIOS`
+(`src/adapters/mock/scenarioCatalog.ts` and the catalog modules it spreads).
+Open `/preview` and use the scenario panel.
 
-Review: two rounds with Opus, Codex (gpt-6-astra) and Vibe. All three approved
-or had only minor findings left, and those were fixed. Codex ran on the
-regular Codex backend in both rounds because the OpenAI API key had no
-credits.
+## Checks
 
-Checks at `722ca31`: `npm run verify` passes (architecture check, 356 tests,
-build); `npm run lint` reports zero warnings.
+```bash
+npm run verify   # architecture + tests + build
+npm run lint     # oxlint; zero warnings required
+```
 
-### Behaviour worth knowing
+At handoff: **493 tests** across **60** files (`vitest run`). Re-count after
+further commits.
 
-- Every loading state is selectable in `/preview` (catalog in
-  `src/adapters/mock/scenarioCatalogLoading.ts`). Each is driven by a deferred
-  mock observation, not a component flag.
-- Settings › General has its own observation (`observeSettingsGeneral`,
-  `SettingsGeneralSession`). Loading and ready share one structure; the theme
-  control is never remounted.
-- The expanded harness in Settings › Harnesses is session state
-  (`harnesses.expandedId`). It persists across navigation, and a ready
-  observation that no longer lists it collapses it.
-- `StatusRegion` is the only polite live region. It announces the main
-  screen's loading label (`src/features/mainLoadingLabel.ts`) or a submission
-  outcome, whichever changed most recently. Skeleton labels are plain hidden
-  text.
-- Mid-load navigation and late delivery are covered in
-  `src/features/MidLoadNavigation.test.tsx`, including a table test that
-  boots every loading scenario through `PreviewShell`.
+## Screenshots
 
-### Deliberate deviations from the drawings
+Stored outside the repo under `~/.codex/workflows/screenshots/`. Latest
+queued-message captures:
+`2026-11-13-harflowweb-lane-queued-messages/verified-1280x800/`.
+Pending-launch and Parallel-lane captures are sibling dated folders (see
+`docs/visual-validation.md`).
 
-- The task loading top bar shows the real task title. The owner decided that
-  titles show while loading; the HarflowDesign drawing is still owed.
-- The MCP approvals skeleton places its placeholder under the first row only,
-  because the real page expands one harness at a time. The drawing places one
-  under every row.
+Reusable headless Chrome capture script (keep outside the repo):
 
-### Not done in this slice
+`/private/tmp/claude-503/-Users-Shared-Code-Harflow/5c007164-f91a-47d1-84ef-6377a27bd4d0/scratchpad/capture/cap.mjs`
 
-- Skipped approved states: `task/loading-pane`, `menu-bar/loading`, the
-  1000 × 620 minimum-window variants, partial loads
-  (`task/changes-loading`, `events-loading`, `artifacts-loading`,
-  `sidebar/history-older`, `new-task/centered-loading`), app-states and
-  harness-runtime first loads.
-- Light and dark captures at 1280 × 800 were not archived. A spot check of
-  task, resources and settings › harnesses against the drawings found them
-  close. See `docs/visual-validation.md` for where captures belong.
+Companion `run.sh` / `run-pending.sh` examples sit beside it. Hide the scenario
+panel and “Mock engine” badge; clip the app frame only.
 
-## Candidate next work
+## Open items (see review-notes)
 
-These are options, not assignments. The owner chooses.
+Do not expand scope from this list without an assignment. Details and
+deviations are in [`docs/review-notes.md`](review-notes.md):
 
-1. Pending launches (21 states approved 2026-11-10, pinned at HarflowDesign
-   `83d820f57e6ec2d82cccd3a1e335128332fdb672`; decision record
-   `v2/docs/decisions/pending-launch-discovery.md`). It carries API mapping
-   and Stop semantics, so it is not a good fit for Cursor.
-2. The skipped loading states above, starting with the minimum-window
-   variants of screens that already exist.
-3. The starting state without a status row (`new-task/centered-starting-plain`,
-   approved at HarflowDesign `76ad937`).
-
-Before starting, check HarflowDesign for approvals newer than these commits.
+- Skipped approved surfaces (loading-pane, menu-bar, task minima, artifacts,
+  sidebar history paging, app-states / harness-runtime loads).
+- Parallel group: D21 workflow-run Parallel lanes still follow the older
+  drawing; settled-lane queues and caller approvals undecided / out of scope;
+  no minimum drawings for the four queued-message states.
+- Pending launches: provisional queued-message/approval pending states and
+  `task/launch-unknown` unchanged; documented drawing differences (stop-confirm
+  lead, loading sidebar skeleton, etc.).
+- Bundle size Vite warning (>500 kB); pixel fidelity to native not claimed.
 
 ## Rules for the next session
 
-1. Preserve uncommitted work. Do not revert the commits above.
+1. Preserve uncommitted work. Do not revert landed commits.
 2. Cite design commit, path and state for each new screen.
 3. Loading and error states come from mock observations selectable in
-   `/preview`, never from flags in components or fields added to domain
-   types for the mock's sake.
-4. Add a focused regression test before calling a change done.
-5. Run `npm run verify` and `npm run lint` (zero warnings).
-6. Commit cohesive stages locally. Do not push unless the owner asks.
+   `/preview`, never from flags in components or mock-only domain fields.
+4. Presentation derives display; the domain holds observed facts.
+5. `StatusRegion` is the only polite live region. Unavailable controls need
+   aria-disabled plus an accessible explanation.
+6. Run `npm run verify` and `npm run lint` (zero warnings). Prefer not to add
+   avoidable architecture size warnings.
+7. Commit cohesive stages locally. Do not push unless the owner asks.

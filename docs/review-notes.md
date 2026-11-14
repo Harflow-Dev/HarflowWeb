@@ -343,22 +343,30 @@ grant approvals, answer questions, or touch the task store.
   Settling and unknown-done draw the design's done rows with its one-paragraph
   Summary; the old long `task/done` summary stays only on the Changes-pane
   fixture.
+- **M05 G-OVERFLOW (mock-only).** Six approved overflow/dialog states at Design
+  `6e31cd7` (`overflow-running`, `overflow-settled`, `overflow-subtask`,
+  `cancel-dialog`, `cancel-dialog-lineage`, `takeover-dialog`) seed through
+  composition. Every ready task top bar shows More actions. Menu items follow
+  the observed-status availability map. Composer and banner Stop open the same
+  Stop dialog; confirms stay unavailable. Sub-task provenance is a transcript
+  head line. The More button changes every previously approved ready task
+  screen; recaptures live under
+  `~/.codex/workflows/screenshots/2026-11-14-harflowweb-task-overflow-dialogs/`.
 - **M05 remaining deviations (honest list).**
   - The settling drawing opens the right pane with "Stored changes aren't
     available yet / Capture may still be settling. This view checks again."
     That pane is not drawn here, and there is no pane toggle on these fixtures.
   - Out of scope top-bar facts: the "Can edit this repo" enforcement chip,
-    notice and continuity chips, the More actions menu and its dialogs, and
-    the Events/Changes/Artifacts tabs. The Events facts groups they open are
-    not built.
-  - Cancel-partial, continue-refused, Artifacts and takeover dialogs are not
-    built (continue-refused is held on fixtures, owner decision question 5).
-  - "Copy original request", "Open resource slots", Stop, Continue, Copy resume
+    notice and continuity chips, and the Events/Changes/Artifacts tabs. The
+    Events facts groups they open are not built.
+  - Cancel-partial, continue-refused, and Artifacts content are not built
+    (continue-refused is held on fixtures, owner decision question 5).
+  - "Copy original request", "Open resource slots", Continue, Copy resume
     command, Refresh, Check for a new task, Open Events and Retry read are
-    `aria-disabled` with explanation ids and mutate nothing. The design draws
-    them enabled, except the disabled Continue on unknown-failed, "Stopping…"
-    and "Starting…", which are the only dimmed controls. "Open resource slots"
-    is a button here, not a link.
+    `aria-disabled` with explanation ids and mutate nothing. Overflow confirms,
+    Open in terminal, Open in Finder, and Copy resume stay unavailable. Stop
+    opens the confirmation dialog; "Stopping…" and "Starting…" remain dimmed.
+    "Open resource slots" is a button here, not a link.
   - Tool rows with output are native `<details open>` (collapsible); rows
     without output are static. The design draws inert buttons.
   - Badge clock beyond 59:59 (`h:mm:ss`) and the turn count below two are

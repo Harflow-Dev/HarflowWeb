@@ -187,6 +187,12 @@
     - `task/continue-starting` → `task-continue-starting`
     - `task/continue-started` → `task-continue-started` (two turns)
     - `task/failed-continue` → `task-failed-continue` (also `task-failed`)
+    - `task/overflow-running` → `task-overflow-running` (menu open)
+    - `task/overflow-settled` → `task-overflow-settled` (menu + Changes)
+    - `task/overflow-subtask` → `task-overflow-subtask`
+    - `task/stop-dialog` → `task-stop-dialog`
+    - `task/stop-dialog-earlier-turns` → `task-stop-dialog-earlier-turns`
+    - `task/takeover-dialog` → `task-takeover-dialog`
   - `task/transcript-observed`, `transcript-loading`, `transcript-partial`,
     `transcript-unavailable`, `transcript-integrity-failed`,
     `transcript-reconnecting`, `transcript-capacity`, `transcript-sources`

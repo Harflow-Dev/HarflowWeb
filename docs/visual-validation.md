@@ -941,6 +941,30 @@ against the design in headless Chrome:
 
 Filename pattern: `<scenario-id>-light.png` / `<scenario-id>-dark.png`.
 
+## M05 G-OVERFLOW — verified 1280×800 captures
+
+Directory:
+`~/.codex/workflows/screenshots/2026-11-14-harflowweb-task-overflow-dialogs/`
+
+- `verified-1280x800/` — six overflow/dialog scenarios × light/dark (12 PNGs)
+- `previously-approved-recaptures/` — ready task screens that gained the More
+  button (19 scenarios × light/dark = 38 PNGs)
+
+Capture script (outside repo):
+`~/.codex/workflows/screenshots/2026-11-14-harflowweb-task-overflow-dialogs/capture-overflow.mjs`
+
+Same method as the M05 task-status captures (Playwright, 1280×800 app frame,
+panel and mock badge hidden). Dimensions verified with `sips`.
+
+| Scenario id | Design route (M05) |
+| --- | --- |
+| `task-overflow-running` | `task/overflow-running` |
+| `task-overflow-settled` | `task/overflow-settled` |
+| `task-overflow-subtask` | `task/overflow-subtask` |
+| `task-stop-dialog` | `task/stop-dialog` |
+| `task-stop-dialog-earlier-turns` | `task/stop-dialog-earlier-turns` |
+| `task-takeover-dialog` | `task/takeover-dialog` |
+
 ## Limitations
 
 - Pixel fidelity to native materials is not claimed.

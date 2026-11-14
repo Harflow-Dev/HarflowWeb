@@ -123,6 +123,12 @@ populated fixture and shows a single “Mock engine” badge.
 | Task · continue started | Approved `task/continue-started` (M05). `continue-started` chrome after seed; two turns in the meta line |
 | Task · running stop | Approved `task/running-stop` (M05). Alias scenario of **Task running** |
 | Task · failed continue | Approved `task/failed-continue` (M05). Alias scenario of **Task failed** |
+| Task · overflow running | Approved `task/overflow-running` (M05 G-OVERFLOW). More menu open |
+| Task · overflow settled | Approved `task/overflow-settled` (M05). Menu open; Changes pane with single-file fixture |
+| Task · overflow sub-task | Approved `task/overflow-subtask` (M05). Parent lineage and provenance line |
+| Task · stop dialog | Approved `task/stop-dialog` (M05). Stop confirmation open |
+| Task · stop dialog earlier turns | Approved `task/stop-dialog-earlier-turns` (M05). Client-derived won't-be-stopped list |
+| Task · takeover dialog | Approved `task/takeover-dialog` (M05). Takeover confirmation open |
 | Transcript observed | Design `task/transcript-observed` (Design 854caae) |
 | Transcript loading | Design `task/transcript-loading` |
 | Transcript partial | Design `task/transcript-partial` |
@@ -222,11 +228,12 @@ graph. Opening the editor does not clear
 run drafts.
 
 New workflow, “Describe one to an agent”, Resources task links,
-Install, unmapped sidebar rows, follow-up send, Stop (running only), Retry,
-Copy resume command, Artifacts, Events, Check for updates, Inspect task store,
-and Show backup in Finder remain visible where the design shows them and report
-unavailable in this slice — no mutation, no admin, no engine calls, and no
-generated shell commands. Settings behaviour switches and harness mutation
+Install, unmapped sidebar rows, follow-up send, Retry, Copy resume command,
+Artifacts, Events, Check for updates, Inspect task store, and Show backup in
+Finder remain visible where the design shows them and report unavailable in
+this slice — no mutation, no admin, no engine calls, and no generated shell
+commands. Composer and banner Stop open the mock Stop confirmation; its
+confirm stays unavailable. Settings behaviour switches and harness mutation
 controls stay disabled specimen controls with an accessible explanation.
 MCP approvals only expands the selected harness’s fixture list. Settings
 appearance is the shared session theme only. General and Harnesses share that

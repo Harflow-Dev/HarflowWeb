@@ -803,10 +803,10 @@ describe('AppFeature navigation', () => {
     expect(await screen.findByText('Running tests…')).toBeInTheDocument()
 
     const stop = screen.getByRole('button', { name: 'Stop' })
-    expect(stop).toHaveAttribute('aria-disabled', 'true')
+    expect(stop).not.toHaveAttribute('aria-disabled')
     await user.click(stop)
     expect(
-      screen.getByText(/Stop is unavailable in this exploratory slice/),
+      screen.getByRole('dialog', { name: 'Stop this task?' }),
     ).toBeInTheDocument()
     expect(
       screen.getByRole('button', {

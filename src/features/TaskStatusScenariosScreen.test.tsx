@@ -22,8 +22,6 @@ import {
   TASK_REFRESH_UNAVAILABLE_ID,
   TASK_RETRY_READ_UNAVAILABLE_EXPLANATION,
   TASK_RETRY_READ_UNAVAILABLE_ID,
-  TASK_STOP_UNAVAILABLE_EXPLANATION,
-  TASK_STOP_UNAVAILABLE_ID,
 } from '../components/taskUnavailable'
 import { applyNewTaskSeed, createApp, PreviewShell } from '../composition'
 import { taskStatusView } from '../presentation'
@@ -210,10 +208,9 @@ describe('M05 pending empty body', () => {
         'Messages are available once this task starts',
       ),
     ).toBeDisabled()
-    expect(within(main).getByRole('button', { name: 'Stop' })).toHaveAttribute(
-      'aria-disabled',
-      'true',
-    )
+    expect(
+      within(main).getByRole('button', { name: 'Stop' }),
+    ).not.toHaveAttribute('aria-disabled')
   })
 })
 
@@ -240,28 +237,24 @@ describe('M05 task status unavailable commands', () => {
     ).toBe(TASK_COPY_RESUME_UNAVAILABLE_EXPLANATION)
   })
 
-  it('clicks unavailable commands without mutating task status, command chrome, or observation', async () => {
+  it('opens Stop from the banner without mutating observation or command chrome', async () => {
     const user = userEvent.setup()
     const app = await mount('task-owner-lost')
     const before = app.presenter.getState().task
     const main = screen.getByRole('main')
     const stopTask = within(main).getByRole('button', { name: 'Stop task' })
     const refresh = within(main).getByRole('button', { name: 'Refresh' })
-    expect(stopTask).toHaveAttribute('aria-disabled', 'true')
-    expect(stopTask).toHaveAttribute('aria-describedby', TASK_STOP_UNAVAILABLE_ID)
+    expect(stopTask).not.toHaveAttribute('aria-disabled')
     expect(refresh).toHaveAttribute('aria-describedby', TASK_REFRESH_UNAVAILABLE_ID)
-    expect(
-      document.getElementById(TASK_STOP_UNAVAILABLE_ID)?.textContent,
-    ).toBe(TASK_STOP_UNAVAILABLE_EXPLANATION)
     expect(
       document.getElementById(TASK_REFRESH_UNAVAILABLE_ID)?.textContent,
     ).toBe(TASK_REFRESH_UNAVAILABLE_EXPLANATION)
     await user.click(stopTask)
+    expect(app.presenter.getState().task.dialog).toBe('stop')
+    expect(app.presenter.getState().task.load).toEqual(before.load)
+    expect(app.presenter.getState().task.commandChrome).toBe(before.commandChrome)
     await user.click(refresh)
-    const after = app.presenter.getState().task
-    expect(after.commandChrome).toBe(before.commandChrome)
-    expect(after.selectedTaskId).toBe(before.selectedTaskId)
-    expect(after.load).toEqual(before.load)
+    expect(app.presenter.getState().task.load).toEqual(before.load)
   })
 
   it('keeps Retry read unavailable on the status-unavailable notice', async () => {

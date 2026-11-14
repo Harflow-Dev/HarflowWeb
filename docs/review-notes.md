@@ -326,18 +326,49 @@ grant approvals, answer questions, or touch the task store.
   `verified-1280x800/` subdirectory (see `docs/visual-validation.md`).
 
 - **M05 task status screen (mock-only).** Sixteen approved `task/*` states at
-  Design `6e31cd7` render through `taskStatusView` + `TaskPage`. Stop-requested /
-  continue-started notices sit **below the transcript** (not between the request
-  row and history). Settling omits opening the Changes pane. Pending uses the
-  Design empty head/body copy and Stop composer, without the inline resource
-  card. Overflow menus, top-bar More actions, status chips, and confirmation
-  dialogs from later M05 drawings stay out of scope. Continue-refused is held
-  on fixtures (owner decision question 5). Cancel-partial, Artifacts,
-  message-approval, and takeover dialogs are not built (takeover remains
-  human-only; no agent-reachable copy). Task commands use `aria-disabled` +
-  `aria-describedby` rather than removing controls.
-- Prior running / failed / loading sidebar captures remain valid migration
-  targets; refreshed PNGs for those three plus all sixteen M05 states live under
+  Design `6e31cd7` render through `taskStatusView` + `TaskPage`. The 16 fixtures
+  carry an observed `conversation` (stored request plus the design's
+  `transcript(...)` rows), so `TaskPage` draws the M05 column (`columnHtml`):
+  collapsed Original request, resource card, notice, rows and banner inside one
+  scroller, centred at `--content-width`, with no speaker labels, history header
+  or live strip. Notices sit between the request head and the first row; banners
+  close the transcript content. The older transcript surface (Design `854caae`)
+  remains for the D2B `task/transcript-*` scenarios and for tasks without a
+  conversation. `StatusRegion` is still the only live region (the outcome banner
+  is a labelled group). The meta line and `· N turns` come from presentation
+  (`turnCount` > 1; hidden while pending); the badge clock is formatted from
+  observed `elapsedSeconds`; launch-unknown is command chrome
+  (`continue-unknown`, the outcome of a Continue command), not a task fact.
+  The pending card is an observed `launchWait` fact mapped in presentation.
+  Settling and unknown-done draw the design's done rows with its one-paragraph
+  Summary; the old long `task/done` summary stays only on the Changes-pane
+  fixture.
+- **M05 remaining deviations (honest list).**
+  - The settling drawing opens the right pane with "Stored changes aren't
+    available yet / Capture may still be settling. This view checks again."
+    That pane is not drawn here, and there is no pane toggle on these fixtures.
+  - Out of scope top-bar facts: the "Can edit this repo" enforcement chip,
+    notice and continuity chips, the More actions menu and its dialogs, and
+    the Events/Changes/Artifacts tabs. The Events facts groups they open are
+    not built.
+  - Cancel-partial, continue-refused, Artifacts and takeover dialogs are not
+    built (continue-refused is held on fixtures, owner decision question 5).
+  - "Copy original request", "Open resource slots", Stop, Continue, Copy resume
+    command, Refresh, Check for a new task, Open Events and Retry read are
+    `aria-disabled` with explanation ids and mutate nothing. The design draws
+    them enabled, except the disabled Continue on unknown-failed, "Stopping…"
+    and "Starting…", which are the only dimmed controls. "Open resource slots"
+    is a button here, not a link.
+  - Tool rows with output are native `<details open>` (collapsible); rows
+    without output are static. The design draws inert buttons.
+  - Badge clock beyond 59:59 (`h:mm:ss`) and the turn count below two are
+    undesigned choices.
+  - The task/loading skeleton pins its transcript box to 447 px, the
+    running-stop transcript height, as the design does. The visible
+    `StatusRegion` bar ("Loading task") overlays the composer in captures.
+  - Pixel fidelity to native is not claimed.
+- Prior running / failed / loading sidebar captures were retaken: the 16 M05
+  states plus `task-running`, `task-failed` and `task-loading` live under
   `docs/visual-validation.md`.
 
 ## Unresolved questions

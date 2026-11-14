@@ -115,12 +115,12 @@ populated fixture and shows a single “Mock engine” badge.
 | Task · unknown done | Approved `task/unknown-done` (M05) |
 | Task · owner lost | Approved `task/owner-lost` (M05) |
 | Task · unverified | Approved `task/unverified` (M05) |
-| Task · launch unknown | Approved `task/launch-unknown` (M05) |
+| Task · launch unknown | Approved `task/launch-unknown` (M05). `continue-unknown` chrome after seed |
 | Task · status unavailable | Approved `task/status-unavailable` (M05) |
-| Task · pending | Approved `task/pending` (M05) |
+| Task · pending | Approved `task/pending` (M05). Waiting-for-resources card; Open resource slots unavailable |
 | Task · taken over | Approved `task/taken-over` (M05) |
 | Task · continue starting | Approved `task/continue-starting` (M05). `continue-starting` chrome after seed |
-| Task · continue started | Approved `task/continue-started` (M05). `continue-started` chrome after seed |
+| Task · continue started | Approved `task/continue-started` (M05). `continue-started` chrome after seed; two turns in the meta line |
 | Task · running stop | Approved `task/running-stop` (M05). Alias scenario of **Task running** |
 | Task · failed continue | Approved `task/failed-continue` (M05). Alias scenario of **Task failed** |
 | Transcript observed | Design `task/transcript-observed` (Design 854caae) |

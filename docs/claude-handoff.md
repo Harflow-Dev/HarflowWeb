@@ -42,7 +42,7 @@ this handoff as a second copy).
 | Parallel group lanes | `2153ab1` / `4ff7d83` | Titled lanes, menus, prompts, Cancel-all at app level, outcomes, minima |
 | Parallel group queued messages | `2153ab1` four `lane-message*` states | Observed queue + presentation mapping; Cancel unavailable; cancelled outcome seeded |
 | Pending launches | `83d820f` / approval `2934681` | Capability-gated nav; 21 states including Stop sheet and minima |
-| M05 task status screen | `6e31cd7` approval | 16 fixtures + preview scenarios; `aria-disabled` commands; legacy `task-running` / `task-failed` / `task-loading` kept |
+| M05 task status screen | `6e31cd7` approval | 16 fixtures + preview scenarios on the M05 conversation column; `aria-disabled` commands; legacy `task-running` / `task-failed` / `task-loading` kept |
 
 Scenario count: **129** entries in `SCENARIOS` (`SCENARIOS.length` at handoff;
 re-count after adding scenarios) in `src/adapters/mock/scenarioCatalog.ts` and
@@ -56,17 +56,19 @@ npm run verify   # architecture + tests + build
 npm run lint     # oxlint; zero warnings required
 ```
 
-At handoff: **549 tests** across **64** files (`vitest run`). Re-count after
-further commits.
+At handoff: **600 tests** across **65** files (`vitest run`); architecture
+check reports **14** size warnings. Re-count after further commits.
 
-HEAD at handoff: `3d80eb4` (this commit).
+HEAD at handoff: `5e19826` (the commit that records this line follows it).
 
 ## Screenshots
 
 Stored outside the repo under `~/.codex/workflows/screenshots/`. Latest
 task-status captures:
 `2026-11-14-harflowweb-task-statuses/verified-1280x800/` (38 PNGs, 16 M05 states
-+ `task-running` / `task-failed` / `task-loading` recaptures). Queued-message,
++ `task-running` / `task-failed` / `task-loading` recaptures, retaken after the
+review fixes) and `previously-approved-recaptures/` (36 PNGs: the D2B task
+screens whose follow-up composer changed). Queued-message,
 pending-launch, and Parallel-lane captures are sibling dated folders (see
 `docs/visual-validation.md`).
 
@@ -98,8 +100,9 @@ deviations are in [`docs/review-notes.md`](review-notes.md):
 3. Loading and error states come from mock observations selectable in
    `/preview`, never from flags in components or mock-only domain fields.
 4. Presentation derives display; the domain holds observed facts.
-5. `StatusRegion` is the only polite live region. Unavailable controls need
-   aria-disabled plus an accessible explanation.
+5. `StatusRegion` is the only polite live region (the M05 column and outcome
+   banner have none). Unavailable controls need aria-disabled plus an
+   accessible explanation; dim only what the design draws disabled.
 6. Run `npm run verify` and `npm run lint` (zero warnings). Prefer not to add
    avoidable architecture size warnings.
 7. Commit cohesive stages locally. Do not push unless the owner asks.

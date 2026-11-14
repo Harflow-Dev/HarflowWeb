@@ -868,16 +868,52 @@ hides `.hw-preview__panel` and `.hw-mock-badge`, clamps `.hw-preview__app` to
 dark use `prefers-color-scheme` emulation. Dimensions verified with `sips` after
 capture.
 
+### Retake (2026-11-14, after the review fixes)
+
+The first set was drawn on the older transcript surface (speaker labels,
+history header, full-width body, notices below the transcript) and was
+replaced. The retake draws the M05 column from Design `6e31cd7` and was checked
+against the design in headless Chrome:
+
+- Main-column `innerText` (excluding `.hd-pane` and `.hd-sr`) compared with the
+  design `.hd-m05-column` for all 16 states: identical, and the composer
+  placeholders match. The top-bar title, badge and meta text match too; the
+  design's chips are out of scope.
+- Boxes at 1280×800 for `task-running-stop` and `task-stop-requested`: column
+  x 264, transcript 760 wide centred, request y 68, notice y 120 (54 high),
+  first row y 120 and 190, banner and composer boxes match within the design
+  window's 1 px border (the composer is 88 px high at y 696 against 694).
+- `task-loading`: skeleton rows sit at the design's coordinates (transcript
+  pinned to 447 px, `--content-width`, no full-width body). The composer frame
+  has the design's hint line and arrow send. The fixed `StatusRegion` bar
+  ("Loading task") overlays the lower edge of the composer in captures; this
+  predates the retake and is the app's live-region text, not hidden.
+- Previously approved screens: a pixel comparison of all 113 scenarios shared
+  with `103f624` shows no change except the three migration recaptures
+  (`task-running`, `task-failed`, `task-loading`) and the D2B task screens
+  (`transcript-*`, `transcript-*/events`, `task-changes-loading`,
+  `task-events-loading`), whose follow-up composer now has the design's
+  `Queue a message…` copy (earlier in this slice) and 88 px geometry. Those 18
+  scenarios are recaptured under `previously-approved-recaptures/`
+  (`transcript-*__events-<appearance>.png` for the Events variants). Removing
+  the global `.hd-btn[aria-disabled]` dimming leaves `NeedsYouCard`,
+  `PendingLaunchesView` and every other screen as at `103f624`.
+
 ### Checklist (per scenario)
 
-- [ ] Badge label matches Design specimen (elapsed suffix where drawn)
-- [ ] Notice title/body when the state maps a notice (stop-requested, settling,
-      continued, reconstructed, status unavailable)
-- [ ] Banner title/body/actions when mapped (failed, cancelled, timed out,
-      supervision, launch-unknown, continue-refused)
-- [ ] Composer placeholder/Stop mode matches running vs locked states
-- [ ] No scenario panel or Mock engine badge visible in the clip
-- [ ] PNG is exactly 1280×800 (`sips -g pixelWidth -g pixelHeight`)
+- [x] Badge label matches Design specimen (elapsed suffix where drawn)
+- [x] Notice title/body when the state maps a notice (stop-requested, settling,
+      continued, reconstructed, status unavailable), between the request head
+      and the first row
+- [x] Banner title/body/actions when mapped (failed, cancelled, timed out,
+      supervision, launch-unknown), after the last row; caption after the
+      banner box
+- [x] Composer placeholder/Stop mode matches running vs locked states
+- [x] No scenario panel or Mock engine badge visible in the clip
+- [x] PNG is exactly 1280×800 (`sips -g pixelWidth -g pixelHeight`)
+- [x] Every light capture opened and compared with the drawing; remaining
+      differences are listed in `docs/review-notes.md` (settling pane, top-bar
+      chips, send-button state)
 
 ### Files (16 M05 states + 3 migration recaptures × light/dark)
 

@@ -20,6 +20,7 @@ import {
   transcriptTaskObservation,
   type TranscriptMount,
 } from './transcriptFixtures'
+import { TASK_OVERFLOW_BY_ID } from './taskOverflowFixtures'
 import { TASK_STATUS_BY_ID } from './taskStatusFixtures'
 
 /** Mapped from sidebar row "Fix flaky slot release test". */
@@ -34,6 +35,16 @@ export const EVENTS_READER_FAILED_TASK_ID = asTaskId('task-events-reader-failed'
 /** Mapped from Recent work "Add retry budget to delivery queue" (task/done). */
 export const RETRY_BUDGET_DONE_TASK_ID = asTaskId('task-retry-budget-done')
 
+const ACCESS_EDIT = 'Can edit this repo'
+const REPO_MCP = {
+  name: 'HarflowMCP',
+  path: '~/Code/Harflow/HarflowMCP',
+} as const
+const REPO_WEB = {
+  name: 'HarflowWeb',
+  path: '~/Code/Harflow/HarflowWeb',
+} as const
+
 export function slotReleaseObservation(): TaskObservation {
   return {
     taskId: SLOT_RELEASE_TASK_ID,
@@ -44,6 +55,8 @@ export function slotReleaseObservation(): TaskObservation {
     conversation: runningConversation(),
     transcript: slotReleaseTranscript(),
     detailsPane: null,
+    repository: REPO_MCP,
+    accessLabel: ACCESS_EDIT,
   }
 }
 
@@ -56,6 +69,8 @@ export function preloadObservation(): TaskObservation {
     elapsedSeconds: 63,
     transcript: preloadTranscript(),
     detailsPane: null,
+    repository: REPO_MCP,
+    accessLabel: ACCESS_EDIT,
   }
 }
 
@@ -76,6 +91,8 @@ export function eventsReaderFailedObservation(): TaskObservation {
     },
     transcript: eventsReaderFailedTranscript(),
     detailsPane: null,
+    repository: REPO_MCP,
+    accessLabel: ACCESS_EDIT,
   }
 }
 
@@ -90,6 +107,8 @@ export function retryBudgetCompletedObservation(): TaskObservation {
     summary: retryBudgetSummary(),
     transcript: retryBudgetDoneTranscript(),
     detailsPane: 'changes',
+    repository: REPO_WEB,
+    accessLabel: ACCESS_EDIT,
   }
 }
 
@@ -103,6 +122,7 @@ const BY_ID: ReadonlyMap<string, TaskObservation> = new Map([
       [TRANSCRIPT_TASK_IDS[mount], transcriptTaskObservation(mount)] as const,
   ),
   ...TASK_STATUS_BY_ID,
+  ...TASK_OVERFLOW_BY_ID,
 ])
 
 export function taskLoadFor(taskId: string): TaskLoad {

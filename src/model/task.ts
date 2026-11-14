@@ -80,6 +80,28 @@ export type TaskConversation = {
   readonly items: readonly ConversationItem[]
 }
 
+/** Parent task lineage when this observation is a sub-task. */
+export type TaskParentLineage = {
+  readonly taskId: TaskId
+  readonly title: string
+}
+
+/** Repository identity observed for the task (name for menus; path for copy). */
+export type TaskRepository = {
+  readonly name: string
+  readonly path: string
+}
+
+/**
+ * A task this run started in an earlier turn that was still running when the
+ * task list was last read. Client-derived "won't be stopped" copy uses this;
+ * it is not an engine cancel-result field.
+ */
+export type EarlierTurnRunningTask = {
+  readonly taskId: TaskId
+  readonly title: string
+}
+
 /**
  * Task screen observation — domain facts only.
  * Presentation maps badge, notices, banners, and composer chrome.
@@ -110,6 +132,20 @@ export type TaskObservation = {
    * Transcript redraws use Events; completed Changes fixture uses Changes.
    */
   readonly detailsPane: 'events' | 'changes' | null
+  /** Parent lineage when this task was started by another task. */
+  readonly parent?: TaskParentLineage
+  /** Repository name and path when the observation records one. */
+  readonly repository?: TaskRepository
+  /**
+   * Access level label enforced for this task (takeover dialog copy).
+   * Observed display string, not a permission grant in this mock.
+   */
+  readonly accessLabel?: string
+  /**
+   * Task-list read: tasks this run started in earlier turns that were running
+   * when last read. Presentation derives the labelled "won't be stopped" list.
+   */
+  readonly earlierTurnRunningTasks?: readonly EarlierTurnRunningTask[]
 }
 
 export type TaskLoad =

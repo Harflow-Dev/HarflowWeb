@@ -24,6 +24,19 @@ const STOPPED_TITLE = 'Trace composer keystroke lag'
 const STOPPED_META = 'Codex · gpt-6-astra · HarflowMac'
 const PENDING_TITLE = 'Run the nightly dependency audit'
 const PENDING_META = 'Claude · Opus 5.5 · HarflowMCP'
+const ACCESS_EDIT = 'Can edit this repo'
+const REPO_MCP = {
+  name: 'HarflowMCP',
+  path: '~/Code/Harflow/HarflowMCP',
+} as const
+const REPO_WEB = {
+  name: 'HarflowWeb',
+  path: '~/Code/Harflow/HarflowWeb',
+} as const
+const REPO_MAC = {
+  name: 'HarflowMac',
+  path: '~/Code/Harflow/HarflowMac',
+} as const
 
 const FAILURE = {
   title: 'Task failed: the harness exited with code 1',
@@ -54,6 +67,12 @@ export const TASK_STATUS_CONTINUE_STARTING_ID = asTaskId(
   'task-m05-continue-starting',
 )
 export const TASK_STATUS_CONTINUE_STARTED_ID = asTaskId('task-m05-continue-started')
+
+export {
+  TASK_OVERFLOW_PARENT_ID,
+  TASK_OVERFLOW_STOP_LINEAGE_ID,
+  TASK_OVERFLOW_SUBTASK_ID,
+} from './taskOverflowFixtures'
 
 /** All M05 status fixture ids (16 states; running-stop and failed-continue alias sidebar ids). */
 export const TASK_STATUS_FIXTURE_IDS = [
@@ -88,6 +107,8 @@ function runningObservation(
     conversation: runningConversation(),
     transcript: slotReleaseTranscript(),
     detailsPane: null,
+    repository: REPO_MCP,
+    accessLabel: ACCESS_EDIT,
     ...extra,
   }
 }
@@ -104,6 +125,8 @@ function stoppedObservation(
     conversation: stoppedConversation(),
     transcript: stoppedTaskTranscript(),
     detailsPane: null,
+    repository: REPO_MAC,
+    accessLabel: ACCESS_EDIT,
     ...extra,
   }
 }
@@ -123,6 +146,8 @@ function failedTaskBase(
     conversation: failedConversation(),
     transcript: eventsReaderFailedTranscript(),
     detailsPane: null,
+    repository: REPO_MCP,
+    accessLabel: ACCESS_EDIT,
     ...extra,
   }
 }
@@ -148,6 +173,8 @@ function retryBudgetBase(
     conversation: doneConversation(),
     transcript: retryBudgetDoneTranscript(),
     detailsPane: null,
+    repository: REPO_WEB,
+    accessLabel: ACCESS_EDIT,
     ...extra,
   }
 }
@@ -185,6 +212,8 @@ export function taskStatusObservations(): readonly TaskObservation[] {
       launchWait: 'resources',
       transcript: pendingEmptyTranscript(),
       detailsPane: null,
+      repository: REPO_MCP,
+      accessLabel: ACCESS_EDIT,
     },
     stoppedObservation(TASK_STATUS_TAKEN_OVER_ID, {
       statusRead: { kind: 'observed', status: 'taken_over' },

@@ -45,6 +45,8 @@ export type NewTaskScenarioSeed = {
   readonly parallelGroupShowPrompt?: boolean
   readonly parallelGroupOpenMenuLaneId?: string | null
   readonly parallelGroupCancelAllConfirm?: boolean
+  /** Queued-message Cancel outcome line (command result; preview only). */
+  readonly parallelGroupQueuedCancelOutcome?: string
   /** Open Pending launches (inventory or a launch detail). */
   readonly openPendingLaunches?: boolean
   readonly openPendingLaunchId?: string

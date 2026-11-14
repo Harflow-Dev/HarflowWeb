@@ -153,8 +153,13 @@ export class AppSession {
     readonly showPrompt?: boolean
     readonly openMenuLaneId?: string | null
     readonly cancelAllConfirm?: boolean
+    readonly queuedCancelOutcome?: string | null
   }): void {
     this.children.parallelGroup.applyChrome(chrome)
+  }
+
+  seedParallelGroupQueuedCancelOutcome(outcome: string): void {
+    this.children.parallelGroup.seedQueuedCancelOutcome(outcome)
   }
 
   openWorkflowRun(id: WorkflowId): void {

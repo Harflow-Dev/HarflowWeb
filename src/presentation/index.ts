@@ -87,6 +87,15 @@ export {
   type ParallelGroupTopBar,
 } from './parallelGroupChrome'
 export {
+  QUEUED_MESSAGE_COPY,
+  QUEUED_MESSAGE_FIRST,
+  QUEUED_MESSAGE_SECOND,
+  fencedQueuedMessages,
+  queuedLaneTailView,
+  type QueuedLaneTailView,
+  type QueuedMessageView,
+} from './parallelGroupQueuedMessages'
+export {
   initialPendingLaunchesState,
   type PendingLaunchesScreenState,
   type PendingLaunchStopOutcome,

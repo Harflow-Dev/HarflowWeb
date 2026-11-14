@@ -61,7 +61,9 @@ export type AppPresenter = {
     readonly showPrompt?: boolean
     readonly openMenuLaneId?: string | null
     readonly cancelAllConfirm?: boolean
+    readonly queuedCancelOutcome?: string | null
   }): void
+  seedParallelGroupQueuedCancelOutcome(outcome: string): void
   openPendingLaunches(): void
   openPendingLaunch(id: PendingLaunchId): void
   setPendingLaunchStopConfirm(open: boolean): void
@@ -138,6 +140,8 @@ export function createAppPresenter(deps: Deps): AppPresenter {
       session.setParallelGroupCancelAllConfirm(open),
     applyParallelGroupChrome: (chrome) =>
       session.applyParallelGroupChrome(chrome),
+    seedParallelGroupQueuedCancelOutcome: (outcome) =>
+      session.seedParallelGroupQueuedCancelOutcome(outcome),
     openPendingLaunches: () => session.openPendingLaunches(),
     openPendingLaunch: (id) => session.openPendingLaunch(id),
     setPendingLaunchStopConfirm: (open) =>

@@ -5,6 +5,7 @@ import {
   type ParallelGroupLane,
   type ParallelGroupLoad,
   type ParallelGroupObservation,
+  type ParallelGroupQueuedMessage,
 } from '../../model'
 import { PRELOAD_TASK_ID } from './taskFixtures'
 import {
@@ -20,6 +21,20 @@ import {
   legacyOpencodeLane,
   opencodeBodyBlocks,
 } from './parallelGroupFixtureBodies'
+import {
+  defineQueuedParallelGroups,
+  MESSAGE_CANCELLED_PARALLEL_GROUP_ID,
+  MESSAGE_DELIVERING_PARALLEL_GROUP_ID,
+  MESSAGE_UNCERTAIN_PARALLEL_GROUP_ID,
+  MESSAGES_QUEUED_PARALLEL_GROUP_ID,
+} from './parallelGroupQueuedFixtures'
+
+export {
+  MESSAGE_CANCELLED_PARALLEL_GROUP_ID,
+  MESSAGE_DELIVERING_PARALLEL_GROUP_ID,
+  MESSAGE_UNCERTAIN_PARALLEL_GROUP_ID,
+  MESSAGES_QUEUED_PARALLEL_GROUP_ID,
+} from './parallelGroupQueuedFixtures'
 
 /**
  * Parallel group fixtures.
@@ -63,6 +78,20 @@ export const LOADING_TWO_PARALLEL_GROUP_ID = asParallelGroupId(
   'parallel-group-loading-two',
 )
 
+/** Titled three-lane group with queued follow-ups on the running Claude lane. */
+export function titledGroupWithQueuedMessages(
+  groupId: ParallelGroupId,
+  messages: readonly ParallelGroupQueuedMessage[],
+): ParallelGroupObservation {
+  return titledBase(groupId, {
+    lanes: [
+      titledClaudeRunning({ queuedMessages: messages }),
+      titledCodexDone(),
+      titledOpencodeDone(),
+    ],
+  })
+}
+
 /** Original approved `parallel-group/lanes` specimen. */
 export function preloadParallelGroup(): ParallelGroupObservation {
   return {
@@ -93,6 +122,7 @@ function titledClaudeRunning(overrides: Partial<ParallelGroupLane> = {}): Parall
     composer: ENABLED_COMPOSER,
     historyBoundary: null,
     activityNote: null,
+    queuedMessages: [],
     ...overrides,
   }
 }
@@ -112,6 +142,7 @@ function titledCodexDone(overrides: Partial<ParallelGroupLane> = {}): ParallelGr
     composer: ENABLED_COMPOSER,
     historyBoundary: null,
     activityNote: null,
+    queuedMessages: [],
     ...overrides,
   }
 }
@@ -131,6 +162,7 @@ function titledOpencodeDone(overrides: Partial<ParallelGroupLane> = {}): Paralle
     composer: ENABLED_COMPOSER,
     historyBoundary: null,
     activityNote: null,
+    queuedMessages: [],
     ...overrides,
   }
 }
@@ -273,6 +305,24 @@ export function twoLanesParallelGroup(): ParallelGroupObservation {
   })
 }
 
+const QUEUED_BY_ID = defineQueuedParallelGroups(titledGroupWithQueuedMessages)
+
+export function messagesQueuedParallelGroup(): ParallelGroupObservation {
+  return QUEUED_BY_ID.get(MESSAGES_QUEUED_PARALLEL_GROUP_ID)!
+}
+
+export function messageDeliveringParallelGroup(): ParallelGroupObservation {
+  return QUEUED_BY_ID.get(MESSAGE_DELIVERING_PARALLEL_GROUP_ID)!
+}
+
+export function messageUncertainParallelGroup(): ParallelGroupObservation {
+  return QUEUED_BY_ID.get(MESSAGE_UNCERTAIN_PARALLEL_GROUP_ID)!
+}
+
+export function messageCancelledParallelGroup(): ParallelGroupObservation {
+  return QUEUED_BY_ID.get(MESSAGE_CANCELLED_PARALLEL_GROUP_ID)!
+}
+
 const BY_ID = new Map<ParallelGroupId, ParallelGroupObservation>([
   [PRELOAD_PARALLEL_GROUP_ID, preloadParallelGroup()],
   [TITLED_PARALLEL_GROUP_ID, titledParallelGroup()],
@@ -289,6 +339,7 @@ const BY_ID = new Map<ParallelGroupId, ParallelGroupObservation>([
     LOADING_TWO_PARALLEL_GROUP_ID,
     { ...twoLanesParallelGroup(), groupId: LOADING_TWO_PARALLEL_GROUP_ID },
   ],
+  ...QUEUED_BY_ID,
 ])
 
 export function parallelGroupLoadFor(groupId: ParallelGroupId): ParallelGroupLoad {

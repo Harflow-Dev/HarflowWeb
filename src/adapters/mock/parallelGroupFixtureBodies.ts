@@ -202,11 +202,26 @@ export function opencodeBodyBlocks(): readonly WorkflowRunLaneBlock[] {
 }
 
 function legacyLane(
-  partial: Omit<ParallelGroupLane, 'composer' | 'end' | 'historyBoundary' | 'activityNote' | 'taskId' | 'prompt'> &
+  partial: Omit<
+    ParallelGroupLane,
+    | 'composer'
+    | 'end'
+    | 'historyBoundary'
+    | 'activityNote'
+    | 'taskId'
+    | 'prompt'
+    | 'queuedMessages'
+  > &
     Partial<
       Pick<
         ParallelGroupLane,
-        'composer' | 'end' | 'historyBoundary' | 'activityNote' | 'taskId' | 'prompt'
+        | 'composer'
+        | 'end'
+        | 'historyBoundary'
+        | 'activityNote'
+        | 'taskId'
+        | 'prompt'
+        | 'queuedMessages'
       >
     >,
 ): ParallelGroupLane {
@@ -217,6 +232,7 @@ function legacyLane(
     composer: ENABLED_COMPOSER,
     historyBoundary: null,
     activityNote: null,
+    queuedMessages: [],
     ...partial,
   }
 }

@@ -32,6 +32,23 @@ export type ParallelGroupLaneEnd = {
 }
 
 /**
+ * Observed delivery state for a queued follow-up in a running lane.
+ * Presentation derives caption, Cancel, and delivery outcome lines.
+ */
+export type ParallelGroupQueuedDelivery = 'queued' | 'delivering' | 'uncertain'
+
+/** One observed queued follow-up; fenced to the lane's task id. */
+export type ParallelGroupQueuedMessage = {
+  readonly id: string
+  /** Task this message belongs to; must match the lane taskId to render. */
+  readonly taskId: TaskId
+  readonly text: string
+  readonly delivery: ParallelGroupQueuedDelivery
+  /** Observed note on uncertain delivery; null otherwise. */
+  readonly note: string | null
+}
+
+/**
  * One Parallel group lane.
  * Lane ids are observation facts for this group, not graph node ids.
  */
@@ -54,6 +71,8 @@ export type ParallelGroupLane = {
   readonly historyBoundary: string | null
   /** Body note replacing activity (unavailable / empty). */
   readonly activityNote: string | null
+  /** Observed queued follow-ups for this lane's task; empty when none. */
+  readonly queuedMessages: readonly ParallelGroupQueuedMessage[]
 }
 
 export type ParallelGroupObservation = {

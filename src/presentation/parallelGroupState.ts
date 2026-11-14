@@ -9,6 +9,11 @@ export type ParallelGroupScreenState = {
   readonly openMenuLaneId: string | null
   /** Cancel-all confirmation dialog open. */
   readonly cancelAllConfirm: boolean
+  /**
+   * Outcome of cancelling a queued message (command result).
+   * Not an observation fact; cleared when the route reopens.
+   */
+  readonly queuedCancelOutcome: string | null
 }
 
 export function initialParallelGroupState(): ParallelGroupScreenState {
@@ -18,5 +23,6 @@ export function initialParallelGroupState(): ParallelGroupScreenState {
     showPrompt: false,
     openMenuLaneId: null,
     cancelAllConfirm: false,
+    queuedCancelOutcome: null,
   }
 }

@@ -25,7 +25,8 @@ export function applyParallelGroupSeed(
   const wantsChrome =
     seed.parallelGroupShowPrompt === true ||
     seed.parallelGroupOpenMenuLaneId !== undefined ||
-    seed.parallelGroupCancelAllConfirm === true
+    seed.parallelGroupCancelAllConfirm === true ||
+    seed.parallelGroupQueuedCancelOutcome !== undefined
   if (!wantsChrome) return
   whenLoaded(
     presenter,
@@ -38,6 +39,7 @@ export function applyParallelGroupSeed(
         showPrompt?: boolean
         openMenuLaneId?: string | null
         cancelAllConfirm?: boolean
+        queuedCancelOutcome?: string | null
       } = {}
       if (seed.parallelGroupShowPrompt !== undefined) {
         chrome.showPrompt = seed.parallelGroupShowPrompt
@@ -47,6 +49,9 @@ export function applyParallelGroupSeed(
       }
       if (seed.parallelGroupCancelAllConfirm !== undefined) {
         chrome.cancelAllConfirm = seed.parallelGroupCancelAllConfirm
+      }
+      if (seed.parallelGroupQueuedCancelOutcome !== undefined) {
+        chrome.queuedCancelOutcome = seed.parallelGroupQueuedCancelOutcome
       }
       presenter.applyParallelGroupChrome(chrome)
     },

@@ -17,6 +17,7 @@ export type ParallelGroupChrome = {
   readonly showPrompt?: boolean
   readonly openMenuLaneId?: string | null
   readonly cancelAllConfirm?: boolean
+  readonly queuedCancelOutcome?: string | null
 }
 
 /**
@@ -71,6 +72,7 @@ export class ParallelGroupSession {
       showPrompt: false,
       openMenuLaneId: null,
       cancelAllConfirm: false,
+      queuedCancelOutcome: null,
     })
     this.watch(id, gen)
   }
@@ -85,7 +87,14 @@ export class ParallelGroupSession {
       showPrompt: false,
       openMenuLaneId: null,
       cancelAllConfirm: false,
+      queuedCancelOutcome: null,
     })
+  }
+
+  /** Preview seeding: show a prior queued-message Cancel outcome. */
+  seedQueuedCancelOutcome(outcome: string): void {
+    if (this.state.queuedCancelOutcome === outcome) return
+    this.publish({ ...this.state, queuedCancelOutcome: outcome })
   }
 
   setShowPrompt(show: boolean): void {
@@ -125,6 +134,10 @@ export class ParallelGroupSession {
           : this.state.openMenuLaneId,
       cancelAllConfirm:
         chrome.cancelAllConfirm ?? this.state.cancelAllConfirm,
+      queuedCancelOutcome:
+        chrome.queuedCancelOutcome !== undefined
+          ? chrome.queuedCancelOutcome
+          : this.state.queuedCancelOutcome,
     })
   }
 

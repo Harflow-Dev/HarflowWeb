@@ -16,6 +16,7 @@ import {
   transcriptTaskObservation,
   type TranscriptMount,
 } from './transcriptFixtures'
+import { TASK_STATUS_BY_ID } from './taskStatusFixtures'
 
 /** Mapped from sidebar row "Fix flaky slot release test". */
 export const SLOT_RELEASE_TASK_ID = asTaskId('task-slot-release')
@@ -95,6 +96,7 @@ const BY_ID: ReadonlyMap<string, TaskObservation> = new Map([
     (mount) =>
       [TRANSCRIPT_TASK_IDS[mount], transcriptTaskObservation(mount)] as const,
   ),
+  ...TASK_STATUS_BY_ID,
 ])
 
 export function taskLoadFor(taskId: string): TaskLoad {

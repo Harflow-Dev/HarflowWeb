@@ -76,6 +76,69 @@ export function eventsReaderFailedTranscript(): TranscriptObservation {
   }
 }
 
+/** M05 stopped task — Trace composer keystroke lag (Design m05-proposal.js). */
+export function stoppedTaskTranscript(): TranscriptObservation {
+  const base = transcriptObservationFor('observed')
+  return {
+    ...base,
+    assignmentText:
+      'Trace the composer during a streaming run and list what runs on each keystroke.',
+    rows: rows([
+      {
+        id: 'row-stopped',
+        sourceEpoch: 'mock-source-a',
+        windowEpoch: 0,
+        occurrence: 0,
+        seq: 1,
+        type: 'message',
+        anchorId: 'anchor',
+        title: 'Codex',
+        body: "I'll record a streaming run and compare keystroke handling with and without activity.",
+      },
+      {
+        id: 'row-stopped-test',
+        sourceEpoch: 'mock-source-a',
+        windowEpoch: 0,
+        occurrence: 1,
+        seq: 2,
+        type: 'tool_result',
+        anchorId: 'tool',
+        title: 'Codex',
+        body: '',
+        toolSummary: 'Ran swift test --filter ComposerLatencyTests',
+        toolBody: 'Test Suite ComposerLatencyTests passed',
+        disclosure: 'tool-swift-test',
+      },
+      {
+        id: 'row-stopped-2',
+        sourceEpoch: 'mock-source-a',
+        windowEpoch: 0,
+        occurrence: 2,
+        seq: 3,
+        type: 'message',
+        anchorId: 'anchor-2',
+        title: 'Codex',
+        body: "Layout runs on every keystroke while rows are arriving. I'm tracing which input changes.",
+      },
+    ]),
+    earlierPrototype: null,
+    freshPrototype: null,
+  }
+}
+
+/** Pending launch task — no captured activity yet (Design m05-proposal.js empty). */
+export function pendingEmptyTranscript(): TranscriptObservation {
+  const base = transcriptObservationFor('observed')
+  return {
+    ...base,
+    assignmentText:
+      'Audit the dependency lock files and report anything with a known advisory.',
+    rows: rows([]),
+    earlierPrototype: null,
+    freshPrototype: null,
+  }
+}
+
 export function retryBudgetDoneTranscript(): TranscriptObservation {
   const base = transcriptObservationFor('observed')
   return {

@@ -25,6 +25,11 @@ export type NewTaskScenarioSeed = {
   readonly autoSubmit?: boolean
   /** Open a mapped task after context is ready (transcript scenarios). */
   readonly openTaskId?: string
+  /** Stop or Continue command lifecycle chrome after the task observation is ready. */
+  readonly taskCommandChrome?:
+    | 'stop-requested'
+    | 'continue-starting'
+    | 'continue-started'
   /** Open the right pane (Events for transcript states; Changes otherwise). */
   readonly eventsPaneOpen?: boolean
   /** Navigate to a main route after context is ready. */

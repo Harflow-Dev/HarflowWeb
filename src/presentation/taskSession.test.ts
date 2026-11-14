@@ -247,6 +247,22 @@ async function flush(): Promise<void> {
 }
 
 describe('TaskSession', () => {
+  it('clears seeded command chrome when the task is reopened', async () => {
+    const { port } = createCapturingPort()
+    const session = sessionFor(port)
+    session.start()
+    session.openTask(SLOT_RELEASE_TASK_ID)
+    await flush()
+    session.seedTaskCommandChrome('stop-requested')
+    expect(session.getState().commandChrome).toBe('stop-requested')
+    session.openTask(PRELOAD_TASK_ID)
+    expect(session.getState().commandChrome).toBe(null)
+    expect(session.getState().load.kind).toBe('loading')
+    await flush()
+    expect(session.getState().commandChrome).toBe(null)
+    session.dispose()
+  })
+
   it('loads the explicit fixture for the selected task id', async () => {
     const { port, idsObserved } = createCapturingPort()
     const session = sessionFor(port)

@@ -8,6 +8,7 @@ import { MINIMUM_SCENARIOS } from './scenarioCatalogMinimum'
 import { PARALLEL_LANE_SCENARIOS } from './scenarioCatalogParallelLanes'
 import { PARALLEL_QUEUED_SCENARIOS } from './scenarioCatalogParallelQueued'
 import { PENDING_LAUNCH_SCENARIOS } from './scenarioCatalogPendingLaunches'
+import { TASK_STATUS_SCENARIOS } from './scenarioCatalogTaskStatuses'
 import { TRANSCRIPT_SCENARIOS } from './scenarioCatalogTranscript'
 import type { ScenarioDefinition } from './scenarios'
 import { statisticsLoadFor } from './statisticsFixtures'
@@ -150,20 +151,24 @@ export const SCENARIOS: readonly ScenarioDefinition[] = [
   base({
     id: 'task-running',
     label: 'Task running',
-    description: 'Approved task/running transcript for mapped sidebar rows.',
+    description:
+      'Approved task/running-stop (M05). Legacy id; same seed as task-running-stop.',
     context: readyContext(),
     tasks: (taskId) => taskLoadFor(taskId),
     startOutcome: accepted,
     holdStart: false,
+    seed: { openTaskId: 'task-slot-release' },
   }),
   base({
     id: 'task-failed',
     label: 'Task failed',
-    description: 'Approved task/failed transcript for the mapped recent row.',
+    description:
+      'Approved task/failed-continue (M05). Continue in a new session on the mapped recent row.',
     context: readyContext(),
     tasks: (taskId) => taskLoadFor(taskId),
     startOutcome: accepted,
     holdStart: false,
+    seed: { openTaskId: 'task-events-reader-failed' },
   }),
   base({
     id: 'task-done',
@@ -202,4 +207,5 @@ export const SCENARIOS: readonly ScenarioDefinition[] = [
   ...PARALLEL_LANE_SCENARIOS,
   ...PARALLEL_QUEUED_SCENARIOS,
   ...PENDING_LAUNCH_SCENARIOS,
+  ...TASK_STATUS_SCENARIOS,
 ]

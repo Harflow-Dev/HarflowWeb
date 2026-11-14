@@ -1,6 +1,5 @@
 import type { NewTaskScenarioSeed } from '../adapters/mock'
 import {
-  asTaskId,
   asWorkflowId,
   asWorkflowNodeId,
   asWorkflowRunId,
@@ -14,6 +13,7 @@ import type {
 } from '../presentation'
 import { applyParallelGroupSeed } from './applyParallelGroupSeed'
 import { applyPendingLaunchSeed } from './applyPendingLaunchSeed'
+import { applyTaskOpenSeed } from './applyTaskOpenSeed'
 
 /**
  * Applies preview-only presentation chrome after context is ready.
@@ -45,21 +45,7 @@ export function applyNewTaskSeed(
   if (seed.settingsExpandedHarnessId !== undefined) {
     presenter.setExpandedHarness(seed.settingsExpandedHarnessId)
   }
-  if (seed.openTaskId !== undefined) {
-    presenter.openTask(asTaskId(seed.openTaskId))
-    if (seed.eventsPaneOpen === true) {
-      // Wait until the task observation is ready before opening Events.
-      const taskId = asTaskId(seed.openTaskId)
-      whenLoaded(
-        presenter,
-        (state) => ({
-          open: state.task.selectedTaskId === taskId,
-          kind: state.task.load.kind,
-        }),
-        () => presenter.setTaskChangesPaneOpen(true),
-      )
-    }
-  }
+  applyTaskOpenSeed(presenter, seed, whenLoaded)
   if (seed.openWorkflowEditorId !== undefined) {
     presenter.openWorkflowEditor(asWorkflowId(seed.openWorkflowEditorId))
     if (seed.openWorkflowEditorNodeId !== undefined) {

@@ -56,10 +56,10 @@ npm run verify   # architecture + tests + build
 npm run lint     # oxlint; zero warnings required
 ```
 
-At handoff: **548 tests** across **64** files (`vitest run`). Re-count after
+At handoff: **549 tests** across **64** files (`vitest run`). Re-count after
 further commits.
 
-HEAD at handoff: `a596592` (this commit).
+HEAD at handoff: updated by the pending empty-body commit that follows.
 
 ## Screenshots
 

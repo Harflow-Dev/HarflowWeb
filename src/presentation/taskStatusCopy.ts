@@ -43,6 +43,12 @@ export const TASK_NOTICES = {
   },
 } as const
 
+/** Pending task body (Design m05-proposal.js task empty + pending head). */
+export const TASK_PENDING_BODY = {
+  requestDeferred: 'Original request is readable once this task starts.',
+  emptyActivity: 'No activity yet. This task has not started.',
+} as const
+
 export const TASK_CONTINUE_LABEL = 'Continue in a new session'
 
 export const TASK_BANNER_CAPTION = {

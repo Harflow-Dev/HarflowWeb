@@ -6,6 +6,7 @@ import {
   taskShowsSummary,
   taskStatusView,
 } from '../presentation'
+import { TASK_PENDING_BODY } from '../presentation/taskStatusCopy'
 import { mergeTranscriptObservation } from '../presentation/transcriptMerge'
 import { TaskEventsPane } from './TaskEventsPane'
 import { TaskFailureBanner } from './TaskFailureBanner'
@@ -116,13 +117,26 @@ function TranscriptTaskBody({
     }
   }
 
+  const pending =
+    observation.statusRead.kind === 'observed' &&
+    observation.statusRead.status === 'pending'
+
   const column = (
     <>
-      <TranscriptSurface
-        transcript={displayed}
-        onReadingChange={onReadingChange}
-        onAnnounce={publishAnnounce}
-      />
+      {pending ? (
+        <div className="hd-scroll" style={{ padding: 'var(--space-5) var(--space-6)' }}>
+          <div className="hd-m05-request">
+            <span className="hd-faint">{TASK_PENDING_BODY.requestDeferred}</span>
+          </div>
+          <p className="hd-m05-empty">{TASK_PENDING_BODY.emptyActivity}</p>
+        </div>
+      ) : (
+        <TranscriptSurface
+          transcript={displayed}
+          onReadingChange={onReadingChange}
+          onAnnounce={publishAnnounce}
+        />
+      )}
       {statusView.notice ? (
         <TaskStatusNotice
           notice={statusView.notice}

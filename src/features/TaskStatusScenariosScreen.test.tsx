@@ -193,6 +193,30 @@ describe('M05 task status screen copy', () => {
   )
 })
 
+describe('M05 pending empty body', () => {
+  it('renders Design pending head and empty activity copy', async () => {
+    await mount('task-pending')
+    const main = screen.getByRole('main')
+    expect(
+      within(main).getByText(
+        'Original request is readable once this task starts.',
+      ),
+    ).toBeInTheDocument()
+    expect(
+      within(main).getByText('No activity yet. This task has not started.'),
+    ).toBeInTheDocument()
+    expect(
+      within(main).getByPlaceholderText(
+        'Messages are available once this task starts',
+      ),
+    ).toBeDisabled()
+    expect(within(main).getByRole('button', { name: 'Stop' })).toHaveAttribute(
+      'aria-disabled',
+      'true',
+    )
+  })
+})
+
 describe('M05 task status unavailable commands', () => {
   it('marks banner and composer commands aria-disabled with stable explanation ids', async () => {
     await mount('task-failed-continue')

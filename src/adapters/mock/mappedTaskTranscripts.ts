@@ -126,16 +126,19 @@ export function stoppedTaskTranscript(): TranscriptObservation {
   }
 }
 
-/** Pending launch task — no captured activity yet (Design m05-proposal.js empty). */
+/** Pending task — no record yet (Design m05-proposal.js empty / pending head). */
 export function pendingEmptyTranscript(): TranscriptObservation {
   const base = transcriptObservationFor('observed')
   return {
     ...base,
-    assignmentText:
-      'Audit the dependency lock files and report anything with a known advisory.',
+    request: 'unavailable',
+    history: 'empty',
+    summaryCoverage: 'empty',
+    assignmentText: '',
     rows: rows([]),
     earlierPrototype: null,
     freshPrototype: null,
+    currentWindowPrototype: null,
   }
 }
 

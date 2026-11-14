@@ -328,13 +328,14 @@ grant approvals, answer questions, or touch the task store.
 - **M05 task status screen (mock-only).** Sixteen approved `task/*` states at
   Design `6e31cd7` render through `taskStatusView` + `TaskPage`. Stop-requested /
   continue-started notices sit **below the transcript** (not between the request
-  row and history). Settling omits opening the Changes pane. Pending keeps the
-  queue-copy composer without a resource card. Overflow menus, top-bar More
-  actions, status chips, and confirmation dialogs from later M05 drawings stay
-  out of scope. Continue-refused is held on fixtures. Cancel-partial, Artifacts,
-  message-approval, and takeover flows are not built (takeover is human-only in
-  Terminal per design). Task commands use `aria-disabled` + `aria-describedby`
-  rather than removing controls.
+  row and history). Settling omits opening the Changes pane. Pending uses the
+  Design empty head/body copy and Stop composer, without the inline resource
+  card. Overflow menus, top-bar More actions, status chips, and confirmation
+  dialogs from later M05 drawings stay out of scope. Continue-refused is held
+  on fixtures (owner decision question 5). Cancel-partial, Artifacts,
+  message-approval, and takeover dialogs are not built (takeover remains
+  human-only; no agent-reachable copy). Task commands use `aria-disabled` +
+  `aria-describedby` rather than removing controls.
 - Prior running / failed / loading sidebar captures remain valid migration
   targets; refreshed PNGs for those three plus all sixteen M05 states live under
   `docs/visual-validation.md`.

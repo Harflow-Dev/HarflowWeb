@@ -30,7 +30,6 @@ import {
 import type { AppRoute, AppScreenState, SettingsSection } from './appState'
 import type { PresenterSession } from './presenterSession'
 import * as parallelNav from './appSessionParallel'
-import type { ParallelGroupQueuedOutcome } from './parallelGroupState'
 import type { PendingLaunchStopOutcome } from './pendingLaunchesState'
 import type { OpenMenu } from './screenState'
 import type { WorkflowRunViewMode } from './workflowRunParallel'
@@ -51,13 +50,19 @@ export type AppListener = (state: AppScreenState) => void
  */
 export class AppSession {
   private route: AppRoute = 'new-task'
-  readonly children: AppChildSessions
+  private readonly children: AppChildSessions
+  private readonly nav: parallelNav.AppNavContext
   private settingsSection: SettingsSection = 'general'
   private readonly listeners = new Set<AppListener>()
   private snapshot: AppScreenState
 
   constructor(deps: AppSessionDeps) {
     this.children = createAppChildSessions(deps)
+    this.nav = {
+      children: this.children,
+      setRoute: (route) => this.setRoute(route),
+      emit: () => this.emit(),
+    }
     this.snapshot = this.buildSnapshot()
     subscribeAppChildSessions(this.children, () => this.emit())
   }
@@ -111,44 +116,39 @@ export class AppSession {
   }
 
   openParallelGroup(id: ParallelGroupId): void {
-    parallelNav.openParallelGroup(this, id)
+    parallelNav.openParallelGroup(this.nav, id)
   }
 
   openPendingLaunches(): void {
-    parallelNav.openPendingLaunches(this)
+    parallelNav.openPendingLaunches(this.nav)
   }
 
   openPendingLaunch(id: PendingLaunchId): void {
-    parallelNav.openPendingLaunch(this, id)
+    parallelNav.openPendingLaunch(this.nav, id)
   }
 
   setPendingLaunchStopConfirm(open: boolean): void {
-    parallelNav.setPendingLaunchStopConfirm(this, open)
+    parallelNav.setPendingLaunchStopConfirm(this.nav, open)
   }
 
   seedPendingLaunchStopOutcome(outcome: PendingLaunchStopOutcome): void {
-    parallelNav.seedPendingLaunchStopOutcome(this, outcome)
+    parallelNav.seedPendingLaunchStopOutcome(this.nav, outcome)
   }
 
   setParallelGroupShowPrompt(show: boolean): void {
-    parallelNav.setParallelGroupShowPrompt(this, show)
+    parallelNav.setParallelGroupShowPrompt(this.nav, show)
   }
 
   setParallelGroupOpenMenuLaneId(laneId: string | null): void {
-    parallelNav.setParallelGroupOpenMenuLaneId(this, laneId)
+    parallelNav.setParallelGroupOpenMenuLaneId(this.nav, laneId)
   }
 
   setParallelGroupCancelAllConfirm(open: boolean): void {
-    parallelNav.setParallelGroupCancelAllConfirm(this, open)
+    parallelNav.setParallelGroupCancelAllConfirm(this.nav, open)
   }
 
-  applyParallelGroupChrome(chrome: {
-    readonly showPrompt?: boolean
-    readonly openMenuLaneId?: string | null
-    readonly cancelAllConfirm?: boolean
-    readonly queuedCancelOutcome?: ParallelGroupQueuedOutcome | null
-  }): void {
-    parallelNav.applyParallelGroupChrome(this, chrome)
+  applyParallelGroupChrome(chrome: parallelNav.ParallelGroupChrome): void {
+    parallelNav.applyParallelGroupChrome(this.nav, chrome)
   }
 
   openWorkflowRun(id: WorkflowId): void {
@@ -193,7 +193,7 @@ export class AppSession {
   }
 
   openTask(taskId: TaskId): void {
-    parallelNav.openTask(this, taskId)
+    parallelNav.openTask(this.nav, taskId)
   }
 
   setTaskChangesPaneOpen(open: boolean): void {
@@ -284,7 +284,7 @@ export class AppSession {
   }
 
   /** Leaving the task route drops command lifecycle chrome seeded on it. */
-  setRoute(next: AppRoute): void {
+  private setRoute(next: AppRoute): void {
     if (this.route === 'task' && next !== 'task') {
       this.children.task.clearCommandChrome()
     }
@@ -295,7 +295,7 @@ export class AppSession {
     return buildAppSnapshot(this.route, this.settingsSection, this.children)
   }
 
-  emit(): void {
+  private emit(): void {
     this.snapshot = this.buildSnapshot()
     for (const listener of this.listeners) listener(this.snapshot)
   }

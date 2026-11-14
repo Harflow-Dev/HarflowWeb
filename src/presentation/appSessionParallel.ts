@@ -9,13 +9,14 @@ import type { AppRoute } from './appState'
 import type { ParallelGroupQueuedOutcome } from './parallelGroupState'
 import type { PendingLaunchStopOutcome } from './pendingLaunchesState'
 
-type Ctx = {
+/** Narrow internal context AppSession hands to its navigation helpers. */
+export type AppNavContext = {
   readonly children: AppChildSessions
-  setRoute(route: AppRoute): void
-  emit(): void
+  readonly setRoute: (route: AppRoute) => void
+  readonly emit: () => void
 }
 
-export function openParallelGroup(ctx: Ctx, id: ParallelGroupId): void {
+export function openParallelGroup(ctx: AppNavContext, id: ParallelGroupId): void {
   closeWorkflowExecution(ctx.children.workflowExecution)
   closePendingLaunches(ctx.children.pendingLaunches)
   ctx.setRoute('parallel-group')
@@ -23,7 +24,7 @@ export function openParallelGroup(ctx: Ctx, id: ParallelGroupId): void {
   ctx.emit()
 }
 
-export function openPendingLaunches(ctx: Ctx): void {
+export function openPendingLaunches(ctx: AppNavContext): void {
   closeWorkflowExecution(ctx.children.workflowExecution)
   closeParallelGroup(ctx.children.parallelGroup)
   ctx.setRoute('pending-launches')
@@ -31,7 +32,7 @@ export function openPendingLaunches(ctx: Ctx): void {
   ctx.emit()
 }
 
-export function openPendingLaunch(ctx: Ctx, id: PendingLaunchId): void {
+export function openPendingLaunch(ctx: AppNavContext, id: PendingLaunchId): void {
   closeWorkflowExecution(ctx.children.workflowExecution)
   closeParallelGroup(ctx.children.parallelGroup)
   ctx.setRoute('pending-launches')
@@ -39,48 +40,50 @@ export function openPendingLaunch(ctx: Ctx, id: PendingLaunchId): void {
   ctx.emit()
 }
 
-export function setPendingLaunchStopConfirm(ctx: Ctx, open: boolean): void {
+export function setPendingLaunchStopConfirm(ctx: AppNavContext, open: boolean): void {
   ctx.children.pendingLaunches.setStopConfirm(open)
 }
 
 export function seedPendingLaunchStopOutcome(
-  ctx: Ctx,
+  ctx: AppNavContext,
   outcome: PendingLaunchStopOutcome,
 ): void {
   ctx.children.pendingLaunches.setStopOutcome(outcome)
 }
 
-export function setParallelGroupShowPrompt(ctx: Ctx, show: boolean): void {
+export function setParallelGroupShowPrompt(ctx: AppNavContext, show: boolean): void {
   ctx.children.parallelGroup.setShowPrompt(show)
 }
 
 export function setParallelGroupOpenMenuLaneId(
-  ctx: Ctx,
+  ctx: AppNavContext,
   laneId: string | null,
 ): void {
   ctx.children.parallelGroup.setOpenMenuLaneId(laneId)
 }
 
 export function setParallelGroupCancelAllConfirm(
-  ctx: Ctx,
+  ctx: AppNavContext,
   open: boolean,
 ): void {
   ctx.children.parallelGroup.setCancelAllConfirm(open)
 }
 
+export type ParallelGroupChrome = {
+  readonly showPrompt?: boolean
+  readonly openMenuLaneId?: string | null
+  readonly cancelAllConfirm?: boolean
+  readonly queuedCancelOutcome?: ParallelGroupQueuedOutcome | null
+}
+
 export function applyParallelGroupChrome(
-  ctx: Ctx,
-  chrome: {
-    readonly showPrompt?: boolean
-    readonly openMenuLaneId?: string | null
-    readonly cancelAllConfirm?: boolean
-    readonly queuedCancelOutcome?: ParallelGroupQueuedOutcome | null
-  },
+  ctx: AppNavContext,
+  chrome: ParallelGroupChrome,
 ): void {
   ctx.children.parallelGroup.applyChrome(chrome)
 }
 
-export function openTask(ctx: Ctx, taskId: TaskId): void {
+export function openTask(ctx: AppNavContext, taskId: TaskId): void {
   closeWorkflowExecution(ctx.children.workflowExecution)
   closeParallelGroup(ctx.children.parallelGroup)
   closePendingLaunches(ctx.children.pendingLaunches)

@@ -1,6 +1,11 @@
+import type { RefObject } from 'react'
 import type { TaskObservation } from '../model'
-import type { TaskStatusView } from '../presentation'
+import {
+  TASK_OVERFLOW_COPY,
+  type TaskStatusView,
+} from '../presentation'
 import { ConversationItems } from './TaskConversationItems'
+import { Icon } from './Icon'
 import { TaskFailureBanner } from './TaskFailureBanner'
 import { TaskRequestHead, TaskResourceCard } from './TaskRequestHead'
 import { TaskStatusNotice } from './TaskStatusNotice'
@@ -9,6 +14,8 @@ type Props = {
   readonly observation: TaskObservation
   readonly view: TaskStatusView
   readonly onUnavailable: (label: string) => void
+  readonly onBannerStop?: () => void
+  readonly bannerStopRef?: RefObject<HTMLButtonElement | null>
 }
 
 /**
@@ -20,6 +27,8 @@ export function TaskConversationColumn({
   observation,
   view,
   onUnavailable,
+  onBannerStop,
+  bannerStopRef,
 }: Props) {
   const { body } = view
   return (
@@ -35,6 +44,12 @@ export function TaskConversationColumn({
             onUnavailable={onUnavailable}
           />
         )}
+        {observation.parent ? (
+          <div className="hd-m05-prov-line">
+            <Icon name="branch" size="sm" />
+            {TASK_OVERFLOW_COPY.provenanceLine}
+          </div>
+        ) : null}
         {view.resourceCard ? (
           <TaskResourceCard card={view.resourceCard} onUnavailable={onUnavailable} />
         ) : null}
@@ -47,7 +62,12 @@ export function TaskConversationColumn({
           <ConversationItems items={observation.conversation?.items ?? []} />
         )}
         {view.banner ? (
-          <TaskFailureBanner banner={view.banner} onUnavailable={onUnavailable} />
+          <TaskFailureBanner
+            banner={view.banner}
+            onUnavailable={onUnavailable}
+            {...(onBannerStop ? { onStop: onBannerStop } : {})}
+            {...(bannerStopRef ? { stopRef: bannerStopRef } : {})}
+          />
         ) : null}
       </div>
     </div>

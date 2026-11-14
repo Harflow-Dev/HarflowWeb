@@ -5,6 +5,8 @@ type Props = {
   readonly submission: SubmissionStatus
   readonly contextNote: string | null
   readonly unavailableNav: string | null
+  /** Raw status announcement (copy success, etc.); spoken as-is. */
+  readonly announceNote?: string | null
   /** First-load label of the main screen, e.g. "Loading workflows". */
   readonly loadingNote?: string | null
 }
@@ -44,6 +46,7 @@ export function StatusRegion({
   submission,
   contextNote,
   unavailableNav,
+  announceNote = null,
   loadingNote = null,
 }: Props) {
   // Submission outcomes outrank context notes so partial-sidebar coverage
@@ -51,7 +54,9 @@ export function StatusRegion({
   const source = useAnnouncedSource(submission, loadingNote)
   const speakSubmission = source === 'submission'
   let message = ''
-  if (unavailableNav) {
+  if (announceNote) {
+    message = announceNote
+  } else if (unavailableNav) {
     message = `${unavailableNav} is unavailable in this exploratory slice.`
   } else if (!speakSubmission) {
     message = loadingNote ?? contextNote ?? ''

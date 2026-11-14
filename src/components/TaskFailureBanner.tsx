@@ -1,3 +1,4 @@
+import type { RefObject } from 'react'
 import type { TaskStatusBanner } from '../presentation/taskStatusView'
 import { Icon } from './Icon'
 import {
@@ -14,13 +15,14 @@ import {
   TASK_OPEN_EVENTS_UNAVAILABLE_ID,
   TASK_REFRESH_UNAVAILABLE_EXPLANATION,
   TASK_REFRESH_UNAVAILABLE_ID,
-  TASK_STOP_UNAVAILABLE_EXPLANATION,
-  TASK_STOP_UNAVAILABLE_ID,
 } from './taskUnavailable'
 
 type Props = {
   readonly banner: TaskStatusBanner
   readonly onUnavailable: (label: string) => void
+  /** Opens the shared Stop confirmation for banner Stop actions. */
+  readonly onStop?: () => void
+  readonly stopRef?: RefObject<HTMLButtonElement | null>
 }
 
 /**
@@ -28,7 +30,12 @@ type Props = {
  * A labelled group, not a live region: StatusRegion is the only announcer.
  * The caption sits after the banner box, as drawn.
  */
-export function TaskFailureBanner({ banner, onUnavailable }: Props) {
+export function TaskFailureBanner({
+  banner,
+  onUnavailable,
+  onStop,
+  stopRef,
+}: Props) {
   return (
     <>
       <div
@@ -50,7 +57,12 @@ export function TaskFailureBanner({ banner, onUnavailable }: Props) {
               />
             ),
           )}
-          <BannerActions banner={banner} onUnavailable={onUnavailable} />
+          <BannerActions
+            banner={banner}
+            onUnavailable={onUnavailable}
+            {...(onStop ? { onStop } : {})}
+            {...(stopRef ? { stopRef } : {})}
+          />
         </div>
       </div>
       {banner.caption ? (
@@ -80,14 +92,34 @@ function BannerLastError({
 function BannerActions({
   banner,
   onUnavailable,
+  onStop,
+  stopRef,
 }: {
   readonly banner: TaskStatusBanner
   readonly onUnavailable: (label: string) => void
+  readonly onStop?: () => void
+  readonly stopRef?: RefObject<HTMLButtonElement | null>
 }) {
   if (banner.actions.length === 0) return null
   return (
     <div className="hd-row hd-m05-actions">
       {banner.actions.map((action) => {
+        if (action.kind === 'stop') {
+          return (
+            <button
+              key={action.label}
+              ref={stopRef}
+              type="button"
+              className={`hd-btn hd-btn--${action.variant} hd-btn--sm`}
+              onClick={(event) => {
+                event.preventDefault()
+                onStop?.()
+              }}
+            >
+              <Icon name="stop" size="sm" /> {action.label}
+            </button>
+          )
+        }
         const describedBy = describedByFor(action, Boolean(banner.caption))
         return (
           <button
@@ -109,8 +141,7 @@ function BannerActions({
             ) : null}
             {action.kind === 'copyResume' ? (
               <Icon name="copy" size="sm" />
-            ) : null}
-            {action.kind === 'stop' ? <Icon name="stop" size="sm" /> : null}{' '}
+            ) : null}{' '}
             {action.label}
           </button>
         )
@@ -139,7 +170,7 @@ function describedByFor(
     case 'copyResume':
       return TASK_COPY_RESUME_UNAVAILABLE_ID
     case 'stop':
-      return TASK_STOP_UNAVAILABLE_ID
+      return TASK_BANNER_ACTION_UNAVAILABLE_ID
     case 'refresh':
       return TASK_REFRESH_UNAVAILABLE_ID
     case 'openEvents':
@@ -161,7 +192,7 @@ function titleFor(
     case 'copyResume':
       return TASK_COPY_RESUME_UNAVAILABLE_EXPLANATION
     case 'stop':
-      return TASK_STOP_UNAVAILABLE_EXPLANATION
+      return TASK_BANNER_ACTION_UNAVAILABLE_EXPLANATION
     case 'refresh':
       return TASK_REFRESH_UNAVAILABLE_EXPLANATION
     case 'openEvents':

@@ -1,3 +1,4 @@
+import type { RefObject } from 'react'
 import type { TaskStatusComposer } from '../presentation/taskStatusView'
 import { Icon } from './Icon'
 import {
@@ -7,13 +8,17 @@ import {
 
 type Props = {
   readonly composer: TaskStatusComposer
-  readonly onUnavailable: (label: string) => void
+  readonly onUnavailable?: (label: string) => void
+  /** Opens the shared Stop confirmation (running / pending Stop control). */
+  readonly onStop?: () => void
+  readonly stopRef?: RefObject<HTMLButtonElement | null>
 }
 
 /**
- * Follow-up composer shell — send stays unavailable; Stop only when mapped.
+ * Follow-up composer shell — send stays unavailable; Stop opens the dialog
+ * when mapped, except Stopping… which stays dimmed and inert.
  */
-export function TaskFollowUp({ composer, onUnavailable }: Props) {
+export function TaskFollowUp({ composer, onStop, stopRef }: Props) {
   return (
     <div
       className="hw-task-composer"
@@ -54,15 +59,13 @@ export function TaskFollowUp({ composer, onUnavailable }: Props) {
           {composer.hint ? <span className="hd-composer__spacer" /> : null}
           {composer.stopMode === 'stop' ? (
             <button
+              ref={stopRef}
               type="button"
               className="hd-btn hd-btn--secondary hd-btn--sm"
-              aria-disabled="true"
-              aria-describedby={TASK_STOP_UNAVAILABLE_ID}
               aria-label="Stop"
-              title={TASK_STOP_UNAVAILABLE_EXPLANATION}
               onClick={(event) => {
                 event.preventDefault()
-                onUnavailable('Stop')
+                onStop?.()
               }}
             >
               <Icon name="stop" size="sm" /> Stop

@@ -1052,6 +1052,54 @@ body,
   color: var(--text-secondary);
 }
 
+/* Design m05-proposal.css overflow menu, provenance, Stop/takeover dialog. */
+.hd-m05-more-anchor {
+  position: relative;
+  display: inline-flex;
+}
+
+.hd-m05-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 20;
+}
+
+.hd-m05-list {
+  margin: 4px 0;
+  padding-left: 18px;
+}
+
+.hd-m05-prov-line {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.hd-m05-derived {
+  padding: 8px 10px;
+  background: var(--surface-sunken);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  line-height: 19px;
+}
+
+.hd-m05-derived p {
+  margin: 2px 0;
+}
+
+.hd-m05-scrim {
+  position: absolute;
+  inset: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: color-mix(in srgb, var(--bg) 55%, transparent);
+}
+
 /* Design bundle.css composer geometry for the task screen (88 px at one row). */
 .hw-task-composer .hd-composer {
   gap: var(--space-2);

@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react'
+import { useState, type ReactNode, type RefObject } from 'react'
 import type { TaskObservation, TranscriptObservation } from '../model'
 import {
   type TaskCommandChrome,
@@ -24,6 +24,10 @@ type Props = {
   readonly columnWrapper?: (column: ReactNode) => ReactNode
   readonly onUnavailable: (label: string) => void
   readonly onLiveMessage?: (message: string) => void
+  readonly onStop?: () => void
+  readonly onBannerStop?: () => void
+  readonly composerStopRef?: RefObject<HTMLButtonElement | null>
+  readonly bannerStopRef?: RefObject<HTMLButtonElement | null>
 }
 
 /** Ready-state task body — topbar title lives in TaskMain. */
@@ -34,6 +38,10 @@ export function TaskPage({
   columnWrapper,
   onUnavailable,
   onLiveMessage,
+  onStop,
+  onBannerStop,
+  composerStopRef,
+  bannerStopRef,
 }: Props) {
   const liveRun = taskIsLiveRun(observation)
   return (
@@ -44,6 +52,10 @@ export function TaskPage({
       eventsPaneOpen={eventsPaneOpen}
       liveRun={liveRun}
       onUnavailable={onUnavailable}
+      {...(onStop ? { onStop } : {})}
+      {...(onBannerStop ? { onBannerStop } : {})}
+      {...(composerStopRef ? { composerStopRef } : {})}
+      {...(bannerStopRef ? { bannerStopRef } : {})}
       {...(columnWrapper ? { columnWrapper } : {})}
       {...(onLiveMessage ? { onLiveMessage } : {})}
     />
@@ -58,6 +70,10 @@ function TranscriptTaskBody({
   liveRun,
   onUnavailable,
   onLiveMessage,
+  onStop,
+  onBannerStop,
+  composerStopRef,
+  bannerStopRef,
 }: {
   readonly observation: TaskObservation
   readonly commandChrome: TaskCommandChrome
@@ -66,6 +82,10 @@ function TranscriptTaskBody({
   readonly liveRun: boolean
   readonly onUnavailable: (label: string) => void
   readonly onLiveMessage?: (message: string) => void
+  readonly onStop?: () => void
+  readonly onBannerStop?: () => void
+  readonly composerStopRef?: RefObject<HTMLButtonElement | null>
+  readonly bannerStopRef?: RefObject<HTMLButtonElement | null>
 }) {
   const statusView = taskStatusView(observation, commandChrome)
   const observed = observation.transcript
@@ -138,6 +158,8 @@ function TranscriptTaskBody({
             <TaskFailureBanner
               banner={statusView.banner}
               onUnavailable={onUnavailable}
+              {...(onBannerStop ? { onStop: onBannerStop } : {})}
+              {...(bannerStopRef ? { stopRef: bannerStopRef } : {})}
             />
           ) : null}
           {taskShowsSummary(observation) && observation.summary ? (
@@ -149,11 +171,15 @@ function TranscriptTaskBody({
           observation={observation}
           view={statusView}
           onUnavailable={onUnavailable}
+          {...(onBannerStop ? { onBannerStop } : {})}
+          {...(bannerStopRef ? { bannerStopRef } : {})}
         />
       )}
       <TaskFollowUp
         composer={statusView.composer}
         onUnavailable={onUnavailable}
+        {...(onStop ? { onStop } : {})}
+        {...(composerStopRef ? { stopRef: composerStopRef } : {})}
       />
       <TaskUnavailableHints />
     </>

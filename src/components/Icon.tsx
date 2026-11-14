@@ -32,6 +32,7 @@ type IconName =
   | 'pause'
   | 'panel-right'
   | 'more'
+  | 'branch'
   | 'flag'
   | 'lock'
   | 'clock'

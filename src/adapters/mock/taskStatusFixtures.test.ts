@@ -50,6 +50,67 @@ describe('taskStatusFixtures', () => {
     expect(load.observation.transcript.rows).toHaveLength(0)
   })
 
+  it('maps every M05 fixture to an approved notice or banner title when present', () => {
+    const chromeByFixture: Record<string, 'stop-requested' | 'continue-starting' | 'continue-started' | null> = {
+      'task-m05-stop-requested': 'stop-requested',
+      'task-m05-continue-starting': 'continue-starting',
+      'task-m05-continue-started': 'continue-started',
+    }
+  const titles: Record<string, { notice: string | null; banner: string | null }> = {
+      'task-slot-release': { notice: null, banner: null },
+      'task-m05-stop-requested': { notice: 'Stop requested', banner: null },
+      'task-m05-cancelled': { notice: null, banner: 'Cancelled' },
+      'task-m05-timed-out': { notice: null, banner: 'This run stopped at its turn limit' },
+      'task-m05-settling': { notice: 'Settling', banner: null },
+      'task-m05-unknown-failed': {
+        notice: null,
+        banner: 'Outcome inferred, not observed',
+      },
+      'task-m05-unknown-done': { notice: 'Reconstructed outcome', banner: null },
+      'task-m05-owner-lost': {
+        notice: null,
+        banner: 'The process watching this run is gone',
+      },
+      'task-m05-unverified': {
+        notice: null,
+        banner: "Harflow can't confirm this run",
+      },
+      'task-m05-launch-unknown': {
+        notice: null,
+        banner: 'A new session may have started',
+      },
+      'task-m05-status-unavailable': {
+        notice: 'Current status unavailable',
+        banner: null,
+      },
+      'task-m05-pending': { notice: null, banner: null },
+      'task-m05-taken-over': { notice: null, banner: null },
+      'task-m05-continue-starting': {
+        notice: null,
+        banner: 'Task failed: the harness exited with code 1',
+      },
+      'task-m05-continue-started': {
+        notice: 'New session accepted',
+        banner: null,
+      },
+      'task-events-reader-failed': {
+        notice: null,
+        banner: 'Task failed: the harness exited with code 1',
+      },
+    }
+    for (const taskId of TASK_STATUS_FIXTURE_IDS) {
+      const load = taskLoadFor(taskId)
+      expect(load.kind, taskId).toBe('ready')
+      if (load.kind !== 'ready') continue
+      const chrome = chromeByFixture[taskId] ?? null
+      const view = taskStatusView(load.observation, chrome)
+      const expected = titles[taskId]
+      expect(expected, taskId).toBeDefined()
+      expect(view.notice?.title ?? null).toBe(expected!.notice)
+      expect(view.banner?.title ?? null).toBe(expected!.banner)
+    }
+  })
+
   it('keeps running-stop id aligned with task-loading seed', () => {
     expect(TASK_STATUS_RUNNING_STOP_ID).toBe('task-slot-release')
     const load = taskLoadFor(TASK_STATUS_STOP_REQUESTED_ID)

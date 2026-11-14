@@ -150,14 +150,10 @@ export function taskStatusObservations(): readonly TaskObservation[] {
       statusRead: { kind: 'observed', status: 'timed_out' },
       elapsedLabel: '12:40',
     }),
-    retryBudgetBase(TASK_STATUS_SETTLING_ID, {
-      settling: true,
-      summary: undefined,
-    }),
+    retryBudgetBase(TASK_STATUS_SETTLING_ID, { settling: true }),
     failedObservation(TASK_STATUS_UNKNOWN_FAILED_ID, { exitObserved: false }),
     retryBudgetBase(TASK_STATUS_UNKNOWN_DONE_ID, {
       exitObserved: false,
-      elapsedLabel: undefined,
       summary: retryBudgetSummary(),
     }),
     runningObservation(TASK_STATUS_OWNER_LOST_ID, {

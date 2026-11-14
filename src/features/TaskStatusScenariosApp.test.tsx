@@ -46,4 +46,18 @@ describe('Task status preview scenarios', () => {
     expect(app.presenter.getState().task.commandChrome).toBe('continue-started')
     expect(screen.getByText(TASK_NOTICES.continued.title)).toBeInTheDocument()
   })
+
+  it('clears stop-requested chrome when createApp remounts without seeded chrome', async () => {
+    const seeded = await mount('task-stop-requested')
+    expect(seeded.presenter.getState().task.commandChrome).toBe('stop-requested')
+    cleanup()
+    const fresh = createApp('task-running-stop')
+    render(<AppFeature presenter={fresh.presenter} />)
+    await act(async () => {
+      applyNewTaskSeed(fresh.presenter, scenarioById('task-running-stop').seed)
+      await Promise.resolve()
+      await Promise.resolve()
+    })
+    expect(fresh.presenter.getState().task.commandChrome).toBe(null)
+  })
 })

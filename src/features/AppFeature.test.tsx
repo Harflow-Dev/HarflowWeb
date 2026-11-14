@@ -802,11 +802,9 @@ describe('AppFeature navigation', () => {
     )
     expect(await screen.findByText('Running tests…')).toBeInTheDocument()
 
-    await user.click(
-      screen.getByRole('button', {
-        name: 'Stop (unavailable in this slice)',
-      }),
-    )
+    const stop = screen.getByRole('button', { name: 'Stop' })
+    expect(stop).toHaveAttribute('aria-disabled', 'true')
+    await user.click(stop)
     expect(
       screen.getByText(/Stop is unavailable in this exploratory slice/),
     ).toBeInTheDocument()
@@ -1031,29 +1029,27 @@ describe('AppFeature navigation', () => {
     )
     expect(within(main).queryByText('Running tests…')).not.toBeInTheDocument()
     expect(
-      within(main).queryByRole('button', {
-        name: 'Stop (unavailable in this slice)',
-      }),
+      within(main).queryByRole('button', { name: 'Stop' }),
     ).not.toBeInTheDocument()
     expect(within(main).queryByText(/^Running /)).not.toBeInTheDocument()
     expect(main.querySelector('.hd-badge--running')).toBeNull()
     expect(main.querySelector('.hd-working')).toBeNull()
 
-    await user.click(
-      screen.getByRole('button', {
-        name: 'Continue in a new session (unavailable in this slice)',
-      }),
-    )
+    const continueSession = screen.getByRole('button', {
+      name: 'Continue in a new session',
+    })
+    expect(continueSession).toHaveAttribute('aria-disabled', 'true')
+    await user.click(continueSession)
     expect(
       screen.getByText(
         /Continue in a new session is unavailable in this exploratory slice/,
       ),
     ).toBeInTheDocument()
-    await user.click(
-      screen.getByRole('button', {
-        name: 'Copy resume command (unavailable in this slice)',
-      }),
-    )
+    const copyResume = screen.getByRole('button', {
+      name: 'Copy resume command',
+    })
+    expect(copyResume).toHaveAttribute('aria-disabled', 'true')
+    await user.click(copyResume)
     expect(
       screen.getByText(
         /Copy resume command is unavailable in this exploratory slice/,
@@ -1109,9 +1105,7 @@ describe('AppFeature navigation', () => {
     expect(within(main).getByText('Failed 07:48')).toBeInTheDocument()
     expect(within(main).queryByText('Running tests…')).not.toBeInTheDocument()
     expect(
-      within(main).queryByRole('button', {
-        name: 'Stop (unavailable in this slice)',
-      }),
+      within(main).queryByRole('button', { name: 'Stop' }),
     ).not.toBeInTheDocument()
   })
 
@@ -1145,13 +1139,11 @@ describe('AppFeature navigation', () => {
     expect(main.querySelector('.hd-badge--failed')).toBeNull()
     expect(within(main).queryByRole('alert')).not.toBeInTheDocument()
     expect(
-      within(main).queryByRole('button', {
-        name: 'Stop (unavailable in this slice)',
-      }),
+      within(main).queryByRole('button', { name: 'Stop' }),
     ).not.toBeInTheDocument()
     expect(
       within(main).queryByRole('button', {
-        name: 'Continue in a new session (unavailable in this slice)',
+        name: 'Continue in a new session',
       }),
     ).not.toBeInTheDocument()
     expect(

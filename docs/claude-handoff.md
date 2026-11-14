@@ -56,16 +56,16 @@ npm run verify   # architecture + tests + build
 npm run lint     # oxlint; zero warnings required
 ```
 
-At handoff: **600 tests** across **65** files (`vitest run`); architecture
+At handoff: **601 tests** across **65** files (`vitest run`); architecture
 check reports **14** size warnings. Re-count after further commits.
 
-HEAD at handoff: `5e19826` (the commit that records this line follows it).
+HEAD at handoff: `a40bf0d` (the commit that records this line follows it).
 
 ## Screenshots
 
 Stored outside the repo under `~/.codex/workflows/screenshots/`. Latest
 task-status captures:
-`2026-11-14-harflowweb-task-statuses/verified-1280x800/` (38 PNGs, 16 M05 states
+`2026-11-14-harflowweb-task-statuses/verified-1280x800/` (40 PNGs, 16 M05 states + `task-done`
 + `task-running` / `task-failed` / `task-loading` recaptures, retaken after the
 review fixes) and `previously-approved-recaptures/` (36 PNGs: the D2B task
 screens whose follow-up composer changed). Queued-message,

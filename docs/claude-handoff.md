@@ -58,7 +58,7 @@ npm run lint     # oxlint; zero warnings required
 At handoff: **498 tests** across **60** files (`vitest run`). Re-count after
 further commits.
 
-HEAD at handoff: `HEAD_PLACEHOLDER` (the commit that records this line
+HEAD at handoff: `45baa72` (the commit that records this line
 follows it).
 
 ## Screenshots

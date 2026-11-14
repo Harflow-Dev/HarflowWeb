@@ -59,7 +59,7 @@ npm run lint     # oxlint; zero warnings required
 At handoff: **548 tests** across **64** files (`vitest run`). Re-count after
 further commits.
 
-HEAD at handoff: `b5feadd` (this commit).
+HEAD at handoff: `a596592` (this commit).
 
 ## Screenshots
 

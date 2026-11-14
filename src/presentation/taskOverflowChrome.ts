@@ -1,4 +1,6 @@
 import type { TaskId } from '../model'
+import { taskDialogView } from './taskDialogView'
+import { overflowMenuView } from './taskOverflowMenu'
 import type {
   TaskDialogKind,
   TaskDialogOpener,
@@ -52,5 +54,47 @@ export function withSeededOverflowChrome(
       chrome.dialogOpener !== undefined
         ? chrome.dialogOpener
         : state.dialogOpener,
+  }
+}
+
+/**
+ * Drop menu/dialog chrome the current load no longer supports: the load left
+ * ready, the screen draws no More anchor, or the status no longer admits the
+ * requested dialog. Returns the same state when nothing changes.
+ */
+export function reconcileOverflowChrome(
+  state: TaskScreenState,
+): TaskScreenState {
+  const menuValid =
+    state.load.kind === 'ready' &&
+    overflowMenuView(state.load.observation, state.commandChrome) !== null
+  const closeMenu = state.overflowMenuOpen && !menuValid
+  const closeDialog = state.dialog !== null && taskDialogView(state) === null
+  if (!closeMenu && !closeDialog) return state
+  return {
+    ...state,
+    overflowMenuOpen: closeMenu ? false : state.overflowMenuOpen,
+    dialog: closeDialog ? null : state.dialog,
+    dialogOpener: closeDialog ? null : state.dialogOpener,
+  }
+}
+
+/** Drop command lifecycle and overflow chrome; null when already clear. */
+export function withoutCommandChrome(
+  state: TaskScreenState,
+): TaskScreenState | null {
+  if (
+    state.commandChrome === null &&
+    !state.overflowMenuOpen &&
+    state.dialog === null
+  ) {
+    return null
+  }
+  return {
+    ...state,
+    commandChrome: null,
+    overflowMenuOpen: false,
+    dialog: null,
+    dialogOpener: null,
   }
 }

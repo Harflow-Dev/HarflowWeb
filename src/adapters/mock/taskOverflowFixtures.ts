@@ -5,7 +5,7 @@ import { asTaskId, type TaskObservation } from '../../model'
 import { runningConversation } from './taskConversationFixtures'
 import { slotReleaseTranscript } from './mappedTaskTranscripts'
 
-const ACCESS_EDIT = 'Can edit this repo'
+const ACCESS_EDIT = 'edit_repo' as const
 const REPO_MCP = {
   name: 'HarflowMCP',
   path: '~/Code/Harflow/HarflowMCP',
@@ -31,7 +31,7 @@ function runningBase(
     transcript: slotReleaseTranscript(),
     detailsPane: null,
     repository: REPO_MCP,
-    accessLabel: ACCESS_EDIT,
+    accessLevel: ACCESS_EDIT,
     ...extra,
   }
 }

@@ -24,7 +24,7 @@ const STOPPED_TITLE = 'Trace composer keystroke lag'
 const STOPPED_META = 'Codex · gpt-6-astra · HarflowMac'
 const PENDING_TITLE = 'Run the nightly dependency audit'
 const PENDING_META = 'Claude · Opus 5.5 · HarflowMCP'
-const ACCESS_EDIT = 'Can edit this repo'
+const ACCESS_EDIT = 'edit_repo' as const
 const REPO_MCP = {
   name: 'HarflowMCP',
   path: '~/Code/Harflow/HarflowMCP',
@@ -108,7 +108,7 @@ function runningObservation(
     transcript: slotReleaseTranscript(),
     detailsPane: null,
     repository: REPO_MCP,
-    accessLabel: ACCESS_EDIT,
+    accessLevel: ACCESS_EDIT,
     ...extra,
   }
 }
@@ -126,7 +126,7 @@ function stoppedObservation(
     transcript: stoppedTaskTranscript(),
     detailsPane: null,
     repository: REPO_MAC,
-    accessLabel: ACCESS_EDIT,
+    accessLevel: ACCESS_EDIT,
     ...extra,
   }
 }
@@ -147,7 +147,7 @@ function failedTaskBase(
     transcript: eventsReaderFailedTranscript(),
     detailsPane: null,
     repository: REPO_MCP,
-    accessLabel: ACCESS_EDIT,
+    accessLevel: ACCESS_EDIT,
     ...extra,
   }
 }
@@ -174,7 +174,7 @@ function retryBudgetBase(
     transcript: retryBudgetDoneTranscript(),
     detailsPane: null,
     repository: REPO_WEB,
-    accessLabel: ACCESS_EDIT,
+    accessLevel: ACCESS_EDIT,
     ...extra,
   }
 }
@@ -213,7 +213,7 @@ export function taskStatusObservations(): readonly TaskObservation[] {
       transcript: pendingEmptyTranscript(),
       detailsPane: null,
       repository: REPO_MCP,
-      accessLabel: ACCESS_EDIT,
+      accessLevel: ACCESS_EDIT,
     },
     stoppedObservation(TASK_STATUS_TAKEN_OVER_ID, {
       statusRead: { kind: 'observed', status: 'taken_over' },

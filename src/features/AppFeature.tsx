@@ -13,8 +13,7 @@ import {
   cancelAllDialogOpen,
   pendingLaunchesNavVisible,
   pendingStopDialogOpen,
-  taskDialogOpen,
-  wontBeStoppedTitles,
+  taskDialogView,
   type AppPresenter,
 } from '../presentation'
 import { mainLoadingLabel } from './mainLoadingLabel'
@@ -34,11 +33,16 @@ type Props = {
   readonly presenter: AppPresenter
 }
 
+type StatusNote = {
+  readonly kind: 'unavailable' | 'announce'
+  readonly text: string
+}
+
 export function AppFeature({ presenter }: Props) {
   usePresenterLifetime(presenter)
   const state = usePresenter(presenter)
-  const ephemeral = useEphemeralNote()
-  const announce = useEphemeralNote()
+  // One ephemeral note for both kinds: the newest replaces the other.
+  const ephemeral = useEphemeralNote<StatusNote>()
   const systemDark = useSystemPrefersDark()
   const newTask = state.newTask
   const cancelAllOpen =
@@ -46,11 +50,9 @@ export function AppFeature({ presenter }: Props) {
   const stopOpen =
     state.route === 'pending-launches' &&
     pendingStopDialogOpen(state.pendingLaunches)
-  const taskDialog = state.route === 'task' && taskDialogOpen(state.task)
-  const dialogOpen = cancelAllOpen || stopOpen || taskDialog
+  const taskDialog = state.route === 'task' ? taskDialogView(state.task) : null
+  const dialogOpen = cancelAllOpen || stopOpen || taskDialog !== null
   const showPendingLaunches = pendingLaunchesNavVisible(state.pendingLaunches)
-  const taskObservation =
-    state.task.load.kind === 'ready' ? state.task.load.observation : null
 
   const resolvedTheme =
     newTask.appearance === 'system'
@@ -89,7 +91,7 @@ export function AppFeature({ presenter }: Props) {
           onNavigate={(route) => presenter.navigate(route)}
           onOpenTask={(taskId) => presenter.openTask(taskId)}
           onOpenParallelGroup={(groupId) => presenter.openParallelGroup(groupId)}
-          onUnavailable={(label) => ephemeral.show(label)}
+          onUnavailable={(label) => ephemeral.show({ kind: 'unavailable', text: label })}
           inert={dialogOpen}
           showPendingLaunches={showPendingLaunches}
         />
@@ -123,7 +125,7 @@ export function AppFeature({ presenter }: Props) {
               onGoalOpen={(open) => presenter.setWorkflowRunGoalOpen(open)}
               onRepository={(id) => presenter.selectWorkflowRunRepository(id)}
               onOverride={(id) => presenter.selectWorkflowRunOverride(id)}
-              onUnavailable={(label) => ephemeral.show(label)}
+              onUnavailable={(label) => ephemeral.show({ kind: 'unavailable', text: label })}
               editor={state.workflowEditor}
               onEdit={(id) => presenter.openWorkflowEditor(id)}
               onCloseEditor={() => presenter.closeWorkflowEditor()}
@@ -132,7 +134,7 @@ export function AppFeature({ presenter }: Props) {
           ) : state.route === 'resources' ? (
             <ResourcesMain
               state={state.resources}
-              onUnavailable={(label) => ephemeral.show(label)}
+              onUnavailable={(label) => ephemeral.show({ kind: 'unavailable', text: label })}
             />
           ) : state.route === 'statistics' ? (
             <StatisticsMain
@@ -145,7 +147,7 @@ export function AppFeature({ presenter }: Props) {
               onSection={(section) => presenter.selectSettingsSection(section)}
               appearance={newTask.appearance}
               onAppearance={(appearance) => presenter.setAppearance(appearance)}
-              onUnavailable={(label) => ephemeral.show(label)}
+              onUnavailable={(label) => ephemeral.show({ kind: 'unavailable', text: label })}
               general={state.settingsGeneral.load}
               harnesses={state.harnesses.load}
               expandedHarnessId={state.harnesses.expandedId}
@@ -161,8 +163,8 @@ export function AppFeature({ presenter }: Props) {
             <TaskMain
               state={state.task}
               sidebar={ready?.sidebar ?? null}
-              onUnavailable={(label) => ephemeral.show(label)}
-              onAnnounce={(message) => announce.show(message)}
+              onUnavailable={(label) => ephemeral.show({ kind: 'unavailable', text: label })}
+              onAnnounce={(message) => ephemeral.show({ kind: 'announce', text: message })}
               onToggleChangesPane={(open) =>
                 presenter.setTaskChangesPaneOpen(open)
               }
@@ -193,15 +195,15 @@ export function AppFeature({ presenter }: Props) {
             onClose={() => presenter.setPendingLaunchStopConfirm(false)}
           />
         ) : null}
-        {taskDialog && state.task.dialog === 'stop' && taskObservation ? (
+        {taskDialog?.kind === 'stop' ? (
           <TaskStopDialog
-            wontBeStoppedTitles={wontBeStoppedTitles(taskObservation)}
+            wontBeStoppedTitles={taskDialog.wontBeStoppedTitles}
             onClose={() => presenter.closeTaskDialog()}
           />
         ) : null}
-        {taskDialog && state.task.dialog === 'takeover' && taskObservation ? (
+        {taskDialog?.kind === 'takeover' ? (
           <TaskTakeoverDialog
-            accessLabel={taskObservation.accessLabel ?? 'Can edit this repo'}
+            accessLabel={taskDialog.accessLabel}
             onClose={() => presenter.closeTaskDialog()}
           />
         ) : null}
@@ -209,8 +211,13 @@ export function AppFeature({ presenter }: Props) {
       <StatusRegion
         submission={newTask.submission}
         contextNote={contextNote}
-        unavailableNav={ephemeral.note}
-        announceNote={announce.note}
+        unavailableNav={
+          ephemeral.note?.kind === 'unavailable' ? ephemeral.note.text : null
+        }
+        announceNote={
+          ephemeral.note?.kind === 'announce' ? ephemeral.note.text : null
+        }
+        noteNonce={ephemeral.nonce}
         loadingNote={mainLoadingLabel(state)}
       />
     </div>

@@ -2,7 +2,7 @@ import type { RefObject } from 'react'
 import type { TaskId, TaskObservation } from '../model'
 import {
   TASK_OVERFLOW_COPY,
-  type OverflowItemId,
+  type OverflowActionId,
   type TaskDialogOpener,
 } from '../presentation'
 
@@ -13,11 +13,10 @@ type Handlers = {
   ) => void
   readonly onOpenParentTask: (taskId: TaskId) => void
   readonly onAnnounce: (message: string) => void
-  readonly onUnavailable: (label: string) => void
 }
 
 export function handleOverflowAction(
-  id: OverflowItemId,
+  id: OverflowActionId,
   observation: TaskObservation,
   handlers: Handlers,
 ): void {
@@ -36,22 +35,14 @@ export function handleOverflowAction(
     case 'copyTaskId':
       void copyText(observation.taskId, TASK_OVERFLOW_COPY.copiedTaskId, handlers)
       return
-    case 'copyPath':
-      void copyText(
-        observation.repository?.path ?? '',
-        TASK_OVERFLOW_COPY.copiedPath,
-        handlers,
-      )
+    case 'copyPath': {
+      // The menu is only drawn when a repository is recorded.
+      const path = observation.repository?.path
+      if (path !== undefined) {
+        void copyText(path, TASK_OVERFLOW_COPY.copiedPath, handlers)
+      }
       return
-    case 'copyResume':
-      handlers.onUnavailable(TASK_OVERFLOW_COPY.copyResume)
-      return
-    case 'openTerminal':
-      handlers.onUnavailable(TASK_OVERFLOW_COPY.openTerminal)
-      return
-    case 'openFinder':
-      handlers.onUnavailable(TASK_OVERFLOW_COPY.openFinder)
-      return
+    }
     default: {
       const _exhaustive: never = id
       return _exhaustive
@@ -64,10 +55,6 @@ async function copyText(
   success: string,
   handlers: Pick<Handlers, 'onAnnounce'>,
 ): Promise<void> {
-  if (!text) {
-    handlers.onAnnounce('Nothing to copy.')
-    return
-  }
   try {
     if (!navigator.clipboard?.writeText) throw new Error('unavailable')
     await navigator.clipboard.writeText(text)
@@ -77,19 +64,28 @@ async function copyText(
   }
 }
 
+/**
+ * Restore focus after a dialog closes: the control that opened it, or More
+ * when that control is gone (state changed while the dialog was open).
+ */
 export function focusDialogOpener(
   opener: TaskDialogOpener | null,
   more: RefObject<HTMLButtonElement | null>,
   composer: RefObject<HTMLButtonElement | null>,
   banner: RefObject<HTMLButtonElement | null>,
 ): void {
-  if (opener === 'composer-stop') {
-    composer.current?.focus()
-    return
-  }
-  if (opener === 'banner-stop') {
-    banner.current?.focus()
-    return
-  }
-  more.current?.focus()
+  const preferred =
+    opener === 'composer-stop'
+      ? composer.current
+      : opener === 'banner-stop'
+        ? banner.current
+        : more.current
+  const target = isFocusable(preferred) ? preferred : more.current
+  target?.focus()
+}
+
+function isFocusable(
+  node: HTMLButtonElement | null,
+): node is HTMLButtonElement {
+  return node !== null && node.isConnected && !node.disabled
 }

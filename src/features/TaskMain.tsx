@@ -10,6 +10,7 @@ import type { SidebarData, TaskId } from '../model'
 import {
   type TaskDialogOpener,
   type TaskScreenState,
+  overflowMenuView,
   taskStatusView,
 } from '../presentation'
 import {
@@ -62,7 +63,12 @@ export function TaskMain({
   const readyMeta = ready
     ? taskStatusView(ready, state.commandChrome).meta
     : null
+  const overflowMenu = ready
+    ? overflowMenuView(ready, state.commandChrome)
+    : null
   const moreRef = useRef<HTMLButtonElement>(null)
+  const titleRef = useRef<HTMLSpanElement>(null)
+  const focusTitleFor = useRef<TaskId | null>(null)
   const composerStopRef = useRef<HTMLButtonElement>(null)
   const bannerStopRef = useRef<HTMLButtonElement>(null)
   const wasDialog = useRef(false)
@@ -82,9 +88,19 @@ export function TaskMain({
     wasDialog.current = state.dialog !== null
   }, [state.dialog, state.dialogOpener])
 
+  // After Open parent task, land on the parent's title once it has loaded.
+  useEffect(() => {
+    if (state.load.kind === 'loading') return
+    if (focusTitleFor.current !== state.selectedTaskId) return
+    focusTitleFor.current = null
+    titleRef.current?.focus()
+  }, [state.load.kind, state.selectedTaskId])
+
   const topbar = (
     <div className="hd-topbar">
-      <span className="hd-topbar__title">{title}</span>
+      <span ref={titleRef} className="hd-topbar__title" tabIndex={-1}>
+        {title}
+      </span>
       {ready ? (
         <TaskStatusBadge
           observation={ready}
@@ -106,9 +122,9 @@ export function TaskMain({
           <Icon name="panel-right" />
         </button>
       ) : null}
-      {ready ? (
+      {ready && overflowMenu ? (
         <TaskOverflowMenu
-          observation={ready}
+          menu={overflowMenu}
           open={state.overflowMenuOpen}
           moreRef={moreRef}
           onToggle={onToggleOverflowMenu}
@@ -119,9 +135,11 @@ export function TaskMain({
           onAction={(id) =>
             handleOverflowAction(id, ready, {
               onOpenDialog,
-              onOpenParentTask,
+              onOpenParentTask: (taskId) => {
+                focusTitleFor.current = taskId
+                onOpenParentTask(taskId)
+              },
               onAnnounce,
-              onUnavailable,
             })
           }
         />

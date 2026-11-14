@@ -4,31 +4,31 @@ import {
   type MutableRefObject,
   type RefObject,
 } from 'react'
-import type { TaskObservation } from '../model'
 import {
-  overflowMenuView,
   TASK_OVERFLOW_COPY,
-  type OverflowItemId,
+  type OverflowActionId,
   type OverflowMenuItemView,
+  type OverflowMenuView,
 } from '../presentation'
 import { Icon } from './Icon'
 
 type Props = {
-  readonly observation: TaskObservation
+  readonly menu: OverflowMenuView
   readonly open: boolean
   readonly onToggle: () => void
   readonly onClose: (focusTrigger: boolean) => void
-  readonly onAction: (id: OverflowItemId) => void
+  readonly onAction: (id: OverflowActionId) => void
   readonly moreRef?: RefObject<HTMLButtonElement | null>
 }
 
 /**
  * Task top-bar More actions menu. Opening focuses the first item; arrows
- * rove; Escape and outside click close and can restore focus to More.
+ * rove while focus is inside the menu; Escape closes and asks the caller to
+ * restore focus to More; Tab and outside click close without moving focus.
  * Unavailable items stay in the roving order (aria-disabled, not native).
  */
 export function TaskOverflowMenu({
-  observation,
+  menu,
   open,
   onToggle,
   onClose,
@@ -39,13 +39,6 @@ export function TaskOverflowMenu({
   const menuRef = useRef<HTMLDivElement>(null)
   const firstItemRef = useRef<HTMLButtonElement>(null)
   const closeRef = useRef(onClose)
-  const menu = overflowMenuView(observation)
-  const beforeSep = menu.items.filter(
-    (item) => item.id !== 'openFinder' && item.id !== 'copyPath',
-  )
-  const afterSep = menu.items.filter(
-    (item) => item.id === 'openFinder' || item.id === 'copyPath',
-  )
 
   useEffect(() => {
     closeRef.current = onClose
@@ -58,7 +51,11 @@ export function TaskOverflowMenu({
       if (event.key === 'Escape') {
         event.preventDefault()
         closeRef.current(true)
-        focusTrigger(triggerRef, moreRef)
+        return
+      }
+      if (event.key === 'Tab') {
+        // Focus leaves the menu naturally; the menu does not stay open.
+        closeRef.current(false)
         return
       }
       if (
@@ -71,6 +68,10 @@ export function TaskOverflowMenu({
       }
       const items = menuItems(menuRef.current)
       if (items.length === 0) return
+      const active = document.activeElement
+      if (!(active instanceof HTMLElement) || !menuRef.current?.contains(active)) {
+        return
+      }
       event.preventDefault()
       const index = items.indexOf(document.activeElement as HTMLButtonElement)
       const next = nextIndex(event.key, index, items.length)
@@ -122,7 +123,7 @@ export function TaskOverflowMenu({
           role="menu"
           aria-label={TASK_OVERFLOW_COPY.moreActions}
         >
-          {beforeSep.map((item, index) => (
+          {menu.primary.map((item, index) => (
             <MenuItem
               key={item.id}
               item={item}
@@ -131,8 +132,8 @@ export function TaskOverflowMenu({
             />
           ))}
           <div className="hd-menu__sep" />
-          <div className="hd-menu__label">{menu.repositoryName}</div>
-          {afterSep.map((item) => (
+          <div className="hd-menu__label">{menu.repository.name}</div>
+          {menu.repository.items.map((item) => (
             <MenuItem key={item.id} item={item} onAction={onAction} />
           ))}
         </div>
@@ -148,7 +149,7 @@ function MenuItem({
 }: {
   readonly item: OverflowMenuItemView
   readonly itemRef?: RefObject<HTMLButtonElement | null>
-  readonly onAction: (id: OverflowItemId) => void
+  readonly onAction: (id: OverflowActionId) => void
 }) {
   const unavailable = item.availability === 'unavailable'
   return (
@@ -158,9 +159,11 @@ function MenuItem({
       role="menuitem"
       className={`hd-menu__item${item.danger ? ' hd-menu__item--danger' : ''}`}
       aria-disabled={unavailable || undefined}
-      aria-describedby={unavailable ? item.describedById : undefined}
+      aria-describedby={
+        item.availability === 'unavailable' ? item.describedById : undefined
+      }
       onClick={() => {
-        if (unavailable) return
+        if (item.availability === 'unavailable') return
         onAction(item.id)
       }}
     >
@@ -189,11 +192,4 @@ function nextIndex(key: string, index: number, length: number): number {
     return index < 0 ? 0 : (index + 1) % length
   }
   return index <= 0 ? length - 1 : index - 1
-}
-
-function focusTrigger(
-  local: RefObject<HTMLButtonElement | null>,
-  external?: RefObject<HTMLButtonElement | null>,
-): void {
-  ;(external?.current ?? local.current)?.focus()
 }

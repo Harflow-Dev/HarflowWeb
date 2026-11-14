@@ -133,7 +133,6 @@ export { routeConnection } from './workflowConnectionRouter'
 export { occupancyCost } from './workflowRouteOccupancy'
 export {
   initialTaskState,
-  taskDialogOpen,
   type TaskCommandChrome,
   type TaskDialogKind,
   type TaskDialogOpener,
@@ -141,6 +140,11 @@ export {
   type TaskScreenState,
 } from './taskState'
 export { TaskSession } from './taskSession'
+export {
+  taskDialogOpen,
+  taskDialogView,
+  type TaskDialogView,
+} from './taskDialogView'
 export {
   taskIsLiveRun,
   taskIsSettled,
@@ -176,10 +180,12 @@ export {
   overflowMenuView,
   taskAllowsStopDialog,
   wontBeStoppedTitles,
+  type OverflowActionId,
   type OverflowItemAvailability,
   type OverflowItemIcon,
   type OverflowItemId,
   type OverflowMenuItemView,
   type OverflowMenuVariant,
   type OverflowMenuView,
+  type OverflowUnavailableId,
 } from './taskOverflowMenu'

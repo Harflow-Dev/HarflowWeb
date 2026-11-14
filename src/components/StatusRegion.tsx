@@ -7,6 +7,11 @@ type Props = {
   readonly unavailableNav: string | null
   /** Raw status announcement (copy success, etc.); spoken as-is. */
   readonly announceNote?: string | null
+  /**
+   * Changes on every ephemeral note (`unavailableNav` / `announceNote`), so a
+   * repeat of the same text is announced again.
+   */
+  readonly noteNonce?: number
   /** First-load label of the main screen, e.g. "Loading workflows". */
   readonly loadingNote?: string | null
 }
@@ -47,6 +52,7 @@ export function StatusRegion({
   contextNote,
   unavailableNav,
   announceNote = null,
+  noteNonce = 0,
   loadingNote = null,
 }: Props) {
   // Submission outcomes outrank context notes so partial-sidebar coverage
@@ -81,7 +87,7 @@ export function StatusRegion({
       aria-live="polite"
       aria-atomic="true"
     >
-      {message}
+      <span key={noteNonce}>{message}</span>
     </div>
   )
 }

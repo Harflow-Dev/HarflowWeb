@@ -2,105 +2,78 @@ import {
   observedEngineStatus,
   type TaskObservation,
 } from '../model'
-import { buildOverflowItems } from './taskOverflowItems'
+import { TASK_OVERFLOW_COPY } from './taskOverflowCopy'
+import { buildPrimaryItems, buildRepositoryItems } from './taskOverflowItems'
+import type { OverflowMenuVariant, OverflowMenuView } from './taskOverflowTypes'
+import type { TaskCommandChrome } from './taskStatusTypes'
 
-/** Menu variant driven by the observed status read. */
-export type OverflowMenuVariant =
-  | 'running'
-  | 'pending'
-  | 'settled'
-  | 'unavailable'
+export {
+  overflowItemAvailability,
+  type OverflowActionId,
+  type OverflowItemAvailability,
+  type OverflowItemIcon,
+  type OverflowItemId,
+  type OverflowMenuItemView,
+  type OverflowMenuVariant,
+  type OverflowMenuView,
+  type OverflowUnavailableId,
+} from './taskOverflowTypes'
 
-export type OverflowItemId =
-  | 'stop'
-  | 'takeover'
-  | 'openTerminal'
-  | 'openParent'
-  | 'copyResume'
-  | 'copyTaskId'
-  | 'openFinder'
-  | 'copyPath'
-
-export type OverflowItemAvailability = 'action' | 'unavailable'
-
-export type OverflowItemIcon =
-  | 'stop'
-  | 'terminal'
-  | 'external'
-  | 'copy'
-  | 'folder'
-
-export type OverflowMenuItemView = {
-  readonly id: OverflowItemId
-  readonly label: string
-  readonly icon: OverflowItemIcon
-  readonly danger?: boolean
-  readonly hint?: string
-  readonly availability: OverflowItemAvailability
-  readonly describedById?: string
-}
-
-export type OverflowMenuView = {
-  readonly variant: OverflowMenuVariant
-  readonly items: readonly OverflowMenuItemView[]
-  readonly repositoryName: string
-}
-
-/** Map observed status to the overflow menu variant. */
+/** Map the observed status read (and Stop acknowledgement) to a variant. */
 export function overflowMenuVariant(
   observation: TaskObservation,
+  chrome: TaskCommandChrome,
 ): OverflowMenuVariant {
-  if (observation.statusRead.kind === 'unread') return 'unavailable'
-  const status = observation.statusRead.status
-  if (status === 'pending') return 'pending'
-  if (status === 'running') return 'running'
-  return 'settled'
-}
-
-/**
- * Exhaustive per-status availability for each overflow item id.
- * Hidden items are omitted from the returned menu; this maps only shown ids.
- */
-export function overflowItemAvailability(
-  variant: OverflowMenuVariant,
-  id: OverflowItemId,
-): OverflowItemAvailability | 'hidden' {
-  switch (id) {
-    case 'stop':
-      return variant === 'running' || variant === 'pending' ? 'action' : 'hidden'
-    case 'takeover':
-      return variant === 'running' ? 'action' : 'hidden'
-    case 'openTerminal':
-      if (variant === 'settled') return 'unavailable'
-      return 'hidden'
-    case 'openParent':
-      return 'action'
-    case 'copyResume':
-      if (variant === 'pending' || variant === 'unavailable') return 'hidden'
-      return 'unavailable'
-    case 'copyTaskId':
-      return 'action'
-    case 'openFinder':
-      return 'unavailable'
-    case 'copyPath':
-      return 'action'
+  const read = observation.statusRead
+  if (read.kind === 'unread') return 'unavailable'
+  const status = read.status
+  switch (status) {
+    case 'pending':
+      return 'pending'
+    case 'running':
+      return chrome === 'stop-requested' ? 'stopping' : 'running'
+    case 'completed':
+    case 'failed':
+    case 'timed_out':
+    case 'cancelled':
+    case 'taken_over':
+      return 'settled'
     default: {
-      const _exhaustive: never = id
+      const _exhaustive: never = status
       return _exhaustive
     }
   }
 }
 
-/** Build the overflow menu view for a ready task observation. */
+/**
+ * Overflow menu for a ready task observation, or null when the screen draws
+ * no More anchor: the observation says so (`overflowMenu: 'omitted'`, the
+ * approved transcript screens) or records no repository to label the group.
+ */
 export function overflowMenuView(
   observation: TaskObservation,
-): OverflowMenuView {
-  const variant = overflowMenuVariant(observation)
+  chrome: TaskCommandChrome,
+): OverflowMenuView | null {
+  if (observation.overflowMenu === 'omitted') return null
+  const repository = observation.repository
+  if (!repository) return null
+  const variant = overflowMenuVariant(observation, chrome)
   return {
     variant,
-    items: buildOverflowItems(variant, observation),
-    repositoryName: observation.repository?.name ?? 'Repository',
+    primary: buildPrimaryItems(variant, observation),
+    repository: {
+      name: repository.name,
+      items: buildRepositoryItems(variant),
+    },
   }
+}
+
+/** Access label for the Take over dialog; null when the level is not observed. */
+export function takeoverAccessLabel(
+  observation: TaskObservation,
+): string | null {
+  const level = observation.accessLevel
+  return level ? TASK_OVERFLOW_COPY.accessLabels[level] : null
 }
 
 /** Titles for the client-derived "won't be stopped" list. */
@@ -114,4 +87,15 @@ export function wontBeStoppedTitles(
 export function taskAllowsStopDialog(observation: TaskObservation): boolean {
   const status = observedEngineStatus(observation.statusRead)
   return status === 'running' || status === 'pending'
+}
+
+/** True when Take over can be offered: running, not stopping, level observed. */
+export function taskAllowsTakeoverDialog(
+  observation: TaskObservation,
+  chrome: TaskCommandChrome,
+): boolean {
+  return (
+    observation.accessLevel !== undefined &&
+    overflowMenuVariant(observation, chrome) === 'running'
+  )
 }

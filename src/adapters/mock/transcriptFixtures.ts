@@ -70,6 +70,8 @@ export function transcriptTaskObservation(
     },
     transcript,
     detailsPane: 'events' as const,
+    // Approved transcript screens draw no More anchor (identity menu: false).
+    overflowMenu: 'omitted' as const,
   }
 }
 

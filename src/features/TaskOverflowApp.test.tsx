@@ -53,6 +53,75 @@ function statusRegion(): HTMLElement {
 }
 
 describe('Task overflow menu', () => {
+  it.each([
+    'transcript-observed',
+    'transcript-loading',
+    'transcript-partial',
+    'transcript-unavailable',
+    'transcript-integrity-failed',
+    'transcript-reconnecting',
+    'transcript-capacity',
+    'transcript-sources',
+    'transcript-observed/events',
+    'transcript-sources/events',
+  ] as const)('draws no More anchor on %s', async (scenario) => {
+    await mount(scenario as ScenarioId)
+    expect(screen.queryByRole('button', { name: 'More actions' })).toBeNull()
+    expect(document.querySelector('.hd-topbar__title')).not.toBeNull()
+  })
+
+  it('offers the stopping menu after Stop is acknowledged', async () => {
+    const user = userEvent.setup()
+    await mount('task-stop-requested')
+    await user.click(screen.getByRole('button', { name: 'More actions' }))
+    const menu = screen.getByRole('menu', { name: 'More actions' })
+    const names = within(menu)
+      .getAllByRole('menuitem')
+      .map((item) => item.textContent)
+    expect(names).toEqual([
+      'Open in terminal…',
+      'Copy resume command',
+      'Copy task ID',
+      'Open in Finder',
+      'Copy path',
+    ])
+    expect(
+      within(menu).getByRole('menuitem', { name: /Open in terminal/ }),
+    ).toHaveAttribute('aria-disabled', 'true')
+  })
+
+  it('closes on Tab and does not steal arrows once focus has left', async () => {
+    const user = userEvent.setup()
+    await mount('task-overflow-running')
+    expect(screen.getByRole('menu', { name: 'More actions' })).toBeInTheDocument()
+    await user.keyboard('{Tab}')
+    expect(screen.queryByRole('menu')).toBeNull()
+    const more = screen.getByRole('button', { name: 'More actions' })
+    more.focus()
+    const arrow = new KeyboardEvent('keydown', {
+      key: 'ArrowDown',
+      bubbles: true,
+      cancelable: true,
+    })
+    document.body.dispatchEvent(arrow)
+    expect(arrow.defaultPrevented).toBe(false)
+  })
+
+  it('moves focus to the parent title after Open parent task', async () => {
+    const user = userEvent.setup()
+    await mount('task-overflow-subtask')
+    await user.click(
+      screen.getByRole('menuitem', { name: /Open parent task/ }),
+    )
+    await act(async () => {
+      await Promise.resolve()
+      await Promise.resolve()
+    })
+    const title = document.querySelector('.hd-topbar__title')
+    expect(title?.textContent).toBe('Nightly dependency audit')
+    expect(title).toHaveFocus()
+  })
+
   it('opens from More actions, focuses the first item, and closes on Escape', async () => {
     const user = userEvent.setup()
     await mount('task-running-stop')
@@ -234,6 +303,27 @@ describe('Task Stop and takeover dialogs', () => {
     expect(confirm).toHaveAccessibleDescription(
       TASK_TAKEOVER_CONFIRM_UNAVAILABLE_EXPLANATION,
     )
+  })
+
+  it('announces a repeated copy again and lets the newest note win', async () => {
+    const user = userEvent.setup()
+    Object.defineProperty(navigator, 'clipboard', {
+      configurable: true,
+      value: { writeText: vi.fn().mockResolvedValue(undefined) },
+    })
+    await mount('task-overflow-running')
+    const copy = () =>
+      screen.getByRole('menuitem', { name: /Copy task ID/ })
+    await user.click(copy())
+    const first = statusRegion().firstElementChild
+    expect(statusRegion().textContent).toBe('Copied task ID.')
+    await user.click(copy())
+    expect(statusRegion().textContent).toBe('Copied task ID.')
+    expect(statusRegion().firstElementChild).not.toBe(first)
+    await user.click(
+      screen.getByRole('menuitem', { name: /Copy path/ }),
+    )
+    expect(statusRegion().textContent).toBe('Copied path.')
   })
 
   it('copies task ID through StatusRegion', async () => {

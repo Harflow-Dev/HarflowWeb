@@ -169,8 +169,6 @@ function describedByFor(
       return TASK_CHECK_NEW_TASK_UNAVAILABLE_ID
     case 'copyResume':
       return TASK_COPY_RESUME_UNAVAILABLE_ID
-    case 'stop':
-      return TASK_BANNER_ACTION_UNAVAILABLE_ID
     case 'refresh':
       return TASK_REFRESH_UNAVAILABLE_ID
     case 'openEvents':
@@ -191,8 +189,6 @@ function titleFor(
       return TASK_CHECK_NEW_TASK_UNAVAILABLE_EXPLANATION
     case 'copyResume':
       return TASK_COPY_RESUME_UNAVAILABLE_EXPLANATION
-    case 'stop':
-      return TASK_BANNER_ACTION_UNAVAILABLE_EXPLANATION
     case 'refresh':
       return TASK_REFRESH_UNAVAILABLE_EXPLANATION
     case 'openEvents':

@@ -346,11 +346,24 @@ grant approvals, answer questions, or touch the task store.
 - **M05 G-OVERFLOW (mock-only).** Six approved overflow/dialog states at Design
   `6e31cd7` (`overflow-running`, `overflow-settled`, `overflow-subtask`,
   `cancel-dialog`, `cancel-dialog-lineage`, `takeover-dialog`) seed through
-  composition. Every ready task top bar shows More actions. Menu items follow
-  the observed-status availability map. Composer and banner Stop open the same
-  Stop dialog; confirms stay unavailable. Sub-task provenance is a transcript
-  head line. The More button changes every previously approved ready task
-  screen; recaptures live under
+  composition. The M05 task top bar shows More actions; the approved
+  transcript screens (`transcript-*`, with or without the Events pane) do not,
+  because the design draws no More anchor there (identity `menu: false`). That
+  is an observed fact on the observation (`overflowMenu: 'omitted'`), not a
+  guess; a menu also needs a recorded repository for its label, so no
+  placeholder repository name or empty copy is invented. Menu items follow the
+  observed-status availability map, including the stop-requested ("stopping")
+  composer state (no Stop, no Take over, Open in terminal unavailable).
+  Take over is offered only when the access level is observed
+  (`accessLevel`); presentation maps it to the dialog label and nothing is
+  defaulted, so an observation without it gets no Take over item and no
+  dialog. Composer and banner Stop open the same Stop dialog; confirms stay
+  unavailable. A dialog or open menu is dropped when the load leaves ready or
+  the status no longer admits it, and the background is inert only while a
+  dialog is actually drawn. Sub-task provenance is a transcript head line.
+  The More button changes the previously approved M05 status screens, not the
+  transcript screens (checked pixel-identical to the pre-slice build);
+  recaptures live under
   `~/.codex/workflows/screenshots/2026-11-14-harflowweb-task-overflow-dialogs/`.
 - **M05 remaining deviations (honest list).**
   - The settling drawing opens the right pane with "Stored changes aren't

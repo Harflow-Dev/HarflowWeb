@@ -35,7 +35,7 @@ export const EVENTS_READER_FAILED_TASK_ID = asTaskId('task-events-reader-failed'
 /** Mapped from Recent work "Add retry budget to delivery queue" (task/done). */
 export const RETRY_BUDGET_DONE_TASK_ID = asTaskId('task-retry-budget-done')
 
-const ACCESS_EDIT = 'Can edit this repo'
+const ACCESS_EDIT = 'edit_repo' as const
 const REPO_MCP = {
   name: 'HarflowMCP',
   path: '~/Code/Harflow/HarflowMCP',
@@ -56,7 +56,7 @@ export function slotReleaseObservation(): TaskObservation {
     transcript: slotReleaseTranscript(),
     detailsPane: null,
     repository: REPO_MCP,
-    accessLabel: ACCESS_EDIT,
+    accessLevel: ACCESS_EDIT,
   }
 }
 
@@ -70,7 +70,7 @@ export function preloadObservation(): TaskObservation {
     transcript: preloadTranscript(),
     detailsPane: null,
     repository: REPO_MCP,
-    accessLabel: ACCESS_EDIT,
+    accessLevel: ACCESS_EDIT,
   }
 }
 
@@ -92,7 +92,7 @@ export function eventsReaderFailedObservation(): TaskObservation {
     transcript: eventsReaderFailedTranscript(),
     detailsPane: null,
     repository: REPO_MCP,
-    accessLabel: ACCESS_EDIT,
+    accessLevel: ACCESS_EDIT,
   }
 }
 
@@ -108,7 +108,7 @@ export function retryBudgetCompletedObservation(): TaskObservation {
     transcript: retryBudgetDoneTranscript(),
     detailsPane: 'changes',
     repository: REPO_WEB,
-    accessLabel: ACCESS_EDIT,
+    accessLevel: ACCESS_EDIT,
   }
 }
 

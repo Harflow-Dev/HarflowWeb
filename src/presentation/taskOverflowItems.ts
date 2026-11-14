@@ -7,90 +7,85 @@ import {
 } from './taskOverflowCopy'
 import {
   overflowItemAvailability,
-  type OverflowItemId,
+  type OverflowActionId,
   type OverflowItemIcon,
   type OverflowMenuItemView,
   type OverflowMenuVariant,
-} from './taskOverflowMenu'
+  type OverflowUnavailableId,
+} from './taskOverflowTypes'
 
-/** Build ordered overflow items for one menu variant and observation. */
-export function buildOverflowItems(
+/** Items before the separator, in design order. */
+export function buildPrimaryItems(
   variant: OverflowMenuVariant,
   observation: TaskObservation,
 ): readonly OverflowMenuItemView[] {
-  const head = [
-    ...item(variant, 'stop', 'stop', TASK_OVERFLOW_COPY.stopTask, true),
-    ...item(variant, 'takeover', 'terminal', TASK_OVERFLOW_COPY.takeover),
-    ...item(
+  const parent = observation.parent
+  return [
+    ...action(variant, 'stop', 'stop', TASK_OVERFLOW_COPY.stopTask, {
+      danger: true,
+    }),
+    // Take over names the access level it does not run under; without an
+    // observed level the dialog copy cannot be written, so it is not offered.
+    ...(observation.accessLevel
+      ? action(variant, 'takeover', 'terminal', TASK_OVERFLOW_COPY.takeover)
+      : []),
+    ...unavailable(
       variant,
       'openTerminal',
       'terminal',
       TASK_OVERFLOW_COPY.openTerminal,
-      false,
       TASK_OPEN_TERMINAL_UNAVAILABLE_ID,
     ),
-  ]
-  const parent = observation.parent
-    ? [
-        {
-          id: 'openParent' as const,
-          label: TASK_OVERFLOW_COPY.openParent,
-          icon: 'external' as const,
-          hint: TASK_OVERFLOW_COPY.startedBy(observation.parent.title),
-          availability: 'action' as const,
-        },
-      ]
-    : []
-  return [
-    ...head,
-    ...parent,
-    ...item(
+    ...(parent
+      ? action(variant, 'openParent', 'external', TASK_OVERFLOW_COPY.openParent, {
+          hint: TASK_OVERFLOW_COPY.startedBy(parent.title),
+        })
+      : []),
+    ...unavailable(
       variant,
       'copyResume',
       'terminal',
       TASK_OVERFLOW_COPY.copyResume,
-      false,
       TASK_COPY_RESUME_UNAVAILABLE_ID,
     ),
-    fixed('copyTaskId', 'copy', TASK_OVERFLOW_COPY.copyTaskId, 'action'),
-    fixed(
-      'openFinder',
-      'folder',
-      TASK_OVERFLOW_COPY.openFinder,
-      'unavailable',
-      TASK_OPEN_FINDER_UNAVAILABLE_ID,
-    ),
-    fixed('copyPath', 'copy', TASK_OVERFLOW_COPY.copyPath, 'action'),
+    ...action(variant, 'copyTaskId', 'copy', TASK_OVERFLOW_COPY.copyTaskId),
   ]
 }
 
-function item(
+/** Items after the separator (under the repository label). */
+export function buildRepositoryItems(
   variant: OverflowMenuVariant,
-  id: OverflowItemId,
-  icon: OverflowItemIcon,
-  label: string,
-  danger = false,
-  describedById?: string,
 ): readonly OverflowMenuItemView[] {
-  const availability = overflowItemAvailability(variant, id)
-  if (availability === 'hidden') return []
-  return [fixed(id, icon, label, availability, describedById, danger)]
+  return [
+    ...unavailable(
+      variant,
+      'openFinder',
+      'folder',
+      TASK_OVERFLOW_COPY.openFinder,
+      TASK_OPEN_FINDER_UNAVAILABLE_ID,
+    ),
+    ...action(variant, 'copyPath', 'copy', TASK_OVERFLOW_COPY.copyPath),
+  ]
 }
 
-function fixed(
-  id: OverflowItemId,
+function action(
+  variant: OverflowMenuVariant,
+  id: OverflowActionId,
   icon: OverflowItemIcon,
   label: string,
-  availability: 'action' | 'unavailable',
-  describedById?: string,
-  danger = false,
-): OverflowMenuItemView {
-  return {
-    id,
-    label,
-    icon,
-    availability,
-    ...(danger ? { danger: true } : {}),
-    ...(describedById ? { describedById } : {}),
-  }
+  extra: { readonly danger?: boolean; readonly hint?: string } = {},
+): readonly OverflowMenuItemView[] {
+  if (overflowItemAvailability(variant, id) !== 'action') return []
+  return [{ id, icon, label, availability: 'action', ...extra }]
+}
+
+function unavailable(
+  variant: OverflowMenuVariant,
+  id: OverflowUnavailableId,
+  icon: OverflowItemIcon,
+  label: string,
+  describedById: string,
+): readonly OverflowMenuItemView[] {
+  if (overflowItemAvailability(variant, id) !== 'unavailable') return []
+  return [{ id, icon, label, availability: 'unavailable', describedById }]
 }

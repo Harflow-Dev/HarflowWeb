@@ -12,6 +12,8 @@ import {
   type TaskScreenState,
 } from './taskState'
 import {
+  reconcileOverflowChrome,
+  withoutCommandChrome,
   withoutTaskDialog,
   withOverflowMenuOpen,
   withSeededOverflowChrome,
@@ -135,26 +137,16 @@ export class TaskSession {
     if (this.disposed) return
     if (this.state.selectedTaskId !== taskId) return
     if (this.state.load.kind !== 'ready') return
-    this.publish({ ...this.state, commandChrome: chrome })
+    this.publish(
+      reconcileOverflowChrome({ ...this.state, commandChrome: chrome }),
+    )
   }
 
   /** Drop command lifecycle and overflow chrome; the selected task stays. */
   clearCommandChrome(): void {
     if (this.disposed) return
-    if (
-      this.state.commandChrome === null &&
-      !this.state.overflowMenuOpen &&
-      this.state.dialog === null
-    ) {
-      return
-    }
-    this.publish({
-      ...this.state,
-      commandChrome: null,
-      overflowMenuOpen: false,
-      dialog: null,
-      dialogOpener: null,
-    })
+    const next = withoutCommandChrome(this.state)
+    if (next) this.publish(next)
   }
 
   setOverflowMenuOpen(open: boolean): void {
@@ -168,7 +160,9 @@ export class TaskSession {
     opener: TaskDialogOpener | null,
   ): void {
     if (this.disposed) return
-    this.publish(withTaskDialog(this.state, dialog, opener))
+    this.publish(
+      reconcileOverflowChrome(withTaskDialog(this.state, dialog, opener)),
+    )
   }
 
   closeTaskDialog(): void {
@@ -181,7 +175,7 @@ export class TaskSession {
   seedTaskOverflowChrome(taskId: TaskId, chrome: TaskOverflowChrome): void {
     if (this.disposed) return
     const next = withSeededOverflowChrome(this.state, taskId, chrome)
-    if (next) this.publish(next)
+    if (next) this.publish(reconcileOverflowChrome(next))
   }
 
   selectChangedFile(path: string): void {
@@ -239,7 +233,9 @@ export class TaskSession {
   }
 
   private beginChangesObservation(): void {
+    if (!this.state.selectedTaskId || !this.state.changesPaneOpen) return
     this.changesObservation?.cancel()
+    this.changesObservation = null
     beginTaskChangesObservation({
       state: this.state,
       loadTaskChanges: this.loadTaskChanges,
@@ -274,7 +270,8 @@ export class TaskSession {
     if (this.disposed || gen !== this.observationEpoch) return
     if (expected !== this.state.selectedTaskId) return
     if (load.kind === 'ready' && load.observation.taskId !== expected) return
-    this.publish({ ...this.state, load })
+    // Menu/dialog chrome only survives while the new load still supports it.
+    this.publish(reconcileOverflowChrome({ ...this.state, load }))
   }
 
   private publish(next: TaskScreenState): void {

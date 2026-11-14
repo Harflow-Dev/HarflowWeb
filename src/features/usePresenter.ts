@@ -27,21 +27,35 @@ export function usePresenterLifetime(presenter: Lifetime): void {
   }, [presenter])
 }
 
-/** Local UI-only ephemeral note (unavailable nav), not engine state. */
-export function useEphemeralNote(timeoutMs = 4000): {
-  readonly note: string | null
-  readonly show: (value: string) => void
+/**
+ * Local UI-only ephemeral note (unavailable nav, copy result), not engine
+ * state. Newest wins: every `show` replaces the note, restarts the timer and
+ * bumps `nonce`, so an identical repeat is still a new announcement.
+ */
+export function useEphemeralNote<T = string>(
+  timeoutMs = 4000,
+): {
+  readonly note: T | null
+  readonly nonce: number
+  readonly show: (value: T) => void
 } {
-  const [note, setNote] = useState<string | null>(null)
+  const [current, setCurrent] = useState<{
+    readonly value: T | null
+    readonly nonce: number
+  }>({ value: null, nonce: 0 })
   useEffect(() => {
-    if (note === null) return
-    const id = window.setTimeout(() => setNote(null), timeoutMs)
+    if (current.value === null) return
+    const id = window.setTimeout(
+      () => setCurrent((prev) => ({ value: null, nonce: prev.nonce })),
+      timeoutMs,
+    )
     return () => window.clearTimeout(id)
-  }, [note, timeoutMs])
+  }, [current, timeoutMs])
   return {
-    note,
+    note: current.value,
+    nonce: current.nonce,
     show(value) {
-      setNote(value)
+      setCurrent((prev) => ({ value, nonce: prev.nonce + 1 }))
     },
   }
 }

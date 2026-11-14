@@ -61,10 +61,6 @@ export function initialTaskState(): TaskScreenState {
   }
 }
 
-export function taskDialogOpen(state: TaskScreenState): boolean {
-  return state.dialog !== null
-}
-
 /** Preview / session chrome for the overflow menu and confirmation dialogs. */
 export type TaskOverflowChrome = {
   readonly overflowMenuOpen?: boolean

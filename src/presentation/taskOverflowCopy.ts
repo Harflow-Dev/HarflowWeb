@@ -29,6 +29,12 @@ export const TASK_OVERFLOW_COPY = {
     `The headless run is stopped first (with any sub-tasks), then the same conversation opens in Terminal.app. It runs under your own default permissions, not this task's access level (${accessLabel}). While the terminal is open, harflow refuses resumes of this session from anywhere else.`,
   takeoverCancel: 'Cancel',
   takeoverConfirm: 'Take over in terminal',
+  accessLabels: {
+    read_only: 'Read-only',
+    edit_repo: 'Can edit this repo',
+    publish: 'Can publish',
+    full: 'Full access',
+  },
   provenanceLine: 'Sub-task started by another agent',
   copiedTaskId: 'Copied task ID.',
   copiedPath: 'Copied path.',

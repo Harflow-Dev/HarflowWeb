@@ -1,4 +1,5 @@
 import type { TaskId } from './ids'
+import type { AccessLevel } from './types'
 import type { TranscriptObservation } from './transcript'
 
 /** Inline run of plain or code-styled text — never HTML. */
@@ -137,10 +138,16 @@ export type TaskObservation = {
   /** Repository name and path when the observation records one. */
   readonly repository?: TaskRepository
   /**
-   * Access level label enforced for this task (takeover dialog copy).
-   * Observed display string, not a permission grant in this mock.
+   * Access level observed as enforced for this task. Presentation maps it to
+   * a label; when absent, nothing that needs it (Take over) is offered.
    */
-  readonly accessLabel?: string
+  readonly accessLevel?: AccessLevel
+  /**
+   * Observed fact: this screen draws no task actions menu (the approved
+   * transcript screens carry no More anchor). Absent means the menu is drawn
+   * when a repository is also recorded.
+   */
+  readonly overflowMenu?: 'omitted'
   /**
    * Task-list read: tasks this run started in earlier turns that were running
    * when last read. Presentation derives the labelled "won't be stopped" list.

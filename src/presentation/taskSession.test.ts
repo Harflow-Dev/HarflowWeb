@@ -278,6 +278,48 @@ describe('TaskSession', () => {
     session.dispose()
   })
 
+  it('drops the dialog and menu when the load leaves ready', async () => {
+    const { port, capture } = createCapturingPort()
+    const session = sessionFor(port)
+    session.start()
+    session.openTask(SLOT_RELEASE_TASK_ID)
+    await flush()
+    session.setOverflowMenuOpen(true)
+    session.openTaskDialog('stop', 'more')
+    expect(session.getState().dialog).toBe('stop')
+    capture()?.callback({ kind: 'unavailable', message: 'Gone' })
+    expect(session.getState().dialog).toBeNull()
+    expect(session.getState().dialogOpener).toBeNull()
+    expect(session.getState().overflowMenuOpen).toBe(false)
+    session.dispose()
+  })
+
+  it('refuses Stop and Take over dialogs the status does not admit', async () => {
+    const { port } = createCapturingPort()
+    const session = sessionFor(port)
+    session.start()
+    session.openTask(RETRY_BUDGET_DONE_TASK_ID)
+    await flush()
+    session.openTaskDialog('stop', 'more')
+    expect(session.getState().dialog).toBeNull()
+    session.openTaskDialog('takeover', 'more')
+    expect(session.getState().dialog).toBeNull()
+    session.dispose()
+  })
+
+  it('closes a Take over dialog when Stop is acknowledged', async () => {
+    const { port } = createCapturingPort()
+    const session = sessionFor(port)
+    session.start()
+    session.openTask(SLOT_RELEASE_TASK_ID)
+    await flush()
+    session.openTaskDialog('takeover', 'more')
+    expect(session.getState().dialog).toBe('takeover')
+    session.seedTaskCommandChrome(SLOT_RELEASE_TASK_ID, 'stop-requested')
+    expect(session.getState().dialog).toBeNull()
+    session.dispose()
+  })
+
   it('ignores seeding for a task that is not the ready selection', async () => {
     const { port } = createCapturingPort()
     const session = sessionFor(port)

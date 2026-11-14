@@ -947,8 +947,11 @@ Directory:
 `~/.codex/workflows/screenshots/2026-11-14-harflowweb-task-overflow-dialogs/`
 
 - `verified-1280x800/` — six overflow/dialog scenarios × light/dark (12 PNGs)
-- `previously-approved-recaptures/` — ready task screens that gained the More
-  button (19 scenarios × light/dark = 38 PNGs)
+- `previously-approved-recaptures/` — ready M05 task status screens that
+  gained the More button (19 scenarios × light/dark = 38 PNGs). The
+  `transcript-*` screens (closed and `/events`) draw no More anchor, as in the
+  design, and were compared pixel-for-pixel against a build of the pre-slice
+  commit `5aba2fb` (`transcript-comparison/`); they are unchanged.
 
 Capture script (outside repo):
 `~/.codex/workflows/screenshots/2026-11-14-harflowweb-task-overflow-dialogs/capture-overflow.mjs`

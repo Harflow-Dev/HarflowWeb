@@ -42,8 +42,9 @@ this handoff as a second copy).
 | Parallel group lanes | `2153ab1` / `4ff7d83` | Titled lanes, menus, prompts, Cancel-all at app level, outcomes, minima |
 | Parallel group queued messages | `2153ab1` four `lane-message*` states | Observed queue + presentation mapping; Cancel unavailable; cancelled outcome seeded |
 | Pending launches | `83d820f` / approval `2934681` | Capability-gated nav; 21 states including Stop sheet and minima |
+| M05 task status screen | `6e31cd7` approval | 16 fixtures + preview scenarios; `aria-disabled` commands; legacy `task-running` / `task-failed` / `task-loading` kept |
 
-Scenario count: **113** entries in `SCENARIOS` (`SCENARIOS.length` at handoff;
+Scenario count: **129** entries in `SCENARIOS` (`SCENARIOS.length` at handoff;
 re-count after adding scenarios) in `src/adapters/mock/scenarioCatalog.ts` and
 the catalog modules it spreads.
 Open `/preview` and use the scenario panel.
@@ -55,18 +56,18 @@ npm run verify   # architecture + tests + build
 npm run lint     # oxlint; zero warnings required
 ```
 
-At handoff: **499 tests** across **60** files (`vitest run`). Re-count after
+At handoff: **548 tests** across **64** files (`vitest run`). Re-count after
 further commits.
 
-HEAD at handoff: `db6a049` (the commit that records this line
-follows it).
+HEAD at handoff: `b5feadd` (this commit).
 
 ## Screenshots
 
 Stored outside the repo under `~/.codex/workflows/screenshots/`. Latest
-queued-message captures:
-`2026-11-13-harflowweb-lane-queued-messages/verified-1280x800/`.
-Pending-launch and Parallel-lane captures are sibling dated folders (see
+task-status captures:
+`2026-11-14-harflowweb-task-statuses/verified-1280x800/` (38 PNGs, 16 M05 states
++ `task-running` / `task-failed` / `task-loading` recaptures). Queued-message,
+pending-launch, and Parallel-lane captures are sibling dated folders (see
 `docs/visual-validation.md`).
 
 The capture script is kept outside the repo. Captures use headless Chrome

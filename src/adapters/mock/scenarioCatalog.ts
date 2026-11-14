@@ -6,6 +6,7 @@ import { CENTERED_SCENARIOS } from './scenarioCatalogCentered'
 import { LOADING_SCENARIOS } from './scenarioCatalogLoading'
 import { MINIMUM_SCENARIOS } from './scenarioCatalogMinimum'
 import { PARALLEL_LANE_SCENARIOS } from './scenarioCatalogParallelLanes'
+import { PARALLEL_QUEUED_SCENARIOS } from './scenarioCatalogParallelQueued'
 import { PENDING_LAUNCH_SCENARIOS } from './scenarioCatalogPendingLaunches'
 import { TRANSCRIPT_SCENARIOS } from './scenarioCatalogTranscript'
 import type { ScenarioDefinition } from './scenarios'
@@ -199,5 +200,6 @@ export const SCENARIOS: readonly ScenarioDefinition[] = [
   ...CENTERED_SCENARIOS,
   ...TRANSCRIPT_SCENARIOS,
   ...PARALLEL_LANE_SCENARIOS,
+  ...PARALLEL_QUEUED_SCENARIOS,
   ...PENDING_LAUNCH_SCENARIOS,
 ]

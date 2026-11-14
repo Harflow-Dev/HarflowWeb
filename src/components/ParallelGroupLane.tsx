@@ -1,6 +1,8 @@
 import { useEffect, useRef } from 'react'
 import type { ParallelGroupLane as LaneModel, TaskId } from '../model'
+import { queuedLaneTailView } from '../presentation/parallelGroupQueuedMessages'
 import { Icon } from './Icon'
+import { ParallelGroupQueuedMessages } from './ParallelGroupQueuedMessages'
 import {
   HistoryBoundary,
   LaneBlock,
@@ -18,6 +20,8 @@ type Props = {
   readonly lane: LaneModel
   readonly showPrompt: boolean
   readonly menuOpen: boolean
+  /** Seeded Cancel outcome for this group; null when none. */
+  readonly queuedCancelOutcome: string | null
   readonly onToggleMenu: () => void
   readonly onCloseMenu: (focusTrigger: boolean) => void
   readonly onOpenTask: (taskId: TaskId) => void
@@ -28,6 +32,7 @@ export function ParallelGroupLane({
   lane,
   showPrompt,
   menuOpen,
+  queuedCancelOutcome,
   onToggleMenu,
   onCloseMenu,
   onOpenTask,
@@ -43,6 +48,7 @@ export function ParallelGroupLane({
     lane.composer.locked && lane.composer.placeholder
       ? lane.composer.placeholder
       : messageLabel
+  const queueTail = queuedLaneTailView(lane, queuedCancelOutcome)
 
   // Latest callback without re-running the menu effect (it would re-steal focus).
   useEffect(() => {
@@ -143,6 +149,7 @@ export function ParallelGroupLane({
             <LaneBlock key={`${lane.id}-${index}`} block={block} />
           ))
         )}
+        <ParallelGroupQueuedMessages tail={queueTail} />
         {lane.end ? <LaneEndRow end={lane.end} /> : null}
       </div>
       {lane.status === 'pending' ? null : (

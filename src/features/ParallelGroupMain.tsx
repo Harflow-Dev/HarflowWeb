@@ -14,6 +14,7 @@ export function ParallelGroupMain({ state, presenter }: Props) {
       showPrompt={state.showPrompt}
       openMenuLaneId={state.openMenuLaneId}
       cancelAllConfirm={state.cancelAllConfirm}
+      queuedCancelOutcome={state.queuedCancelOutcome}
       onShowPrompt={(show) => presenter.setParallelGroupShowPrompt(show)}
       onOpenMenuLaneId={(laneId) =>
         presenter.setParallelGroupOpenMenuLaneId(laneId)

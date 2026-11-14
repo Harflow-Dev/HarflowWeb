@@ -26,6 +26,7 @@ type Props = {
   readonly showPrompt?: boolean
   readonly openMenuLaneId?: string | null
   readonly cancelAllConfirm?: boolean
+  readonly queuedCancelOutcome?: string | null
   readonly onShowPrompt?: (show: boolean) => void
   readonly onOpenMenuLaneId?: (laneId: string | null) => void
   readonly onCancelAllConfirm?: (open: boolean) => void
@@ -43,6 +44,7 @@ export function ParallelGroupView({
   showPrompt = false,
   openMenuLaneId = null,
   cancelAllConfirm = false,
+  queuedCancelOutcome = null,
   onShowPrompt,
   onOpenMenuLaneId,
   onCancelAllConfirm,
@@ -62,6 +64,7 @@ export function ParallelGroupView({
         showPrompt={false}
         openMenuLaneId={null}
         cancelAllConfirm={false}
+        queuedCancelOutcome={null}
         empty
       />
     )
@@ -72,6 +75,7 @@ export function ParallelGroupView({
       showPrompt={showPrompt}
       openMenuLaneId={openMenuLaneId}
       cancelAllConfirm={cancelAllConfirm}
+      queuedCancelOutcome={queuedCancelOutcome}
       {...(onShowPrompt ? { onShowPrompt } : {})}
       {...(onOpenMenuLaneId ? { onOpenMenuLaneId } : {})}
       {...(onCancelAllConfirm ? { onCancelAllConfirm } : {})}
@@ -85,6 +89,7 @@ function ParallelGroupChrome({
   showPrompt,
   openMenuLaneId,
   cancelAllConfirm,
+  queuedCancelOutcome,
   empty = false,
   onShowPrompt,
   onOpenMenuLaneId,
@@ -95,6 +100,7 @@ function ParallelGroupChrome({
   readonly showPrompt: boolean
   readonly openMenuLaneId: string | null
   readonly cancelAllConfirm: boolean
+  readonly queuedCancelOutcome: string | null
   readonly empty?: boolean
   readonly onShowPrompt?: (show: boolean) => void
   readonly onOpenMenuLaneId?: (laneId: string | null) => void
@@ -198,6 +204,7 @@ function ParallelGroupChrome({
               lane={lane}
               showPrompt={showPrompt}
               menuOpen={openMenuLaneId === lane.id}
+              queuedCancelOutcome={queuedCancelOutcome}
               onToggleMenu={() =>
                 onOpenMenuLaneId?.(
                   openMenuLaneId === lane.id ? null : lane.id,

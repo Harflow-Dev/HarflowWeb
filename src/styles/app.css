@@ -853,6 +853,62 @@ body,
   flex-direction: column;
 }
 
+/* Queued follow-ups (Design 2153ab1 / messages-screen.css under .hd-msgq-host). */
+.hd-msgq-host .hd-msgq {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  white-space: normal;
+  margin-top: var(--space-3);
+}
+
+.hd-msgq-host .hd-msgq__caption {
+  display: block;
+  font-size: 12px;
+  line-height: 17px;
+  color: var(--text-secondary);
+}
+
+.hd-msgq-host .hd-msgq__text {
+  display: block;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.hd-msgq-host .hd-msgq__note {
+  display: block;
+  font-size: 13px;
+  line-height: 19px;
+  color: var(--text-secondary);
+}
+
+.hd-msgq-host .hd-msgq--pending {
+  background: color-mix(in srgb, var(--surface-active) 45%, transparent);
+  color: var(--text-secondary);
+}
+
+.hd-msgq-host .hd-msgq__cancel {
+  align-self: flex-end;
+  min-height: 24px;
+  padding: 0 2px;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: 13px;
+  line-height: 19px;
+  color: var(--text-secondary);
+}
+
+.hd-msgq-host .hd-msgq__cancel[aria-disabled='true'],
+.hd-msgq-host .hd-msgq__cancel:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.hd-msgq-host .hd-msgq__outcome {
+  margin: var(--space-2) 0 0;
+}
+
 .hd-pl--titled .hd-lane {
   flex: 1 0 360px;
   min-width: 360px;

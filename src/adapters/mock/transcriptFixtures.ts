@@ -60,20 +60,17 @@ export function transcriptTaskObservation(
   const running =
     mount === 'loading' || mount === 'reconnecting' || mount === 'capacity'
   const transcript = transcriptObservationFor(mount)
-  const base = {
+  return {
     taskId: TRANSCRIPT_TASK_IDS[mount],
     title: 'Fix slot release test',
-    statusBadge: running ? 'Running' : 'Done',
     headerMeta: 'Codex · HarflowMCP',
-    followUpPlaceholder: running
-      ? 'Send a follow-up. It is delivered after the current turn.'
-      : 'Continue this task',
+    statusRead: {
+      kind: 'observed',
+      status: running ? 'running' : 'completed',
+    },
     transcript,
     detailsPane: 'events' as const,
   }
-  // Pinned transcript states do not draw a Summary block.
-  if (running) return { ...base, status: 'running' }
-  return { ...base, status: 'completed' }
 }
 
 export function transcriptTaskLoad(mount: TranscriptMount) {

@@ -31,13 +31,11 @@ export const RETRY_BUDGET_DONE_TASK_ID = asTaskId('task-retry-budget-done')
 
 export function slotReleaseObservation(): TaskObservation {
   return {
-    status: 'running',
     taskId: SLOT_RELEASE_TASK_ID,
     title: 'Fix flaky slot release test',
-    statusBadge: 'Running 04:12',
     headerMeta: 'Claude · Opus 5.5 · HarflowMCP',
-    followUpPlaceholder:
-      'Send a follow-up. It is delivered after the current turn.',
+    statusRead: { kind: 'observed', status: 'running' },
+    elapsedLabel: '04:12',
     transcript: slotReleaseTranscript(),
     detailsPane: null,
   }
@@ -45,13 +43,11 @@ export function slotReleaseObservation(): TaskObservation {
 
 export function preloadObservation(): TaskObservation {
   return {
-    status: 'running',
     taskId: PRELOAD_TASK_ID,
     title: 'Review preload bridge',
-    statusBadge: 'Running 01:03',
     headerMeta: 'Claude · Opus 5.5 · HarflowMCP',
-    followUpPlaceholder:
-      'Send a follow-up. It is delivered after the current turn.',
+    statusRead: { kind: 'observed', status: 'running' },
+    elapsedLabel: '01:03',
     transcript: preloadTranscript(),
     detailsPane: null,
   }
@@ -59,12 +55,12 @@ export function preloadObservation(): TaskObservation {
 
 export function eventsReaderFailedObservation(): TaskObservation {
   return {
-    status: 'failed',
     taskId: EVENTS_READER_FAILED_TASK_ID,
     title: 'Migrate events.jsonl reader',
-    statusBadge: 'Failed 07:48',
     headerMeta: 'Claude · Opus 5.5 · HarflowMCP',
-    followUpPlaceholder: 'Tell the agent how to continue',
+    statusRead: { kind: 'observed', status: 'failed' },
+    elapsedLabel: '07:48',
+    exitObserved: true,
     failure: {
       title: 'Task failed: the harness exited with code 1',
       intro: 'The last error was:',
@@ -78,12 +74,12 @@ export function eventsReaderFailedObservation(): TaskObservation {
 
 export function retryBudgetCompletedObservation(): TaskObservation {
   return {
-    status: 'completed',
     taskId: RETRY_BUDGET_DONE_TASK_ID,
     title: 'Add retry budget to delivery queue',
-    statusBadge: 'Done 21:04',
     headerMeta: 'Claude · Opus 5.5 · HarflowWeb',
-    followUpPlaceholder: 'Continue this task',
+    statusRead: { kind: 'observed', status: 'completed' },
+    elapsedLabel: '21:04',
+    exitObserved: true,
     summary: retryBudgetSummary(),
     transcript: retryBudgetDoneTranscript(),
     detailsPane: 'changes',

@@ -39,6 +39,7 @@ import type { PendingLaunchStopOutcome } from './pendingLaunchesState'
 import type { OpenMenu } from './screenState'
 import type { ApprovalsMode, EffortLevel } from './taskOptions'
 import type { WorkflowRunViewMode } from './workflowRunParallel'
+import type { TaskCommandChrome } from './taskState'
 
 export type AppPresenter = {
   subscribe(listener: AppListener): () => void
@@ -76,6 +77,7 @@ export type AppPresenter = {
   openTask(taskId: TaskId): void
   setTaskChangesPaneOpen(open: boolean): void
   selectTaskChangedFile(path: string): void
+  seedTaskCommandChrome(chrome: TaskCommandChrome): void
   selectStatisticsRange(range: StatisticsRangeId): void
   selectSettingsSection(section: SettingsSection): void
   setExpandedHarness(id: string | null): void
@@ -154,6 +156,7 @@ export function createAppPresenter(deps: Deps): AppPresenter {
     openTask: (taskId) => session.openTask(taskId),
     setTaskChangesPaneOpen: (open) => session.setTaskChangesPaneOpen(open),
     selectTaskChangedFile: (path) => session.selectTaskChangedFile(path),
+    seedTaskCommandChrome: (chrome) => session.seedTaskCommandChrome(chrome),
     selectStatisticsRange: (range) => session.selectStatisticsRange(range),
     selectSettingsSection: (section) => session.selectSettingsSection(section),
     setExpandedHarness: (id) => session.setExpandedHarness(id),

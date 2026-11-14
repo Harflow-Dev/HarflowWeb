@@ -62,12 +62,10 @@ function ObservationHarness({
   const [index, setIndex] = useState(0)
   const [note, setNote] = useState('')
   const observation: TaskObservation = {
-    status: 'completed',
     taskId: taskIds?.[index] ?? asTaskId('task-obs'),
     title: 'Fix slot release test',
-    statusBadge: 'Done',
     headerMeta: 'Codex · HarflowMCP',
-    followUpPlaceholder: 'Continue this task',
+    statusRead: { kind: 'observed', status: 'completed' },
     transcript: sequence[index]!,
     detailsPane: 'events',
     ...(withSummary
@@ -678,12 +676,10 @@ describe('TranscriptSurface Events pane', () => {
 describe('TaskPage Copy record (production path)', () => {
   function page(obs: TranscriptObservation) {
     const observation: TaskObservation = {
-      status: 'completed',
       taskId: asTaskId('task-copy'),
       title: 'Fix slot release test',
-      statusBadge: 'Done',
       headerMeta: 'Codex · HarflowMCP',
-      followUpPlaceholder: 'Continue',
+      statusRead: { kind: 'observed', status: 'completed' },
       transcript: obs,
       detailsPane: 'events',
     }

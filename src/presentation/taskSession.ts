@@ -8,7 +8,11 @@ import type {
   TaskId,
   TaskLoad,
 } from '../model'
-import { initialTaskState, type TaskScreenState } from './taskState'
+import {
+  initialTaskState,
+  type TaskCommandChrome,
+  type TaskScreenState,
+} from './taskState'
 
 export type TaskListener = (state: TaskScreenState) => void
 
@@ -113,6 +117,12 @@ export class TaskSession {
     if (!usesEvents) this.beginChangesObservation()
   }
 
+  /** Preview seeding: show command lifecycle chrome on the selected task. */
+  seedTaskCommandChrome(chrome: TaskCommandChrome): void {
+    if (this.disposed) return
+    this.publish({ ...this.state, commandChrome: chrome })
+  }
+
   selectChangedFile(path: string): void {
     if (this.disposed || !this.state.changesPaneOpen) return
     if (
@@ -152,6 +162,7 @@ export class TaskSession {
     this.publish({
       selectedTaskId: taskId,
       load: { kind: 'loading' },
+      commandChrome: null,
       changesPaneOpen: false,
       changesQueryPath: null,
       selectedChangePath: null,

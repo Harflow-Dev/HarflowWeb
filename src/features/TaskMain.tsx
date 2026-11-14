@@ -2,7 +2,12 @@ import type { ReactNode } from 'react'
 import { Icon, TaskChangesPane, TaskPage } from '../components'
 import { TaskLoadingPage } from '../components/skeleton'
 import type { SidebarData, TaskObservation } from '../model'
-import type { TaskScreenState } from '../presentation'
+import {
+  type TaskCommandChrome,
+  type TaskScreenState,
+  type TaskStatusBadge,
+  taskStatusView,
+} from '../presentation'
 
 type Props = {
   readonly state: TaskScreenState
@@ -36,7 +41,12 @@ export function TaskMain({
   const topbar = (
     <div className="hd-topbar">
       <span className="hd-topbar__title">{title}</span>
-      {ready ? <StatusBadge observation={ready} /> : null}
+      {ready ? (
+        <StatusBadge
+          observation={ready}
+          commandChrome={state.commandChrome}
+        />
+      ) : null}
       {ready ? (
         <span className="hd-topbar__meta">{ready.headerMeta}</span>
       ) : null}
@@ -92,6 +102,7 @@ export function TaskMain({
       >
         <TaskPage
           observation={state.load.observation}
+          commandChrome={state.commandChrome}
           eventsPaneOpen={showPane}
           columnWrapper={withTopbar}
           onUnavailable={onUnavailable}
@@ -108,6 +119,7 @@ export function TaskMain({
       {withTopbar(
         <TaskPage
           observation={state.load.observation}
+          commandChrome={state.commandChrome}
           onUnavailable={onUnavailable}
         />,
       )}
@@ -132,33 +144,47 @@ const columnStyle = {
   minHeight: 0,
 } as const
 
+function badgeClassName(badge: TaskStatusBadge): string {
+  if (badge.tone === 'neutral') {
+    return 'hd-badge hd-m05-badge--neutral'
+  }
+  if (badge.tone === 'warning') {
+    return 'hd-badge hd-badge--warning'
+  }
+  return `hd-badge hd-badge--${badge.tone}`
+}
+
 function StatusBadge({
   observation,
+  commandChrome,
 }: {
   readonly observation: TaskObservation
+  readonly commandChrome: TaskCommandChrome
 }) {
-  if (observation.status === 'failed') {
-    return (
-      <span className="hd-badge hd-badge--failed">
-        <Icon name="x" />
-        {observation.statusBadge}
-      </span>
-    )
-  }
-  if (observation.status === 'completed') {
-    return (
-      <span className="hd-badge hd-badge--done">
-        <Icon name="check" />
-        {observation.statusBadge}
-      </span>
-    )
-  }
+  const { badge } = taskStatusView(observation, commandChrome)
   return (
-    <span className="hd-badge hd-badge--running">
-      <span className="hd-badge__spin" aria-hidden="true" />
-      {observation.statusBadge}
+    <span className={badgeClassName(badge)}>
+      <BadgeGlyph glyph={badge.glyph} />
+      {badge.label}
     </span>
   )
+}
+
+function BadgeGlyph({
+  glyph,
+}: {
+  readonly glyph: TaskStatusBadge['glyph']
+}) {
+  if (glyph === 'spin') {
+    return <span className="hd-badge__spin" aria-hidden="true" />
+  }
+  if (glyph === 'queued') {
+    return (
+      <span className="hd-glyph hd-glyph--queued" aria-hidden="true" />
+    )
+  }
+  if (glyph === 'none') return null
+  return <Icon name={glyph} />
 }
 
 /** The ready title, else the mapped sidebar row title, else null. */

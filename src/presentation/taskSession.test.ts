@@ -339,7 +339,10 @@ describe('TaskSession', () => {
     const load = session.getState().load
     expect(load).toEqual(taskLoadFor(EVENTS_READER_FAILED_TASK_ID))
     if (load.kind === 'ready') {
-      expect(load.observation.status).toBe('failed')
+      expect(load.observation.statusRead).toEqual({
+        kind: 'observed',
+        status: 'failed',
+      })
       expect(load.observation.title).toBe('Migrate events.jsonl reader')
     }
     session.dispose()
@@ -365,7 +368,10 @@ describe('TaskSession', () => {
     const load = session.getState().load
     expect(load).toEqual(taskLoadFor(RETRY_BUDGET_DONE_TASK_ID))
     if (load.kind === 'ready') {
-      expect(load.observation.status).toBe('completed')
+      expect(load.observation.statusRead).toEqual({
+        kind: 'observed',
+        status: 'completed',
+      })
       expect(load.observation.title).toBe('Add retry budget to delivery queue')
     }
     session.dispose()

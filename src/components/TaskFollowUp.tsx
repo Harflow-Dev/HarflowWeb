@@ -1,19 +1,15 @@
+import type { TaskStatusComposer } from '../presentation/taskStatusView'
 import { Icon } from './Icon'
 
 type Props = {
-  readonly placeholder: string
-  readonly showStop: boolean
+  readonly composer: TaskStatusComposer
   readonly onUnavailable: (label: string) => void
 }
 
 /**
- * Follow-up composer shell — send stays unavailable; Stop only for running.
+ * Follow-up composer shell — send stays unavailable; Stop only when mapped.
  */
-export function TaskFollowUp({
-  placeholder,
-  showStop,
-  onUnavailable,
-}: Props) {
+export function TaskFollowUp({ composer, onUnavailable }: Props) {
   return (
     <div
       style={{
@@ -38,14 +34,20 @@ export function TaskFollowUp({
           id="followup"
           className="hd-composer__input"
           rows={2}
-          placeholder={placeholder}
+          placeholder={composer.placeholder}
           style={{ minHeight: 28 }}
           readOnly
           aria-readonly="true"
+          disabled={composer.locked}
         />
         <div className="hd-composer__bar">
-          <span className="hd-composer__spacer" />
-          {showStop ? (
+          {composer.hint ? (
+            <span className="caption hd-faint">{composer.hint}</span>
+          ) : (
+            <span className="hd-composer__spacer" />
+          )}
+          {composer.hint ? <span className="hd-composer__spacer" /> : null}
+          {composer.stopMode === 'stop' ? (
             <button
               type="button"
               className="hd-btn hd-btn--secondary hd-btn--sm"
@@ -54,6 +56,16 @@ export function TaskFollowUp({
               onClick={() => onUnavailable('Stop')}
             >
               <Icon name="stop" size="sm" /> Stop
+            </button>
+          ) : null}
+          {composer.stopMode === 'stopping' ? (
+            <button
+              type="button"
+              className="hd-btn hd-btn--secondary hd-btn--sm"
+              disabled
+              aria-label="Stopping (unavailable in this slice)"
+            >
+              <Icon name="stop" size="sm" /> Stopping…
             </button>
           ) : null}
           <button

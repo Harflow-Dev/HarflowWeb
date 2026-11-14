@@ -77,9 +77,13 @@ describe('transcriptFixtures', () => {
   })
 
   it('task status stays Running for loading despite observation refusal paths', () => {
-    expect(transcriptTaskObservation('unavailable').status).toBe('completed')
-    expect(transcriptTaskObservation('loading').status).toBe('running')
-    expect(transcriptTaskObservation('unavailable').statusBadge).toBe('Done')
+    expect(
+      transcriptTaskObservation('unavailable').statusRead,
+    ).toEqual({ kind: 'observed', status: 'completed' })
+    expect(transcriptTaskObservation('loading').statusRead).toEqual({
+      kind: 'observed',
+      status: 'running',
+    })
     expect(TRANSCRIPT_TASK_IDS.events).toBe('task-transcript-sources')
   })
 })

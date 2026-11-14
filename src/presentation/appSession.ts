@@ -34,6 +34,7 @@ import type { ParallelGroupQueuedOutcome } from './parallelGroupState'
 import type { PendingLaunchStopOutcome } from './pendingLaunchesState'
 import type { OpenMenu } from './screenState'
 import type { WorkflowRunViewMode } from './workflowRunParallel'
+import type { TaskCommandChrome } from './taskState'
 
 export type AppListener = (state: AppScreenState) => void
 
@@ -224,6 +225,11 @@ export class AppSession {
 
   selectTaskChangedFile(path: string): void {
     this.children.task.selectChangedFile(path)
+  }
+
+  seedTaskCommandChrome(chrome: TaskCommandChrome): void {
+    this.children.task.seedTaskCommandChrome(chrome)
+    this.emit()
   }
 
   selectStatisticsRange(range: StatisticsRangeId): void {

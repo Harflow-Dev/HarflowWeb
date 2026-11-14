@@ -133,6 +133,21 @@ export { routeConnection } from './workflowConnectionRouter'
 export { occupancyCost } from './workflowRouteOccupancy'
 export {
   initialTaskState,
+  type TaskCommandChrome,
   type TaskScreenState,
 } from './taskState'
 export { TaskSession } from './taskSession'
+export {
+  taskIsLiveRun,
+  taskIsSettled,
+  taskShowsSummary,
+  taskEngineStatus,
+} from './taskObservation'
+export {
+  taskStatusView,
+  type TaskStatusView,
+  type TaskStatusBadge,
+  type TaskStatusNotice,
+  type TaskStatusBanner,
+  type TaskStatusComposer,
+} from './taskStatusView'

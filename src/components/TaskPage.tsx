@@ -1,14 +1,22 @@
 import { useState, type ReactNode } from 'react'
 import type { TaskObservation, TranscriptObservation } from '../model'
+import {
+  type TaskCommandChrome,
+  taskIsLiveRun,
+  taskShowsSummary,
+  taskStatusView,
+} from '../presentation'
 import { mergeTranscriptObservation } from '../presentation/transcriptMerge'
 import { TaskEventsPane } from './TaskEventsPane'
 import { TaskFailureBanner } from './TaskFailureBanner'
 import { TaskFollowUp } from './TaskFollowUp'
+import { TaskStatusNotice } from './TaskStatusNotice'
 import { TaskSummarySection } from './TaskSummarySection'
 import { TranscriptSurface } from './TranscriptSurface'
 
 type Props = {
   readonly observation: TaskObservation
+  readonly commandChrome?: TaskCommandChrome
   readonly eventsPaneOpen?: boolean
   /** When set, wraps the transcript column so Events can sit as a split sibling. */
   readonly columnWrapper?: (column: ReactNode) => ReactNode
@@ -19,18 +27,20 @@ type Props = {
 /** Ready-state task body — topbar title lives in TaskMain. */
 export function TaskPage({
   observation,
+  commandChrome = null,
   eventsPaneOpen = false,
   columnWrapper,
   onUnavailable,
   onLiveMessage,
 }: Props) {
-  const running = observation.status === 'running'
+  const liveRun = taskIsLiveRun(observation)
   return (
     <TranscriptTaskBody
       key={observation.taskId}
       observation={observation}
+      commandChrome={commandChrome}
       eventsPaneOpen={eventsPaneOpen}
-      running={running}
+      liveRun={liveRun}
       onUnavailable={onUnavailable}
       {...(columnWrapper ? { columnWrapper } : {})}
       {...(onLiveMessage ? { onLiveMessage } : {})}
@@ -40,19 +50,22 @@ export function TaskPage({
 
 function TranscriptTaskBody({
   observation,
+  commandChrome,
   eventsPaneOpen,
   columnWrapper,
-  running,
+  liveRun,
   onUnavailable,
   onLiveMessage,
 }: {
   readonly observation: TaskObservation
+  readonly commandChrome: TaskCommandChrome
   readonly eventsPaneOpen: boolean
   readonly columnWrapper?: (column: ReactNode) => ReactNode
-  readonly running: boolean
+  readonly liveRun: boolean
   readonly onUnavailable: (label: string) => void
   readonly onLiveMessage?: (message: string) => void
 }) {
+  const statusView = taskStatusView(observation, commandChrome)
   const observed = observation.transcript
   const [prevObserved, setPrevObserved] = useState(observed)
   const [reading, setReading] = useState<TranscriptObservation | null>(null)
@@ -109,18 +122,23 @@ function TranscriptTaskBody({
         onReadingChange={onReadingChange}
         onAnnounce={publishAnnounce}
       />
-      {observation.status === 'failed' ? (
-        <TaskFailureBanner
-          failure={observation.failure}
+      {statusView.notice ? (
+        <TaskStatusNotice
+          notice={statusView.notice}
           onUnavailable={onUnavailable}
         />
       ) : null}
-      {observation.status === 'completed' && observation.summary ? (
+      {statusView.banner ? (
+        <TaskFailureBanner
+          banner={statusView.banner}
+          onUnavailable={onUnavailable}
+        />
+      ) : null}
+      {taskShowsSummary(observation) && observation.summary ? (
         <TaskSummarySection summary={observation.summary} />
       ) : null}
       <TaskFollowUp
-        placeholder={observation.followUpPlaceholder}
-        showStop={running}
+        composer={statusView.composer}
         onUnavailable={onUnavailable}
       />
     </>
@@ -137,7 +155,7 @@ function TranscriptTaskBody({
       {wrapped}
       <TaskEventsPane
         transcript={displayed}
-        executionStatus={running ? 'Running' : 'Done'}
+        executionStatus={liveRun ? 'Running' : 'Done'}
         onUnavailable={onUnavailable}
         onCopyRecord={() => {
           void copyRecord()

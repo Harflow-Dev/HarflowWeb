@@ -1041,11 +1041,13 @@ describe('AppFeature navigation', () => {
 
     await user.click(
       screen.getByRole('button', {
-        name: 'Retry (unavailable in this slice)',
+        name: 'Continue in a new session (unavailable in this slice)',
       }),
     )
     expect(
-      screen.getByText(/Retry is unavailable in this exploratory slice/),
+      screen.getByText(
+        /Continue in a new session is unavailable in this exploratory slice/,
+      ),
     ).toBeInTheDocument()
     await user.click(
       screen.getByRole('button', {
@@ -1149,7 +1151,7 @@ describe('AppFeature navigation', () => {
     ).not.toBeInTheDocument()
     expect(
       within(main).queryByRole('button', {
-        name: 'Retry (unavailable in this slice)',
+        name: 'Continue in a new session (unavailable in this slice)',
       }),
     ).not.toBeInTheDocument()
     expect(

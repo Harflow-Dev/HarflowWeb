@@ -1,6 +1,7 @@
 import type { NewTaskScenarioSeed } from '../adapters/mock'
 import { asTaskId } from '../model'
 import type { AppPresenter, AppScreenState } from '../presentation'
+import { applyTaskOverflowSeed } from './applyTaskOverflowSeed'
 
 type LoadProbe = {
   readonly open: boolean
@@ -43,4 +44,5 @@ export function applyTaskOpenSeed(
       () => presenter.seedTaskCommandChrome(taskId, chrome),
     )
   }
+  applyTaskOverflowSeed(presenter, seed, whenLoaded)
 }

@@ -1,20 +1,37 @@
-import type { ReactNode } from 'react'
-import { Icon, TaskChangesPane, TaskPage } from '../components'
-import { TaskLoadingPage } from '../components/skeleton'
-import type { SidebarData, TaskObservation } from '../model'
+import { useEffect, useRef, type ReactNode } from 'react'
 import {
-  type TaskCommandChrome,
+  Icon,
+  TaskChangesPane,
+  TaskOverflowMenu,
+  TaskPage,
+} from '../components'
+import { TaskLoadingPage } from '../components/skeleton'
+import type { SidebarData, TaskId } from '../model'
+import {
+  type TaskDialogOpener,
   type TaskScreenState,
-  type TaskStatusBadge,
   taskStatusView,
 } from '../presentation'
+import {
+  focusDialogOpener,
+  handleOverflowAction,
+} from './taskOverflowActions'
+import { TaskStatusBadge } from './TaskStatusBadge'
 
 type Props = {
   readonly state: TaskScreenState
   readonly sidebar: SidebarData | null
   readonly onUnavailable: (label: string) => void
+  readonly onAnnounce: (message: string) => void
   readonly onToggleChangesPane: (open: boolean) => void
   readonly onSelectChangedFile: (path: string) => void
+  readonly onToggleOverflowMenu: () => void
+  readonly onCloseOverflowMenu: () => void
+  readonly onOpenDialog: (
+    dialog: 'stop' | 'takeover',
+    opener: TaskDialogOpener,
+  ) => void
+  readonly onOpenParentTask: (taskId: TaskId) => void
 }
 
 /**
@@ -26,8 +43,13 @@ export function TaskMain({
   state,
   sidebar,
   onUnavailable,
+  onAnnounce,
   onToggleChangesPane,
   onSelectChangedFile,
+  onToggleOverflowMenu,
+  onCloseOverflowMenu,
+  onOpenDialog,
+  onOpenParentTask,
 }: Props) {
   const knownTitle = resolveKnownTitle(state, sidebar)
   const title = knownTitle ?? 'Task'
@@ -40,12 +62,31 @@ export function TaskMain({
   const readyMeta = ready
     ? taskStatusView(ready, state.commandChrome).meta
     : null
+  const moreRef = useRef<HTMLButtonElement>(null)
+  const composerStopRef = useRef<HTMLButtonElement>(null)
+  const bannerStopRef = useRef<HTMLButtonElement>(null)
+  const wasDialog = useRef(false)
+  const openerWhileOpen = useRef<TaskDialogOpener | null>(null)
+
+  useEffect(() => {
+    if (state.dialog !== null) {
+      openerWhileOpen.current = state.dialogOpener
+    }
+    if (wasDialog.current && state.dialog === null) {
+      const opener = openerWhileOpen.current
+      queueMicrotask(() => {
+        focusDialogOpener(opener, moreRef, composerStopRef, bannerStopRef)
+      })
+      openerWhileOpen.current = null
+    }
+    wasDialog.current = state.dialog !== null
+  }, [state.dialog, state.dialogOpener])
 
   const topbar = (
     <div className="hd-topbar">
       <span className="hd-topbar__title">{title}</span>
       {ready ? (
-        <StatusBadge
+        <TaskStatusBadge
           observation={ready}
           commandChrome={state.commandChrome}
         />
@@ -64,6 +105,26 @@ export function TaskMain({
         >
           <Icon name="panel-right" />
         </button>
+      ) : null}
+      {ready ? (
+        <TaskOverflowMenu
+          observation={ready}
+          open={state.overflowMenuOpen}
+          moreRef={moreRef}
+          onToggle={onToggleOverflowMenu}
+          onClose={(focusTrigger) => {
+            onCloseOverflowMenu()
+            if (focusTrigger) moreRef.current?.focus()
+          }}
+          onAction={(id) =>
+            handleOverflowAction(id, ready, {
+              onOpenDialog,
+              onOpenParentTask,
+              onAnnounce,
+              onUnavailable,
+            })
+          }
+        />
       ) : null}
     </div>
   )
@@ -109,6 +170,10 @@ export function TaskMain({
           eventsPaneOpen={showPane}
           columnWrapper={withTopbar}
           onUnavailable={onUnavailable}
+          onStop={() => onOpenDialog('stop', 'composer-stop')}
+          onBannerStop={() => onOpenDialog('stop', 'banner-stop')}
+          composerStopRef={composerStopRef}
+          bannerStopRef={bannerStopRef}
         />
       </div>
     )
@@ -124,6 +189,10 @@ export function TaskMain({
           observation={state.load.observation}
           commandChrome={state.commandChrome}
           onUnavailable={onUnavailable}
+          onStop={() => onOpenDialog('stop', 'composer-stop')}
+          onBannerStop={() => onOpenDialog('stop', 'banner-stop')}
+          composerStopRef={composerStopRef}
+          bannerStopRef={bannerStopRef}
         />,
       )}
       {showPane && usesChanges ? (
@@ -147,50 +216,6 @@ const columnStyle = {
   minHeight: 0,
 } as const
 
-function badgeClassName(badge: TaskStatusBadge): string {
-  if (badge.tone === 'neutral') {
-    return 'hd-badge hd-m05-badge--neutral'
-  }
-  if (badge.tone === 'warning') {
-    return 'hd-badge hd-badge--warning'
-  }
-  return `hd-badge hd-badge--${badge.tone}`
-}
-
-function StatusBadge({
-  observation,
-  commandChrome,
-}: {
-  readonly observation: TaskObservation
-  readonly commandChrome: TaskCommandChrome
-}) {
-  const { badge } = taskStatusView(observation, commandChrome)
-  return (
-    <span className={badgeClassName(badge)}>
-      <BadgeGlyph glyph={badge.glyph} />
-      {badge.label}
-    </span>
-  )
-}
-
-function BadgeGlyph({
-  glyph,
-}: {
-  readonly glyph: TaskStatusBadge['glyph']
-}) {
-  if (glyph === 'spin') {
-    return <span className="hd-badge__spin" aria-hidden="true" />
-  }
-  if (glyph === 'queued') {
-    return (
-      <span className="hd-glyph hd-glyph--queued" aria-hidden="true" />
-    )
-  }
-  if (glyph === 'none') return null
-  return <Icon name={glyph} />
-}
-
-/** The ready title, else the mapped sidebar row title, else null. */
 function resolveKnownTitle(
   state: TaskScreenState,
   sidebar: SidebarData | null,

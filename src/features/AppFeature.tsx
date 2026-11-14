@@ -5,12 +5,16 @@ import {
   PendingLaunchStopDialog,
   Sidebar,
   StatusRegion,
+  TaskStopDialog,
+  TaskTakeoverDialog,
 } from '../components'
 import { needsYouBadge } from '../model'
 import {
   cancelAllDialogOpen,
   pendingLaunchesNavVisible,
   pendingStopDialogOpen,
+  taskDialogOpen,
+  wontBeStoppedTitles,
   type AppPresenter,
 } from '../presentation'
 import { mainLoadingLabel } from './mainLoadingLabel'
@@ -34,6 +38,7 @@ export function AppFeature({ presenter }: Props) {
   usePresenterLifetime(presenter)
   const state = usePresenter(presenter)
   const ephemeral = useEphemeralNote()
+  const announce = useEphemeralNote()
   const systemDark = useSystemPrefersDark()
   const newTask = state.newTask
   const cancelAllOpen =
@@ -41,8 +46,11 @@ export function AppFeature({ presenter }: Props) {
   const stopOpen =
     state.route === 'pending-launches' &&
     pendingStopDialogOpen(state.pendingLaunches)
-  const dialogOpen = cancelAllOpen || stopOpen
+  const taskDialog = state.route === 'task' && taskDialogOpen(state.task)
+  const dialogOpen = cancelAllOpen || stopOpen || taskDialog
   const showPendingLaunches = pendingLaunchesNavVisible(state.pendingLaunches)
+  const taskObservation =
+    state.task.load.kind === 'ready' ? state.task.load.observation : null
 
   const resolvedTheme =
     newTask.appearance === 'system'
@@ -154,12 +162,23 @@ export function AppFeature({ presenter }: Props) {
               state={state.task}
               sidebar={ready?.sidebar ?? null}
               onUnavailable={(label) => ephemeral.show(label)}
+              onAnnounce={(message) => announce.show(message)}
               onToggleChangesPane={(open) =>
                 presenter.setTaskChangesPaneOpen(open)
               }
               onSelectChangedFile={(path) =>
                 presenter.selectTaskChangedFile(path)
               }
+              onToggleOverflowMenu={() =>
+                presenter.setTaskOverflowMenuOpen(!state.task.overflowMenuOpen)
+              }
+              onCloseOverflowMenu={() =>
+                presenter.setTaskOverflowMenuOpen(false)
+              }
+              onOpenDialog={(dialog, opener) =>
+                presenter.openTaskDialog(dialog, opener)
+              }
+              onOpenParentTask={(taskId) => presenter.openTask(taskId)}
             />
           )}
         </main>
@@ -174,11 +193,24 @@ export function AppFeature({ presenter }: Props) {
             onClose={() => presenter.setPendingLaunchStopConfirm(false)}
           />
         ) : null}
+        {taskDialog && state.task.dialog === 'stop' && taskObservation ? (
+          <TaskStopDialog
+            wontBeStoppedTitles={wontBeStoppedTitles(taskObservation)}
+            onClose={() => presenter.closeTaskDialog()}
+          />
+        ) : null}
+        {taskDialog && state.task.dialog === 'takeover' && taskObservation ? (
+          <TaskTakeoverDialog
+            accessLabel={taskObservation.accessLabel ?? 'Can edit this repo'}
+            onClose={() => presenter.closeTaskDialog()}
+          />
+        ) : null}
       </div>
       <StatusRegion
         submission={newTask.submission}
         contextNote={contextNote}
         unavailableNav={ephemeral.note}
+        announceNote={announce.note}
         loadingNote={mainLoadingLabel(state)}
       />
     </div>

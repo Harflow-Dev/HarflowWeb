@@ -34,6 +34,10 @@ export type NewTaskScenarioSeed = {
   readonly openTaskId?: string
   /** Stop or Continue command lifecycle chrome after the task observation is ready. */
   readonly taskCommandChrome?: TaskCommandChromeSeed
+  /** Open the task overflow More-actions menu after the observation is ready. */
+  readonly taskOverflowMenuOpen?: boolean
+  /** Open a task confirmation dialog after the observation is ready. */
+  readonly taskDialog?: 'stop' | 'takeover'
   /** Open the right pane (Events for transcript states; Changes otherwise). */
   readonly eventsPaneOpen?: boolean
   /** Navigate to a main route after context is ready. */

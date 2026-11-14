@@ -8,6 +8,7 @@ import { MINIMUM_SCENARIOS } from './scenarioCatalogMinimum'
 import { PARALLEL_LANE_SCENARIOS } from './scenarioCatalogParallelLanes'
 import { PARALLEL_QUEUED_SCENARIOS } from './scenarioCatalogParallelQueued'
 import { PENDING_LAUNCH_SCENARIOS } from './scenarioCatalogPendingLaunches'
+import { TASK_OVERFLOW_SCENARIOS } from './scenarioCatalogTaskOverflow'
 import { TASK_STATUS_SCENARIOS } from './scenarioCatalogTaskStatuses'
 import { TRANSCRIPT_SCENARIOS } from './scenarioCatalogTranscript'
 import type { ScenarioDefinition } from './scenarios'
@@ -209,4 +210,5 @@ export const SCENARIOS: readonly ScenarioDefinition[] = [
   ...PARALLEL_QUEUED_SCENARIOS,
   ...PENDING_LAUNCH_SCENARIOS,
   ...TASK_STATUS_SCENARIOS,
+  ...TASK_OVERFLOW_SCENARIOS,
 ]

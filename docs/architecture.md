@@ -30,7 +30,8 @@ A green import check does **not** prove semantic architecture correctness.
 - resources child session (slot observation)
 - statistics child session (selected range + range-scoped observation)
 - task child session (selected task id + transcript observation + optional
-  Changes-pane observation keyed by task and selected file path)
+  Changes-pane and Events-pane observations keyed by task; selected change
+  entry and pane tab are presentation chrome)
 - settings section (`general` | `harnesses`), a read-only Settings General
   observation, the expanded harness id, and a read-only harness
   observation (install, MCP registration, and qualification stay independent)
@@ -90,6 +91,8 @@ cohesive sibling modules that re-export through the original public entry.
 - `observeTask(taskId, onUpdate) → ObservationHandle` — running-task transcript
 - `observeTaskChanges(query, onUpdate) → ObservationHandle` — recorded changes
   for an explicit task + selected path
+- `observeTaskEvents(query, onUpdate) → ObservationHandle` — public normalized
+  events for an explicit task (bounded window; earlier page on request)
 - `observeHarnesses(onUpdate) → ObservationHandle` — fixture installation,
   MCP registration, qualification, and per-harness approval facts. None is
   derived from another. Unknown stays unknown. Missing approvals are not an
@@ -128,7 +131,9 @@ filesystem, or invented engine metrics. Task transcripts are mock presentation
 evidence for an explicit task id — not a public ctl transcript protocol, and
 not follow-up / cancel / retry / copy-resume / approval / steering commands.
 Task changes are mock recorded-repository observations — not Git, patch apply,
-downloads, or a public ctl diff protocol. Harness settings are mock fixture
+downloads, or a public ctl diff protocol. Task events are mock public
+normalized-record observations for the Events tab — not a live log tail and not
+authorship proof. Harness settings are mock fixture
 facts — not a host PATH/filesystem probe, not install/register/remove, and not
 approval edits. MCP approvals only expands the selected harness’s explicit
 fixture list. Unknown or missing approvals stay unavailable. A loading or

@@ -375,10 +375,12 @@ grant approvals, answer questions, or touch the task store.
   turn picker. Artifacts stays in the tab bar but is unavailable: that is a
   scope choice, not a contract gap (HarflowMCP has `task-artifacts.v1`,
   `docs/task-artifacts.md` and `ctl-task-artifacts-*` fixtures; the content
-  design is provisional). Events keeps today's content. Confirms
-  for Retry / Load more / Reload stay unavailable. Screenshots under
+  design is provisional). Events is now an enabled tab (see M05 Events
+  below). Confirms for Retry / Load more / Reload stay unavailable.
+  Screenshots under
   `~/.codex/workflows/screenshots/2026-11-14-harflowweb-task-changes/`;
-  transcript screens checked pixel-identical to `b60b2fc`.
+  tab-bar recaptures with Events enabled live under the Events slice folder.
+  Transcript screens checked pixel-identical to `b60b2fc` / later `f1da745`.
   - **Model follows `task-changes.v1`.** Repository identity is its root (the
     name is derived in presentation); `observed_at` is stored as an instant
     and formatted in presentation; `unmerged_unknown`, `reported_conflicts`
@@ -422,11 +424,8 @@ grant approvals, answer questions, or touch the task store.
     above the drawn reasons list; `capture_missing` wording is undesigned.
   - **Tabs.** The Changes pane tablist is a roving tablist over all three
     tabs (Left/Right wrap, Home/End; arrows move focus only) with a labelled
-    `tabpanel`; no pixel changes. Artifacts and Events are `aria-disabled`,
-    stay focusable and point at their explanation ids; activating them only
-    reports "unavailable" and changes neither the pane nor any state (Events
-    content is the next slice, so there is no pane-tab state). The Events pane
-    tablist keeps its existing markup.
+    `tabpanel`. Artifacts stays `aria-disabled`. Events is enabled and
+    switches the panel (see M05 Events).
   - **Intended deviation: `changes-row-states` selection.** Web seeds
     `src/big_module.py` as the selected row (the design draws no selection but
     does draw that file's diff text), because Web needs a selection to show
@@ -437,7 +436,8 @@ grant approvals, answer questions, or touch the task store.
     the dedicated incomplete/settling capture); status fixtures that leave
     `detailsPane` null still have no default pane open.
   - Out of scope top-bar facts: the "Can edit this repo" enforcement chip,
-    notice and continuity chips. Events facts groups are the next slice.
+    notice and continuity chips (facts groups live in the Events tab; chips
+    remain a later slice).
   - Cancel-partial, continue-refused, and Artifacts *content* are not built
     (continue-refused is held on fixtures, owner decision question 5;
     Artifacts tab position is approved, content provisional).
@@ -463,6 +463,22 @@ grant approvals, answer questions, or touch the task store.
   - `task-done` opens the retry-budget task with the G-DIFF Changes pane
     (same capture as `task-changes-single`); recaptured with this slice.
   - Pixel fidelity to native is not claimed.
+- **M05 Events tab (mock-only).** Seven approved Events states at Design
+  `6e31cd7` (`events-populated` … `events-error`) seed through composition
+  with `paneTab: 'events'`. Lifecycle follows design `paneHtml`: pending →
+  notStarted; unread status → unavailable; otherwise the Events observation
+  (or loading). Facts groups (Task, What was enforced, Notices, Continuity)
+  are presentation disclosures over observed task facts; open/closed chrome
+  and top-bar reveal chips stay out of scope. Records reuse bounded earlier
+  paging/fencing from the activity transcript pattern. Changes stays observed
+  while Events is selected so the Changes tab count remains correct.
+  Transcript `TaskEventsPane` bodies (including `/events`) stay byte-identical
+  to `f1da745`; M05 Events CSS is scoped under `.hd-m05-events`.
+  `TASK_OPEN_EVENTS_UNAVAILABLE_ID` remains for the failure-banner Open Events
+  action. Screenshots under
+  `~/.codex/workflows/screenshots/2026-11-15-harflowweb-task-events/`.
+  Pane `innerText` matches design for all 7 Events and all 15 Changes states
+  at 1280×800 light.
 - Prior running / failed / loading sidebar captures were retaken: the 16 M05
   states plus `task-running`, `task-failed` and `task-loading` live under
   `docs/visual-validation.md`.

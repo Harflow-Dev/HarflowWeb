@@ -61,6 +61,9 @@ function createCapturingPort(initial: ResourcesLoad = populatedResourcesLoad()):
     observeTaskChanges() {
       return noopHandle('changes')
     },
+    observeTaskEvents() {
+      return noopHandle('events')
+    },
     observeHarnesses() {
       return noopHandle('harnesses')
     },

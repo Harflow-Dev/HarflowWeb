@@ -977,6 +977,8 @@ Design pin `6e31cd7`. Light and dark under `verified-1280x800/` for the fifteen
 G-DIFF scenarios. Recaptures of `task-done` and `task-overflow-settled` under
 `previously-approved-recaptures/`. Transcript screens under
 `transcript-comparison/` are byte-identical to `b60b2fc` baselines.
+Tab-bar recaptures after Events became enabled live in the Events slice folder
+below.
 
 | Scenario id | Design route (M05) |
 | --- | --- |
@@ -995,6 +997,29 @@ G-DIFF scenarios. Recaptures of `task-done` and `task-overflow-settled` under
 | `task-changes-loading` | `task/changes-loading` |
 | `task-changes-error` | `task/changes-error` |
 | `task-changes-turns` | `task/changes-turns` |
+
+## M05 Events tab — verified 1280×800 captures
+
+Directory:
+`~/.codex/workflows/screenshots/2026-11-15-harflowweb-task-events/`
+
+Design pin `6e31cd7`. Capture script: `capture-events.mjs`. Text compare:
+`compare-text.mjs` (`COMPARE_MODE=events` / `changes`). Light and dark under
+`verified-1280x800/` for the seven Events scenarios. Recaptures of `task-done`,
+`task-overflow-settled`, and all fifteen `task-changes-*` scenarios (enabled
+Events tab) under `previously-approved-recaptures/`. Transcript closed and
+`/events` captures under `transcript-comparison/` are byte-identical to
+`f1da745` (`current/` vs `baseline-f1da745/`, 32 PNGs).
+
+| Scenario id | Design route (M05) |
+| --- | --- |
+| `task-events-populated` | `task/events-populated` |
+| `task-events-page` | `task/events-page` |
+| `task-events-page-error` | `task/events-page-error` |
+| `task-events-not-started` | `task/events-not-started` |
+| `task-events-loading` | `task/events-loading` |
+| `task-events-empty` | `task/events-empty` |
+| `task-events-error` | `task/events-error` |
 
 ## Limitations
 

@@ -66,12 +66,13 @@ HEAD at handoff: recorded by the commit that lands this file.
 ## Screenshots
 
 Stored outside the repo under `~/.codex/workflows/screenshots/`. Latest
-G-DIFF captures:
-`2026-11-14-harflowweb-task-changes/verified-1280x800/` (30 PNGs for the
-fifteen Changes scenarios × light/dark),
-`previously-approved-recaptures/` (`task-done`, `task-overflow-settled`), and
-`transcript-comparison/` (byte-identical to `b60b2fc`). Prior overflow and
-task-status captures remain under their 2026-11-14 directories.
+Events captures:
+`2026-11-15-harflowweb-task-events/verified-1280x800/` (14 PNGs for the
+seven Events scenarios × light/dark),
+`previously-approved-recaptures/` (`task-done`, `task-overflow-settled`,
+fifteen `task-changes-*`), and `transcript-comparison/` (byte-identical to
+`f1da745`). Prior G-DIFF / overflow / task-status captures remain under their
+2026-11-14 directories.
 
 The capture script is kept outside the repo. Captures use headless Chrome
 (Playwright or CDP) on the built preview at the exact app frame (1280 × 800, or

@@ -197,6 +197,20 @@ function createTestEngine(options?: {
         },
       }
     },
+    observeTaskEvents(_query, onUpdate) {
+      queueMicrotask(() =>
+        onUpdate({
+          kind: 'unavailable',
+          message: 'unused in new-task tests',
+        }),
+      )
+      return {
+        id: asObservationId('test-events-obs'),
+        cancel() {
+          /* no-op */
+        },
+      }
+    },
     observeHarnesses(onUpdate) {
       queueMicrotask(() =>
         onUpdate({

@@ -51,6 +51,9 @@ function createCapturingPort(): {
     observeTaskChanges() {
       return noopHandle('changes')
     },
+    observeTaskEvents() {
+      return noopHandle('events')
+    },
     observeHarnesses(onUpdate) {
       latest = onUpdate
       return {

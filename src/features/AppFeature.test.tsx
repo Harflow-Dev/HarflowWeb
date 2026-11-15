@@ -13,6 +13,7 @@ import {
   createLoadResourcesUseCase,
   createLoadStatisticsUseCase,
   createLoadTaskChangesUseCase,
+  createLoadTaskEventsUseCase,
   createLoadTaskUseCase,
   createLoadWorkflowEditorUseCase,
   createLoadWorkflowExecutionUseCase,
@@ -88,6 +89,7 @@ import {
   QUEUE_PY_PATH,
   taskChangesLoadFor,
 } from '../adapters/mock/taskChangesFixtures'
+import { taskEventsLoadFor } from '../adapters/mock/taskEventsFixtures'
 import {
   EVENTS_READER_FAILED_TASK_ID,
   PRELOAD_TASK_ID,
@@ -352,6 +354,15 @@ function createTestEngine(options?: {
         },
       }
     },
+    observeTaskEvents(query, onUpdate) {
+      queueMicrotask(() => onUpdate(taskEventsLoadFor(query)))
+      return {
+        id: asObservationId('ui-events'),
+        cancel() {
+          /* no-op */
+        },
+      }
+    },
     observeHarnesses(onUpdate) {
       harnessListeners.add(onUpdate)
       queueMicrotask(() =>
@@ -471,6 +482,7 @@ function renderApp(engine: EnginePort) {
     loadStatistics: createLoadStatisticsUseCase(engine),
     loadTask: createLoadTaskUseCase(engine),
     loadTaskChanges: createLoadTaskChangesUseCase(engine),
+    loadTaskEvents: createLoadTaskEventsUseCase(engine),
     loadHarnesses: createLoadHarnessesUseCase(engine),
     loadNeedsYou: createLoadNeedsYouUseCase(engine),
     loadSettingsGeneral: createLoadSettingsGeneralUseCase(engine),
@@ -1454,15 +1466,15 @@ describe('AppFeature navigation', () => {
       screen.getByRole('button', { name: 'Toggle right pane' }),
     )
     await screen.findByRole('complementary', { name: 'Task details' })
-    const before = presenter.getState().task
-    const paneBody = document.querySelector('[role="tabpanel"]')!.innerHTML
+    const artifacts = screen.getByRole('tab', { name: 'Artifacts' })
     const events = screen.getByRole('tab', { name: 'Events' })
+    const beforeTab = presenter.getState().task.paneTab
+    await user.click(artifacts)
+    expect(presenter.getState().task.paneTab).toBe(beforeTab)
     await user.click(events)
     events.focus()
     await user.keyboard('{Enter}')
-    // Events is unavailable in this slice: nothing about the task or pane changes.
-    expect(presenter.getState().task).toBe(before)
-    expect(document.querySelector('[role="tabpanel"]')!.innerHTML).toBe(paneBody)
+    expect(presenter.getState().task.paneTab).toBe('events')
     expect(
       screen.getByRole('button', {
         name: 'Send follow-up (unavailable in this slice)',

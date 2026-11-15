@@ -143,6 +143,13 @@ populated fixture and shows a single “Mock engine” badge.
 | Task · Changes · reading one diff | Approved `task/changes-text` (M05). Loading, chunk, and refusal panels |
 | Task · Changes · unavailable | Approved `task/changes-error` (M05) |
 | Task · Changes · which turn | Approved `task/changes-turns` (M05). Turn picker on the current member |
+| Task · Events · facts and records | Approved `task/events-populated` (M05). Notices 2, turns 3; pane open on Events |
+| Task · Events · paged | Approved `task/events-page` (M05). Load earlier adds a bounded page |
+| Task · Events · page error | Approved `task/events-page-error` (M05). Loaded records stay |
+| Task · Events · not started | Approved `task/events-not-started` (M05). Pending launch note on every tab |
+| Task · Events · loading | Approved `task/events-loading` (M05). Deferred Events observation |
+| Task · Events · empty | Approved `task/events-empty` (M05). Empty window does not qualify totals |
+| Task · Events · unavailable | Approved `task/events-error` (M05). History unavailable is not task failure |
 | Transcript observed | Design `task/transcript-observed` (Design 854caae) |
 | Transcript loading | Design `task/transcript-loading` |
 | Transcript partial | Design `task/transcript-partial` |
@@ -158,6 +165,7 @@ populated fixture and shows a single “Mock engine” badge.
 First-load skeleton scenarios live in `src/adapters/mock/scenarioCatalogLoading.ts`.
 M05 G-DIFF Changes scenarios (including `task-changes-loading`) live in
 `src/adapters/mock/scenarioCatalogTaskChanges.ts`.
+M05 Events tab scenarios live in `src/adapters/mock/scenarioCatalogTaskEvents.ts`.
 Minimum-window scenarios (loaded and loading) live in
 `src/adapters/mock/scenarioCatalogMinimum.ts` and reuse `seed.frame: 'minimum'`
 (same `hw-preview__app--minimum` chrome as Sidebar minimum). They keep the

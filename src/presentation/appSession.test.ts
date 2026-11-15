@@ -11,6 +11,7 @@ import {
   createLoadResourcesUseCase,
   createLoadStatisticsUseCase,
   createLoadTaskChangesUseCase,
+  createLoadTaskEventsUseCase,
   createLoadTaskUseCase,
   createLoadWorkflowEditorUseCase,
   createLoadWorkflowExecutionUseCase,
@@ -67,6 +68,7 @@ import {
 import { populatedResourcesLoad } from '../adapters/mock/resourceFixtures'
 import { statisticsLoadFor } from '../adapters/mock/statisticsFixtures'
 import { taskChangesLoadFor } from '../adapters/mock/taskChangesFixtures'
+import { taskEventsLoadFor } from '../adapters/mock/taskEventsFixtures'
 import {
   PRELOAD_TASK_ID,
   SLOT_RELEASE_TASK_ID,
@@ -233,6 +235,15 @@ function createTestEngine(options?: {
         },
       }
     },
+    observeTaskEvents(query, onUpdate) {
+      queueMicrotask(() => onUpdate(taskEventsLoadFor(query)))
+      return {
+        id: asObservationId('app-events'),
+        cancel() {
+          /* no-op */
+        },
+      }
+    },
     observeHarnesses(onUpdate) {
       queueMicrotask(() => onUpdate(populatedHarnessesLoad()))
       return {
@@ -305,6 +316,7 @@ function createPresenter(engine: EnginePort) {
     loadStatistics: createLoadStatisticsUseCase(engine),
     loadTask: createLoadTaskUseCase(engine),
     loadTaskChanges: createLoadTaskChangesUseCase(engine),
+    loadTaskEvents: createLoadTaskEventsUseCase(engine),
     loadHarnesses: createLoadHarnessesUseCase(engine),
     loadNeedsYou: createLoadNeedsYouUseCase(engine),
     loadSettingsGeneral: createLoadSettingsGeneralUseCase(engine),

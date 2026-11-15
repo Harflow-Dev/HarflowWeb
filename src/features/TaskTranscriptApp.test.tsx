@@ -13,6 +13,7 @@ import {
   createLoadResourcesUseCase,
   createLoadStatisticsUseCase,
   createLoadTaskChangesUseCase,
+  createLoadTaskEventsUseCase,
   createLoadTaskUseCase,
   createLoadWorkflowEditorUseCase,
   createLoadWorkflowExecutionUseCase,
@@ -37,6 +38,7 @@ import {
   transcriptTaskLoad,
 } from '../adapters/mock/transcriptFixtures'
 import { taskChangesLoadFor } from '../adapters/mock/taskChangesFixtures'
+import { taskEventsLoadFor } from '../adapters/mock/taskEventsFixtures'
 import { POPULATED_WORKFLOWS } from '../adapters/mock/workflowFixtures'
 import {
   resolveScenarioRoute,
@@ -113,6 +115,10 @@ function transcriptEngine(): EnginePort {
       queueMicrotask(() => onUpdate(taskChangesLoadFor(query)))
       return handle('changes')
     },
+    observeTaskEvents(query, onUpdate) {
+      queueMicrotask(() => onUpdate(taskEventsLoadFor(query)))
+      return handle('events')
+    },
     observeHarnesses(onUpdate) {
       queueMicrotask(() => onUpdate(populatedHarnessesLoad()))
       return handle('harnesses')
@@ -163,6 +169,7 @@ function renderApp(engine: EnginePort) {
     loadStatistics: createLoadStatisticsUseCase(engine),
     loadTask: createLoadTaskUseCase(engine),
     loadTaskChanges: createLoadTaskChangesUseCase(engine),
+    loadTaskEvents: createLoadTaskEventsUseCase(engine),
     loadHarnesses: createLoadHarnessesUseCase(engine),
     loadNeedsYou: createLoadNeedsYouUseCase(engine),
     loadSettingsGeneral: createLoadSettingsGeneralUseCase(engine),

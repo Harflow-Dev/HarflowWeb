@@ -15,10 +15,7 @@ import {
   slotReleaseObservation,
 } from '../adapters/mock/taskFixtures'
 import type { TaskChangesEntryRef } from '../model'
-import {
-  TASK_ARTIFACTS_UNAVAILABLE_ID,
-  TASK_OPEN_EVENTS_UNAVAILABLE_ID,
-} from './taskUnavailable'
+import { TASK_ARTIFACTS_UNAVAILABLE_ID } from './taskUnavailable'
 import { TaskChangesPane, type TaskChangesPaneProps } from './TaskChangesPane'
 
 afterEach(() => {
@@ -57,6 +54,7 @@ function paneProps(
     onToggleRepo: () => undefined,
     onClosePane: () => undefined,
     onUnavailable: () => undefined,
+    onSelectTab: () => undefined,
     ...overrides,
   }
 }
@@ -181,10 +179,11 @@ describe('TaskChangesPane', () => {
     ).not.toBeInTheDocument()
   })
 
-  it('marks Artifacts and Events unavailable and closes the pane', async () => {
+  it('marks Artifacts unavailable and lets Events switch the tab', async () => {
     const user = userEvent.setup()
     const onClosePane = vi.fn()
     const onUnavailable = vi.fn()
+    const onSelectTab = vi.fn()
     const load = taskChangesLoadFor({
       taskId: RETRY_BUDGET_DONE_TASK_ID,
       selectedEntry: null,
@@ -199,6 +198,7 @@ describe('TaskChangesPane', () => {
           selectedEntry: null,
           onClosePane,
           onUnavailable,
+          onSelectTab,
         })}
       />,
     )
@@ -211,16 +211,11 @@ describe('TaskChangesPane', () => {
     await user.click(artifacts)
     expect(onUnavailable).toHaveBeenCalledWith('Artifacts')
     const events = screen.getByRole('tab', { name: 'Events' })
-    expect(events).toHaveAttribute('aria-disabled', 'true')
-    expect(events).toHaveAttribute(
-      'aria-describedby',
-      TASK_OPEN_EVENTS_UNAVAILABLE_ID,
-    )
-    const body = document.querySelector('[role="tabpanel"]')!.innerHTML
-    await user.click(events)
-    expect(onUnavailable).toHaveBeenCalledWith('Open Events')
-    expect(document.querySelector('[role="tabpanel"]')!.innerHTML).toBe(body)
+    expect(events).not.toHaveAttribute('aria-disabled')
     expect(events).toHaveAttribute('aria-selected', 'false')
+    await user.click(events)
+    expect(onSelectTab).toHaveBeenCalledWith('events')
+    expect(onUnavailable).not.toHaveBeenCalledWith('Open Events')
     await user.click(screen.getByRole('button', { name: 'Close right pane' }))
     expect(onClosePane).toHaveBeenCalled()
   })
@@ -275,16 +270,26 @@ describe('TaskChangesPane', () => {
 })
 
 describe('TaskChangesPane tablist', () => {
-  function renderTabs(onUnavailable = vi.fn()) {
+  function renderTabs(
+    onUnavailable = vi.fn(),
+    extra: Partial<TaskChangesPaneProps> = {},
+  ) {
     const load = taskChangesLoadFor({
       taskId: RETRY_BUDGET_DONE_TASK_ID,
       selectedEntry: null,
       turnTaskId: null,
     })
     if (load.kind !== 'ready') throw new Error('expected ready')
+    const onSelectTab = extra.onSelectTab ?? vi.fn()
     render(
       <TaskChangesPane
-        {...paneProps({ load, list: load.observation, onUnavailable })}
+        {...paneProps({
+          load,
+          list: load.observation,
+          onUnavailable,
+          onSelectTab,
+          ...extra,
+        })}
       />,
     )
     return {
@@ -292,6 +297,7 @@ describe('TaskChangesPane tablist', () => {
       artifacts: screen.getByRole('tab', { name: 'Artifacts' }),
       events: screen.getByRole('tab', { name: 'Events' }),
       onUnavailable,
+      onSelectTab,
     }
   }
 
@@ -325,18 +331,27 @@ describe('TaskChangesPane tablist', () => {
     expect(events).toHaveFocus()
   })
 
-  it('activating a disabled tab by key only reports unavailable', async () => {
+  it('activating Events by key selects the tab; Artifacts stay unavailable', async () => {
     const user = userEvent.setup()
-    const { changes, artifacts, events, onUnavailable } = renderTabs()
-    const body = document.querySelector('[role="tabpanel"]')!.innerHTML
+    const { changes, artifacts, events, onUnavailable, onSelectTab } =
+      renderTabs()
     events.focus()
     await user.keyboard('{Enter}')
-    expect(onUnavailable).toHaveBeenLastCalledWith('Open Events')
+    expect(onSelectTab).toHaveBeenCalledWith('events')
+    await user.keyboard(' ')
+    expect(onSelectTab).toHaveBeenCalledTimes(2)
     artifacts.focus()
     await user.keyboard(' ')
     expect(onUnavailable).toHaveBeenLastCalledWith('Artifacts')
-    expect(document.querySelector('[role="tabpanel"]')!.innerHTML).toBe(body)
     expect(changes).toHaveAttribute('aria-selected', 'true')
     expect(events).toHaveAttribute('aria-selected', 'false')
+  })
+
+  it('marks Events selected and labels the panel when paneTab is events', () => {
+    const { changes, events } = renderTabs(vi.fn(), { paneTab: 'events' })
+    const panel = screen.getByRole('tabpanel')
+    expect(events).toHaveAttribute('aria-selected', 'true')
+    expect(changes).toHaveAttribute('aria-selected', 'false')
+    expect(panel).toHaveAttribute('aria-labelledby', events.id)
   })
 })

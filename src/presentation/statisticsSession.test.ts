@@ -73,6 +73,9 @@ function createCapturingPort(
     observeTaskChanges() {
       return noopHandle('changes')
     },
+    observeTaskEvents() {
+      return noopHandle('events')
+    },
     observeHarnesses() {
       return noopHandle('harnesses')
     },
@@ -145,6 +148,9 @@ function createDeferredPort(): {
       },
       observeTaskChanges() {
         return noopHandle('changes')
+      },
+      observeTaskEvents() {
+        return noopHandle('events')
       },
       observeHarnesses() {
         return noopHandle('harnesses')

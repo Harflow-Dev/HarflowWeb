@@ -17,9 +17,9 @@ import {
   SLOT_RELEASE_TASK_ID,
 } from '../adapters/mock/taskFixtures'
 import {
-  TRANSCRIPT_TASK_IDS,
-  transcriptTaskObservation,
-} from '../adapters/mock/transcriptFixtures'
+  TASK_EVENTS_LOADING_ID,
+  taskEventsLoadFor,
+} from '../adapters/mock/taskEventsFixtures'
 import { createApp, PreviewShell } from '../composition'
 import { AppFeature } from './AppFeature'
 
@@ -168,7 +168,7 @@ describe('task pane loading skeletons via preview', () => {
     expect(screen.queryByText(/harflow_web\/delivery\/queue\.py/)).toBeNull()
   })
 
-  it('shows Events loading from the transcript loading observation', async () => {
+  it('shows Events loading from the deferred events observation', async () => {
     window.location.hash = '#task-events-loading'
     render(<PreviewShell />)
     const busy = await screen.findByRole('group', { name: 'Loading Events' })
@@ -179,24 +179,22 @@ describe('task pane loading skeletons via preview', () => {
     ).toBeInTheDocument()
   })
 
-  it('replaces the Events skeleton with content when the transcript resolves', async () => {
+  it('replaces the Events skeleton with content when events resolve', async () => {
     const app = createApp('task-events-loading')
     render(<AppFeature presenter={app.presenter} />)
     await settle()
-    const taskId = TRANSCRIPT_TASK_IDS.loading
+    const taskId = TASK_EVENTS_LOADING_ID
     await act(async () => app.presenter.openTask(taskId))
     await settle()
+    await act(async () => app.presenter.setTaskPaneTab('events'))
     await act(async () => app.presenter.setTaskChangesPaneOpen(true))
     await screen.findByRole('group', { name: 'Loading Events' })
 
     await act(async () => {
-      app.mock.publishTask(taskId, {
-        kind: 'ready',
-        observation: {
-          ...transcriptTaskObservation('observed'),
-          taskId,
-        },
-      })
+      app.mock.publishTaskEvents(
+        { taskId },
+        taskEventsLoadFor({ taskId }),
+      )
     })
     expect(screen.queryByRole('group', { name: 'Loading Events' })).toBeNull()
     expect(screen.getByText('2 tool calls observed')).toBeInTheDocument()

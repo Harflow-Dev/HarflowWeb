@@ -53,7 +53,12 @@ import { workflowRunLoadFor } from './workflowRunFixtures'
 export type TaskChangesKey = string
 
 export function taskChangesKey(query: TaskChangesQuery): TaskChangesKey {
-  return `${query.taskId}\0${query.selectedPath ?? ''}`
+  const entry = query.selectedEntry
+  const entryKey = entry
+    ? `${entry.repositoryRoot}\0${entry.scope}\0${entry.path}`
+    : ''
+  const turn = query.turnTaskId ?? ''
+  return `${query.taskId}\0${turn}\0${entryKey}`
 }
 
 export type MockListenerSets = {

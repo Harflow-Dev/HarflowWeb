@@ -20,6 +20,7 @@ import {
   transcriptTaskObservation,
   type TranscriptMount,
 } from './transcriptFixtures'
+import { TASK_CHANGES_BY_ID } from './taskChangesTaskFixtures'
 import { TASK_OVERFLOW_BY_ID } from './taskOverflowFixtures'
 import { TASK_STATUS_BY_ID } from './taskStatusFixtures'
 
@@ -123,6 +124,7 @@ const BY_ID: ReadonlyMap<string, TaskObservation> = new Map([
   ),
   ...TASK_STATUS_BY_ID,
   ...TASK_OVERFLOW_BY_ID,
+  ...TASK_CHANGES_BY_ID,
 ])
 
 export function taskLoadFor(taskId: string): TaskLoad {

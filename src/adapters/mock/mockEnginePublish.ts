@@ -45,10 +45,24 @@ import { workflowExecutionLoadFor } from './workflowExecutionFixtures'
 import { workflowRunLoadFor } from './workflowRunFixtures'
 
 function queryFromChangesKey(key: string): TaskChangesQuery {
-  const sep = key.indexOf('\0')
+  const parts = key.split('\0')
+  const taskId = asTaskId(parts[0] ?? '')
+  const turnRaw = parts[1] ?? ''
+  const repositoryRoot = parts[2] ?? ''
+  const scope = parts[3] ?? ''
+  const path = parts.slice(4).join('\0')
+  const selectedEntry =
+    repositoryRoot && (scope === 'committed_range' || scope === 'working_tree') && path
+      ? {
+          repositoryRoot,
+          scope: scope as 'committed_range' | 'working_tree',
+          path,
+        }
+      : null
   return {
-    taskId: asTaskId(key.slice(0, sep)),
-    selectedPath: key.slice(sep + 1) === '' ? null : key.slice(sep + 1),
+    taskId,
+    selectedEntry,
+    turnTaskId: turnRaw === '' ? null : asTaskId(turnRaw),
   }
 }
 

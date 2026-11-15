@@ -1,9 +1,19 @@
+import type { TaskChangesEntryRef, TaskId } from '../../model'
+
 /** Command lifecycle chrome a preview scenario seeds on its open task. */
 export type TaskCommandChromeSeed =
   | 'stop-requested'
   | 'continue-starting'
   | 'continue-started'
   | 'continue-unknown'
+
+/** Changes-pane chrome a preview scenario seeds after the pane opens. */
+export type TaskChangesChromeSeed = {
+  readonly paneTab?: 'changes' | 'events'
+  readonly selectedEntry?: TaskChangesEntryRef | null
+  readonly turnTaskId?: TaskId | null
+  readonly expandedRepos?: readonly string[]
+}
 
 /**
  * Presentation seed applied by the preview composition after context is ready.
@@ -42,6 +52,8 @@ export type NewTaskScenarioSeed = {
   readonly taskDialog?: 'stop' | 'takeover'
   /** Open the right pane (Events for transcript states; Changes otherwise). */
   readonly eventsPaneOpen?: boolean
+  /** Seed Changes-pane selection / expansion after the pane is open. */
+  readonly changesChrome?: TaskChangesChromeSeed
   /** Navigate to a main route after context is ready. */
   readonly openRoute?:
     | 'new-task'

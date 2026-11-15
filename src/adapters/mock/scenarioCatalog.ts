@@ -8,6 +8,7 @@ import { MINIMUM_SCENARIOS } from './scenarioCatalogMinimum'
 import { PARALLEL_LANE_SCENARIOS } from './scenarioCatalogParallelLanes'
 import { PARALLEL_QUEUED_SCENARIOS } from './scenarioCatalogParallelQueued'
 import { PENDING_LAUNCH_SCENARIOS } from './scenarioCatalogPendingLaunches'
+import { TASK_CHANGES_SCENARIOS } from './scenarioCatalogTaskChanges'
 import { TASK_OVERFLOW_SCENARIOS } from './scenarioCatalogTaskOverflow'
 import { TASK_STATUS_SCENARIOS } from './scenarioCatalogTaskStatuses'
 import { TRANSCRIPT_SCENARIOS } from './scenarioCatalogTranscript'
@@ -175,7 +176,7 @@ export const SCENARIOS: readonly ScenarioDefinition[] = [
     id: 'task-done',
     label: 'Task done',
     description:
-      'Older task/done screen: the retry-budget task on the transcript surface with its summary and the read-only Changes pane open. Design now draws it as task/changes-single (out of scope).',
+      'Older task/done screen: the retry-budget task on the transcript surface with its summary and the read-only Changes pane open. The single-file Changes document is the same fixture as task-changes-single.',
     context: readyContext(),
     tasks: (taskId) => taskLoadFor(taskId),
     startOutcome: accepted,
@@ -211,4 +212,5 @@ export const SCENARIOS: readonly ScenarioDefinition[] = [
   ...PENDING_LAUNCH_SCENARIOS,
   ...TASK_STATUS_SCENARIOS,
   ...TASK_OVERFLOW_SCENARIOS,
+  ...TASK_CHANGES_SCENARIOS,
 ]

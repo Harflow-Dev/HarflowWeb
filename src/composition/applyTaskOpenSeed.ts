@@ -1,6 +1,7 @@
 import type { NewTaskScenarioSeed } from '../adapters/mock'
 import { asTaskId } from '../model'
 import type { AppPresenter, AppScreenState } from '../presentation'
+import { applyTaskChangesSeed } from './applyTaskChangesSeed'
 import { applyTaskOverflowSeed } from './applyTaskOverflowSeed'
 
 type LoadProbe = {
@@ -45,4 +46,5 @@ export function applyTaskOpenSeed(
     )
   }
   applyTaskOverflowSeed(presenter, seed, whenLoaded)
+  applyTaskChangesSeed(presenter, seed, whenLoaded)
 }

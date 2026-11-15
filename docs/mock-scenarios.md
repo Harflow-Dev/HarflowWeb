@@ -150,6 +150,15 @@ populated fixture and shows a single “Mock engine” badge.
 | Task · Events · loading | Approved `task/events-loading` (M05). Deferred Events observation |
 | Task · Events · empty | Approved `task/events-empty` (M05). Empty window does not qualify totals |
 | Task · Events · unavailable | Approved `task/events-error` (M05). History unavailable is not task failure |
+| Task · Running · pane closed | Approved `task/pane-running-closed` (M05 G-ADAPTIVE). Pane closed by default |
+| Task · Running · pane opened | Approved `task/pane-running-open` (M05). First open lands on Events |
+| Task · Failed · pane closed | Approved `task/pane-failed-closed` (M05). Pane closed by default |
+| Task · Pane beside transcript | Approved `task/pane-split` (M05). Split at 1280×800 detail width |
+| Task · Pane over transcript | Approved `task/pane-overlay` (M05). Overlay at 1000×620 (`seed.frame: 'minimum'`) |
+| Task · Loading with pane | Approved `task/loading-pane` (M05). Loading skeleton plus pane; real tab names |
+| Task · Top bar · chips | Approved `task/topbar-facts` (M05). Access / notices / continuity open Events facts |
+| Task · Top bar · resource | Approved `task/topbar-resource` (M05). Held resource card above the transcript |
+| Task · Top bar · 1000 × 620 | Approved `task/topbar-minimum` (M05). Meta drops; chip labels compact |
 | Transcript observed | Design `task/transcript-observed` (Design 854caae) |
 | Transcript loading | Design `task/transcript-loading` |
 | Transcript partial | Design `task/transcript-partial` |
@@ -166,6 +175,8 @@ First-load skeleton scenarios live in `src/adapters/mock/scenarioCatalogLoading.
 M05 G-DIFF Changes scenarios (including `task-changes-loading`) live in
 `src/adapters/mock/scenarioCatalogTaskChanges.ts`.
 M05 Events tab scenarios live in `src/adapters/mock/scenarioCatalogTaskEvents.ts`.
+M05 G-ADAPTIVE pane layout and top-bar content scenarios live in
+`src/adapters/mock/scenarioCatalogTaskPaneTopbar.ts`.
 Minimum-window scenarios (loaded and loading) live in
 `src/adapters/mock/scenarioCatalogMinimum.ts` and reuse `seed.frame: 'minimum'`
 (same `hw-preview__app--minimum` chrome as Sidebar minimum). They keep the

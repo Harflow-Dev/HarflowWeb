@@ -1057,3 +1057,27 @@ Events tab) under `previously-approved-recaptures/`. Transcript closed and
   more-actions chrome (out of scope). Completed captures therefore do **not**
   claim full `task/done` specimen coverage.
 - Completed summary / tool results are fixture-reported evidence only.
+
+## Task pane layout and top bar — 2026-11-15
+
+Design pin: HarflowDesign `40b8a19`. Captures:
+`~/.codex/workflows/screenshots/2026-11-15-harflowweb-task-pane-topbar/verified/`
+(18 PNGs: nine states × light/dark). Design references in
+`design-reference/`. Recaptures of prior panes in
+`previously-approved-recaptures/`.
+
+| Design state | Preview scenario | Frame |
+| --- | --- | --- |
+| `task/pane-running-closed` | `pane-running-closed` | 1280×800 |
+| `task/pane-running-open` | `pane-running-open` | 1280×800 |
+| `task/pane-failed-closed` | `pane-failed-closed` | 1280×800 |
+| `task/pane-split` | `pane-split` | 1280×800 |
+| `task/pane-overlay` | `pane-overlay` | 1000×620 |
+| `task/loading-pane` | `loading-pane` | 1280×800 |
+| `task/topbar-facts` | `topbar-facts` | 1280×800 |
+| `task/topbar-resource` | `topbar-resource` | 1280×800 |
+| `task/topbar-minimum` | `topbar-minimum` | 1000×620 |
+
+Measured at capture: `pane-overlay` `.hd-main` is 736px with
+`hd-m05-body--overlay` and absolute pane. `npm run verify` warnings 14;
+`npm run lint` clean. See `docs/review-notes.md` for deliberate deviations.

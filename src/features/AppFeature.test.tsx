@@ -1247,7 +1247,7 @@ describe('AppFeature navigation', () => {
     ).not.toBeInTheDocument()
 
     await user.click(
-      within(main).getByRole('button', { name: 'Toggle right pane' }),
+      within(main).getByRole('button', { name: /Show right pane|Hide right pane/ }),
     )
     const pane = await within(main).findByRole('complementary', {
       name: 'Task details',
@@ -1302,7 +1302,7 @@ describe('AppFeature navigation', () => {
     expect(starts).toHaveLength(0)
 
     await user.click(
-      within(main).getByRole('button', { name: 'Toggle right pane' }),
+      within(main).getByRole('button', { name: /Show right pane|Hide right pane/ }),
     )
     expect(
       within(main).queryByRole('complementary', { name: 'Task details' }),
@@ -1323,7 +1323,7 @@ describe('AppFeature navigation', () => {
     )
     await within(screen.getByRole('main')).findByText('Done 21:04')
     await user.click(
-      screen.getByRole('button', { name: 'Toggle right pane' }),
+      screen.getByRole('button', { name: /Show right pane|Hide right pane/ }),
     )
     const main = screen.getByRole('main')
     const queryNull = {
@@ -1412,7 +1412,7 @@ describe('AppFeature navigation', () => {
     )
     await screen.findByText('Done 21:04')
     await user.click(
-      screen.getByRole('button', { name: 'Toggle right pane' }),
+      screen.getByRole('button', { name: /Show right pane|Hide right pane/ }),
     )
     const queryNull = {
       taskId: RETRY_BUDGET_DONE_TASK_ID,
@@ -1435,8 +1435,8 @@ describe('AppFeature navigation', () => {
       screen.queryByRole('complementary', { name: 'Task details' }),
     ).not.toBeInTheDocument()
     expect(
-      screen.queryByRole('button', { name: 'Toggle right pane' }),
-    ).not.toBeInTheDocument()
+      screen.getByRole('button', { name: /Show right pane|Hide right pane/ }),
+    ).toBeInTheDocument()
     stale!(taskChangesLoadFor(queryNull))
     expect(presenter.getState().task.changesPaneOpen).toBe(false)
 
@@ -1451,8 +1451,8 @@ describe('AppFeature navigation', () => {
       screen.queryByRole('complementary', { name: 'Task details' }),
     ).not.toBeInTheDocument()
     expect(
-      screen.queryByRole('button', { name: 'Toggle right pane' }),
-    ).not.toBeInTheDocument()
+      screen.getByRole('button', { name: /Show right pane|Hide right pane/ }),
+    ).toBeInTheDocument()
   })
 
   it('keeps follow-up and unavailable destinations from mutating or launching', async () => {
@@ -1467,7 +1467,7 @@ describe('AppFeature navigation', () => {
     )
     await screen.findByText('Done 21:04')
     await user.click(
-      screen.getByRole('button', { name: 'Toggle right pane' }),
+      screen.getByRole('button', { name: /Show right pane|Hide right pane/ }),
     )
     await screen.findByRole('complementary', { name: 'Task details' })
     const artifacts = screen.getByRole('tab', { name: 'Artifacts' })

@@ -39,10 +39,10 @@ grant approvals, answer questions, or touch the task store.
 - Known: the production bundle is above 500 kB (Vite warning). No dependency
   or code-splitting change was made for it in this slice.
 - **Skipped** approved states (out of scope or missing surface):
-  `task/loading-pane` (no `task/pane-running-open`), `menu-bar/loading` and
-  `menu-bar/busy-minimum` / `menu-bar/loading-minimum` (no menu-bar surface),
-  task-screen minimum states, `task/artifacts-loading` and other
-  `task/artifacts-*` (provisional), `sidebar/history-older` (Web has no
+  `menu-bar/loading` and `menu-bar/busy-minimum` / `menu-bar/loading-minimum`
+  (no menu-bar surface), other task-screen minimum states beyond
+  `task/topbar-minimum` and `task/pane-overlay`, `task/artifacts-loading` and
+  other `task/artifacts-*` (provisional), `sidebar/history-older` (Web has no
   sidebar history paging / “load older”; not built),
   `new-task/centered-loading` (separate first-load path already covered by
   `new-task-loading`), and app-states / harness-runtime first loads.
@@ -523,6 +523,27 @@ grant approvals, answer questions, or touch the task store.
 - Prior running / failed / loading sidebar captures were retaken: the 16 M05
   states plus `task-running`, `task-failed` and `task-loading` live under
   `docs/visual-validation.md`.
+- **M05 G-ADAPTIVE + top bar (mock-only).** Nine approved states at Design
+  `40b8a19`: `pane-running-closed`, `pane-running-open`, `pane-failed-closed`,
+  `pane-split`, `pane-overlay`, `loading-pane`, `topbar-facts`,
+  `topbar-resource`, `topbar-minimum`. Default pane open is a pure function of
+  observed status (settling opens; running/failed stay closed; done/Changes
+  keep seeded open). First open while running selects Events; later closes
+  keep the tab. Split vs overlay uses measured `.hd-main` width (≥900 split).
+  Overlay Escape closes and returns focus to the Show/Hide toggle; the
+  transcript column is `inert` while open. Access / notices / continuity chips
+  open Events and expand the matching facts group. Turn count stays in meta
+  and in Facts; TopbarMeta drops the whole meta line at the minimum frame.
+  Held resource card uses observed `resources` `{names, state, heldForSeconds}`.
+  Pane toggle is always available (`aria-expanded` + `aria-controls`); the
+  design specimen often uses `aria-pressed` — copied behaviour, not the
+  pressed attribute. G-PLATFORM Option C title adjacency is already the
+  shipping top bar; not re-litigated here. Screenshots under
+  `~/.codex/workflows/screenshots/2026-11-15-harflowweb-task-pane-topbar/`.
+  Recaptures of `task-done`, `task-running-stop`, `task-failed`,
+  `task-changes-single`, and `task-events-populated` show no intentional
+  layout change beyond the always-on pane toggle and top-bar chips where
+  facts exist.
 
 ## Unresolved questions
 

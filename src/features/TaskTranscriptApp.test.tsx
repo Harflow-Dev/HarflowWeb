@@ -217,7 +217,7 @@ describe('Task transcript app integration', () => {
     expect(screen.getByText('Original request')).toBeInTheDocument()
     expect(screen.queryByText('Captured activity facts')).toBeNull()
 
-    const toggle = screen.getByRole('button', { name: 'Toggle right pane' })
+    const toggle = screen.getByRole('button', { name: /Show right pane|Hide right pane/ })
     await user.click(toggle)
     expect(screen.getByText('Captured activity facts')).toBeInTheDocument()
   })

@@ -25,8 +25,8 @@
   `src/styles/`). State registrations (last change at or before the pin):
   - `v2/scripts/screens-loading-work.js` @ `9d19fd7…` —
     `new-task/loading`, `sidebar/loading`, `task/loading`,
-    `parallel-group/loading` (`task/loading-pane` skipped; no
-    `task/pane-running-open` mirror in this mock).
+    `parallel-group/loading`. `task/loading-pane` is implemented with the
+    G-ADAPTIVE / top-bar slice at Design `40b8a19`.
   - `v2/scripts/screens-loading-more.js` @ `9d19fd7…` —
     `needs-you/loading`, `workflows/loading`, `workflow-editor/loading`,
     `workflow-run/loading`, `workflow-run/loading-parallel`,

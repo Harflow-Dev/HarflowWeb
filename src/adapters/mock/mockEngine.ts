@@ -17,6 +17,8 @@ import type {
   StatisticsRangeId,
   TaskChangesLoad,
   TaskChangesQuery,
+  TaskEventsLoad,
+  TaskEventsQuery,
   TaskId,
   TaskLoad,
   WorkflowEditorLoad,
@@ -45,6 +47,7 @@ export type MockEngineControls = {
   publishStatistics(range: StatisticsRangeId, load: StatisticsLoad): void
   publishTask(taskId: TaskId, load: TaskLoad): void
   publishTaskChanges(query: TaskChangesQuery, load: TaskChangesLoad): void
+  publishTaskEvents(query: TaskEventsQuery, load: TaskEventsLoad): void
   publishHarnesses(load: HarnessesLoad): void
   publishSettingsGeneral(load: SettingsGeneralLoad): void
   publishNeedsYou(load: NeedsYouLoad): void

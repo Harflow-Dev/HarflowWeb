@@ -10,6 +10,8 @@ import type {
   StatisticsRangeId,
   TaskChangesLoad,
   TaskChangesQuery,
+  TaskEventsLoad,
+  TaskEventsQuery,
   TaskId,
   TaskLoad,
   WorkflowsLoad,
@@ -35,6 +37,11 @@ export type TaskChangesScenario =
   | 'default'
   | 'defer'
   | ((query: TaskChangesQuery) => TaskChangesLoad)
+
+export type TaskEventsScenario =
+  | 'default'
+  | 'defer'
+  | ((query: TaskEventsQuery) => TaskEventsLoad)
 
 export type DeferredSurface = 'default' | 'defer'
 
@@ -79,7 +86,13 @@ export type ScenarioId =
   | 'task-changes-loading'
   | 'task-changes-error'
   | 'task-changes-turns'
+  | 'task-events-populated'
+  | 'task-events-page'
+  | 'task-events-page-error'
+  | 'task-events-not-started'
   | 'task-events-loading'
+  | 'task-events-empty'
+  | 'task-events-error'
   | 'resources-slots'
   | 'statistics-overview'
   | 'task-running'
@@ -208,6 +221,7 @@ export type ScenarioDefinition = {
   readonly statistics: StatisticsScenario
   readonly tasks: TasksScenario
   readonly taskChanges: TaskChangesScenario
+  readonly taskEvents: TaskEventsScenario
   readonly harnesses: HarnessesLoad | 'defer'
   readonly settingsGeneral: SettingsGeneralLoad | 'defer'
   readonly needsYou: NeedsYouLoad | 'defer'

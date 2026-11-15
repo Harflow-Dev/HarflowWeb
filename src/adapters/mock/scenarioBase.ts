@@ -13,6 +13,7 @@ import type {
   ScenarioDefinition,
   StatisticsScenario,
   TaskChangesScenario,
+  TaskEventsScenario,
   TasksScenario,
 } from './scenarios'
 import { populatedWorkflowsLoad } from './workflowFixtures'
@@ -43,6 +44,7 @@ const workflows = populatedWorkflowsLoad()
 const statistics: StatisticsScenario = 'default'
 const tasks: TasksScenario = 'default'
 const taskChanges: TaskChangesScenario = 'default'
+const taskEvents: TaskEventsScenario = 'default'
 const harnesses = populatedHarnessesLoad()
 const needsYou = waitingNeedsYouLoad()
 const settingsGeneral = populatedSettingsGeneralLoad()
@@ -61,6 +63,7 @@ export function base(
     | 'statistics'
     | 'tasks'
     | 'taskChanges'
+    | 'taskEvents'
     | 'harnesses'
     | 'settingsGeneral'
     | 'needsYou'
@@ -79,6 +82,7 @@ export function base(
         | 'statistics'
         | 'tasks'
         | 'taskChanges'
+        | 'taskEvents'
         | 'harnesses'
         | 'settingsGeneral'
         | 'needsYou'
@@ -98,6 +102,7 @@ export function base(
     statistics,
     tasks,
     taskChanges,
+    taskEvents,
     harnesses,
     settingsGeneral,
     needsYou,

@@ -12,6 +12,14 @@ import {
 } from '../../model'
 import { RETRY_BUDGET_DONE_TASK_ID } from './taskFixtures'
 import {
+  TASK_EVENTS_EMPTY_ID,
+  TASK_EVENTS_ERROR_ID,
+  TASK_EVENTS_LOADING_ID,
+  TASK_EVENTS_PAGE_ERROR_ID,
+  TASK_EVENTS_PAGE_ID,
+  TASK_EVENTS_POPULATED_ID,
+} from './taskEventsFixtureIds'
+import {
   BIG_MODULE_ENTRY,
   CONFIG_ENTRY,
   contentAvailable,
@@ -110,6 +118,13 @@ const DOCS: ReadonlyMap<string, DocBuilder> = new Map([
   [TASK_CHANGES_TURNS_ID, singleDoc],
   [TASK_CHANGES_TURN_2_ID, turn2Doc],
   [TASK_CHANGES_TURN_1_ID, turn1Doc],
+  // Events preview scenarios share the design's default Changes specimen count.
+  [TASK_EVENTS_POPULATED_ID, singleDoc],
+  [TASK_EVENTS_PAGE_ID, singleDoc],
+  [TASK_EVENTS_PAGE_ERROR_ID, singleDoc],
+  [TASK_EVENTS_ERROR_ID, singleDoc],
+  [TASK_EVENTS_LOADING_ID, runningCaptureDoc],
+  [TASK_EVENTS_EMPTY_ID, runningCaptureDoc],
 ])
 
 /** Text is attached only for an entry the query names; the list is never defaulted. */

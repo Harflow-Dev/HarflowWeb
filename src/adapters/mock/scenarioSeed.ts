@@ -73,8 +73,16 @@ export type NewTaskScenarioSeed = {
   readonly taskDialog?: 'stop' | 'takeover'
   /** Open the right pane (Events for transcript states; Changes otherwise). */
   readonly eventsPaneOpen?: boolean
+  /** Active pane tab after the pane opens (M05 Changes ↔ Events). */
+  readonly paneTab?: 'changes' | 'events'
   /** Seed Changes-pane selection / expansion after the pane is open. */
   readonly changesChrome?: TaskChangesChromeSeed
+  /** Seed Events-tab earlier-page chrome after the pane is open. */
+  readonly eventsChrome?: {
+    readonly paneTab?: 'changes' | 'events'
+    readonly earlierLoaded?: boolean
+    readonly earlierError?: boolean
+  }
   /** Navigate to a main route after context is ready. */
   readonly openRoute?:
     | 'new-task'

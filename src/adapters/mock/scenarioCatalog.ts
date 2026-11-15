@@ -12,6 +12,7 @@ import {
   QUEUE_SELECTED_CHROME,
   TASK_CHANGES_SCENARIOS,
 } from './scenarioCatalogTaskChanges'
+import { TASK_EVENTS_SCENARIOS } from './scenarioCatalogTaskEvents'
 import { TASK_OVERFLOW_SCENARIOS } from './scenarioCatalogTaskOverflow'
 import { TASK_STATUS_SCENARIOS } from './scenarioCatalogTaskStatuses'
 import { TRANSCRIPT_SCENARIOS } from './scenarioCatalogTranscript'
@@ -220,4 +221,5 @@ export const SCENARIOS: readonly ScenarioDefinition[] = [
   ...TASK_STATUS_SCENARIOS,
   ...TASK_OVERFLOW_SCENARIOS,
   ...TASK_CHANGES_SCENARIOS,
+  ...TASK_EVENTS_SCENARIOS.filter((s) => s.id !== 'task-events-loading'),
 ]

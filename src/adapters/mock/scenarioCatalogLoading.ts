@@ -1,5 +1,5 @@
-import { TRANSCRIPT_TASK_IDS } from './transcriptFixtures'
 import { accepted, base, readyContext } from './scenarioBase'
+import { TASK_EVENTS_LOADING_SCENARIO } from './scenarioCatalogTaskEvents'
 import type { ScenarioDefinition } from './scenarios'
 
 /** Approved Design 9d19fd7 first-load skeleton preview scenarios. */
@@ -174,17 +174,5 @@ export const LOADING_SCENARIOS: readonly ScenarioDefinition[] = [
       settingsExpandedHarnessId: 'claude-code',
     },
   }),
-  base({
-    id: 'task-events-loading',
-    label: 'Task Events loading',
-    description:
-      'Approved task/events-loading (M05). Transcript observation with history/summary loading; Events pane open.',
-    context: readyContext(),
-    startOutcome: accepted,
-    holdStart: false,
-    seed: {
-      openTaskId: TRANSCRIPT_TASK_IDS.loading,
-      eventsPaneOpen: true,
-    },
-  }),
+  TASK_EVENTS_LOADING_SCENARIO,
 ]

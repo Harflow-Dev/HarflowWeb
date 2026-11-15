@@ -15,6 +15,8 @@ import type {
   StatisticsRangeId,
   TaskChangesLoad,
   TaskChangesQuery,
+  TaskEventsLoad,
+  TaskEventsQuery,
   TaskId,
   TaskLoad,
   WorkflowEditorLoad,
@@ -25,8 +27,10 @@ import type {
 import {
   resolveStatisticsLoad,
   resolveTaskChangesLoad,
+  resolveTaskEventsLoad,
   resolveTaskLoad,
   taskChangesKey,
+  taskEventsKey,
   type MockListenerSets,
 } from './mockEngineCore'
 import {
@@ -108,6 +112,11 @@ function republishTasks(
   for (const listener of listeners.taskChanges) {
     listener.send(
       resolveTaskChangesLoad(scenario, queryFromChangesKey(listener.key)),
+    )
+  }
+  for (const listener of listeners.taskEvents) {
+    listener.send(
+      resolveTaskEventsLoad(scenario, { taskId: asTaskId(listener.key) }),
     )
   }
 }
@@ -216,6 +225,12 @@ export function catalogPublishers(listeners: MockListenerSets) {
     },
     publishResources(load: ResourcesLoad) {
       for (const listener of listeners.resources) listener(load)
+    },
+    publishTaskEvents(query: TaskEventsQuery, load: TaskEventsLoad) {
+      const key = taskEventsKey(query)
+      for (const listener of listeners.taskEvents) {
+        if (listener.key === key) listener.send(load)
+      }
     },
     publishStatistics(range: StatisticsRangeId, load: StatisticsLoad) {
       for (const listener of listeners.statistics) {

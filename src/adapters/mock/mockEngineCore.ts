@@ -18,6 +18,8 @@ import {
   type StatisticsRangeId,
   type TaskChangesLoad,
   type TaskChangesQuery,
+  type TaskEventsLoad,
+  type TaskEventsQuery,
   type TaskId,
   type TaskLoad,
   type WorkflowEditorLoad,
@@ -36,6 +38,7 @@ import {
 import type { ScenarioDefinition } from './scenarios'
 import { statisticsLoadFor } from './statisticsFixtures'
 import { taskChangesLoadFor } from './taskChangesFixtures'
+import { taskEventsLoadFor } from './taskEventsFixtures'
 import { taskLoadFor } from './taskFixtures'
 import { workflowEditorLoadFor } from './workflowEditorFixtures'
 import {
@@ -52,6 +55,11 @@ import { workflowExecutionLoadFor } from './workflowExecutionFixtures'
 import { workflowRunLoadFor } from './workflowRunFixtures'
 
 export type TaskChangesKey = string
+export type TaskEventsKey = string
+
+export function taskEventsKey(query: TaskEventsQuery): TaskEventsKey {
+  return query.taskId
+}
 
 export function taskChangesKey(query: TaskChangesQuery): TaskChangesKey {
   const turn = query.turnTaskId ?? ''
@@ -65,6 +73,7 @@ export type MockListenerSets = {
   readonly statistics: Set<KeyedListener<StatisticsRangeId, StatisticsLoad>>
   readonly tasks: Set<KeyedListener<TaskId, TaskLoad>>
   readonly taskChanges: Set<KeyedListener<TaskChangesKey, TaskChangesLoad>>
+  readonly taskEvents: Set<KeyedListener<TaskEventsKey, TaskEventsLoad>>
   readonly harnesses: Set<(load: HarnessesLoad) => void>
   readonly settingsGeneral: Set<(load: SettingsGeneralLoad) => void>
   readonly needsYou: Set<(load: NeedsYouLoad) => void>
@@ -87,6 +96,7 @@ export function createListenerSets(): MockListenerSets {
     statistics: new Set(),
     tasks: new Set(),
     taskChanges: new Set(),
+    taskEvents: new Set(),
     harnesses: new Set(),
     settingsGeneral: new Set(),
     needsYou: new Set(),
@@ -125,6 +135,15 @@ export function resolveTaskChangesLoad(
   if (scenario.taskChanges === 'defer') return { kind: 'loading' }
   if (scenario.taskChanges === 'default') return taskChangesLoadFor(query)
   return scenario.taskChanges(query)
+}
+
+export function resolveTaskEventsLoad(
+  scenario: ScenarioDefinition,
+  query: TaskEventsQuery,
+): TaskEventsLoad {
+  if (scenario.taskEvents === 'defer') return { kind: 'loading' }
+  if (scenario.taskEvents === 'default') return taskEventsLoadFor(query)
+  return scenario.taskEvents(query)
 }
 
 export function buildMockEnginePort(options: {
@@ -186,6 +205,14 @@ export function buildMockEnginePort(options: {
         taskChangesKey(query),
         onUpdate,
         () => resolveTaskChangesLoad(getScenario(), query),
+      )
+    },
+    observeTaskEvents(query, onUpdate) {
+      return createKeyedObservation(
+        listeners.taskEvents,
+        taskEventsKey(query),
+        onUpdate,
+        () => resolveTaskEventsLoad(getScenario(), query),
       )
     },
     observeWorkflowRun(workflowId, onUpdate) {

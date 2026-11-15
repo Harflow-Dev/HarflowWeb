@@ -21,7 +21,7 @@ import {
   changesUsesSummaryLayout,
   showsTaskLevelNotCapturedReasons,
 } from '../presentation/taskChangesCounts'
-import { shortTaskId } from '../presentation/taskChangesFormat'
+import { shortTaskId } from '../presentation/taskId'
 import {
   observationHasReportedConflict,
   scopeCountsAndPatchSeparate,

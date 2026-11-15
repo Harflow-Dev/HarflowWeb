@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { shortTaskId } from './taskId'
 import {
   bytesB64,
   committedScope,
@@ -29,7 +30,6 @@ import {
 import {
   formatObservedAt,
   repositoryDisplayName,
-  shortTaskId,
 } from './taskChangesFormat'
 import { changesDisplayPath, changesRowKey } from './taskChangesPaths'
 import { changesRowStateLabel } from './taskChangesRowLabels'

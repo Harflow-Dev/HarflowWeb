@@ -176,8 +176,9 @@ export function beginPaneEventsObservation(host: EventsPaneHost): void {
   if (!taskId || !state.changesPaneOpen || state.paneTab !== 'events') return
   host.setEventsObservation(null)
   host.setOlderObservation(null)
-  if (!eventsReadAllowed(state)) return
+  // Bump first so a read already in flight cannot land when none is allowed.
   const gen = host.bumpEventsEpoch()
+  if (!eventsReadAllowed(state)) return
   if (state.eventsEarlier.status !== 'idle') {
     host.publish({ ...state, eventsEarlier: IDLE_EVENTS_EARLIER })
   }

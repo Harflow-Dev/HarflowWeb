@@ -1,4 +1,5 @@
 import type { TaskEnforcement, TaskObservation } from '../model'
+import { shortTaskId } from './taskId'
 import { taskExitNotObserved } from './taskObservation'
 import { badgeForStatus } from './taskStatusBadgeMap'
 import {
@@ -138,7 +139,7 @@ export function taskFactPairs(
       value: observation.repository?.name ?? EVENTS_EXIT_DASH,
     },
     { term: 'Turns', value: turnsFactValue(observation) },
-    { term: 'Task ID', value: observation.taskId },
+    { term: 'Task ID', value: shortTaskId(observation.taskId) },
   ]
 }
 

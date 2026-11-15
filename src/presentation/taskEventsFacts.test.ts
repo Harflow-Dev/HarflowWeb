@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { shortTaskId } from './taskId'
 import {
   EDIT_REPO_ENFORCEMENT,
   UNRECORDED_ENFORCEMENT,
@@ -32,7 +33,7 @@ describe('events factsGroups presentation', () => {
       { term: 'Harness', value: 'Claude · Opus 5.5' },
       { term: 'Repository', value: 'HarflowWeb' },
       { term: 'Turns', value: '3' },
-      { term: 'Task ID', value: observation.taskId },
+      { term: 'Task ID', value: shortTaskId(observation.taskId) },
     ])
     expect(harnessFromMeta(observation.headerMeta)).toBe('Claude · Opus 5.5')
     expect(turnsFactValue(observation)).toBe('3')

@@ -24,6 +24,7 @@ import {
 import { taskChangesKey } from '../adapters/mock/mockEngineCore'
 import {
   pageEventsObservation,
+  populatedEventsObservation,
   taskEventsLoadFor,
   taskEventsOlderLoadFor,
 } from '../adapters/mock/taskEventsFixtures'
@@ -978,6 +979,37 @@ describe('TaskSession events', () => {
     await flush()
     expect(changesQueries()).toHaveLength(before)
     session.dispose()
+  })
+
+  it('stops the Events read when the status becomes unread or pending, and drops a late result', () => {
+    for (const next of [
+      { kind: 'unread' as const },
+      { kind: 'observed' as const, status: 'pending' as const },
+    ]) {
+      const { port, publish, captureEventsCallback } = createDeferredPort()
+      const session = sessionFor(port)
+      session.start()
+      const taskId = TASK_EVENTS_POPULATED_ID
+      const running = taskLoadFor(taskId)
+      if (running.kind !== 'ready') throw new Error('fixture')
+      session.openTask(taskId)
+      publish(taskId, running)
+      session.setPaneTab('events')
+      session.setChangesPaneOpen(true)
+      const stale = captureEventsCallback()
+      expect(stale).not.toBeNull()
+      publish(taskId, {
+        kind: 'ready',
+        observation: { ...running.observation, statusRead: next },
+      })
+      stale!({
+        kind: 'ready',
+        observation: populatedEventsObservation(),
+      })
+      expect(session.getState().eventsList).toBeNull()
+      expect(session.getState().eventsLoad.kind).toBe('loading')
+      session.dispose()
+    }
   })
 
   it('starts the Events read when an unread status later settles', () => {

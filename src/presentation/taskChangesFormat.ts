@@ -24,11 +24,6 @@ export function repositoryDisplayName(repositoryRoot: string): string {
   return segments[segments.length - 1] ?? repositoryRoot
 }
 
-/** Eight-character task id prefix, as the engine accepts for lookups. */
-export function shortTaskId(taskId: string): string {
-  return taskId.slice(0, 8)
-}
-
 const MONTHS = [
   'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
   'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',

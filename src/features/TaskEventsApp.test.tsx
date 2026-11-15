@@ -9,10 +9,13 @@ import {
   EVENTS_PAGE_ERROR,
   EVENTS_UNAVAILABLE,
 } from '../presentation/taskEventsCopy'
-import { TASK_EVENTS_PAGE_ID } from '../adapters/mock/taskEventsFixtureIds'
+import {
+  TASK_EVENTS_PAGE_ID,
+  TASK_EVENTS_POPULATED_ID,
+} from '../adapters/mock/taskEventsFixtureIds'
 import { pageEventsObservation } from '../adapters/mock/taskEventsFixtures'
 import { populatedEventsTaskObservation } from '../adapters/mock/taskEventsTaskFixtures'
-import { asTaskId, type TaskEventsLoad } from '../model'
+import type { TaskEventsLoad } from '../model'
 
 afterEach(() => {
   cleanup()
@@ -109,7 +112,7 @@ describe('Events observation fencing', () => {
     const callbacks = captureEventsCallbacks(app)
     render(<AppFeature presenter={app.presenter} />)
     await settle()
-    const other = asTaskId('task-events-populated')
+    const other = TASK_EVENTS_POPULATED_ID
     await act(async () => {
       app.presenter.openTask(TASK_EVENTS_PAGE_ID)
     })
@@ -143,7 +146,7 @@ describe('Events observation fencing', () => {
     const callbacks = captureEventsCallbacks(app)
     render(<AppFeature presenter={app.presenter} />)
     await settle()
-    const other = asTaskId('task-events-populated')
+    const other = TASK_EVENTS_POPULATED_ID
     await act(async () => app.presenter.openTask(TASK_EVENTS_PAGE_ID))
     await settle()
     await act(async () => app.presenter.setTaskPaneTab('events'))

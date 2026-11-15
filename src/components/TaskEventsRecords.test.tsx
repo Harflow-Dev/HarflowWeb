@@ -1,6 +1,6 @@
-import { cleanup, render, screen } from '@testing-library/react'
+import { act, cleanup, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { pageEventsObservation } from '../adapters/mock/taskEventsFixtures'
 import { ASSISTANT_START } from '../adapters/mock/taskEventsRecordFixtures'
@@ -33,8 +33,13 @@ function stubLayout(scroller: HTMLElement): void {
   )
 }
 
+let setEarlierFromOutside: (next: EventsEarlierState) => void = () => undefined
+
 function Harness({ answer }: { readonly answer: EventsEarlierState }) {
   const [earlier, setEarlier] = useState<EventsEarlierState>(IDLE_EVENTS_EARLIER)
+  useEffect(() => {
+    setEarlierFromOutside = setEarlier
+  }, [])
   return (
     <div className="hd-m05-panescroll" data-testid="scroller">
       <TaskEventsRecords
@@ -91,5 +96,30 @@ describe('Events Load earlier reading position', () => {
     await user.click(screen.getByRole('button', { name: 'Load earlier' }))
     expect(screen.getByRole('button', { name: 'Load earlier' })).toBeInTheDocument()
     expect(screen.queryByText(/reached its beginning/)).toBeNull()
+  })
+
+  it('does not scroll later when the read failed before a later page arrives', async () => {
+    const user = userEvent.setup()
+    render(
+      <Harness
+        answer={{ ...IDLE_EVENTS_EARLIER, status: 'error' }}
+      />,
+    )
+    const scroller = screen.getByTestId('scroller')
+    stubLayout(scroller)
+    scroller.scrollTop = 20
+    await user.click(screen.getByRole('button', { name: 'Load earlier' }))
+    // The failure dropped the captured anchor ...
+    scroller.scrollTop = 300
+    // ... so records arriving later (e.g. a fresh read) are not restored to it.
+    act(() => {
+      setEarlierFromOutside({
+        status: 'loaded',
+        records: [ASSISTANT_START],
+        hasOlder: false,
+        olderCursor: null,
+      })
+    })
+    expect(scroller.scrollTop).toBe(300)
   })
 })

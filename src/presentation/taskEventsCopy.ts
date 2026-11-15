@@ -71,12 +71,12 @@ export const EVENTS_ENFORCEMENT_LABELS = {
   network: 'Network',
 } as const
 
-/** Requested freedom → display (only write_in_repo is designed). */
+/** Requested freedom → the app's existing access labels (mock fixtures). */
 export const EVENTS_FREEDOM_LABELS: Readonly<Record<string, string>> = {
   write_in_repo: 'Can edit this repo',
-  read_only: 'Read only',
-  publish: 'Can edit and publish',
-  unrestricted: 'Unrestricted',
+  read_only: 'Read-only',
+  publish: 'Can publish',
+  unrestricted: 'Full access',
 }
 
 export const EVENTS_YES = 'Yes'

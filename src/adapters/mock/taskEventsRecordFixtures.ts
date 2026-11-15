@@ -60,6 +60,13 @@ function plain(seq: number, kind: string, body: Record<string, unknown>) {
   }
 }
 
+/** exit_code agrees with status; cancelled and timed-out runs report none. */
+function finishedFields(status: string): Record<string, unknown> {
+  if (status === 'completed') return { exit_code: 0, status }
+  if (status === 'failed') return { exit_code: 1, status }
+  return { status }
+}
+
 /** A short history for a task without its own specimen. */
 export function genericRecords(
   finishedStatus: string | null,
@@ -80,6 +87,6 @@ export function genericRecords(
   if (finishedStatus === null) return records
   return [
     ...records,
-    plain(4, 'task_finished', { exit_code: 0, status: finishedStatus }),
+    plain(4, 'task_finished', finishedFields(finishedStatus)),
   ]
 }

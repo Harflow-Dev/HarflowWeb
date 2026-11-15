@@ -478,8 +478,10 @@ grant approvals, answer questions, or touch the task store.
     `network_access`). Presentation maps kind to the record title (unknown
     kinds are public stubs) and enforcement values to the design labels.
     `mechanism` is engine free text shown as given; the specimen string
-    stands in for it in the mock. Labels for kinds and freedoms the design
-    does not draw (e.g. Read only, Tool call) are undesigned wording.
+    stands in for it in the mock. Freedoms use the app's existing access
+    labels (Read-only, Can edit this repo, Can publish, Full access). Labels
+    for event kinds the design does not draw (e.g. Tool call) are undesigned
+    wording.
   - Load earlier is a real older-page read ({task, `before` cursor} →
     page | `event_cursor_expired` | `event_cursor_invalid`), fenced by the
     Events epoch, task id and cursor. The session keeps `eventsEarlier`
@@ -501,8 +503,13 @@ grant approvals, answer questions, or touch the task store.
     omits its row. Continuity keeps the nullable `at` and the previous/current
     server fields in the model; no scenario shows them and no display is
     invented.
-  - Task ID shows the task id. The design specimen shows one shared id
-    (`7be02d91`), so the expanded-facts text comparison ignores that value.
+  - Task ID shows the 8-character prefix of the task id. The seven Events
+    fixtures have distinct full ids that share the design specimen's prefix
+    `7be02d91` (a single-specimen mock choice; ambiguous as a real lookup
+    prefix), so the expanded-facts text matches the design with no
+    normalisation.
+  - Follow-up for the real adapter: when the newest page moves, poll
+    `newer_cursor` instead of resetting older pages already read.
   - The page-error note sits inside the paging row as in the design; Events
     headings inherit the pane line height.
   Changes stays observed while Events is selected so the Changes tab count

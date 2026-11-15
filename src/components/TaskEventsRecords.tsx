@@ -49,6 +49,13 @@ export function TaskEventsRecords({
     restoreVisibleAnchor(scroller.current, pending)
   }, [olderCount])
 
+  // A read that failed or was reset leaves no records to anchor against.
+  useLayoutEffect(() => {
+    if (earlier.status === 'error' || earlier.status === 'idle') {
+      anchor.current = null
+    }
+  }, [earlier.status])
+
   if (observation.log.state === 'unavailable') {
     return <HistoryUnavailable onUnavailable={onUnavailable} />
   }

@@ -18,6 +18,7 @@ import { changesLifecycleFor } from '../presentation/taskChangesLifecycle'
 import { TaskChangesBody } from './TaskChangesBody'
 import { TaskEventsM05Body } from './TaskEventsM05Body'
 import {
+  TASK_PANE_ASIDE_ID,
   TASK_PANE_CHANGES_TAB_ID,
   TASK_PANE_EVENTS_TAB_ID,
   TASK_PANE_PANEL_ID,
@@ -41,6 +42,7 @@ export type TaskChangesPaneProps = {
   readonly eventsLoad?: TaskEventsLoad
   readonly eventsList?: TaskEventsObservation | null
   readonly eventsEarlier?: EventsEarlierState
+  readonly eventsFactsReveal?: 'enforcement' | 'notices' | 'continuity' | null
   readonly onSelectTab: (tab: 'changes' | 'events') => void
   readonly onLoadEarlier: () => void
 }
@@ -67,6 +69,7 @@ export function TaskChangesPane({
   eventsLoad = { kind: 'loading' },
   eventsList = null,
   eventsEarlier = IDLE_EVENTS_EARLIER,
+  eventsFactsReveal = null,
   onSelectTab,
   onLoadEarlier,
 }: TaskChangesPaneProps) {
@@ -78,7 +81,11 @@ export function TaskChangesPane({
   const count = lifecycle === 'capture' ? changesTabCount(observation) : null
   const eventsOpen = paneTab === 'events'
   return (
-    <aside className="hd-pane hd-m05-pane" aria-label="Task details">
+    <aside
+      id={TASK_PANE_ASIDE_ID}
+      className="hd-pane hd-m05-pane"
+      aria-label="Task details"
+    >
       <TaskPaneTabs
         changesCount={count}
         activeTab={paneTab}
@@ -100,6 +107,7 @@ export function TaskChangesPane({
             load={eventsLoad}
             list={eventsList}
             earlier={eventsEarlier}
+            factsReveal={eventsFactsReveal}
             onLoadEarlier={onLoadEarlier}
             onUnavailable={onUnavailable}
           />

@@ -5,8 +5,8 @@ import { Sidebar } from './Sidebar'
 import {
   NewTaskLoadingComposer,
   SidebarListingSkeleton,
-  TaskLoadingPage,
 } from './skeletonWork'
+import { TaskLoadingPage } from './skeletonTaskLoading'
 
 afterEach(() => {
   cleanup()

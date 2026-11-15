@@ -1,4 +1,4 @@
-import { useSyncExternalStore } from 'react'
+import { useRef, useSyncExternalStore } from 'react'
 import {
   MockBadge,
   ParallelGroupCancelDialog,
@@ -41,6 +41,7 @@ type StatusNote = {
 export function AppFeature({ presenter }: Props) {
   usePresenterLifetime(presenter)
   const state = usePresenter(presenter)
+  const mainRef = useRef<HTMLElement>(null)
   // One ephemeral note for both kinds: the newest replaces the other.
   const ephemeral = useEphemeralNote<StatusNote>()
   const systemDark = useSystemPrefersDark()
@@ -95,7 +96,11 @@ export function AppFeature({ presenter }: Props) {
           inert={dialogOpen}
           showPendingLaunches={showPendingLaunches}
         />
-        <main className="hd-main" inert={dialogOpen || undefined}>
+        <main
+          ref={mainRef}
+          className="hd-main"
+          inert={dialogOpen || undefined}
+        >
           {state.route === 'parallel-group' ? (
             <ParallelGroupMain
               state={state.parallelGroup}
@@ -163,6 +168,7 @@ export function AppFeature({ presenter }: Props) {
             <TaskMain
               state={state.task}
               sidebar={ready?.sidebar ?? null}
+              mainRef={mainRef}
               onUnavailable={(label) => ephemeral.show({ kind: 'unavailable', text: label })}
               onAnnounce={(message) => ephemeral.show({ kind: 'announce', text: message })}
               onToggleChangesPane={(open) =>
@@ -178,6 +184,9 @@ export function AppFeature({ presenter }: Props) {
                 presenter.setTaskRepositoryExpanded(root, expanded)
               }
               onSelectPaneTab={(tab) => presenter.setTaskPaneTab(tab)}
+              onRevealEventsFacts={(group) =>
+                presenter.revealTaskEventsFacts(group)
+              }
               onLoadEarlierEvents={() => presenter.loadTaskEarlierEvents()}
               onToggleOverflowMenu={() =>
                 presenter.setTaskOverflowMenuOpen(!state.task.overflowMenuOpen)

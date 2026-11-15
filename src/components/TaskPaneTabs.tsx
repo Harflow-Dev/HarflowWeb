@@ -3,6 +3,7 @@ import { Icon } from './Icon'
 import { TASK_ARTIFACTS_UNAVAILABLE_ID } from './taskUnavailable'
 
 /** Ids tying the tablist to the pane body it controls. */
+export const TASK_PANE_ASIDE_ID = 'task-details-pane'
 export const TASK_PANE_PANEL_ID = 'task-pane-panel'
 export const TASK_PANE_CHANGES_TAB_ID = 'task-pane-tab-changes'
 export const TASK_PANE_EVENTS_TAB_ID = 'task-pane-tab-events'

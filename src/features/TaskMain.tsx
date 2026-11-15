@@ -1,7 +1,15 @@
-import { useEffect, useRef, type ReactNode } from 'react'
-import { Icon, TaskOverflowMenu, TaskPage } from '../components'
+import {
+  useEffect,
+  useRef,
+  type ReactNode,
+  type RefObject,
+} from 'react'
+import { TaskPage } from '../components'
 import { TaskLoadingPage } from '../components/skeleton'
 import { TaskChangesHost } from './TaskChangesHost'
+import { TaskMainTopbar } from './TaskMainTopbar'
+import { usePaneLayoutMode } from './usePaneLayoutMode'
+import { useTaskPaneOverlay } from './useTaskPaneOverlay'
 import type {
   SidebarData,
   TaskChangesEntryRef,
@@ -10,18 +18,14 @@ import type {
 import {
   type TaskDialogOpener,
   type TaskScreenState,
-  overflowMenuView,
-  taskStatusView,
 } from '../presentation'
-import {
-  focusDialogOpener,
-  handleOverflowAction,
-} from './taskOverflowActions'
-import { TaskStatusBadge } from './TaskStatusBadge'
+import type { EventsFactsRevealId } from '../presentation/taskTopbarChips'
+import { focusDialogOpener } from './taskOverflowActions'
 
 type Props = {
   readonly state: TaskScreenState
   readonly sidebar: SidebarData | null
+  readonly mainRef: RefObject<HTMLElement | null>
   readonly onUnavailable: (label: string) => void
   readonly onAnnounce: (message: string) => void
   readonly onToggleChangesPane: (open: boolean) => void
@@ -29,6 +33,7 @@ type Props = {
   readonly onSelectChangesTurn: (taskId: TaskId) => void
   readonly onToggleChangesRepo: (root: string, expanded: boolean) => void
   readonly onSelectPaneTab: (tab: 'changes' | 'events') => void
+  readonly onRevealEventsFacts: (group: EventsFactsRevealId) => void
   readonly onLoadEarlierEvents: () => void
   readonly onToggleOverflowMenu: () => void
   readonly onCloseOverflowMenu: () => void
@@ -47,6 +52,7 @@ type Props = {
 export function TaskMain({
   state,
   sidebar,
+  mainRef,
   onUnavailable,
   onAnnounce,
   onToggleChangesPane,
@@ -54,6 +60,7 @@ export function TaskMain({
   onSelectChangesTurn,
   onToggleChangesRepo,
   onSelectPaneTab,
+  onRevealEventsFacts,
   onLoadEarlierEvents,
   onToggleOverflowMenu,
   onCloseOverflowMenu,
@@ -65,17 +72,11 @@ export function TaskMain({
   const ready =
     state.load.kind === 'ready' ? state.load.observation : null
   const usesEvents = ready?.detailsPane === 'events'
-  const usesChanges = ready?.detailsPane === 'changes'
   const showPane = state.changesPaneOpen
-  const showToggle = usesEvents || usesChanges || showPane
-  const readyMeta = ready
-    ? taskStatusView(ready, state.commandChrome).meta
-    : null
-  const overflowMenu =
-    ready && !state.overflowAnchorOmitted
-      ? overflowMenuView(ready, state.commandChrome)
-      : null
+  const layoutMode = usePaneLayoutMode(mainRef)
+  const overlay = showPane && layoutMode === 'overlay'
   const moreRef = useRef<HTMLButtonElement>(null)
+  const paneToggleRef = useRef<HTMLButtonElement>(null)
   const titleRef = useRef<HTMLSpanElement>(null)
   const focusTitleFor = useRef<TaskId | null>(null)
   const composerStopRef = useRef<HTMLButtonElement>(null)
@@ -97,7 +98,6 @@ export function TaskMain({
     wasDialog.current = state.dialog !== null
   }, [state.dialog, state.dialogOpener])
 
-  // After Open parent task, land on the parent's title once it has loaded.
   useEffect(() => {
     if (state.load.kind === 'loading') return
     if (focusTitleFor.current !== state.selectedTaskId) return
@@ -105,55 +105,32 @@ export function TaskMain({
     titleRef.current?.focus()
   }, [state.load.kind, state.selectedTaskId])
 
+  useTaskPaneOverlay({
+    overlay,
+    showPane,
+    eventsFactsReveal: state.eventsFactsReveal,
+    paneToggleRef,
+    onToggleChangesPane,
+  })
+
   const topbar = (
-    <div className="hd-topbar">
-      <span ref={titleRef} className="hd-topbar__title" tabIndex={-1}>
-        {title}
-      </span>
-      {ready ? (
-        <TaskStatusBadge
-          observation={ready}
-          commandChrome={state.commandChrome}
-        />
-      ) : null}
-      {ready && readyMeta !== null ? (
-        <span className="hd-topbar__meta">{readyMeta}</span>
-      ) : null}
-      <span className="hd-topbar__spacer" />
-      {showToggle ? (
-        <button
-          type="button"
-          className="hd-btn hd-btn--icon hd-btn--sm"
-          aria-label="Toggle right pane"
-          aria-pressed={showPane}
-          onClick={() => onToggleChangesPane(!showPane)}
-        >
-          <Icon name="panel-right" />
-        </button>
-      ) : null}
-      {ready && overflowMenu ? (
-        <TaskOverflowMenu
-          menu={overflowMenu}
-          open={state.overflowMenuOpen}
-          moreRef={moreRef}
-          onToggle={onToggleOverflowMenu}
-          onClose={(focusTrigger) => {
-            onCloseOverflowMenu()
-            if (focusTrigger) moreRef.current?.focus()
-          }}
-          onAction={(id) =>
-            handleOverflowAction(id, ready, {
-              onOpenDialog,
-              onOpenParentTask: (taskId) => {
-                focusTitleFor.current = taskId
-                onOpenParentTask(taskId)
-              },
-              onAnnounce,
-            })
-          }
-        />
-      ) : null}
-    </div>
+    <TaskMainTopbar
+      title={title}
+      state={state}
+      ready={ready}
+      showPane={showPane}
+      titleRef={titleRef}
+      paneToggleRef={paneToggleRef}
+      moreRef={moreRef}
+      onToggleChangesPane={onToggleChangesPane}
+      onRevealEventsFacts={onRevealEventsFacts}
+      onToggleOverflowMenu={onToggleOverflowMenu}
+      onCloseOverflowMenu={onCloseOverflowMenu}
+      onOpenDialog={onOpenDialog}
+      onOpenParentTask={onOpenParentTask}
+      onAnnounce={onAnnounce}
+      focusTitleFor={focusTitleFor}
+    />
   )
 
   function withTopbar(column: ReactNode): ReactNode {
@@ -166,7 +143,13 @@ export function TaskMain({
   }
 
   if (state.load.kind === 'loading') {
-    return <TaskLoadingPage knownTitle={knownTitle} />
+    return (
+      <TaskLoadingPage
+        knownTitle={knownTitle}
+        paneOpen={showPane}
+        onTogglePane={onToggleChangesPane}
+      />
+    )
   }
   if (state.load.kind !== 'ready') {
     return (
@@ -185,55 +168,50 @@ export function TaskMain({
     )
   }
 
-  if (usesEvents) {
-    return (
-      <div
-        className={showPane ? 'hd-split' : undefined}
-        style={showPane ? undefined : columnStyle}
-      >
-        <TaskPage
-          observation={state.load.observation}
-          commandChrome={state.commandChrome}
-          eventsPaneOpen={showPane}
-          columnWrapper={withTopbar}
-          onUnavailable={onUnavailable}
-          onStop={() => onOpenDialog('stop', 'composer-stop')}
-          onBannerStop={() => onOpenDialog('stop', 'banner-stop')}
-          composerStopRef={composerStopRef}
-          bannerStopRef={bannerStopRef}
-        />
-      </div>
-    )
-  }
+  const bodyClass = showPane
+    ? `hd-m05-body hd-m05-body--${layoutMode}`
+    : 'hd-m05-body hd-m05-body--nopane'
+  const pane = showPane && !usesEvents ? (
+    <TaskChangesHost
+      state={state}
+      onSelectEntry={onSelectChangedEntry}
+      onSelectTurn={onSelectChangesTurn}
+      onToggleRepo={onToggleChangesRepo}
+      onClosePane={() => onToggleChangesPane(false)}
+      onUnavailable={onUnavailable}
+      onSelectTab={onSelectPaneTab}
+      onLoadEarlier={onLoadEarlierEvents}
+    />
+  ) : null
+
+  const pageProps = {
+    observation: state.load.observation,
+    commandChrome: state.commandChrome,
+    onUnavailable,
+    onStop: () => onOpenDialog('stop', 'composer-stop'),
+    onBannerStop: () => onOpenDialog('stop', 'banner-stop'),
+    composerStopRef,
+    bannerStopRef,
+  } as const
 
   return (
-    <div
-      className={showPane ? 'hd-split' : undefined}
-      style={showPane ? undefined : columnStyle}
-    >
-      {withTopbar(
-        <TaskPage
-          observation={state.load.observation}
-          commandChrome={state.commandChrome}
-          onUnavailable={onUnavailable}
-          onStop={() => onOpenDialog('stop', 'composer-stop')}
-          onBannerStop={() => onOpenDialog('stop', 'banner-stop')}
-          composerStopRef={composerStopRef}
-          bannerStopRef={bannerStopRef}
-        />,
-      )}
-      {showPane && usesChanges ? (
-        <TaskChangesHost
-          state={state}
-          onSelectEntry={onSelectChangedEntry}
-          onSelectTurn={onSelectChangesTurn}
-          onToggleRepo={onToggleChangesRepo}
-          onClosePane={() => onToggleChangesPane(false)}
-          onUnavailable={onUnavailable}
-          onSelectTab={onSelectPaneTab}
-          onLoadEarlier={onLoadEarlierEvents}
-        />
-      ) : null}
+    <div className={bodyClass} style={bodyStyle}>
+      <div
+        className="hd-m05-column"
+        style={columnStyle}
+        {...(overlay ? { inert: true } : {})}
+      >
+        {usesEvents ? (
+          <TaskPage
+            {...pageProps}
+            eventsPaneOpen={showPane}
+            columnWrapper={withTopbar}
+          />
+        ) : (
+          withTopbar(<TaskPage {...pageProps} />)
+        )}
+      </div>
+      {pane}
     </div>
   )
 }
@@ -244,6 +222,12 @@ const columnStyle = {
   display: 'flex',
   flexDirection: 'column',
   minHeight: 0,
+} as const
+
+const bodyStyle = {
+  flex: '1 1 auto',
+  minHeight: 0,
+  minWidth: 0,
 } as const
 
 function resolveKnownTitle(

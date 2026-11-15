@@ -18,9 +18,9 @@ export {
   NewTaskLoadingComposer,
   SidebarCountSkeleton,
   SidebarListingSkeleton,
-  TaskLoadingPage,
   TaskTranscriptSkeleton,
 } from './skeletonWork'
+export { TaskLoadingPage } from './skeletonTaskLoading'
 export {
   WorkflowEditorLoadingPage,
   WorkflowsLoadingPage,

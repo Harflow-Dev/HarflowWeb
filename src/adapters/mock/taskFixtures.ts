@@ -2,6 +2,7 @@
  * Mapped task fixtures on the Design 854caae transcript surface.
  * Mock-only presentation — not a public ctl transcript protocol.
  */
+import { EDIT_REPO_ENFORCEMENT } from './taskEnforcementFixtures'
 import { asTaskId } from '../../model'
 import type { TaskLoad, TaskObservation } from '../../model'
 import {
@@ -59,6 +60,7 @@ export function slotReleaseObservation(): TaskObservation {
     detailsPane: null,
     repository: REPO_MCP,
     accessLevel: ACCESS_EDIT,
+    enforcement: EDIT_REPO_ENFORCEMENT,
   }
 }
 
@@ -73,6 +75,7 @@ export function preloadObservation(): TaskObservation {
     detailsPane: null,
     repository: REPO_MCP,
     accessLevel: ACCESS_EDIT,
+    enforcement: EDIT_REPO_ENFORCEMENT,
   }
 }
 
@@ -95,6 +98,7 @@ export function eventsReaderFailedObservation(): TaskObservation {
     detailsPane: null,
     repository: REPO_MCP,
     accessLevel: ACCESS_EDIT,
+    enforcement: EDIT_REPO_ENFORCEMENT,
   }
 }
 
@@ -111,6 +115,7 @@ export function retryBudgetCompletedObservation(): TaskObservation {
     detailsPane: 'changes',
     repository: REPO_WEB,
     accessLevel: ACCESS_EDIT,
+    enforcement: EDIT_REPO_ENFORCEMENT,
   }
 }
 

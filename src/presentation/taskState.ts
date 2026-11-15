@@ -5,6 +5,7 @@ import type {
   TaskChangesTextObservation,
   TaskEventsLoad,
   TaskEventsObservation,
+  TaskEventsRecord,
   TaskId,
   TaskLoad,
 } from '../model'
@@ -82,10 +83,27 @@ export type TaskScreenState = {
    */
   readonly eventsList: TaskEventsObservation | null
   readonly eventsLoad: TaskEventsLoad
-  /** Design `ui.loaded` for Events: earlier page is shown above the newest. */
-  readonly eventsEarlierLoaded: boolean
-  /** Design pageError chrome: newest records stay; earlier read failed. */
-  readonly eventsEarlierError: boolean
+  /** Older-page reads for the current Events observation. */
+  readonly eventsEarlier: EventsEarlierState
+}
+
+/**
+ * Older records read so far (ascending, shown above the newest page) and the
+ * position the next read continues from. `error` keeps the records read.
+ */
+export type EventsEarlierState = {
+  readonly status: 'idle' | 'loading' | 'loaded' | 'error'
+  readonly records: readonly TaskEventsRecord[]
+  /** Valid only once `status` is `loaded`. */
+  readonly hasOlder: boolean
+  readonly olderCursor: string | null
+}
+
+export const IDLE_EVENTS_EARLIER: EventsEarlierState = {
+  status: 'idle',
+  records: [],
+  hasOlder: false,
+  olderCursor: null,
 }
 
 export function initialTaskState(): TaskScreenState {
@@ -109,8 +127,7 @@ export function initialTaskState(): TaskScreenState {
     paneTab: 'changes',
     eventsList: null,
     eventsLoad: { kind: 'loading' },
-    eventsEarlierLoaded: false,
-    eventsEarlierError: false,
+    eventsEarlier: IDLE_EVENTS_EARLIER,
   }
 }
 
@@ -129,11 +146,4 @@ export type TaskChangesChrome = {
   readonly expandedRepos?: readonly string[]
   readonly turns?: readonly TaskChangesTurnMember[]
   readonly textPanels?: readonly TaskChangesTextPanel[]
-}
-
-/** Preview / session chrome for the Events tab (design `ui.loaded` / pageError). */
-export type TaskEventsChrome = {
-  readonly paneTab?: 'changes' | 'events'
-  readonly earlierLoaded?: boolean
-  readonly earlierError?: boolean
 }

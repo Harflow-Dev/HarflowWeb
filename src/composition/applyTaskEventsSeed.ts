@@ -7,7 +7,10 @@ type LoadProbe = {
   readonly kind: 'loading' | 'unavailable' | 'ready'
 }
 
-/** Seeds Events-tab chrome after the task is ready and the pane is open. */
+/**
+ * Asks for the older Events page once the Events read is ready, as a person's
+ * Load earlier would. The mock engine decides the answer.
+ */
 export function applyTaskEventsSeed(
   presenter: AppPresenter,
   seed: NewTaskScenarioSeed,
@@ -18,18 +21,20 @@ export function applyTaskEventsSeed(
   ) => void,
 ): void {
   if (seed.openTaskId === undefined) return
-  if (seed.eventsChrome === undefined) return
+  if (seed.eventsLoadEarlier !== true) return
   const taskId = asTaskId(seed.openTaskId)
-  const chrome = seed.eventsChrome
   whenLoaded(
     presenter,
     (state) => {
-      const kind = state.task.load.kind
+      const { selectedTaskId, load, eventsLoad, changesPaneOpen } = state.task
+      if (selectedTaskId !== taskId) return { open: false, kind: 'loading' }
+      if (load.kind !== 'ready') return { open: true, kind: load.kind }
+      const waiting = !changesPaneOpen || eventsLoad.kind === 'loading'
       return {
-        open: state.task.selectedTaskId === taskId,
-        kind: kind === 'ready' && !state.task.changesPaneOpen ? 'loading' : kind,
+        open: true,
+        kind: waiting ? 'loading' : eventsLoad.kind === 'ready' ? 'ready' : 'unavailable',
       }
     },
-    () => presenter.seedTaskEventsChrome(taskId, chrome),
+    () => presenter.loadTaskEarlierEvents(),
   )
 }

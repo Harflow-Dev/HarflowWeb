@@ -11,10 +11,10 @@ const ready = {
   kind: 'ready' as const,
   observation: {
     taskId: populatedEventsTaskObservation().taskId,
+    log: { state: 'final' as const },
     records: [],
-    hasEarlier: false,
-    earlierPage: [],
-    logState: 'available' as const,
+    hasOlder: false,
+    olderCursor: null,
   },
 }
 
@@ -23,6 +23,17 @@ describe('eventsLifecycleFor', () => {
     const pending = TASK_EVENTS_BY_ID.get(TASK_EVENTS_NOT_STARTED_ID)!
     expect(eventsLifecycleFor(pending, loading)).toBe('notStarted')
     expect(eventsLifecycleFor(pending, ready)).toBe('notStarted')
+  })
+
+  it('maps the engine pending-launch refusal to notStarted', () => {
+    const refused = {
+      kind: 'refused' as const,
+      code: 'task_pending_launch' as const,
+      launchState: 'waiting_for_resources',
+    }
+    expect(eventsLifecycleFor(populatedEventsTaskObservation(), refused)).toBe(
+      'notStarted',
+    )
   })
 
   it('maps unread status to unavailable', () => {

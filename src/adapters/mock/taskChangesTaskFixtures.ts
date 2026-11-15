@@ -3,6 +3,7 @@
  * Completed fixtures reuse the retry-budget transcript/summary; running uses
  * the slot-release conversation. Mock-only — not a ctl transcript protocol.
  */
+import { EDIT_REPO_ENFORCEMENT } from './taskEnforcementFixtures'
 import { asTaskId, type TaskObservation } from '../../model'
 import { retryBudgetDoneTranscript, slotReleaseTranscript } from './mappedTaskTranscripts'
 import { doneConversation, runningConversation } from './taskConversationFixtures'
@@ -52,6 +53,7 @@ function completedChanges(
     detailsPane: 'changes',
     repository: REPO_WEB,
     accessLevel: ACCESS_EDIT,
+    enforcement: EDIT_REPO_ENFORCEMENT,
     ...extra,
   }
 }
@@ -73,6 +75,7 @@ function runningChanges(taskId: ReturnType<typeof asTaskId>): TaskObservation {
     detailsPane: 'changes',
     repository: REPO_MCP,
     accessLevel: ACCESS_EDIT,
+    enforcement: EDIT_REPO_ENFORCEMENT,
   }
 }
 

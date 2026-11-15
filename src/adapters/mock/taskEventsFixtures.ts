@@ -1,22 +1,34 @@
 /**
- * Stored events fixtures — exact JSON from Design 6e31cd7 EVENTS map.
- * Mock-only presentation — not a public ctl events protocol.
+ * Stored events fixtures keyed by task id. Specimens follow Design 6e31cd7;
+ * other tasks derive their history from the task fixture so Events agrees
+ * with the task's status. Mock-only — not a public ctl events protocol.
  */
-import type {
-  TaskEventsLoad,
-  TaskEventsObservation,
-  TaskEventsQuery,
-  TaskEventsRecord,
+import {
+  observedEngineStatus,
+  type TaskEventsLoad,
+  type TaskEventsObservation,
+  type TaskEventsOlderLoad,
+  type TaskEventsOlderQuery,
+  type TaskEventsQuery,
+  type TaskId,
 } from '../../model'
 import {
   TASK_EVENTS_EMPTY_ID,
   TASK_EVENTS_ERROR_ID,
   TASK_EVENTS_LOADING_ID,
-  TASK_EVENTS_NOT_STARTED_ID,
   TASK_EVENTS_PAGE_ERROR_ID,
   TASK_EVENTS_PAGE_ID,
   TASK_EVENTS_POPULATED_ID,
 } from './taskEventsFixtureIds'
+import {
+  ASSISTANT_DONE,
+  ASSISTANT_START,
+  genericRecords,
+  STUB_FUTURE,
+  TOOL_PASSED,
+  TOOL_RESULT,
+} from './taskEventsRecordFixtures'
+import { taskLoadFor } from './taskFixtures'
 
 export {
   TASK_EVENTS_EMPTY_ID,
@@ -28,142 +40,143 @@ export {
   TASK_EVENTS_POPULATED_ID,
 } from './taskEventsFixtureIds'
 
-const ACTIVITY_CAPTION =
-  'Observed in available captured history; this does not prove complete execution capture.'
-
-const TOOL_RESULT: TaskEventsRecord = {
-  title: 'Tool result · normalized record',
-  json: `{
-  "format": "harflow.event", "product": "harflow",
-  "product_version": "0.0.11", "v": 1,
-  "observed_at": "2026-10-14T17:46:40+00:00", "seq": 5,
-  "kind": "tool_result", "call_id": "call-1",
-  "is_error": false, "output": "Readme body"
-}`,
-}
-
-const ASSISTANT_START: TaskEventsRecord = {
-  title: 'Assistant text · normalized record',
-  json: `{
-  "format": "harflow.event", "product": "harflow",
-  "product_version": "0.0.11", "v": 1,
-  "observed_at": "2026-10-14T17:46:40+00:00", "seq": 40,
-  "kind": "assistant_text", "text": "Starting."
-}`,
-}
-
-const ASSISTANT_DONE: TaskEventsRecord = {
-  title: 'Assistant text · normalized record',
-  json: `{
-  "format": "harflow.event", "product": "harflow",
-  "product_version": "0.0.11", "v": 1,
-  "observed_at": "2026-10-14T17:46:40+00:00", "seq": 41,
-  "kind": "assistant_text", "text": "Done."
-}`,
-}
-
-const TOOL_PASSED: TaskEventsRecord = {
-  title: 'Tool result · normalized record',
-  json: `{
-  "format": "harflow.event", "product": "harflow",
-  "product_version": "0.0.11", "v": 1,
-  "observed_at": "2026-10-14T17:46:40+00:00", "seq": 42,
-  "kind": "tool_result", "call_id": "call-9",
-  "is_error": false, "output": "11 passed"
-}`,
-}
-
-const STUB_FUTURE: TaskEventsRecord = {
-  title: 'Unsupported record · public stub',
-  json: `{
-  "format": "harflow.event", "product": "harflow",
-  "product_version": "0.0.11", "v": 1,
-  "observed_at": "2026-10-14T17:46:40+00:00", "seq": 43,
-  "kind": "future_kind", "truncated": true
-}`,
-}
-
 function observation(
-  taskId: TaskEventsObservation['taskId'],
+  taskId: TaskId,
   extra: Partial<TaskEventsObservation>,
 ): TaskEventsObservation {
   return {
     taskId,
+    log: { state: 'final' },
     records: [],
-    hasEarlier: false,
-    earlierPage: [],
-    logState: 'available',
+    hasOlder: false,
+    olderCursor: null,
     ...extra,
   }
 }
 
-const BY_ID: ReadonlyMap<string, TaskEventsObservation> = new Map([
+const PAGE_CURSOR = (taskId: TaskId) => `older:${taskId}:41`
+
+function pagedObservation(taskId: TaskId): TaskEventsObservation {
+  return observation(taskId, {
+    records: [ASSISTANT_DONE, TOOL_PASSED, STUB_FUTURE],
+    hasOlder: true,
+    olderCursor: PAGE_CURSOR(taskId),
+  })
+}
+
+const SPECIMENS: ReadonlyMap<string, TaskEventsObservation> = new Map([
   [
     TASK_EVENTS_POPULATED_ID,
     observation(TASK_EVENTS_POPULATED_ID, {
-      activityFacts: {
-        toolCallsObserved: 2,
-        caption: ACTIVITY_CAPTION,
-      },
+      toolCallsObserved: 2,
       records: [TOOL_RESULT],
-      recoveredTranscriptNote: true,
+      recoveredTranscript: true,
     }),
   ],
-  [
-    TASK_EVENTS_PAGE_ID,
-    observation(TASK_EVENTS_PAGE_ID, {
-      records: [ASSISTANT_DONE, TOOL_PASSED, STUB_FUTURE],
-      hasEarlier: true,
-      earlierPage: [ASSISTANT_START],
-    }),
-  ],
-  [
-    TASK_EVENTS_PAGE_ERROR_ID,
-    observation(TASK_EVENTS_PAGE_ERROR_ID, {
-      records: [ASSISTANT_DONE, TOOL_PASSED, STUB_FUTURE],
-      hasEarlier: true,
-      earlierPage: [ASSISTANT_START],
-    }),
-  ],
+  [TASK_EVENTS_PAGE_ID, pagedObservation(TASK_EVENTS_PAGE_ID)],
+  [TASK_EVENTS_PAGE_ERROR_ID, pagedObservation(TASK_EVENTS_PAGE_ERROR_ID)],
   [
     TASK_EVENTS_EMPTY_ID,
-    observation(TASK_EVENTS_EMPTY_ID, { logState: 'empty' }),
+    observation(TASK_EVENTS_EMPTY_ID, { log: { state: 'open' } }),
   ],
   [
     TASK_EVENTS_ERROR_ID,
-    observation(TASK_EVENTS_ERROR_ID, { logState: 'unavailable' }),
+    observation(TASK_EVENTS_ERROR_ID, { log: { state: 'unavailable' } }),
   ],
   [
     TASK_EVENTS_LOADING_ID,
     observation(TASK_EVENTS_LOADING_ID, {
-      activityFacts: {
-        toolCallsObserved: 2,
-        caption: ACTIVITY_CAPTION,
-      },
+      log: { state: 'open' },
+      toolCallsObserved: 2,
       records: [TOOL_RESULT],
     }),
   ],
-  [
-    TASK_EVENTS_NOT_STARTED_ID,
-    observation(TASK_EVENTS_NOT_STARTED_ID, { logState: 'empty' }),
-  ],
 ])
 
-export function taskEventsLoadFor(query: TaskEventsQuery): TaskEventsLoad {
-  const found = BY_ID.get(query.taskId)
-  if (!found) {
+/** The one older page: seq 40, reaching the beginning. */
+function olderAnswer(taskId: TaskId): TaskEventsOlderLoad {
+  if (taskId === TASK_EVENTS_PAGE_ERROR_ID) {
+    return { kind: 'refused', code: 'event_cursor_expired' }
+  }
+  return {
+    kind: 'ready',
+    page: {
+      taskId,
+      records: [ASSISTANT_START],
+      hasOlder: false,
+      olderCursor: null,
+    },
+  }
+}
+
+export function taskEventsOlderLoadFor(
+  query: TaskEventsOlderQuery,
+): TaskEventsOlderLoad {
+  if (!SPECIMENS.has(query.taskId) || !SPECIMENS.get(query.taskId)?.hasOlder) {
     return {
       kind: 'unavailable',
-      message: `No mock events are mapped for task ${query.taskId}.`,
+      message: `No older mock events are mapped for task ${query.taskId}.`,
     }
   }
-  return { kind: 'ready', observation: found }
+  if (query.before !== PAGE_CURSOR(query.taskId)) {
+    return { kind: 'refused', code: 'event_cursor_invalid' }
+  }
+  return olderAnswer(query.taskId)
+}
+
+/** Engine log state and history for a task without a specimen. */
+function derivedObservation(taskId: TaskId): TaskEventsLoad {
+  const load = taskLoadFor(taskId)
+  if (load.kind !== 'ready') {
+    return {
+      kind: 'unavailable',
+      message: `No mock events are mapped for task ${taskId}.`,
+    }
+  }
+  const task = load.observation
+  const status = observedEngineStatus(task.statusRead)
+  if (task.statusRead.kind === 'unread') {
+    return { kind: 'unavailable', message: 'The engine did not answer.' }
+  }
+  if (status === 'pending') {
+    return {
+      kind: 'refused',
+      code: 'task_pending_launch',
+      launchState: 'waiting_for_resources',
+    }
+  }
+  const live = status === 'running'
+  const lost = task.supervision === 'owner_lost'
+  const unobserved = task.exitObserved === false
+  const finished = live ? null : (status ?? 'unknown')
+  const state = live
+    ? lost
+      ? 'incomplete'
+      : 'open'
+    : task.settling === true
+      ? 'settling'
+      : unobserved
+        ? 'incomplete'
+        : 'final'
+  return {
+    kind: 'ready',
+    observation: observation(taskId, {
+      log: { state },
+      records: genericRecords(state === 'final' ? finished : null),
+    }),
+  }
+}
+
+export function taskEventsLoadFor(query: TaskEventsQuery): TaskEventsLoad {
+  const specimen = SPECIMENS.get(query.taskId)
+  if (specimen) return { kind: 'ready', observation: specimen }
+  return derivedObservation(query.taskId)
 }
 
 export function populatedEventsObservation(): TaskEventsObservation {
-  return BY_ID.get(TASK_EVENTS_POPULATED_ID)!
+  return SPECIMENS.get(TASK_EVENTS_POPULATED_ID)!
 }
 
 export function pageEventsObservation(): TaskEventsObservation {
-  return BY_ID.get(TASK_EVENTS_PAGE_ID)!
+  return SPECIMENS.get(TASK_EVENTS_PAGE_ID)!
 }

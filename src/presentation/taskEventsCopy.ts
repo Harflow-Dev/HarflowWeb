@@ -71,9 +71,30 @@ export const EVENTS_ENFORCEMENT_LABELS = {
   network: 'Network',
 } as const
 
+/** Requested freedom → display (only write_in_repo is designed). */
+export const EVENTS_FREEDOM_LABELS: Readonly<Record<string, string>> = {
+  write_in_repo: 'Can edit this repo',
+  read_only: 'Read only',
+  publish: 'Can edit and publish',
+  unrestricted: 'Unrestricted',
+}
+
 export const EVENTS_YES = 'Yes'
 export const EVENTS_NO = 'No'
 export const EVENTS_DENIED = 'Denied'
 export const EVENTS_ALLOWED = 'Allowed'
 export const EVENTS_NOT_ENFORCED = 'Not enforced'
 export const EVENTS_NOT_ALLOWED = 'Not allowed'
+
+/** Record kind → title; unknown kinds are public stubs. */
+export const EVENTS_KIND_LABELS: Readonly<Record<string, string>> = {
+  task_started: 'Task started',
+  assistant_delta: 'Assistant delta',
+  assistant_text: 'Assistant text',
+  tool_call: 'Tool call',
+  tool_result: 'Tool result',
+  usage: 'Usage',
+  task_finished: 'Task finished',
+}
+export const EVENTS_RECORD_SUFFIX = ' · normalized record'
+export const EVENTS_STUB_TITLE = 'Unsupported record · public stub'

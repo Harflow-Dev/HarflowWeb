@@ -23,10 +23,7 @@ function eventsScenario(
   openTaskId: string,
   extra?: {
     readonly taskEvents?: 'defer'
-    readonly eventsChrome?: {
-      readonly earlierLoaded?: boolean
-      readonly earlierError?: boolean
-    }
+    readonly loadEarlier?: boolean
   },
 ): ScenarioDefinition {
   return base({
@@ -44,9 +41,7 @@ function eventsScenario(
       openTaskId,
       eventsPaneOpen: true,
       paneTab: 'events',
-      ...(extra?.eventsChrome !== undefined
-        ? { eventsChrome: extra.eventsChrome }
-        : {}),
+      ...(extra?.loadEarlier === true ? { eventsLoadEarlier: true } : {}),
     },
   })
 }
@@ -75,9 +70,9 @@ export const TASK_EVENTS_SCENARIOS: readonly ScenarioDefinition[] = [
   eventsScenario(
     'task-events-page-error',
     'Task Events page error',
-    "Approved task/events-page-error (M05). Loaded records stay; earlier read failed.",
+    "Approved task/events-page-error (M05). Loaded records stay; the engine refused the older-page cursor as expired.",
     TASK_EVENTS_PAGE_ERROR_ID,
-    { eventsChrome: { earlierError: true } },
+    { loadEarlier: true },
   ),
   eventsScenario(
     'task-events-not-started',

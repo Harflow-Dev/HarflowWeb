@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { idleObservation } from '../adapters/mock/mockObservation'
 import { stubPendingLaunchPort } from '../adapters/mock/stubPendingLaunchPort'
 import {
   createLoadStatisticsUseCase,
@@ -72,6 +73,9 @@ function createCapturingPort(
     },
     observeTaskChanges() {
       return noopHandle('changes')
+    },
+    observeTaskEventsOlder() {
+      return idleObservation()
     },
     observeTaskEvents() {
       return noopHandle('events')
@@ -148,6 +152,9 @@ function createDeferredPort(): {
       },
       observeTaskChanges() {
         return noopHandle('changes')
+      },
+      observeTaskEventsOlder() {
+        return idleObservation()
       },
       observeTaskEvents() {
         return noopHandle('events')

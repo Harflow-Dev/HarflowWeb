@@ -1,4 +1,5 @@
 import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react'
+import { idleObservation } from '../adapters/mock/mockObservation'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it } from 'vitest'
 import {
@@ -353,6 +354,9 @@ function createTestEngine(options?: {
           }
         },
       }
+    },
+    observeTaskEventsOlder() {
+      return idleObservation()
     },
     observeTaskEvents(query, onUpdate) {
       queueMicrotask(() => onUpdate(taskEventsLoadFor(query)))

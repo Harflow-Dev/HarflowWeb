@@ -55,6 +55,7 @@ function paneProps(
     onClosePane: () => undefined,
     onUnavailable: () => undefined,
     onSelectTab: () => undefined,
+    onLoadEarlier: () => undefined,
     ...overrides,
   }
 }

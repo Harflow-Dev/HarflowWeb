@@ -1,4 +1,5 @@
 import { act, cleanup, render, screen } from '@testing-library/react'
+import { idleObservation } from '../adapters/mock/mockObservation'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it } from 'vitest'
 import {
@@ -114,6 +115,9 @@ function transcriptEngine(): EnginePort {
     observeTaskChanges(query, onUpdate) {
       queueMicrotask(() => onUpdate(taskChangesLoadFor(query)))
       return handle('changes')
+    },
+    observeTaskEventsOlder() {
+      return idleObservation()
     },
     observeTaskEvents(query, onUpdate) {
       queueMicrotask(() => onUpdate(taskEventsLoadFor(query)))

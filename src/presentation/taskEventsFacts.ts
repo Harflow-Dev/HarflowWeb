@@ -1,4 +1,5 @@
 import type { TaskEnforcement, TaskObservation } from '../model'
+import { taskExitNotObserved } from './taskObservation'
 import { badgeForStatus } from './taskStatusBadgeMap'
 import {
   EVENTS_ALLOWED,
@@ -13,6 +14,7 @@ import {
   EVENTS_FACTS_ENFORCEMENT,
   EVENTS_FACTS_NOTICES,
   EVENTS_FACTS_TASK,
+  EVENTS_FREEDOM_LABELS,
   EVENTS_NO,
   EVENTS_NO_NOTICES,
   EVENTS_NOT_ALLOWED,
@@ -52,7 +54,7 @@ export function harnessFromMeta(headerMeta: string): string {
 }
 
 export function exitFactValue(observation: TaskObservation): string {
-  return observation.exitObserved === false
+  return taskExitNotObserved(observation)
     ? EVENTS_EXIT_NOT_OBSERVED
     : EVENTS_EXIT_DASH
 }
@@ -68,37 +70,59 @@ function yesNo(value: boolean): string {
 }
 
 function commitLabel(
-  value: TaskEnforcement['directCommitCommands'],
+  value: 'denied' | 'allowed' | 'not_enforced',
 ): string {
   if (value === 'denied') return EVENTS_DENIED
   if (value === 'allowed') return EVENTS_ALLOWED
   return EVENTS_NOT_ENFORCED
 }
 
-function networkLabel(value: string): string {
+function humanized(value: string): string {
   const spaced = value.replaceAll('_', ' ')
   if (spaced.length === 0) return spaced
   return spaced.charAt(0).toUpperCase() + spaced.slice(1)
 }
 
+function requestedLabel(freedom: string): string {
+  return EVENTS_FREEDOM_LABELS[freedom] ?? humanized(freedom)
+}
+
+/**
+ * Enforcement pairs. A record that predates persisted enforcement restates
+ * only the requested freedom (undesigned; the note replaces the caption).
+ * An absent `local_commit` omits its row rather than claiming a value.
+ */
 export function enforcementPairs(
   enforcement: TaskEnforcement,
 ): readonly EventsFactPair[] {
   const labels = EVENTS_ENFORCEMENT_LABELS
+  const requested = {
+    term: labels.requested,
+    value: requestedLabel(enforcement.freedom),
+  }
+  if (!enforcement.recorded) return [requested]
+  const commit: readonly EventsFactPair[] =
+    enforcement.localCommit === undefined
+      ? []
+      : [
+          {
+            term: labels.directCommitCommands,
+            value: commitLabel(enforcement.localCommit),
+          },
+        ]
   return [
-    { term: labels.requested, value: enforcement.requested },
+    requested,
     { term: labels.mechanism, value: enforcement.mechanism },
-    { term: labels.osSandbox, value: yesNo(enforcement.osSandbox) },
+    { term: labels.osSandbox, value: yesNo(enforcement.osEnforced) },
     { term: labels.writesConfined, value: yesNo(enforcement.writesConfined) },
-    {
-      term: labels.directCommitCommands,
-      value: commitLabel(enforcement.directCommitCommands),
-    },
+    ...commit,
     {
       term: labels.publishAttempts,
-      value: enforcement.publishAttempts ? EVENTS_ALLOWED : EVENTS_NOT_ALLOWED,
+      value: enforcement.publishAttemptsAllowed
+        ? EVENTS_ALLOWED
+        : EVENTS_NOT_ALLOWED,
     },
-    { term: labels.network, value: networkLabel(enforcement.network) },
+    { term: labels.network, value: humanized(enforcement.networkAccess) },
   ]
 }
 
@@ -109,13 +133,17 @@ export function taskFactPairs(
     { term: 'Status', value: badgeForStatus(observation, null).label },
     { term: 'Exit', value: exitFactValue(observation) },
     { term: 'Harness', value: harnessFromMeta(observation.headerMeta) },
-    { term: 'Repository', value: observation.repository?.name ?? EVENTS_EXIT_DASH },
-    { term: 'Turns', value: turnsFactValue(observation) },
     {
-      term: 'Task ID',
-      value: observation.publicTaskId ?? observation.taskId,
+      term: 'Repository',
+      value: observation.repository?.name ?? EVENTS_EXIT_DASH,
     },
+    { term: 'Turns', value: turnsFactValue(observation) },
+    { term: 'Task ID', value: observation.taskId },
   ]
+}
+
+function enforcementCaption(enforcement: TaskEnforcement): string {
+  return enforcement.recorded ? EVENTS_ENFORCEMENT_CAPTION : enforcement.note
 }
 
 /** Collapsed facts groups at the top of the Events tab (design factsGroups). */
@@ -135,7 +163,7 @@ export function eventsFactsGroups(
       id: 'enforcement',
       title: EVENTS_FACTS_ENFORCEMENT,
       pairs: enforcementPairs(observation.enforcement),
-      caption: EVENTS_ENFORCEMENT_CAPTION,
+      caption: enforcementCaption(observation.enforcement),
     })
   }
   groups.push({

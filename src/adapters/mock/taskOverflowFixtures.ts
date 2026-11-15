@@ -1,6 +1,7 @@
 /**
  * G-OVERFLOW task fixtures (Design 6e31cd7 overflow / stop / takeover states).
  */
+import { EDIT_REPO_ENFORCEMENT } from './taskEnforcementFixtures'
 import { asTaskId, type TaskObservation } from '../../model'
 import { runningConversation } from './taskConversationFixtures'
 import { slotReleaseTranscript } from './mappedTaskTranscripts'
@@ -32,6 +33,7 @@ function runningBase(
     detailsPane: null,
     repository: REPO_MCP,
     accessLevel: ACCESS_EDIT,
+    enforcement: EDIT_REPO_ENFORCEMENT,
     ...extra,
   }
 }

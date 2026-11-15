@@ -327,7 +327,7 @@ body,
 .hd-m05-events .hd-m05-h {
   margin: 10px 0 2px;
   font-size: 12px;
-  line-height: 17px;
+  line-height: inherit;
   font-weight: 600;
   color: var(--text-secondary);
 }

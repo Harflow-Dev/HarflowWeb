@@ -5,7 +5,11 @@ import {
   beginTaskChangesObservation,
   changesEntriesEqual,
 } from './taskSessionChanges'
-import type { TaskChangesChrome, TaskScreenState } from './taskState'
+import {
+  IDLE_EVENTS_EARLIER,
+  type TaskChangesChrome,
+  type TaskScreenState,
+} from './taskState'
 
 export type ChangesPaneHost = {
   isDisposed(): boolean
@@ -112,8 +116,7 @@ export function closedChangesPaneState(state: TaskScreenState): TaskScreenState 
     changesTextPanels: null,
     eventsList: null,
     eventsLoad: { kind: 'loading' },
-    eventsEarlierLoaded: false,
-    eventsEarlierError: false,
+    eventsEarlier: IDLE_EVENTS_EARLIER,
   }
 }
 
@@ -143,8 +146,7 @@ export function openedChangesPaneState(state: TaskScreenState): {
       changesTextPanels: null,
       eventsList: null,
       eventsLoad: { kind: 'loading' },
-      eventsEarlierLoaded: false,
-      eventsEarlierError: false,
+      eventsEarlier: IDLE_EVENTS_EARLIER,
     },
   }
 }
@@ -170,8 +172,7 @@ export function loadingTaskScreenState(taskId: TaskId): TaskScreenState {
     paneTab: 'changes',
     eventsList: null,
     eventsLoad: { kind: 'loading' },
-    eventsEarlierLoaded: false,
-    eventsEarlierError: false,
+    eventsEarlier: IDLE_EVENTS_EARLIER,
   }
 }
 

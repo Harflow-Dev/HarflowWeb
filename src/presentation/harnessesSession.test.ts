@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { idleObservation } from '../adapters/mock/mockObservation'
 import { stubPendingLaunchPort } from '../adapters/mock/stubPendingLaunchPort'
 import { createLoadHarnessesUseCase, type EnginePort } from '../application'
 import {
@@ -50,6 +51,9 @@ function createCapturingPort(): {
     },
     observeTaskChanges() {
       return noopHandle('changes')
+    },
+    observeTaskEventsOlder() {
+      return idleObservation()
     },
     observeTaskEvents() {
       return noopHandle('events')

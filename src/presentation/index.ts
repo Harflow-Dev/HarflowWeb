@@ -133,11 +133,11 @@ export { routeConnection } from './workflowConnectionRouter'
 export { occupancyCost } from './workflowRouteOccupancy'
 export {
   initialTaskState,
+  type EventsEarlierState,
   type TaskCommandChrome,
   type TaskDialogKind,
   type TaskDialogOpener,
   type TaskChangesChrome,
-  type TaskEventsChrome,
   type TaskOverflowChrome,
   type TaskScreenState,
 } from './taskState'
@@ -148,14 +148,10 @@ export {
 } from './taskEventsLifecycle'
 export {
   eventsFactsGroups,
-  enforcementPairs,
-  exitFactValue,
-  harnessFromMeta,
-  taskFactPairs,
-  turnsFactValue,
   type EventsFactPair,
   type EventsFactsGroupView,
 } from './taskEventsFacts'
+export { eventRecordTitle } from './taskEventsRecords'
 export {
   taskDialogOpen,
   taskDialogView,

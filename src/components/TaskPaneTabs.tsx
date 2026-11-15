@@ -1,4 +1,4 @@
-import { useRef, useState, type KeyboardEvent } from 'react'
+import { useEffect, useRef, useState, type KeyboardEvent } from 'react'
 import { Icon } from './Icon'
 import { TASK_ARTIFACTS_UNAVAILABLE_ID } from './taskUnavailable'
 
@@ -10,7 +10,7 @@ export const TASK_PANE_EVENTS_TAB_ID = 'task-pane-tab-events'
 type Props = {
   readonly changesCount: string | null
   readonly activeTab?: 'changes' | 'events'
-  readonly onSelectTab?: (tab: 'changes' | 'events') => void
+  readonly onSelectTab: (tab: 'changes' | 'events') => void
   readonly onClosePane: () => void
   readonly onUnavailable: (label: string) => void
 }
@@ -21,7 +21,7 @@ const ORDER: readonly TabKey[] = ['changes', 'artifacts', 'events']
 /**
  * Changes / Artifacts / Events tablist plus Close, matching design paneHtml.
  * Roving tabindex over every tab: Left/Right wrap and Home/End jump.
- * Events is enabled when onSelectTab is provided. Artifacts stay unavailable.
+ * Artifacts stay unavailable.
  */
 export function TaskPaneTabs({
   changesCount,
@@ -36,6 +36,15 @@ export function TaskPaneTabs({
     events: null,
   })
   const [focused, setFocused] = useState<TabKey>(activeTab)
+  const tablist = useRef<HTMLDivElement | null>(null)
+
+  // The active tab changed (click, seed, session): the tab stop follows it
+  // unless focus is inside the tablist, where roving focus owns the stop.
+  useEffect(() => {
+    if (!tablist.current?.contains(document.activeElement)) {
+      setFocused(activeTab)
+    }
+  }, [activeTab])
 
   function onKeyDown(event: KeyboardEvent<HTMLDivElement>): void {
     if (
@@ -43,11 +52,7 @@ export function TaskPaneTabs({
       (focused === 'changes' || focused === 'events')
     ) {
       event.preventDefault()
-      if (focused === 'events' && onSelectTab === undefined) {
-        onUnavailable('Open Events')
-        return
-      }
-      onSelectTab?.(focused)
+      onSelectTab(focused)
       return
     }
     if (event.key === 'Enter' || event.key === ' ') {
@@ -74,12 +79,16 @@ export function TaskPaneTabs({
     onFocus: () => setFocused(key),
   })
 
-  const eventsEnabled = onSelectTab !== undefined
   const eventsSelected = activeTab === 'events'
 
   return (
     <div className="hd-pane__head">
-      <div className="hd-tabs" role="tablist" onKeyDown={onKeyDown}>
+      <div
+        ref={tablist}
+        className="hd-tabs"
+        role="tablist"
+        onKeyDown={onKeyDown}
+      >
         <button
           {...tabProps('changes')}
           id={TASK_PANE_CHANGES_TAB_ID}
@@ -88,7 +97,7 @@ export function TaskPaneTabs({
           className={
             activeTab === 'changes' ? 'hd-tab is-active' : 'hd-tab'
           }
-          onClick={() => onSelectTab?.('changes')}
+          onClick={() => onSelectTab('changes')}
         >
           Changes
           {changesCount !== null ? (
@@ -112,12 +121,9 @@ export function TaskPaneTabs({
           {...tabProps('events')}
           id={TASK_PANE_EVENTS_TAB_ID}
           aria-selected={eventsSelected ? 'true' : 'false'}
-          aria-controls={eventsEnabled ? TASK_PANE_PANEL_ID : undefined}
+          aria-controls={TASK_PANE_PANEL_ID}
           className={eventsSelected ? 'hd-tab is-active' : 'hd-tab'}
-          onClick={() => {
-            if (eventsEnabled) onSelectTab('events')
-            else onUnavailable('Open Events')
-          }}
+          onClick={() => onSelectTab('events')}
         >
           Events
         </button>

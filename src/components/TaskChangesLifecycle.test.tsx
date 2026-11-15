@@ -51,6 +51,8 @@ function paneProps(taskObservation: TaskObservation): TaskChangesPaneProps {
     onToggleRepo: () => undefined,
     onClosePane: () => undefined,
     onUnavailable: () => undefined,
+    onSelectTab: () => undefined,
+    onLoadEarlier: () => undefined,
   }
 }
 

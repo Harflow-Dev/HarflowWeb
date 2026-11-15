@@ -3,6 +3,8 @@ import type {
   TaskEventsObservation,
   TaskObservation,
 } from '../model'
+import type { EventsEarlierState } from '../presentation'
+import { IDLE_EVENTS_EARLIER } from '../presentation/taskState'
 import { eventsLifecycleFor } from '../presentation/taskEventsLifecycle'
 import {
   EVENTS_NOT_STARTED,
@@ -20,8 +22,7 @@ type Props = {
   readonly taskObservation: TaskObservation
   readonly load: TaskEventsLoad
   readonly list: TaskEventsObservation | null
-  readonly earlierLoaded: boolean
-  readonly earlierError: boolean
+  readonly earlier: EventsEarlierState
   readonly onLoadEarlier: () => void
   readonly onUnavailable: (label: string) => void
 }
@@ -33,8 +34,7 @@ export function TaskEventsM05Body({
   taskObservation,
   load,
   list,
-  earlierLoaded,
-  earlierError,
+  earlier,
   onLoadEarlier,
   onUnavailable,
 }: Props) {
@@ -82,8 +82,7 @@ export function TaskEventsM05Body({
         <TaskEventsFacts observation={taskObservation} />
         <TaskEventsRecords
           observation={unavailableHistory(taskObservation.taskId)}
-          earlierLoaded={false}
-          earlierError={false}
+          earlier={IDLE_EVENTS_EARLIER}
           onLoadEarlier={onLoadEarlier}
           onUnavailable={onUnavailable}
         />
@@ -102,8 +101,7 @@ export function TaskEventsM05Body({
       <TaskEventsFacts observation={taskObservation} />
       <TaskEventsRecords
         observation={observation}
-        earlierLoaded={earlierLoaded}
-        earlierError={earlierError}
+        earlier={earlier}
         onLoadEarlier={onLoadEarlier}
         onUnavailable={onUnavailable}
       />
@@ -116,9 +114,9 @@ function unavailableHistory(
 ): TaskEventsObservation {
   return {
     taskId,
+    log: { state: 'unavailable' },
     records: [],
-    hasEarlier: false,
-    earlierPage: [],
-    logState: 'unavailable',
+    hasOlder: false,
+    olderCursor: null,
   }
 }

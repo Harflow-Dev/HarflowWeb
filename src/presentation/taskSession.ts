@@ -15,7 +15,6 @@ import {
   type TaskCommandChrome,
   type TaskDialogKind,
   type TaskDialogOpener,
-  type TaskEventsChrome,
   type TaskOverflowChrome,
   type TaskScreenState,
 } from './taskState'
@@ -37,9 +36,9 @@ import {
   toggledExpandedRepos,
 } from './taskSessionPane'
 import {
-  appliedEarlierEventsState,
+  eventsReadAllowed,
   paneTabState,
-  seededEventsChromeState,
+  startedEarlierState,
 } from './taskSessionEvents'
 import { TaskPaneObservers } from './taskSessionObservers'
 
@@ -61,8 +60,6 @@ export class TaskSession {
   private observation: ObservationHandle | null = null
   private readonly listeners = new Set<TaskListener>()
   private readonly loadTask: LoadTaskUseCase
-  readonly loadTaskChanges: LoadTaskChangesUseCase
-  readonly loadTaskEvents: LoadTaskEventsUseCase
   private readonly panes: TaskPaneObservers
 
   constructor(
@@ -71,9 +68,13 @@ export class TaskSession {
     loadTaskEvents: LoadTaskEventsUseCase,
   ) {
     this.loadTask = loadTask
-    this.loadTaskChanges = loadTaskChanges
-    this.loadTaskEvents = loadTaskEvents
-    this.panes = new TaskPaneObservers(this)
+    this.panes = new TaskPaneObservers({
+      isDisposed: () => this.closed,
+      getState: () => this.state,
+      publish: (next) => this.publish(next),
+      loadTaskChanges,
+      loadTaskEvents,
+    })
   }
 
   subscribe(listener: TaskListener): () => void {
@@ -189,17 +190,6 @@ export class TaskSession {
     this.panes.beginChanges()
   }
 
-  seedTaskEventsChrome(taskId: TaskId, chrome: TaskEventsChrome): void {
-    if (this.closed) return
-    const next = seededEventsChromeState(this.state, taskId, chrome)
-    if (!next) return
-    this.publish(next)
-    if (next.paneTab === 'events') {
-      this.panes.beginEvents()
-      if (!this.panes.hasChangesObservation()) this.panes.beginChanges()
-    }
-  }
-
   setPaneTab(tab: 'changes' | 'events'): void {
     if (this.closed) return
     const next = paneTabState(this.state, tab)
@@ -211,13 +201,15 @@ export class TaskSession {
       return
     }
     this.panes.stopEvents()
-    this.panes.beginChanges()
+    if (!this.panes.hasChangesObservation()) this.panes.beginChanges()
   }
 
   loadEarlierEvents(): void {
     if (this.closed) return
-    const next = appliedEarlierEventsState(this.state)
-    if (next) this.publish(next)
+    const next = startedEarlierState(this.state)
+    if (!next) return
+    this.publish(next)
+    this.panes.beginOlder()
   }
 
   selectChangedEntry(entry: TaskChangesEntryRef): void {
@@ -251,7 +243,7 @@ export class TaskSession {
     this.publish({ ...this.state, expandedRepos })
   }
 
-  publish(next: TaskScreenState): void {
+  private publish(next: TaskScreenState): void {
     if (this.closed) return
     this.state = next
     for (const listener of this.listeners) listener(this.state)
@@ -275,5 +267,15 @@ export class TaskSession {
     if (expected !== this.state.selectedTaskId) return
     if (load.kind === 'ready' && load.observation.taskId !== expected) return
     this.publish(reconcileOverflowChrome({ ...this.state, load }))
+    this.reconcileEventsRead()
+  }
+
+  /** A status read that settles later starts (or drops) the Events read. */
+  private reconcileEventsRead(): void {
+    const state = this.state
+    if (!state.changesPaneOpen || state.paneTab !== 'events') return
+    const allowed = eventsReadAllowed(state)
+    if (allowed && !this.panes.hasEventsObservation()) this.panes.beginEvents()
+    if (!allowed && this.panes.hasEventsObservation()) this.panes.stopEvents()
   }
 }

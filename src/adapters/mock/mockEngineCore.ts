@@ -33,12 +33,13 @@ import { createControllablePromise, type ControllablePromise } from './controlla
 import {
   createKeyedObservation,
   createObservation,
+  createOneShotObservation,
   type KeyedListener,
 } from './mockObservation'
 import type { ScenarioDefinition } from './scenarios'
 import { statisticsLoadFor } from './statisticsFixtures'
 import { taskChangesLoadFor } from './taskChangesFixtures'
-import { taskEventsLoadFor } from './taskEventsFixtures'
+import { taskEventsLoadFor, taskEventsOlderLoadFor } from './taskEventsFixtures'
 import { taskLoadFor } from './taskFixtures'
 import { workflowEditorLoadFor } from './workflowEditorFixtures'
 import {
@@ -213,6 +214,11 @@ export function buildMockEnginePort(options: {
         taskEventsKey(query),
         onUpdate,
         () => resolveTaskEventsLoad(getScenario(), query),
+      )
+    },
+    observeTaskEventsOlder(query, onUpdate) {
+      return createOneShotObservation(onUpdate, () =>
+        taskEventsOlderLoadFor(query),
       )
     },
     observeWorkflowRun(workflowId, onUpdate) {

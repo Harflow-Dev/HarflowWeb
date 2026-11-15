@@ -77,12 +77,11 @@ export type NewTaskScenarioSeed = {
   readonly paneTab?: 'changes' | 'events'
   /** Seed Changes-pane selection / expansion after the pane is open. */
   readonly changesChrome?: TaskChangesChromeSeed
-  /** Seed Events-tab earlier-page chrome after the pane is open. */
-  readonly eventsChrome?: {
-    readonly paneTab?: 'changes' | 'events'
-    readonly earlierLoaded?: boolean
-    readonly earlierError?: boolean
-  }
+  /**
+   * After the Events read is ready, ask for the older page once (what a
+   * person's Load earlier does). The mock engine answers per task.
+   */
+  readonly eventsLoadEarlier?: boolean
   /** Navigate to a main route after context is ready. */
   readonly openRoute?:
     | 'new-task'

@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { idleObservation } from '../adapters/mock/mockObservation'
 import {
   createLoadContextUseCase,
   createLoadHarnessesUseCase,
@@ -234,6 +235,9 @@ function createTestEngine(options?: {
           /* no-op */
         },
       }
+    },
+    observeTaskEventsOlder() {
+      return idleObservation()
     },
     observeTaskEvents(query, onUpdate) {
       queueMicrotask(() => onUpdate(taskEventsLoadFor(query)))

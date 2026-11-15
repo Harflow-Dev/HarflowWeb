@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { createOneShotObservation } from '../adapters/mock/mockObservation'
 import { stubPendingLaunchPort } from '../adapters/mock/stubPendingLaunchPort'
 import {
   createLoadTaskChangesUseCase,
@@ -15,6 +16,7 @@ import {
   type TaskChangesObservation,
   type TaskChangesQuery,
   type TaskEventsLoad,
+  type TaskEventsOlderLoad,
   type TaskEventsQuery,
   type TaskId,
   type TaskLoad,
@@ -23,8 +25,10 @@ import { taskChangesKey } from '../adapters/mock/mockEngineCore'
 import {
   pageEventsObservation,
   taskEventsLoadFor,
+  taskEventsOlderLoadFor,
 } from '../adapters/mock/taskEventsFixtures'
 import {
+  TASK_EVENTS_PAGE_ERROR_ID,
   TASK_EVENTS_PAGE_ID,
   TASK_EVENTS_POPULATED_ID,
 } from '../adapters/mock/taskEventsFixtureIds'
@@ -44,7 +48,12 @@ import {
   slotReleaseObservation,
   taskLoadFor,
 } from '../adapters/mock/taskFixtures'
+import { eventsLifecycleFor } from './taskEventsLifecycle'
 import { TaskSession } from './taskSession'
+import {
+  TASK_STATUS_PENDING_ID,
+  taskStatusObservations,
+} from '../adapters/mock/taskStatusFixtures'
 
 function createCapturingPort(
   resolver: (taskId: TaskId) => TaskLoad = taskLoadFor,
@@ -126,6 +135,11 @@ function createCapturingPort(
         },
       }
     },
+    observeTaskEventsOlder(query, onUpdate) {
+      return createOneShotObservation(onUpdate, () =>
+        taskEventsOlderLoadFor(query),
+      )
+    },
     observeTaskEvents(query, onUpdate) {
       queueMicrotask(() => onUpdate(taskEventsLoadFor(query)))
       return {
@@ -171,12 +185,14 @@ function createDeferredPort(): {
   publishEvents: (query: TaskEventsQuery, load: TaskEventsLoad) => void
   captureChangesCallback: () => ((load: TaskChangesLoad) => void) | null
   captureEventsCallback: () => ((load: TaskEventsLoad) => void) | null
+  captureOlderCallback: () => ((load: TaskEventsOlderLoad) => void) | null
 } {
   const active = new Map<TaskId, (load: TaskLoad) => void>()
   const activeChanges = new Map<string, (load: TaskChangesLoad) => void>()
   const activeEvents = new Map<TaskId, (load: TaskEventsLoad) => void>()
   let lastChangesCallback: ((load: TaskChangesLoad) => void) | null = null
   let lastEventsCallback: ((load: TaskEventsLoad) => void) | null = null
+  let lastOlderCallback: ((load: TaskEventsOlderLoad) => void) | null = null
   return {
     port: {
       observeContext() {
@@ -224,6 +240,10 @@ function createDeferredPort(): {
           },
         }
       },
+      observeTaskEventsOlder(_query, onUpdate) {
+        lastOlderCallback = onUpdate
+        return noopHandle('older')
+      },
       observeTaskEvents(query, onUpdate) {
         lastEventsCallback = onUpdate
         activeEvents.set(query.taskId, onUpdate)
@@ -266,6 +286,7 @@ function createDeferredPort(): {
     },
     captureChangesCallback: () => lastChangesCallback,
     captureEventsCallback: () => lastEventsCallback,
+    captureOlderCallback: () => lastOlderCallback,
   }
 }
 
@@ -780,59 +801,70 @@ describe('TaskSession events', () => {
     publish: (taskId: TaskId, load: TaskLoad) => void,
     taskId: TaskId,
   ): void {
-    session.start()
     session.openTask(taskId)
     publish(taskId, taskLoadFor(taskId))
     session.setPaneTab('events')
     session.setChangesPaneOpen(true)
   }
 
-  it('loads earlier records onto session chrome from the fixture page', async () => {
+  async function readyEvents(taskId: TaskId): Promise<TaskSession> {
     const { port } = createCapturingPort()
     const session = sessionFor(port)
     session.start()
-    session.openTask(TASK_EVENTS_PAGE_ID)
+    session.openTask(taskId)
     await flush()
     session.setPaneTab('events')
     session.setChangesPaneOpen(true)
     await flush()
+    return session
+  }
+
+  it('reads the older page and reaches the beginning from hasOlder', async () => {
+    const session = await readyEvents(TASK_EVENTS_PAGE_ID)
     expect(session.getState().eventsLoad.kind).toBe('ready')
-    expect(session.getState().eventsEarlierLoaded).toBe(false)
+    expect(session.getState().eventsEarlier.status).toBe('idle')
     session.loadEarlierEvents()
-    expect(session.getState().eventsEarlierLoaded).toBe(true)
-    expect(session.getState().eventsEarlierError).toBe(false)
-    const load = session.getState().eventsLoad
-    expect(load.kind).toBe('ready')
-    if (load.kind === 'ready') {
-      expect(load.observation.hasEarlier).toBe(true)
-      expect(load.observation.earlierPage).toHaveLength(1)
-    }
+    expect(session.getState().eventsEarlier.status).toBe('loading')
+    await flush()
+    const earlier = session.getState().eventsEarlier
+    expect(earlier.status).toBe('loaded')
+    expect(earlier.records.map((record) => record.seq)).toEqual([40])
+    expect(earlier.hasOlder).toBe(false)
+    // The newest page itself is untouched by the older read.
+    expect(session.getState().eventsList?.records).toHaveLength(3)
     session.dispose()
   })
 
-  it('keeps newest records and flags earlier-read error when the page is empty', () => {
-    const { port, publish, captureEventsCallback } = createDeferredPort()
-    const session = sessionFor(port)
-    openEventsPane(session, publish, TASK_EVENTS_PAGE_ID)
-    const observation = {
-      ...pageEventsObservation(),
-      earlierPage: [],
-    }
-    captureEventsCallback()!({
-      kind: 'ready',
-      observation,
-    })
-    expect(session.getState().eventsList?.records).toEqual(observation.records)
+  it('keeps newest records when the engine refuses the cursor as expired', async () => {
+    const session = await readyEvents(TASK_EVENTS_PAGE_ERROR_ID)
     session.loadEarlierEvents()
-    expect(session.getState().eventsEarlierError).toBe(true)
-    expect(session.getState().eventsEarlierLoaded).toBe(false)
-    expect(session.getState().eventsList?.records).toEqual(observation.records)
+    await flush()
+    const state = session.getState()
+    expect(state.eventsEarlier.status).toBe('error')
+    expect(state.eventsEarlier.records).toEqual([])
+    expect(state.eventsList?.records).toHaveLength(3)
+    // An error does not start another read.
+    session.loadEarlierEvents()
+    expect(session.getState().eventsEarlier.status).toBe('error')
     session.dispose()
+  })
+
+  it('does not read earlier without an older page or with the pane closed', async () => {
+    const session = await readyEvents(TASK_EVENTS_POPULATED_ID)
+    session.loadEarlierEvents()
+    expect(session.getState().eventsEarlier.status).toBe('idle')
+    session.dispose()
+    const paged = await readyEvents(TASK_EVENTS_PAGE_ID)
+    paged.setChangesPaneOpen(false)
+    paged.loadEarlierEvents()
+    expect(paged.getState().eventsEarlier.status).toBe('idle')
+    paged.dispose()
   })
 
   it('rejects a late events result after the pane was closed', () => {
     const { port, publish, captureEventsCallback } = createDeferredPort()
     const session = sessionFor(port)
+    session.start()
     openEventsPane(session, publish, TASK_EVENTS_PAGE_ID)
     const stale = captureEventsCallback()
     expect(stale).not.toBeNull()
@@ -844,22 +876,10 @@ describe('TaskSession events', () => {
     session.dispose()
   })
 
-  it('rejects a late events result after switching tasks', () => {
-    const { port, publish, captureEventsCallback } = createDeferredPort()
-    const session = sessionFor(port)
-    openEventsPane(session, publish, TASK_EVENTS_PAGE_ID)
-    const stale = captureEventsCallback()
-    session.openTask(TASK_EVENTS_POPULATED_ID)
-    stale!({ kind: 'ready', observation: pageEventsObservation() })
-    expect(session.getState().selectedTaskId).toBe(TASK_EVENTS_POPULATED_ID)
-    expect(session.getState().changesPaneOpen).toBe(false)
-    expect(session.getState().eventsList).toBeNull()
-    session.dispose()
-  })
-
   it('rejects a late events result after switching to Changes', () => {
     const { port, publish, captureEventsCallback } = createDeferredPort()
     const session = sessionFor(port)
+    session.start()
     openEventsPane(session, publish, TASK_EVENTS_PAGE_ID)
     const stale = captureEventsCallback()
     session.setPaneTab('changes')
@@ -870,17 +890,183 @@ describe('TaskSession events', () => {
     session.dispose()
   })
 
-  it('does not apply loadEarlierEvents when the Events pane is closed', () => {
+  it('rejects a late events result for the old task after the pane re-opens on Events for the new task', () => {
     const { port, publish, captureEventsCallback } = createDeferredPort()
     const session = sessionFor(port)
+    session.start()
+    openEventsPane(session, publish, TASK_EVENTS_PAGE_ID)
+    const stale = captureEventsCallback()
+    openEventsPane(session, publish, TASK_EVENTS_POPULATED_ID)
+    expect(session.getState().selectedTaskId).toBe(TASK_EVENTS_POPULATED_ID)
+    expect(session.getState().paneTab).toBe('events')
+    expect(session.getState().changesPaneOpen).toBe(true)
+    stale!({ kind: 'ready', observation: pageEventsObservation() })
+    expect(session.getState().eventsList).toBeNull()
+    expect(session.getState().eventsLoad.kind).toBe('loading')
+    session.dispose()
+  })
+
+  it('rejects a late older page after closing, switching tab, or re-opening for another task', () => {
+    const { port, publish, captureEventsCallback, captureOlderCallback } =
+      createDeferredPort()
+    const session = sessionFor(port)
+    session.start()
     openEventsPane(session, publish, TASK_EVENTS_PAGE_ID)
     captureEventsCallback()!({
       kind: 'ready',
       observation: pageEventsObservation(),
     })
-    session.setChangesPaneOpen(false)
     session.loadEarlierEvents()
-    expect(session.getState().eventsEarlierLoaded).toBe(false)
+    const stale = captureOlderCallback()
+    expect(stale).not.toBeNull()
+    expect(session.getState().eventsEarlier.status).toBe('loading')
+    const page = taskEventsOlderLoadFor({
+      taskId: TASK_EVENTS_PAGE_ID,
+      before: pageEventsObservation().olderCursor!,
+    })
+
+    // Re-opened on Events for another task, which is itself waiting on an older read.
+    openEventsPane(session, publish, TASK_EVENTS_POPULATED_ID)
+    captureEventsCallback()!({
+      kind: 'ready',
+      observation: { ...pageEventsObservation(), taskId: TASK_EVENTS_POPULATED_ID },
+    })
+    session.loadEarlierEvents()
+    expect(session.getState().eventsEarlier.status).toBe('loading')
+    stale!(page)
+    expect(session.getState().eventsEarlier.status).toBe('loading')
+    expect(session.getState().eventsEarlier.records).toEqual([])
+
+    // Closing the pane or leaving Events also drops a late page.
+    const fresh = captureOlderCallback()!
+    session.setPaneTab('changes')
+    fresh(page)
+    expect(session.getState().eventsEarlier.records).toEqual([])
     session.dispose()
+  })
+
+  it('drops older pages when a newer newest page moves the cursor', () => {
+    const { port, publish, captureEventsCallback } = createDeferredPort()
+    const session = sessionFor(port)
+    session.start()
+    openEventsPane(session, publish, TASK_EVENTS_PAGE_ID)
+    const deliver = captureEventsCallback()!
+    deliver({ kind: 'ready', observation: pageEventsObservation() })
+    session.loadEarlierEvents()
+    expect(session.getState().eventsEarlier.status).toBe('loading')
+    deliver({
+      kind: 'ready',
+      observation: { ...pageEventsObservation(), olderCursor: 'older:moved' },
+    })
+    expect(session.getState().eventsEarlier.status).toBe('idle')
+    session.dispose()
+  })
+
+  it('switching to Changes does not restart a live Changes observation', async () => {
+    const { port, changesQueries } = createCapturingPort()
+    const session = sessionFor(port)
+    session.start()
+    session.openTask(TASK_EVENTS_PAGE_ID)
+    await flush()
+    session.setPaneTab('events')
+    session.setChangesPaneOpen(true)
+    await flush()
+    const before = changesQueries().length
+    session.setPaneTab('changes')
+    session.setPaneTab('events')
+    session.setPaneTab('changes')
+    await flush()
+    expect(changesQueries()).toHaveLength(before)
+    session.dispose()
+  })
+
+  it('starts the Events read when an unread status later settles', () => {
+    const { port, publish, captureEventsCallback } = createDeferredPort()
+    const session = sessionFor(port)
+    session.start()
+    const taskId = TASK_EVENTS_POPULATED_ID
+    const settled = taskLoadFor(taskId)
+    if (settled.kind !== 'ready') throw new Error('fixture')
+    session.openTask(taskId)
+    publish(taskId, {
+      kind: 'ready',
+      observation: { ...settled.observation, statusRead: { kind: 'unread' } },
+    })
+    session.setPaneTab('events')
+    session.setChangesPaneOpen(true)
+    expect(captureEventsCallback()).toBeNull()
+    publish(taskId, settled)
+    expect(captureEventsCallback()).not.toBeNull()
+    session.dispose()
+  })
+})
+
+describe('Events lifecycle across task-status fixtures', () => {
+  const EXPECTED: Readonly<Record<string, 'notStarted' | 'unavailable' | 'ready'>> = {
+    'task-slot-release': 'ready',
+    'task-m05-stop-requested': 'ready',
+    'task-m05-cancelled': 'ready',
+    'task-m05-timed-out': 'ready',
+    'task-m05-settling': 'ready',
+    'task-m05-unknown-failed': 'ready',
+    'task-m05-unknown-done': 'ready',
+    'task-m05-owner-lost': 'ready',
+    'task-m05-unverified': 'ready',
+    'task-m05-launch-unknown': 'ready',
+    'task-m05-status-unavailable': 'unavailable',
+    'task-m05-pending': 'notStarted',
+    'task-m05-taken-over': 'ready',
+    'task-m05-continue-starting': 'ready',
+    'task-m05-continue-started': 'ready',
+    'task-events-reader-failed': 'ready',
+  }
+  const observations = taskStatusObservations()
+
+  it('has an expectation for every task-status fixture and no extras', () => {
+    expect(observations.map((o) => o.taskId).sort()).toEqual(
+      Object.keys(EXPECTED).sort(),
+    )
+  })
+
+  it.each(observations.map((o) => [o.taskId, o] as const))(
+    'draws the %s Events lifecycle without inventing a read failure',
+    async (taskId, observation) => {
+      const { port } = createCapturingPort()
+      let eventReads = 0
+      const session = sessionFor({
+        ...port,
+        observeTaskEvents(query, onUpdate) {
+          eventReads += 1
+          return port.observeTaskEvents(query, onUpdate)
+        },
+      })
+      session.start()
+      session.openTask(taskId)
+      await flush()
+      session.setPaneTab('events')
+      session.setChangesPaneOpen(true)
+      await flush()
+      const state = session.getState()
+      const expected = EXPECTED[taskId]
+      expect(eventsLifecycleFor(observation, state.eventsLoad)).toBe(expected)
+      if (expected === 'ready') {
+        expect(state.eventsLoad.kind).toBe('ready')
+        expect(eventReads).toBe(1)
+      } else {
+        // Not started or unread: the lifecycle body needs no read.
+        expect(eventReads).toBe(0)
+      }
+      session.dispose()
+    },
+  )
+
+  it('the mock answers a pending task with the pending-launch refusal', () => {
+    expect(
+      taskEventsLoadFor({ taskId: TASK_STATUS_PENDING_ID }),
+    ).toEqual({
+      kind: 'refused',
+      code: 'task_pending_launch',
+      launchState: 'waiting_for_resources',
+    })
   })
 })

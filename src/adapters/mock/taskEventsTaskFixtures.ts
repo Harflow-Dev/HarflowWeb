@@ -2,7 +2,8 @@
  * Task observations for M05 Events tab preview scenarios (Design 6e31cd7).
  * detailsPane is Changes so both tabs work. Mock-only — not a ctl protocol.
  */
-import { asTaskId, type TaskEnforcement, type TaskObservation } from '../../model'
+import { asTaskId, type TaskObservation } from '../../model'
+import { EDIT_REPO_ENFORCEMENT } from './taskEnforcementFixtures'
 import {
   pendingEmptyTranscript,
   retryBudgetDoneTranscript,
@@ -33,23 +34,10 @@ const REPO_MCP = {
   path: '~/Code/Harflow/HarflowMCP',
 } as const
 
-const DEFAULT_ENFORCEMENT: TaskEnforcement = {
-  requested: 'Can edit this repo',
-  mechanism: 'Harness permission rules',
-  osSandbox: false,
-  writesConfined: false,
-  directCommitCommands: 'denied',
-  publishAttempts: false,
-  network: 'not_controlled',
-}
-
 const POPULATED_NOTICES = [
   'Checkout is on the default branch.',
   'Inherited settings could not all be read.',
 ] as const
-
-/** Design factsGroups specimen Task ID (ctl task_id). */
-const PUBLIC_TASK_ID = '7be02d91'
 
 function completedEvents(
   taskId: ReturnType<typeof asTaskId>,
@@ -68,8 +56,7 @@ function completedEvents(
     detailsPane: 'changes',
     repository: REPO_WEB,
     accessLevel: ACCESS_EDIT,
-    enforcement: DEFAULT_ENFORCEMENT,
-    publicTaskId: PUBLIC_TASK_ID,
+    enforcement: EDIT_REPO_ENFORCEMENT,
     ...extra,
   }
 }
@@ -89,8 +76,7 @@ function runningEvents(
     detailsPane: 'changes',
     repository: REPO_MCP,
     accessLevel: ACCESS_EDIT,
-    enforcement: DEFAULT_ENFORCEMENT,
-    publicTaskId: PUBLIC_TASK_ID,
+    enforcement: EDIT_REPO_ENFORCEMENT,
     ...extra,
   }
 }

@@ -46,6 +46,8 @@ function props(
     onToggleRepo: () => undefined,
     onClosePane: () => undefined,
     onUnavailable: () => undefined,
+    onSelectTab: () => undefined,
+    onLoadEarlier: () => undefined,
     ...extra,
   }
 }

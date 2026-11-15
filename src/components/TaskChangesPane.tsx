@@ -7,7 +7,12 @@ import type {
   TaskId,
   TaskObservation,
 } from '../model'
-import type { TaskChangesTextPanel, TaskChangesTurnMember } from '../presentation/taskState'
+import {
+  IDLE_EVENTS_EARLIER,
+  type EventsEarlierState,
+  type TaskChangesTextPanel,
+  type TaskChangesTurnMember,
+} from '../presentation/taskState'
 import { changesTabCount } from '../presentation/taskChangesCounts'
 import { changesLifecycleFor } from '../presentation/taskChangesLifecycle'
 import { TaskChangesBody } from './TaskChangesBody'
@@ -35,10 +40,9 @@ export type TaskChangesPaneProps = {
   readonly paneTab?: 'changes' | 'events'
   readonly eventsLoad?: TaskEventsLoad
   readonly eventsList?: TaskEventsObservation | null
-  readonly eventsEarlierLoaded?: boolean
-  readonly eventsEarlierError?: boolean
-  readonly onSelectTab?: (tab: 'changes' | 'events') => void
-  readonly onLoadEarlier?: () => void
+  readonly eventsEarlier?: EventsEarlierState
+  readonly onSelectTab: (tab: 'changes' | 'events') => void
+  readonly onLoadEarlier: () => void
 }
 
 /**
@@ -62,8 +66,7 @@ export function TaskChangesPane({
   paneTab = 'changes',
   eventsLoad = { kind: 'loading' },
   eventsList = null,
-  eventsEarlierLoaded = false,
-  eventsEarlierError = false,
+  eventsEarlier = IDLE_EVENTS_EARLIER,
   onSelectTab,
   onLoadEarlier,
 }: TaskChangesPaneProps) {
@@ -79,9 +82,9 @@ export function TaskChangesPane({
       <TaskPaneTabs
         changesCount={count}
         activeTab={paneTab}
+        onSelectTab={onSelectTab}
         onClosePane={onClosePane}
         onUnavailable={onUnavailable}
-        {...(onSelectTab !== undefined ? { onSelectTab } : {})}
       />
       <div
         className="hd-scroll hd-m05-panescroll"
@@ -96,9 +99,8 @@ export function TaskChangesPane({
             taskObservation={taskObservation}
             load={eventsLoad}
             list={eventsList}
-            earlierLoaded={eventsEarlierLoaded}
-            earlierError={eventsEarlierError}
-            onLoadEarlier={onLoadEarlier ?? (() => undefined)}
+            earlier={eventsEarlier}
+            onLoadEarlier={onLoadEarlier}
             onUnavailable={onUnavailable}
           />
         ) : (

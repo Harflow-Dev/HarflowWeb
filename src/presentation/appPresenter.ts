@@ -46,7 +46,6 @@ import type {
   TaskCommandChrome,
   TaskDialogKind,
   TaskDialogOpener,
-  TaskEventsChrome,
   TaskOverflowChrome,
 } from './taskState'
 
@@ -97,7 +96,6 @@ export type AppPresenter = {
   closeTaskDialog(): void
   seedTaskOverflowChrome(taskId: TaskId, chrome: TaskOverflowChrome): void
   seedTaskChangesChrome(taskId: TaskId, chrome: TaskChangesChrome): void
-  seedTaskEventsChrome(taskId: TaskId, chrome: TaskEventsChrome): void
   setTaskPaneTab(tab: 'changes' | 'events'): void
   loadTaskEarlierEvents(): void
   selectStatisticsRange(range: StatisticsRangeId): void
@@ -191,8 +189,6 @@ export function createAppPresenter(deps: Deps): AppPresenter {
       session.seedTaskOverflowChrome(id, chrome),
     seedTaskChangesChrome: (id, chrome) =>
       session.seedTaskChangesChrome(id, chrome),
-    seedTaskEventsChrome: (id, chrome) =>
-      session.seedTaskEventsChrome(id, chrome),
     setTaskPaneTab: (tab) => session.setTaskPaneTab(tab),
     loadTaskEarlierEvents: () => session.loadTaskEarlierEvents(),
     selectStatisticsRange: (range) => session.selectStatisticsRange(range),

@@ -48,23 +48,37 @@ export type TaskStatusRead =
 export type TaskSupervision = 'owner_lost' | 'unverified'
 
 /**
- * Enforcement reporting observed for this task. Field names follow the
- * contract enforcement block (camelCase). Presentation maps booleans and
- * enumerations to the Events facts copy.
+ * Enforcement block of a task record, field names following the contract
+ * (`os_enforced`, `writes_confined`, `local_commit`, `publish_attempts_allowed`,
+ * `network_access`). A record that predates persisted enforcement carries only
+ * `freedom` and a `note`; it restates nothing.
  */
-export type TaskEnforcement = {
-  readonly requested: string
-  readonly mechanism: string
-  readonly osSandbox: boolean
-  readonly writesConfined: boolean
-  readonly directCommitCommands: 'denied' | 'allowed' | 'not_enforced'
-  readonly publishAttempts: boolean
-  readonly network: string
-}
+export type TaskEnforcement =
+  | {
+      readonly recorded: true
+      readonly freedom: string
+      readonly mechanism: string
+      readonly osEnforced: boolean
+      readonly writesConfined: boolean
+      readonly localCommit?: 'denied' | 'allowed' | 'not_enforced'
+      readonly publishAttemptsAllowed: boolean
+      readonly networkAccess: string
+    }
+  | {
+      readonly recorded: false
+      readonly freedom: string
+      readonly note: string
+    }
 
-/** Continuity evidence from `supervision.adopted_after_restart`. */
+/**
+ * Continuity evidence from `supervision.adopted_after_restart`. The contract's
+ * previous/current server fields are kept when reported; none is displayed.
+ */
 export type TaskContinuity = {
   readonly adoptedAfterRestart: true
+  readonly at: string | null
+  readonly previousServer?: string
+  readonly currentServer?: string
 }
 
 /** Launch has no task record yet because it is waiting for slot resources. */
@@ -173,11 +187,6 @@ export type TaskObservation = {
   readonly notices?: readonly string[]
   /** Present only when the engine reported adopted-after-restart. */
   readonly continuity?: TaskContinuity
-  /**
-   * Public ctl `task_id` for facts display when the mock catalog key differs
-   * from the specimen id.
-   */
-  readonly publicTaskId?: string
 }
 
 export type TaskLoad =

@@ -56,3 +56,30 @@ export function createKeyedObservation<K, T>(
     },
   }
 }
+
+/** A handle that never answers; for engine stubs that observe nothing. */
+export function idleObservation(): ObservationHandle {
+  return {
+    id: asObservationId(`obs-${++observationSeq}`),
+    cancel() {
+      /* nothing to cancel */
+    },
+  }
+}
+
+/** One-shot observation: answers once on a microtask unless cancelled. */
+export function createOneShotObservation<T>(
+  onUpdate: (load: T) => void,
+  answer: () => T,
+): ObservationHandle {
+  let active = true
+  queueMicrotask(() => {
+    if (active) onUpdate(answer())
+  })
+  return {
+    id: asObservationId(`obs-${++observationSeq}`),
+    cancel() {
+      active = false
+    },
+  }
+}

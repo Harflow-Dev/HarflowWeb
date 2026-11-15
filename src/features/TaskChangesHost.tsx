@@ -42,8 +42,7 @@ export function TaskChangesHost({
       paneTab={state.paneTab}
       eventsLoad={state.eventsLoad}
       eventsList={state.eventsList}
-      eventsEarlierLoaded={state.eventsEarlierLoaded}
-      eventsEarlierError={state.eventsEarlierError}
+      eventsEarlier={state.eventsEarlier}
       onSelectTab={onSelectTab}
       onLoadEarlier={onLoadEarlier}
     />

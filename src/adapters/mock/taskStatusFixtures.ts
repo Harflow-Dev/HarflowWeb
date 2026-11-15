@@ -2,6 +2,10 @@
  * M05 task-status state fixtures (Design 6e31cd7 screens-m05-proposal.js).
  * One TaskObservation per preview state; unique task ids for fencing tests.
  */
+import {
+  EDIT_REPO_ENFORCEMENT,
+  UNRECORDED_ENFORCEMENT,
+} from './taskEnforcementFixtures'
 import { asTaskId } from '../../model'
 import type { TaskObservation } from '../../model'
 import {
@@ -109,6 +113,7 @@ function runningObservation(
     detailsPane: null,
     repository: REPO_MCP,
     accessLevel: ACCESS_EDIT,
+    enforcement: EDIT_REPO_ENFORCEMENT,
     ...extra,
   }
 }
@@ -127,6 +132,7 @@ function stoppedObservation(
     detailsPane: null,
     repository: REPO_MAC,
     accessLevel: ACCESS_EDIT,
+    enforcement: EDIT_REPO_ENFORCEMENT,
     ...extra,
   }
 }
@@ -148,6 +154,7 @@ function failedTaskBase(
     detailsPane: null,
     repository: REPO_MCP,
     accessLevel: ACCESS_EDIT,
+    enforcement: EDIT_REPO_ENFORCEMENT,
     ...extra,
   }
 }
@@ -175,6 +182,7 @@ function retryBudgetBase(
     detailsPane: null,
     repository: REPO_WEB,
     accessLevel: ACCESS_EDIT,
+    enforcement: EDIT_REPO_ENFORCEMENT,
     ...extra,
   }
 }
@@ -186,6 +194,7 @@ export function taskStatusObservations(): readonly TaskObservation[] {
     stoppedObservation(TASK_STATUS_CANCELLED_ID, {
       statusRead: { kind: 'observed', status: 'cancelled' },
       elapsedSeconds: 271,
+      enforcement: UNRECORDED_ENFORCEMENT,
     }),
     failedTaskBase(TASK_STATUS_TIMED_OUT_ID, {
       statusRead: { kind: 'observed', status: 'timed_out' },

@@ -18,6 +18,8 @@ import type {
   TaskChangesLoad,
   TaskChangesQuery,
   TaskEventsLoad,
+  TaskEventsOlderLoad,
+  TaskEventsOlderQuery,
   TaskEventsQuery,
   TaskId,
   TaskLoad,
@@ -139,6 +141,16 @@ export type EnginePort = {
   observeTaskEvents(
     query: TaskEventsQuery,
     onUpdate: (load: TaskEventsLoad) => void,
+  ): ObservationHandle
+
+  /**
+   * Read the page of public events before an `older_cursor`. Answers once:
+   * a page, or a cursor refusal meaning reload from the newest page.
+   * Mock-only presentation — not a public ctl events protocol.
+   */
+  observeTaskEventsOlder(
+    query: TaskEventsOlderQuery,
+    onUpdate: (load: TaskEventsOlderLoad) => void,
   ): ObservationHandle
 
   /**

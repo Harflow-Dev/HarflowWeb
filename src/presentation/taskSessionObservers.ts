@@ -10,9 +10,11 @@ import {
 } from './taskSessionPane'
 import {
   beginPaneEventsObservation,
+  beginPaneOlderObservation,
   type EventsPaneHost,
 } from './taskSessionEvents'
 
+/** Narrow capabilities the session lends to its pane observers. */
 export type PaneOwner = {
   isDisposed(): boolean
   getState(): TaskScreenState
@@ -27,6 +29,7 @@ export class TaskPaneObservers implements ChangesPaneHost, EventsPaneHost {
   private eventsGen = 0
   private changesObservation: ObservationHandle | null = null
   private eventsObservation: ObservationHandle | null = null
+  private olderObservation: ObservationHandle | null = null
 
   private readonly owner: PaneOwner
 
@@ -80,8 +83,16 @@ export class TaskPaneObservers implements ChangesPaneHost, EventsPaneHost {
     this.eventsObservation = handle
   }
 
+  setOlderObservation(handle: ObservationHandle | null): void {
+    this.olderObservation = handle
+  }
+
   hasChangesObservation(): boolean {
     return this.changesObservation !== null
+  }
+
+  hasEventsObservation(): boolean {
+    return this.eventsObservation !== null
   }
 
   beginChanges(): void {
@@ -91,7 +102,13 @@ export class TaskPaneObservers implements ChangesPaneHost, EventsPaneHost {
 
   beginEvents(): void {
     this.eventsObservation?.cancel()
+    this.olderObservation?.cancel()
     beginPaneEventsObservation(this)
+  }
+
+  beginOlder(): void {
+    this.olderObservation?.cancel()
+    beginPaneOlderObservation(this)
   }
 
   stopChanges(): void {
@@ -104,14 +121,12 @@ export class TaskPaneObservers implements ChangesPaneHost, EventsPaneHost {
     this.eventsGen += 1
     this.eventsObservation?.cancel()
     this.eventsObservation = null
+    this.olderObservation?.cancel()
+    this.olderObservation = null
   }
 
   dispose(): void {
-    this.changesGen += 1
-    this.eventsGen += 1
-    this.changesObservation?.cancel()
-    this.changesObservation = null
-    this.eventsObservation?.cancel()
-    this.eventsObservation = null
+    this.stopChanges()
+    this.stopEvents()
   }
 }

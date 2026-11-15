@@ -968,6 +968,34 @@ panel and mock badge hidden). Dimensions verified with `sips`.
 | `task-stop-dialog-earlier-turns` | `task/stop-dialog-earlier-turns` |
 | `task-takeover-dialog` | `task/takeover-dialog` |
 
+## M05 G-DIFF Changes — verified 1280×800 captures
+
+Directory:
+`~/.codex/workflows/screenshots/2026-11-14-harflowweb-task-changes/`
+
+Design pin `6e31cd7`. Light and dark under `verified-1280x800/` for the fifteen
+G-DIFF scenarios. Recaptures of `task-done` and `task-overflow-settled` under
+`previously-approved-recaptures/`. Transcript screens under
+`transcript-comparison/` are byte-identical to `b60b2fc` baselines.
+
+| Scenario id | Design route (M05) |
+| --- | --- |
+| `task-changes-single` | `task/changes-single` |
+| `task-changes-multi` | `task/changes-multi` |
+| `task-changes-multi-limited` | `task/changes-multi-limited` |
+| `task-changes-same-path` | `task/changes-same-path` |
+| `task-changes-row-states` | `task/changes-row-states` |
+| `task-changes-incomplete` | `task/changes-incomplete` |
+| `task-changes-not-captured` | `task/changes-not-captured` |
+| `task-changes-unmerged` | `task/changes-unmerged` |
+| `task-changes-running` | `task/changes-running` |
+| `task-changes-zero` | `task/changes-zero` |
+| `task-changes-no-repository` | `task/changes-no-repository` |
+| `task-changes-text` | `task/changes-text` |
+| `task-changes-loading` | `task/changes-loading` |
+| `task-changes-error` | `task/changes-error` |
+| `task-changes-turns` | `task/changes-turns` |
+
 ## Limitations
 
 - Pixel fidelity to native materials is not claimed.

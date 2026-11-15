@@ -367,15 +367,25 @@ grant approvals, answer questions, or touch the task store.
   transcript screens (checked pixel-identical to the pre-slice build);
   recaptures live under
   `~/.codex/workflows/screenshots/2026-11-14-harflowweb-task-overflow-dialogs/`.
+- **M05 G-DIFF (mock-only).** Fifteen approved Changes states at Design
+  `6e31cd7` (`changes-single` … `changes-turns`) seed through composition.
+  The pane follows repository → scope → rows with the engine attribution
+  sentence, Provenance disclosure, tab-count rule, lifecycle overrides
+  (pending / unread / running / inferred / settling / stored capture), and
+  turn picker. Artifacts stays in the tab bar but is unavailable (contract
+  gap: no `task-artifacts` fixture); Events keeps today's content. Confirms
+  for Retry / Load more / Reload stay unavailable. Screenshots under
+  `~/.codex/workflows/screenshots/2026-11-14-harflowweb-task-changes/`;
+  transcript screens checked pixel-identical to `b60b2fc`.
 - **M05 remaining deviations (honest list).**
-  - The settling drawing opens the right pane with "Stored changes aren't
-    available yet / Capture may still be settling. This view checks again."
-    That pane is not drawn here, and there is no pane toggle on these fixtures.
+  - Settling Changes copy is drawn when the lifecycle maps to settling (or
+    the dedicated incomplete/settling capture); status fixtures that leave
+    `detailsPane` null still have no default pane open.
   - Out of scope top-bar facts: the "Can edit this repo" enforcement chip,
-    notice and continuity chips, and the Events/Changes/Artifacts tabs. The
-    Events facts groups they open are not built.
-  - Cancel-partial, continue-refused, and Artifacts content are not built
-    (continue-refused is held on fixtures, owner decision question 5).
+    notice and continuity chips. Events facts groups are the next slice.
+  - Cancel-partial, continue-refused, and Artifacts *content* are not built
+    (continue-refused is held on fixtures, owner decision question 5;
+    Artifacts tab position is approved, content provisional).
   - "Copy original request", "Open resource slots", Continue, Copy resume
     command, Refresh, Check for a new task, Open Events and Retry read are
     `aria-disabled` with explanation ids and mutate nothing. Overflow confirms,
@@ -395,9 +405,8 @@ grant approvals, answer questions, or touch the task store.
     recaptures are in `previously-approved-recaptures/`.
   - The send button is a disabled grey because it is unavailable in this mock;
     the design shows it active.
-  - `task-done` opens the retry-budget task with its Changes pane and still
-    shows the older done screen; its drawing is now `task/changes-single`,
-    out of scope until a later slice.
+  - `task-done` opens the retry-budget task with the G-DIFF Changes pane
+    (same capture as `task-changes-single`); recaptured with this slice.
   - Pixel fidelity to native is not claimed.
 - Prior running / failed / loading sidebar captures were retaken: the 16 M05
   states plus `task-running`, `task-failed` and `task-loading` live under

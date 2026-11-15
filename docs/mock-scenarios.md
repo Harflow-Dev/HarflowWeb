@@ -84,7 +84,7 @@ populated fixture and shows a single “Mock engine” badge.
 | Composer unqualified | Design `new-task/centered-unqualified` — `qualification: unqualified` |
 | Composer invalid | Design `new-task/centered-invalid` — turns `0`, Task options open |
 | Composer starting | Design `new-task/centered-starting-plain` (76ad937) — no visible status row; Start named Starting task; StatusRegion announces Starting task…; Resolve held start |
-| Task Changes loading | Design `task/changes-loading` (M05) — deferred Changes on the completed fixture; pane open |
+| Task Changes loading | Design `task/changes-loading` (M05) — deferred Changes on `task-changes-loading`; pane open |
 | Task Events loading | Design `task/events-loading` (M05) — transcript loading observation; Events pane open |
 | Composer refused | Design `new-task/centered-refused` — refuse code+reason; draft kept |
 | Composer options closed | Design `new-task/centered-options-closed` — effort high, options collapsed |
@@ -106,7 +106,7 @@ populated fixture and shows a single “Mock engine” badge.
 | Statistics overview | Approved `statistics/overview` ranges (7d + 30d populated; All time incomplete) |
 | Task running | Approved `task/running-stop` (M05). Legacy id — same seed as **Task · running stop** |
 | Task failed | Approved `task/failed-continue` (M05). Legacy id — same seed as **Task · failed continue** |
-| Task done | Opens the retry-budget task (`task-retry-budget-done`) with its summary and the read-only Changes pane open. The older `task/done` screen; the design now draws it as `task/changes-single`, which is out of scope |
+| Task done | Opens the retry-budget task (`task-retry-budget-done`) with its summary and the read-only Changes pane open. Same single-file Changes document as **Task · Changes · one repository** |
 | Task · stop requested | Approved `task/stop-requested` (M05 `6e31cd7`). Stop-requested chrome after seed |
 | Task · cancelled | Approved `task/cancelled` (M05) |
 | Task · timed out | Approved `task/timed-out` (M05) |
@@ -129,6 +129,20 @@ populated fixture and shows a single “Mock engine” badge.
 | Task · stop dialog | Approved `task/stop-dialog` (M05). Stop confirmation open |
 | Task · stop dialog earlier turns | Approved `task/stop-dialog-earlier-turns` (M05). Client-derived won't-be-stopped list |
 | Task · takeover dialog | Approved `task/takeover-dialog` (M05). Takeover confirmation open |
+| Task · Changes · one repository | Approved `task/changes-single` (M05 G-DIFF). Pane open on the dedicated single-file fixture |
+| Task · Changes · 8 repositories | Approved `task/changes-multi` (M05). First repository expanded |
+| Task · Changes · limited repositories | Approved `task/changes-multi-limited` (M05). Tab count omitted |
+| Task · Changes · same path | Approved `task/changes-same-path` (M05). Working-tree `queue.py` selected; two rows |
+| Task · Changes · row states | Approved `task/changes-row-states` (M05) |
+| Task · Changes · incomplete | Approved `task/changes-incomplete` (M05) |
+| Task · Changes · not captured | Approved `task/changes-not-captured` (M05). Task-level reasons list with `capture.state` available |
+| Task · Changes · conflicts unknown | Approved `task/changes-unmerged` (M05) |
+| Task · Changes · running | Approved `task/changes-running` (M05). Running task; capture pending |
+| Task · Changes · zero rows | Approved `task/changes-zero` (M05). Complete-capture caption |
+| Task · Changes · no repository | Approved `task/changes-no-repository` (M05) |
+| Task · Changes · reading one diff | Approved `task/changes-text` (M05). Loading, chunk, and refusal panels |
+| Task · Changes · unavailable | Approved `task/changes-error` (M05) |
+| Task · Changes · which turn | Approved `task/changes-turns` (M05). Turn picker on the current member |
 | Transcript observed | Design `task/transcript-observed` (Design 854caae) |
 | Transcript loading | Design `task/transcript-loading` |
 | Transcript partial | Design `task/transcript-partial` |
@@ -142,6 +156,8 @@ populated fixture and shows a single “Mock engine” badge.
 | Needs you loading | Approved `needs-you/loading` main-pane skeleton (Design `9d19fd7`). Deferred Needs you read; populated context keeps live Running/Recent. Open Needs you in the preview after selecting the scenario. Full sidebar `SB` remains out of scope; use **Needs you loading · minimum** for the 1000×620 companion |
 
 First-load skeleton scenarios live in `src/adapters/mock/scenarioCatalogLoading.ts`.
+M05 G-DIFF Changes scenarios (including `task-changes-loading`) live in
+`src/adapters/mock/scenarioCatalogTaskChanges.ts`.
 Minimum-window scenarios (loaded and loading) live in
 `src/adapters/mock/scenarioCatalogMinimum.ts` and reuse `seed.frame: 'minimum'`
 (same `hw-preview__app--minimum` chrome as Sidebar minimum). They keep the

@@ -44,8 +44,9 @@ this handoff as a second copy).
 | Pending launches | `83d820f` / approval `2934681` | Capability-gated nav; 21 states including Stop sheet and minima |
 | M05 task status screen | `6e31cd7` approval | 16 fixtures + preview scenarios on the M05 conversation column; `aria-disabled` commands; legacy `task-running` / `task-failed` / `task-loading` kept |
 | M05 G-OVERFLOW | `6e31cd7` | More menu, Stop / takeover dialogs, six preview scenarios; confirms unavailable |
+| M05 G-DIFF | `6e31cd7` | Changes tab rebuilt on task-changes.v1 shape; 15 preview scenarios; Artifacts tab unavailable |
 
-Scenario count: **135** entries in `SCENARIOS` (`SCENARIOS.length` at handoff;
+Scenario count: **149** entries in `SCENARIOS` (`SCENARIOS.length` at handoff;
 re-count after adding scenarios) in `src/adapters/mock/scenarioCatalog.ts` and
 the catalog modules it spreads.
 Open `/preview` and use the scenario panel.
@@ -57,7 +58,7 @@ npm run verify   # architecture + tests + build
 npm run lint     # oxlint; zero warnings required
 ```
 
-At handoff: **622 tests** across **67** files (`vitest run`); architecture
+At handoff: **686 tests** across **70** files (`vitest run`); architecture
 check reports **14** size warnings. Re-count after further commits.
 
 HEAD at handoff: recorded by the commit that lands this file.
@@ -65,12 +66,12 @@ HEAD at handoff: recorded by the commit that lands this file.
 ## Screenshots
 
 Stored outside the repo under `~/.codex/workflows/screenshots/`. Latest
-overflow captures:
-`2026-11-14-harflowweb-task-overflow-dialogs/verified-1280x800/` (12 PNGs for
-the six G-OVERFLOW scenarios × light/dark) and
-`previously-approved-recaptures/` (38 PNGs for ready task screens that gained
-the More button). Prior task-status captures remain under
-`2026-11-14-harflowweb-task-statuses/`.
+G-DIFF captures:
+`2026-11-14-harflowweb-task-changes/verified-1280x800/` (30 PNGs for the
+fifteen Changes scenarios × light/dark),
+`previously-approved-recaptures/` (`task-done`, `task-overflow-settled`), and
+`transcript-comparison/` (byte-identical to `b60b2fc`). Prior overflow and
+task-status captures remain under their 2026-11-14 directories.
 
 The capture script is kept outside the repo. Captures use headless Chrome
 (Playwright or CDP) on the built preview at the exact app frame (1280 × 800, or

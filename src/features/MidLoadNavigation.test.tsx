@@ -4,6 +4,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { type ScenarioId } from '../adapters/mock'
 import { LOADING_SCENARIOS } from '../adapters/mock/scenarioCatalogLoading'
 import { MINIMUM_LOADING_SCENARIOS } from '../adapters/mock/scenarioCatalogMinimum'
+import { TASK_CHANGES_LOADING_SCENARIO } from '../adapters/mock/scenarioCatalogTaskChanges'
 import { populatedHarnessesLoad } from '../adapters/mock/harnessFixtures'
 import { PRELOAD_PARALLEL_GROUP_ID, parallelGroupLoadFor } from '../adapters/mock/parallelGroupFixtures'
 import { populatedResourcesLoad } from '../adapters/mock/resourceFixtures'
@@ -248,7 +249,11 @@ type Expected =
   | { readonly role: 'group'; readonly name: string }
   | { readonly role: 'region'; readonly name: string }
 
-const CATALOG_LOADING = [...LOADING_SCENARIOS, ...MINIMUM_LOADING_SCENARIOS]
+const CATALOG_LOADING = [
+  ...LOADING_SCENARIOS,
+  ...MINIMUM_LOADING_SCENARIOS,
+  TASK_CHANGES_LOADING_SCENARIO,
+]
 
 const BUSY: Readonly<Record<string, Expected>> = {
   'new-task-loading': { role: 'group', name: 'Loading New task' },

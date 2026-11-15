@@ -8,7 +8,10 @@ import {
 } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it } from 'vitest'
-import { taskChangesLoadFor } from '../adapters/mock/taskChangesFixtures'
+import {
+  QUEUE_PY_PATH,
+  taskChangesLoadFor,
+} from '../adapters/mock/taskChangesFixtures'
 import {
   RETRY_BUDGET_DONE_TASK_ID,
   SLOT_RELEASE_TASK_ID,
@@ -121,7 +124,11 @@ describe('task pane loading skeletons via preview', () => {
     ).toBeInTheDocument()
     expect(within(busy).queryByText(/proposal/)).toBeNull()
 
-    const query = { taskId: RETRY_BUDGET_DONE_TASK_ID, selectedPath: null }
+    const query = {
+      taskId: RETRY_BUDGET_DONE_TASK_ID,
+      selectedEntry: null,
+      turnTaskId: null,
+    }
     await act(async () => {
       app.mock.publishTaskChanges(query, taskChangesLoadFor(query))
     })
@@ -129,7 +136,7 @@ describe('task pane loading skeletons via preview', () => {
       screen.queryByRole('group', { name: 'Reading stored changes' }),
     ).toBeNull()
     expect(
-      screen.getByRole('list', { name: 'Changed files' }),
+      screen.getByRole('group', { name: `Diff of ${QUEUE_PY_PATH}` }),
     ).toBeInTheDocument()
   })
 
@@ -144,14 +151,18 @@ describe('task pane loading skeletons via preview', () => {
     await act(async () => app.presenter.openTask(SLOT_RELEASE_TASK_ID))
     await settle()
 
-    const query = { taskId: RETRY_BUDGET_DONE_TASK_ID, selectedPath: null }
+    const query = {
+      taskId: RETRY_BUDGET_DONE_TASK_ID,
+      selectedEntry: null,
+      turnTaskId: null,
+    }
     await act(async () => {
       app.mock.publishTaskChanges(query, taskChangesLoadFor(query))
     })
     expect(app.presenter.getState().task.selectedTaskId).toBe(
       SLOT_RELEASE_TASK_ID,
     )
-    expect(screen.queryByRole('list', { name: 'Changed files' })).toBeNull()
+    expect(screen.queryByText(QUEUE_PY_PATH)).toBeNull()
     expect(screen.queryByText(/harflow_web\/delivery\/queue\.py/)).toBeNull()
   })
 

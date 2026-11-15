@@ -100,12 +100,20 @@
   `task-events-loading` (transcript loading observation with Events open).
   The diff-switch skeleton (file list stays mounted, diff region shows
   placeholders) derives from the `changes-text` specimen's loading part; its
-  designer caption ("the row stays selected and no text is implied") is a
-  drawing note and is not rendered. The full-pane Events skeleton shows only
+  designer caption ("the row stays selected and no text is implied") is now
+  rendered on the G-DIFF text specimen. The full-pane Events skeleton shows only
   while history is loading; a summary still loading keeps records visible with
   the count line "Loading tool activity".
   Submitting from the starting composer does not move focus: Enter on an empty
   or blocked prompt keeps the caret; once pending, the controls are disabled.
+- M05 G-DIFF Changes tab (owner approval 2026-11-07): HarflowDesign
+  `6e31cd7f4a7b63beb329c6a4b4d79ca5eef57863`,
+  `v2/docs/decisions/m05-task-screen-approval.md` G-DIFF,
+  `v2/scripts/screens-m05-proposal.js` rows `changes-single` … `changes-turns`,
+  `v2/scripts/m05-proposal.js` CHANGES map + `paneHtml`,
+  `v2/styles/m05-proposal.css` Changes rules. Observed shape follows
+  HarflowMCP `task-changes.v1` listing/text fields. Fifteen preview scenarios
+  `task-changes-*`; Artifacts tab drawn unavailable (provisional content).
 - Task transcript + Events redraw (owner-approved 2026-11-08), mock-only:
   HarflowDesign `854caae4d474536f84e6e911ff96d48c4ada008b`,
   `v2/docs/decisions/README.md` (Centered and transcript redraws),

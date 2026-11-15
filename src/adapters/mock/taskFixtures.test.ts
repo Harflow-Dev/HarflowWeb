@@ -88,6 +88,32 @@ describe('taskFixtures', () => {
     )
   })
 
+  it('maps every G-DIFF task id so openTask can load it', () => {
+    const ids = [
+      'task-changes-single',
+      'task-changes-multi',
+      'task-changes-multi-limited',
+      'task-changes-same-path',
+      'task-changes-row-states',
+      'task-changes-incomplete',
+      'task-changes-not-captured',
+      'task-changes-unmerged',
+      'task-changes-running',
+      'task-changes-zero',
+      'task-changes-no-repository',
+      'task-changes-text',
+      'task-changes-loading',
+      'task-changes-error',
+      'task-changes-turns',
+    ]
+    for (const id of ids) {
+      const load = taskLoadFor(asTaskId(id))
+      expect(load.kind, id).toBe('ready')
+      if (load.kind !== 'ready') continue
+      expect(load.observation.detailsPane, id).toBe('changes')
+    }
+  })
+
   it('returns unavailable for unmapped synthetic launch ids', () => {
     const load = taskLoadFor(asTaskId('task-mock-accepted'))
     expect(load).toEqual({

@@ -80,7 +80,9 @@ import {
 } from '../adapters/mock/workflowRunFixtures'
 import { populatedResourcesLoad } from '../adapters/mock/resourceFixtures'
 import { statisticsLoadFor } from '../adapters/mock/statisticsFixtures'
+import { taskChangesKey } from '../adapters/mock/mockEngineCore'
 import {
+  CONFIG_ENTRY,
   CONFIG_PY_PATH,
   QUEUE_PY_PATH,
   taskChangesLoadFor,
@@ -334,7 +336,7 @@ function createTestEngine(options?: {
       }
     },
     observeTaskChanges(query, onUpdate) {
-      const key = `${query.taskId}\0${query.selectedPath ?? ''}`
+      const key = taskChangesKey(query)
       lastChangesCallback = onUpdate
       changesListeners.set(key, onUpdate)
       if (!options?.deferChanges) {
@@ -431,7 +433,7 @@ function createTestEngine(options?: {
       taskListeners.get(taskId)?.(load)
     },
     publishTaskChanges(query, load) {
-      const key = `${query.taskId}\0${query.selectedPath ?? ''}`
+      const key = taskChangesKey(query)
       changesListeners.get(key)?.(load)
     },
     publishNeedsYou(load) {
@@ -1237,24 +1239,25 @@ describe('AppFeature navigation', () => {
       'aria-selected',
       'true',
     )
-    const files = within(pane).getByRole('list', { name: 'Changed files' })
-    expect(files).toHaveTextContent(QUEUE_PY_PATH)
+    expect(within(pane).getAllByText(QUEUE_PY_PATH).length).toBeGreaterThan(0)
     expect(within(pane).getByText('+24')).toBeInTheDocument()
     expect(within(pane).getByText('\u22123')).toBeInTheDocument()
     expect(
-      within(pane).getByRole('group', { name: 'Diff of queue.py' }),
+      within(pane).getByRole('group', { name: `Diff of ${QUEUE_PY_PATH}` }),
     ).toBeInTheDocument()
     expect(
       within(pane).getByText('@@ -41,9 +41,18 @@ class DeliveryQueue'),
     ).toBeInTheDocument()
 
     await user.click(
-      within(files).getByRole('button', {
-        name: CONFIG_PY_PATH,
+      within(pane).getByRole('button', {
+        name: new RegExp(CONFIG_PY_PATH),
       }),
     )
     expect(
-      await within(pane).findByRole('group', { name: 'Diff of config.py' }),
+      await within(pane).findByRole('group', {
+        name: `Diff of ${CONFIG_PY_PATH}`,
+      }),
     ).toBeInTheDocument()
     expect(
       within(pane).getByText(/<script>alert\('x'\)<\/script>/),
@@ -1299,14 +1302,15 @@ describe('AppFeature navigation', () => {
     const main = screen.getByRole('main')
     const queryNull = {
       taskId: RETRY_BUDGET_DONE_TASK_ID,
-      selectedPath: null as string | null,
+      selectedEntry: null,
+      turnTaskId: null,
     }
     publishTaskChanges(queryNull, taskChangesLoadFor(queryNull))
     const pane = await within(main).findByRole('complementary', {
       name: 'Task details',
     })
     expect(
-      within(pane).getByRole('group', { name: 'Diff of queue.py' }),
+      within(pane).getByRole('group', { name: `Diff of ${QUEUE_PY_PATH}` }),
     ).toBeInTheDocument()
 
     const stale = captureChangesCallback()
@@ -1314,43 +1318,46 @@ describe('AppFeature navigation', () => {
     expect(typeof stale).toBe('function')
 
     const configRow = within(pane).getByRole('button', {
-      name: CONFIG_PY_PATH,
+      name: new RegExp(CONFIG_PY_PATH),
     })
     configRow.focus()
     expect(configRow).toHaveFocus()
     await user.keyboard('{Enter}')
     await flush()
     expect(presenter.getState().task.changesLoad.kind).toBe('loading')
-    expect(presenter.getState().task.selectedChangePath).toBe(CONFIG_PY_PATH)
+    expect(presenter.getState().task.selectedChangeEntry).toEqual(CONFIG_ENTRY)
     expect(
-      within(pane).getByRole('button', { name: CONFIG_PY_PATH }),
+      within(pane).getByRole('button', { name: new RegExp(CONFIG_PY_PATH) }),
     ).toBeInTheDocument()
     expect(
-      within(pane).queryByRole('group', { name: 'Diff of queue.py' }),
+      within(pane).queryByRole('group', { name: `Diff of ${QUEUE_PY_PATH}` }),
     ).not.toBeInTheDocument()
     expect(
       within(pane).getByRole('group', { name: 'Reading diff' }),
     ).toHaveAttribute('aria-busy', 'true')
     expect(
-      within(pane).getByRole('button', { name: CONFIG_PY_PATH }),
+      within(pane).getByRole('button', { name: new RegExp(CONFIG_PY_PATH) }),
     ).toHaveFocus()
 
     stale!(taskChangesLoadFor(queryNull))
     expect(presenter.getState().task.changesLoad.kind).toBe('loading')
     expect(
-      within(pane).queryByRole('group', { name: 'Diff of queue.py' }),
+      within(pane).queryByRole('group', { name: `Diff of ${QUEUE_PY_PATH}` }),
     ).not.toBeInTheDocument()
 
     const queryConfig = {
       taskId: RETRY_BUDGET_DONE_TASK_ID,
-      selectedPath: CONFIG_PY_PATH,
+      selectedEntry: CONFIG_ENTRY,
+      turnTaskId: null,
     }
     publishTaskChanges(queryConfig, taskChangesLoadFor(queryConfig))
     expect(
-      await within(pane).findByRole('group', { name: 'Diff of config.py' }),
+      await within(pane).findByRole('group', {
+        name: `Diff of ${CONFIG_PY_PATH}`,
+      }),
     ).toBeInTheDocument()
     expect(
-      within(pane).getByRole('button', { name: CONFIG_PY_PATH }),
+      within(pane).getByRole('button', { name: new RegExp(CONFIG_PY_PATH) }),
     ).toBeInTheDocument()
   })
 
@@ -1372,7 +1379,8 @@ describe('AppFeature navigation', () => {
     )
     const queryNull = {
       taskId: RETRY_BUDGET_DONE_TASK_ID,
-      selectedPath: null as string | null,
+      selectedEntry: null,
+      turnTaskId: null,
     }
     publishTaskChanges(queryNull, taskChangesLoadFor(queryNull))
     expect(
@@ -1413,7 +1421,7 @@ describe('AppFeature navigation', () => {
   it('keeps follow-up and unavailable destinations from mutating or launching', async () => {
     const user = userEvent.setup()
     const { port, starts } = createTestEngine()
-    renderApp(port)
+    const { presenter } = renderApp(port)
     await flush()
     await user.click(
       screen.getByRole('button', {
@@ -1426,9 +1434,7 @@ describe('AppFeature navigation', () => {
     )
     await screen.findByRole('complementary', { name: 'Task details' })
     await user.click(screen.getByRole('tab', { name: 'Events' }))
-    expect(
-      screen.getByText(/Events is unavailable in this exploratory slice/),
-    ).toBeInTheDocument()
+    expect(presenter.getState().task.paneTab).toBe('events')
     expect(
       screen.getByRole('button', {
         name: 'Send follow-up (unavailable in this slice)',

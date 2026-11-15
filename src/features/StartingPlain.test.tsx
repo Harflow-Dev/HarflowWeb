@@ -135,9 +135,11 @@ describe('task pane loading skeletons via preview', () => {
     expect(
       screen.queryByRole('group', { name: 'Reading stored changes' }),
     ).toBeNull()
+    // The list arrives without a selection; no diff is drawn until a row is picked.
+    expect(screen.getByText(QUEUE_PY_PATH)).toBeInTheDocument()
     expect(
-      screen.getByRole('group', { name: `Diff of ${QUEUE_PY_PATH}` }),
-    ).toBeInTheDocument()
+      screen.queryByRole('group', { name: `Diff of ${QUEUE_PY_PATH}` }),
+    ).toBeNull()
   })
 
   it('does not land task A changes in task B when A resolves late', async () => {

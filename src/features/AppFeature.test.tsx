@@ -84,6 +84,7 @@ import { taskChangesKey } from '../adapters/mock/mockEngineCore'
 import {
   CONFIG_ENTRY,
   CONFIG_PY_PATH,
+  QUEUE_ENTRY,
   QUEUE_PY_PATH,
   taskChangesLoadFor,
 } from '../adapters/mock/taskChangesFixtures'
@@ -1242,8 +1243,17 @@ describe('AppFeature navigation', () => {
     expect(within(pane).getAllByText(QUEUE_PY_PATH).length).toBeGreaterThan(0)
     expect(within(pane).getByText('+24')).toBeInTheDocument()
     expect(within(pane).getByText('\u22123')).toBeInTheDocument()
+    // No row is selected until the user picks one.
     expect(
-      within(pane).getByRole('group', { name: `Diff of ${QUEUE_PY_PATH}` }),
+      within(pane).queryByRole('group', { name: `Diff of ${QUEUE_PY_PATH}` }),
+    ).not.toBeInTheDocument()
+    await user.click(
+      within(pane).getByRole('button', { name: new RegExp(QUEUE_PY_PATH) }),
+    )
+    expect(
+      await within(pane).findByRole('group', {
+        name: `Diff of ${QUEUE_PY_PATH}`,
+      }),
     ).toBeInTheDocument()
     expect(
       within(pane).getByText('@@ -41,9 +41,18 @@ class DeliveryQueue'),
@@ -1309,8 +1319,19 @@ describe('AppFeature navigation', () => {
     const pane = await within(main).findByRole('complementary', {
       name: 'Task details',
     })
+    await user.click(
+      within(pane).getByRole('button', { name: new RegExp(QUEUE_PY_PATH) }),
+    )
+    const queryQueue = {
+      taskId: RETRY_BUDGET_DONE_TASK_ID,
+      selectedEntry: QUEUE_ENTRY,
+      turnTaskId: null,
+    }
+    publishTaskChanges(queryQueue, taskChangesLoadFor(queryQueue))
     expect(
-      within(pane).getByRole('group', { name: `Diff of ${QUEUE_PY_PATH}` }),
+      await within(pane).findByRole('group', {
+        name: `Diff of ${QUEUE_PY_PATH}`,
+      }),
     ).toBeInTheDocument()
 
     const stale = captureChangesCallback()
@@ -1339,7 +1360,7 @@ describe('AppFeature navigation', () => {
       within(pane).getByRole('button', { name: new RegExp(CONFIG_PY_PATH) }),
     ).toHaveFocus()
 
-    stale!(taskChangesLoadFor(queryNull))
+    stale!(taskChangesLoadFor(queryQueue))
     expect(presenter.getState().task.changesLoad.kind).toBe('loading')
     expect(
       within(pane).queryByRole('group', { name: `Diff of ${QUEUE_PY_PATH}` }),

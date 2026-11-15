@@ -1,4 +1,5 @@
 import type { TaskChangesContent, TaskChangesRowStatus } from '../model'
+import { changesPathIsBytes } from './taskChangesPaths'
 
 const STATUS_LETTER: Record<TaskChangesRowStatus, string> = {
   modified: 'M',
@@ -22,14 +23,27 @@ export function changesRowStateLabel(args: {
   readonly content: TaskChangesContent
   readonly pathTruncated: boolean
   readonly status: TaskChangesRowStatus
-  readonly path: string
+  readonly path: string | null
+  readonly pathBytesB64: string | null
 }): string | null {
   if (args.pathTruncated || args.content.reason === 'path_too_long') {
     return 'Path cut · no text'
   }
+  return (
+    contentStateLabel(args) ??
+    (changesPathIsBytes(args) ? 'Bytes, not UTF-8' : null)
+  )
+}
+
+function contentStateLabel(args: {
+  readonly content: TaskChangesContent
+  readonly status: TaskChangesRowStatus
+  readonly path: string | null
+}): string | null {
+  const path = args.path ?? ''
   const { state, reason } = args.content
   if (state === 'available') {
-    if (args.status === 'untracked' && args.path.endsWith('/')) {
+    if (args.status === 'untracked' && path.endsWith('/')) {
       return 'Directory · name only'
     }
     if (args.status === 'untracked' && reason === 'untracked') {
@@ -49,10 +63,7 @@ export function changesRowStateLabel(args: {
     if (reason === 'submodule') return 'Submodule · no text'
     if (reason === 'unmerged') return 'Unmerged · no text'
     if (reason === 'untracked') {
-      return args.path.endsWith('/') ? 'Directory · name only' : 'name only'
-    }
-    if (reason === 'bytes_not_utf8' || reason === 'not_utf8') {
-      return 'Bytes, not UTF-8'
+      return path.endsWith('/') ? 'Directory · name only' : 'name only'
     }
     if (reason === 'path_too_long') return 'Path cut · no text'
     return null

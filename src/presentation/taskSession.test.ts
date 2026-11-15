@@ -21,6 +21,9 @@ import {
   CONFIG_ENTRY,
   QUEUE_ENTRY,
   taskChangesLoadFor,
+  HARFLOW_WEB_ROOT,
+  TASK_CHANGES_TURN_2_ID,
+  TASK_CHANGES_TURNS_ID,
 } from '../adapters/mock/taskChangesFixtures'
 import {
   EVENTS_READER_FAILED_TASK_ID,
@@ -513,12 +516,12 @@ describe('TaskSession', () => {
     const open = session.getState().changesLoad
     expect(open.kind).toBe('ready')
     if (open.kind === 'ready') {
-      expect(open.observation.selectedEntry).toEqual(QUEUE_ENTRY)
       expect(committedRows(open.observation)).toHaveLength(3)
-      expect(open.observation.text?.lines.length).toBeGreaterThan(0)
+      // No row is selected by default: the list alone is observed.
+      expect(open.observation.text).toBeNull()
     }
     expect(session.getState().changesQueryEntry).toBeNull()
-    expect(session.getState().selectedChangeEntry).toEqual(QUEUE_ENTRY)
+    expect(session.getState().selectedChangeEntry).toBeNull()
 
     session.setChangesPaneOpen(false)
     expect(session.getState().changesPaneOpen).toBe(false)
@@ -539,30 +542,18 @@ describe('TaskSession', () => {
     const first = taskChangesLoadFor(queryNull)
     publishChanges(queryNull, first)
     expect(session.getState().changesQueryEntry).toBeNull()
-    expect(session.getState().selectedChangeEntry).toEqual(QUEUE_ENTRY)
+    expect(session.getState().selectedChangeEntry).toBeNull()
     expect(session.getState().changesLoad).toEqual(first)
 
     const sameCallback = captureChangesCallback()
     expect(sameCallback).not.toBeNull()
     expect(typeof sameCallback).toBe('function')
 
-    const updatedLines = [
-      {
-        kind: 'add' as const,
-        text: '        # updated default observation',
-      },
-    ]
     const updated =
-      first.kind === 'ready' && first.observation.text !== null
+      first.kind === 'ready'
         ? {
             kind: 'ready' as const,
-            observation: {
-              ...first.observation,
-              text: {
-                ...first.observation.text,
-                lines: updatedLines,
-              },
-            },
+            observation: { ...first.observation, hasMore: true, nextCursor: 'next' },
           }
         : first
     sameCallback!(updated)
@@ -571,7 +562,7 @@ describe('TaskSession', () => {
     const afterUpdate = session.getState().changesLoad
     expect(afterUpdate.kind).toBe('ready')
     if (afterUpdate.kind === 'ready') {
-      expect(afterUpdate.observation.text?.lines).toEqual(updatedLines)
+      expect(afterUpdate.observation.hasMore).toBe(true)
     }
 
     sameCallback!({
@@ -596,8 +587,17 @@ describe('TaskSession', () => {
     session.setChangesPaneOpen(true)
     const queryNull = defaultChangesQuery(RETRY_BUDGET_DONE_TASK_ID)
     publishChanges(queryNull, taskChangesLoadFor(queryNull))
-    expect(session.getState().selectedChangeEntry).toEqual(QUEUE_ENTRY)
+    expect(session.getState().selectedChangeEntry).toBeNull()
     expect(committedRows(session.getState().changesList)).toHaveLength(3)
+
+    session.selectChangedEntry(QUEUE_ENTRY)
+    const queryQueue: TaskChangesQuery = {
+      taskId: RETRY_BUDGET_DONE_TASK_ID,
+      selectedEntry: QUEUE_ENTRY,
+      turnTaskId: null,
+    }
+    publishChanges(queryQueue, taskChangesLoadFor(queryQueue))
+    expect(session.getState().selectedChangeEntry).toEqual(QUEUE_ENTRY)
 
     const staleCallback = captureChangesCallback()
     expect(staleCallback).not.toBeNull()
@@ -610,7 +610,7 @@ describe('TaskSession', () => {
     expect(committedRows(session.getState().changesList)).toHaveLength(3)
 
     // Invoke the saved old callback directly (cancellation may clear the map).
-    staleCallback!(taskChangesLoadFor(queryNull))
+    staleCallback!(taskChangesLoadFor(queryQueue))
     expect(session.getState().changesLoad.kind).toBe('loading')
     expect(session.getState().selectedChangeEntry).toEqual(CONFIG_ENTRY)
 
@@ -623,8 +623,7 @@ describe('TaskSession', () => {
     const load = session.getState().changesLoad
     expect(load.kind).toBe('ready')
     if (load.kind === 'ready') {
-      expect(load.observation.selectedEntry).toEqual(CONFIG_ENTRY)
-      expect(load.observation.text).not.toBeNull()
+      expect(load.observation.text?.entry).toEqual(CONFIG_ENTRY)
       if (load.observation.text !== null) {
         const text = load.observation.text.lines.map((l) => l.text).join('\n')
         expect(text).toContain("<script>alert('x')</script>")
@@ -657,6 +656,79 @@ describe('TaskSession', () => {
     expect(session.getState().changesPaneOpen).toBe(false)
     expect(session.getState().changesLoad.kind).toBe('loading')
     expect(session.getState().selectedTaskId).toBe(SLOT_RELEASE_TASK_ID)
+    session.dispose()
+  })
+
+  it('rejects results from a previous turn after switching turns and resets expansion', () => {
+    const { port, publish, publishChanges, captureChangesCallback } =
+      createDeferredPort()
+    const session = sessionFor(port)
+    session.start()
+    session.openTask(TASK_CHANGES_TURNS_ID)
+    publish(TASK_CHANGES_TURNS_ID, taskLoadFor(TASK_CHANGES_TURNS_ID))
+    session.setChangesPaneOpen(true)
+    const opened = defaultChangesQuery(TASK_CHANGES_TURNS_ID)
+    publishChanges(opened, taskChangesLoadFor(opened))
+    expect(session.getState().expandedRepos).toEqual([HARFLOW_WEB_ROOT])
+    const stale = captureChangesCallback()
+    expect(stale).not.toBeNull()
+    session.setRepositoryExpanded('~/Code/other', true)
+    expect(session.getState().expandedRepos).toHaveLength(2)
+
+    session.selectChangesTurn(TASK_CHANGES_TURN_2_ID)
+    expect(session.getState().changesTurnTaskId).toBe(TASK_CHANGES_TURN_2_ID)
+    expect(session.getState().changesLoad.kind).toBe('loading')
+    expect(session.getState().changesList).toBeNull()
+    expect(session.getState().expandedRepos).toEqual([])
+
+    // The opened turn's late result and a wrongly identified result are fenced.
+    stale!(taskChangesLoadFor(opened))
+    expect(session.getState().changesLoad.kind).toBe('loading')
+    expect(session.getState().changesList).toBeNull()
+    const current = captureChangesCallback()
+    current!(taskChangesLoadFor(opened))
+    expect(session.getState().changesLoad.kind).toBe('loading')
+
+    const turn2: TaskChangesQuery = {
+      taskId: TASK_CHANGES_TURNS_ID,
+      selectedEntry: null,
+      turnTaskId: TASK_CHANGES_TURN_2_ID,
+    }
+    publishChanges(turn2, taskChangesLoadFor(turn2))
+    const load = session.getState().changesLoad
+    expect(load.kind).toBe('ready')
+    if (load.kind === 'ready') {
+      expect(load.observation.taskId).toBe(TASK_CHANGES_TURN_2_ID)
+    }
+    expect(session.getState().expandedRepos).toEqual([HARFLOW_WEB_ROOT])
+    session.dispose()
+  })
+
+  it('rejects a late result after the pane was closed', () => {
+    const { port, publish, publishChanges, captureChangesCallback } =
+      createDeferredPort()
+    const session = sessionFor(port)
+    session.start()
+    session.openTask(RETRY_BUDGET_DONE_TASK_ID)
+    publish(RETRY_BUDGET_DONE_TASK_ID, taskLoadFor(RETRY_BUDGET_DONE_TASK_ID))
+    session.setChangesPaneOpen(true)
+    const query = defaultChangesQuery(RETRY_BUDGET_DONE_TASK_ID)
+    const beforeAnyResult = captureChangesCallback()
+    session.setChangesPaneOpen(false)
+    beforeAnyResult!(taskChangesLoadFor(query))
+    expect(session.getState().changesPaneOpen).toBe(false)
+    expect(session.getState().changesLoad.kind).toBe('loading')
+    expect(session.getState().changesList).toBeNull()
+
+    session.setChangesPaneOpen(true)
+    publishChanges(query, taskChangesLoadFor(query))
+    const stale = captureChangesCallback()
+    expect(session.getState().changesList).not.toBeNull()
+    session.setChangesPaneOpen(false)
+    stale!(taskChangesLoadFor(query))
+    expect(session.getState().changesPaneOpen).toBe(false)
+    expect(session.getState().changesList).toBeNull()
+    expect(session.getState().changesLoad.kind).toBe('loading')
     session.dispose()
   })
 })

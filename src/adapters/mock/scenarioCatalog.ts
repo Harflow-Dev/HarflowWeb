@@ -8,7 +8,10 @@ import { MINIMUM_SCENARIOS } from './scenarioCatalogMinimum'
 import { PARALLEL_LANE_SCENARIOS } from './scenarioCatalogParallelLanes'
 import { PARALLEL_QUEUED_SCENARIOS } from './scenarioCatalogParallelQueued'
 import { PENDING_LAUNCH_SCENARIOS } from './scenarioCatalogPendingLaunches'
-import { TASK_CHANGES_SCENARIOS } from './scenarioCatalogTaskChanges'
+import {
+  QUEUE_SELECTED_CHROME,
+  TASK_CHANGES_SCENARIOS,
+} from './scenarioCatalogTaskChanges'
 import { TASK_OVERFLOW_SCENARIOS } from './scenarioCatalogTaskOverflow'
 import { TASK_STATUS_SCENARIOS } from './scenarioCatalogTaskStatuses'
 import { TRANSCRIPT_SCENARIOS } from './scenarioCatalogTranscript'
@@ -181,7 +184,11 @@ export const SCENARIOS: readonly ScenarioDefinition[] = [
     tasks: (taskId) => taskLoadFor(taskId),
     startOutcome: accepted,
     holdStart: false,
-    seed: { openTaskId: 'task-retry-budget-done', eventsPaneOpen: true },
+    seed: {
+      openTaskId: 'task-retry-budget-done',
+      eventsPaneOpen: true,
+      changesChrome: QUEUE_SELECTED_CHROME,
+    },
   }),
   base({
     id: 'needs-you-empty',

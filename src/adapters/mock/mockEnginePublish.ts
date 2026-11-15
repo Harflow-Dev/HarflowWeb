@@ -50,13 +50,17 @@ function queryFromChangesKey(key: string): TaskChangesQuery {
   const turnRaw = parts[1] ?? ''
   const repositoryRoot = parts[2] ?? ''
   const scope = parts[3] ?? ''
-  const path = parts.slice(4).join('\0')
+  const path = parts[4] ?? ''
+  const pathBytesB64 = parts[5] ?? ''
   const selectedEntry =
-    repositoryRoot && (scope === 'committed_range' || scope === 'working_tree') && path
+    repositoryRoot &&
+    (scope === 'committed_range' || scope === 'working_tree') &&
+    (path || pathBytesB64)
       ? {
           repositoryRoot,
           scope: scope as 'committed_range' | 'working_tree',
-          path,
+          path: path || null,
+          pathBytesB64: pathBytesB64 || null,
         }
       : null
   return {

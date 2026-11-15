@@ -1,20 +1,16 @@
 import type { LoadTaskChangesUseCase } from '../application'
-import type {
-  ObservationHandle,
-  TaskChangesEntryRef,
-  TaskChangesLoad,
-  TaskId,
+import {
+  taskChangesEntryKey,
+  type ObservationHandle,
+  type TaskChangesEntryRef,
+  type TaskChangesLoad,
+  type TaskId,
 } from '../model'
 import type { TaskScreenState } from './taskState'
 
 export { changesEntriesEqual } from './taskChangesFormat'
 
 type Publish = (next: TaskScreenState) => void
-
-function entryKey(entry: TaskChangesEntryRef | null): string {
-  if (!entry) return ''
-  return `${entry.repositoryRoot}\0${entry.scope}\0${entry.path}`
-}
 
 /** Changes-pane observation helpers shared by TaskSession. */
 export function beginTaskChangesObservation(args: {
@@ -61,7 +57,7 @@ export function applyTaskChangesLoad(
   if (args.disposed || args.gen !== args.epoch) return
   if (!args.state.changesPaneOpen) return
   if (args.expectedTask !== args.state.selectedTaskId) return
-  if (entryKey(args.expectedEntry) !== entryKey(args.state.changesQueryEntry)) {
+  if (taskChangesEntryKey(args.expectedEntry) !== taskChangesEntryKey(args.state.changesQueryEntry)) {
     return
   }
   if (args.expectedTurn !== args.state.changesTurnTaskId) return
@@ -70,11 +66,12 @@ export function applyTaskChangesLoad(
     if (args.load.observation.taskId !== (args.expectedTurn ?? args.expectedTask)) {
       return
     }
+    // Text, when present, must read the entry this query asked for.
     if (
       args.expectedEntry !== null &&
-      args.load.observation.selectedEntry !== null &&
-      entryKey(args.load.observation.selectedEntry) !==
-        entryKey(args.expectedEntry)
+      args.load.observation.text !== null &&
+      taskChangesEntryKey(args.load.observation.text.entry) !==
+        taskChangesEntryKey(args.expectedEntry)
     ) {
       return
     }
@@ -84,7 +81,6 @@ export function applyTaskChangesLoad(
         : defaultExpanded(args.load.observation.repositories.map((r) => r.repositoryRoot))
     args.publish({
       ...args.state,
-      selectedChangeEntry: args.load.observation.selectedEntry,
       changesList: args.load.observation,
       changesLoad: args.load,
       expandedRepos: expanded,

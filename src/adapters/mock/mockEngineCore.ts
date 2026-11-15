@@ -1,30 +1,31 @@
 import type { EnginePort } from '../../application'
-import type {
-  ContextLoad,
-  HarnessesLoad,
-  NeedsYouLoad,
-  ParallelGroupId,
-  ParallelGroupLoad,
-  PendingLaunchCapabilityLoad,
-  PendingLaunchId,
-  PendingLaunchInventoryLoad,
-  PendingLaunchStatusLoad,
-  ResourcesLoad,
-  SettingsGeneralLoad,
-  StartTaskOutcome,
-  StartTaskRequest,
-  StatisticsLoad,
-  StatisticsRangeId,
-  TaskChangesLoad,
-  TaskChangesQuery,
-  TaskId,
-  TaskLoad,
-  WorkflowEditorLoad,
-  WorkflowId,
-  WorkflowRunContextLoad,
-  WorkflowRunId,
-  WorkflowRunLoad,
-  WorkflowsLoad,
+import {
+  taskChangesEntryKey,
+  type ContextLoad,
+  type HarnessesLoad,
+  type NeedsYouLoad,
+  type ParallelGroupId,
+  type ParallelGroupLoad,
+  type PendingLaunchCapabilityLoad,
+  type PendingLaunchId,
+  type PendingLaunchInventoryLoad,
+  type PendingLaunchStatusLoad,
+  type ResourcesLoad,
+  type SettingsGeneralLoad,
+  type StartTaskOutcome,
+  type StartTaskRequest,
+  type StatisticsLoad,
+  type StatisticsRangeId,
+  type TaskChangesLoad,
+  type TaskChangesQuery,
+  type TaskId,
+  type TaskLoad,
+  type WorkflowEditorLoad,
+  type WorkflowId,
+  type WorkflowRunContextLoad,
+  type WorkflowRunId,
+  type WorkflowRunLoad,
+  type WorkflowsLoad,
 } from '../../model'
 import { createControllablePromise, type ControllablePromise } from './controllable'
 import {
@@ -53,12 +54,8 @@ import { workflowRunLoadFor } from './workflowRunFixtures'
 export type TaskChangesKey = string
 
 export function taskChangesKey(query: TaskChangesQuery): TaskChangesKey {
-  const entry = query.selectedEntry
-  const entryKey = entry
-    ? `${entry.repositoryRoot}\0${entry.scope}\0${entry.path}`
-    : ''
   const turn = query.turnTaskId ?? ''
-  return `${query.taskId}\0${turn}\0${entryKey}`
+  return `${query.taskId}\0${turn}\0${taskChangesEntryKey(query.selectedEntry)}`
 }
 
 export type MockListenerSets = {

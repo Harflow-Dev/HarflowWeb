@@ -2,13 +2,16 @@ import type { TaskChangesObservation, TaskId } from '../../model'
 import {
   HARFLOW_MCP_ROOT,
   HARFLOW_WEB_ROOT,
-  WEB_COMMITTED_ROWS,
-  WEB_WORKING_NAME_ONLY,
+  committedScope,
   observation,
   repoBase,
   row,
-  scopeAvailable,
+  workingScope,
 } from './taskChangesFixtureBuilders'
+import {
+  WEB_COMMITTED_ROWS,
+  WEB_WORKING_NAME_ONLY,
+} from './taskChangesFixtureSamples'
 
 export {
   incompleteDoc,
@@ -21,20 +24,11 @@ export {
 export function singleDoc(taskId: TaskId): TaskChangesObservation {
   return observation({
     taskId,
-    selectedEntry: {
-      repositoryRoot: HARFLOW_WEB_ROOT,
-      scope: 'committed_range',
-      path: 'harflow_web/delivery/queue.py',
-    },
     repositories: [
       repoBase({
-        name: 'HarflowWeb',
         repositoryRoot: HARFLOW_WEB_ROOT,
-        committed: scopeAvailable({ rows: WEB_COMMITTED_ROWS, rowCount: 3 }),
-        working: scopeAvailable({
-          rows: [WEB_WORKING_NAME_ONLY],
-          rowCount: 1,
-        }),
+        committed: committedScope({ rows: WEB_COMMITTED_ROWS, rowCount: 3 }),
+        working: workingScope({ rows: [WEB_WORKING_NAME_ONLY], rowCount: 1 }),
       }),
     ],
   })
@@ -43,17 +37,11 @@ export function singleDoc(taskId: TaskId): TaskChangesObservation {
 export function samePathDoc(taskId: TaskId): TaskChangesObservation {
   return observation({
     taskId,
-    selectedEntry: {
-      repositoryRoot: HARFLOW_WEB_ROOT,
-      scope: 'working_tree',
-      path: 'harflow_web/delivery/queue.py',
-    },
     repositories: [
       repoBase({
-        name: 'HarflowWeb',
         repositoryRoot: HARFLOW_WEB_ROOT,
         baselineDirty: true,
-        committed: scopeAvailable({
+        committed: committedScope({
           rows: [
             row({
               path: 'harflow_web/delivery/queue.py',
@@ -70,7 +58,7 @@ export function samePathDoc(taskId: TaskId): TaskChangesObservation {
           ],
           rowCount: 2,
         }),
-        working: scopeAvailable({
+        working: workingScope({
           rows: [
             row({
               path: 'harflow_web/delivery/queue.py',
@@ -88,21 +76,19 @@ export function samePathDoc(taskId: TaskId): TaskChangesObservation {
 }
 
 export function multiDoc(taskId: TaskId): TaskChangesObservation {
-  const collapsed = (name: string, root: string, count: number) =>
+  const collapsed = (root: string, count: number) =>
     repoBase({
-      name,
       repositoryRoot: root,
-      committed: scopeAvailable({ rows: [], rowCount: count }),
-      working: scopeAvailable({ rows: [], rowCount: 0 }),
+      committed: committedScope({ rows: [], rowCount: count }),
+      working: workingScope({ rows: [], rowCount: 0 }),
     })
   return observation({
     taskId,
     repositories: [
       repoBase({
-        name: 'HarflowMCP',
         repositoryRoot: HARFLOW_MCP_ROOT,
         worktree: HARFLOW_MCP_ROOT,
-        committed: scopeAvailable({
+        committed: committedScope({
           rowCount: 84,
           rows: [
             row({
@@ -119,15 +105,15 @@ export function multiDoc(taskId: TaskId): TaskChangesObservation {
             }),
           ],
         }),
-        working: scopeAvailable({ rows: [], rowCount: 2 }),
+        working: workingScope({ rows: [], rowCount: 2 }),
       }),
-      collapsed('HarflowMac', '~/Code/Harflow/HarflowMac', 31),
-      collapsed('HarflowDesign', '~/Code/Harflow/HarflowDesign', 4),
-      collapsed('HarflowWeb', HARFLOW_WEB_ROOT, 2),
-      collapsed('HarflowEngine', '~/Code/Harflow/HarflowEngine', 5),
-      collapsed('ops-scripts', '~/Code/ops-scripts', 0),
-      collapsed('docs-site', '~/Code/docs-site', 0),
-      collapsed('tools', '~/Code/tools', 0),
+      collapsed('~/Code/Harflow/HarflowMac', 31),
+      collapsed('~/Code/Harflow/HarflowDesign', 4),
+      collapsed(HARFLOW_WEB_ROOT, 2),
+      collapsed('~/Code/Harflow/HarflowEngine', 5),
+      collapsed('~/Code/ops-scripts', 0),
+      collapsed('~/Code/docs-site', 0),
+      collapsed('~/Code/tools', 0),
     ],
   })
 }
@@ -137,10 +123,9 @@ export function zeroDoc(taskId: TaskId): TaskChangesObservation {
     taskId,
     repositories: [
       repoBase({
-        name: 'HarflowWeb',
         repositoryRoot: HARFLOW_WEB_ROOT,
-        committed: scopeAvailable({ rows: [], rowCount: 0 }),
-        working: scopeAvailable({ rows: [], rowCount: 0 }),
+        committed: committedScope({ rows: [], rowCount: 0 }),
+        working: workingScope({ rows: [], rowCount: 0 }),
       }),
     ],
   })
@@ -178,6 +163,16 @@ export function runningCaptureDoc(taskId: TaskId): TaskChangesObservation {
     taskId,
     captureState: 'pending',
     captureReason: 'task_running',
+    repositories: [],
+  })
+}
+
+/** Task-level refusal: the outcome was never observed, so nothing was read. */
+export function unobservedCaptureDoc(taskId: TaskId): TaskChangesObservation {
+  return observation({
+    taskId,
+    captureState: 'not_captured',
+    captureReason: 'outcome_unobserved',
     repositories: [],
   })
 }

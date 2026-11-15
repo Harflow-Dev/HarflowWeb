@@ -5,34 +5,27 @@ import type {
 } from '../../model'
 import {
   HARFLOW_MCP_ROOT,
+  committedScope,
   observation,
   repoBase,
   row,
-  scopeAvailable,
-  scopeCustom,
+  workingScope,
 } from './taskChangesFixtureBuilders'
 
-function collapsedCount(
-  name: string,
-  root: string,
-  count: number,
-): TaskChangesRepository {
+function collapsedCount(root: string, count: number): TaskChangesRepository {
   return repoBase({
-    name,
     repositoryRoot: root,
-    committed: scopeAvailable({ rows: [], rowCount: count }),
-    working: scopeAvailable({ rows: [], rowCount: 0 }),
+    committed: committedScope({ rows: [], rowCount: count }),
+    working: workingScope({ rows: [], rowCount: 0 }),
   })
 }
 
+/** Row ceiling reached: the scope stays available, only its rows are cut. */
 function mcpLimited(): TaskChangesRepository {
   return repoBase({
-    name: 'HarflowMCP',
     repositoryRoot: HARFLOW_MCP_ROOT,
     worktree: HARFLOW_MCP_ROOT,
-    state: 'incomplete',
-    reason: 'rows_truncated',
-    committed: scopeAvailable({
+    committed: committedScope({
       rowCount: 500,
       rowsTruncated: true,
       rows: [
@@ -44,18 +37,16 @@ function mcpLimited(): TaskChangesRepository {
         }),
       ],
     }),
-    working: scopeAvailable({ rows: [], rowCount: 2 }),
+    working: workingScope({ rows: [], rowCount: 2 }),
   })
 }
 
+/** Committed range captured, working tree refused: the repository is available. */
 function enginePartial(): TaskChangesRepository {
   return repoBase({
-    name: 'HarflowEngine',
     repositoryRoot: '~/Code/Harflow/HarflowEngine',
-    state: 'available',
-    reason: 'working_tree_not_captured',
-    committed: scopeAvailable({ rows: [], rowCount: 1 }),
-    working: scopeCustom({
+    committed: committedScope({ rows: [], rowCount: 1 }),
+    working: workingScope({
       state: 'not_captured',
       reason: 'git_dir_unverified',
       rowCount: 0,
@@ -65,16 +56,15 @@ function enginePartial(): TaskChangesRepository {
 
 function docsSiteIncomplete(): TaskChangesRepository {
   return repoBase({
-    name: 'docs-site',
     repositoryRoot: '~/Code/docs-site',
     state: 'incomplete',
     reason: 'capture_timeout',
-    committed: scopeCustom({
+    committed: committedScope({
       state: 'incomplete',
       reason: 'capture_timeout',
       rowCount: 0,
     }),
-    working: scopeCustom({
+    working: workingScope({
       state: 'incomplete',
       reason: 'capture_timeout',
       rowCount: 0,
@@ -88,12 +78,11 @@ export function multiLimitedDoc(taskId: TaskId): TaskChangesObservation {
     captureState: 'incomplete',
     repositories: [
       mcpLimited(),
-      collapsedCount('HarflowMac', '~/Code/Harflow/HarflowMac', 31),
-      collapsedCount('HarflowDesign', '~/Code/Harflow/HarflowDesign', 4),
+      collapsedCount('~/Code/Harflow/HarflowMac', 31),
+      collapsedCount('~/Code/Harflow/HarflowDesign', 4),
       enginePartial(),
       docsSiteIncomplete(),
       repoBase({
-        name: 'tools',
         repositoryRoot: '~/Code/tools',
         state: 'not_captured',
         reason: 'alternates_present',
@@ -101,7 +90,6 @@ export function multiLimitedDoc(taskId: TaskId): TaskChangesObservation {
         working: null,
       }),
       repoBase({
-        name: 'old-checkout',
         repositoryRoot: '~/Code/old-checkout',
         state: 'unavailable',
         reason: 'repository_unavailable',
@@ -109,7 +97,6 @@ export function multiLimitedDoc(taskId: TaskId): TaskChangesObservation {
         working: null,
       }),
       repoBase({
-        name: 'site',
         repositoryRoot: '~/Code/site',
         state: 'incomplete',
         reason: 'budget_exhausted',

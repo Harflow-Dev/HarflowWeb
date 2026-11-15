@@ -1,6 +1,5 @@
 import type { ReactNode } from 'react'
 import {
-  DOCUMENT_UNAVAILABLE_NOTE,
   DOCUMENT_UNAVAILABLE_REASONS,
   ENGINE_UNAVAILABLE_NOTE,
   LOADING_NOTE,
@@ -9,6 +8,7 @@ import {
   NO_REPOSITORY_NOTE,
   RUNNING_NOTE,
   SETTLING_NOTE,
+  documentUnavailableNote,
 } from '../presentation/taskChangesCopy'
 import {
   ChangesAction,
@@ -117,17 +117,16 @@ export function ChangesEngineUnavailableBody({
 }
 
 export function ChangesDocumentUnavailableBody({
+  reason,
   onUnavailable,
 }: {
+  readonly reason: string | null
   readonly onUnavailable: (label: string) => void
 }) {
+  const note = documentUnavailableNote(reason)
   return (
     <ChangesPaneShell>
-      <ChangesPaneNote
-        tone="warn"
-        title={DOCUMENT_UNAVAILABLE_NOTE.title}
-        body={DOCUMENT_UNAVAILABLE_NOTE.body}
-      >
+      <ChangesPaneNote tone="warn" title={note.title} body={note.body}>
         <div className="hd-row hd-m05-actions">
           <ChangesAction label="Retry read" onUnavailable={onUnavailable} />
         </div>

@@ -19,10 +19,10 @@ import {
   TASK_CHANGES_SINGLE_ID,
 } from '../adapters/mock/taskChangesFixtures'
 import {
+  committedScope,
   contentState,
   row,
-  scopeAvailable,
-  scopeCustom,
+  workingScope,
 } from '../adapters/mock/taskChangesFixtureBuilders'
 import { asTaskId } from '../model'
 import { workingTreeCaption, WORKING_TREE_DIRTY_EXTRA, WORKING_TREE_NOTE } from './taskChangesCopy'
@@ -118,25 +118,26 @@ describe('same-path rows', () => {
 
 describe('formatScopeCount', () => {
   it('maps every scope state used in the G-DIFF documents', () => {
-    expect(formatScopeCount(scopeAvailable({ rows: [], rowCount: 3 }))).toBe('3')
+    expect(formatScopeCount(committedScope({ rows: [], rowCount: 3 }))).toBe('3')
     expect(
       formatScopeCount(
-        scopeAvailable({ rows: [], rowCount: 500, rowsTruncated: true }),
+        committedScope({ rows: [], rowCount: 500, rowsTruncated: true }),
       ),
     ).toBe('500+')
+    // Only a truncated row list adds "+"; an incomplete scope shows its count.
     expect(
       formatScopeCount(
-        scopeCustom({ state: 'incomplete', reason: 'capture_timeout', rowCount: 0 }),
+        committedScope({ state: 'incomplete', reason: 'capture_timeout', rowCount: 1 }),
       ),
-    ).toBe('0+')
+    ).toBe('1')
     expect(
       formatScopeCount(
-        scopeCustom({ state: 'incomplete', reason: 'capture_timeout', rowCount: 1 }),
+        workingScope({ state: 'incomplete', reason: 'capture_timeout', rowCount: 0 }),
       ),
-    ).toBe('1+')
+    ).toBe('0')
     expect(
       formatScopeCount(
-        scopeCustom({ state: 'not_captured', reason: 'git_dir_unverified', rowCount: 0 }),
+        workingScope({ state: 'not_captured', reason: 'git_dir_unverified', rowCount: 0 }),
       ),
     ).toBe('—')
   })
@@ -145,10 +146,10 @@ describe('formatScopeCount', () => {
 describe('formatRepositoryCount', () => {
   it('omits a number for not_captured and unavailable repositories', () => {
     const notCaptured = notCapturedDoc(TASK).repositories.find(
-      (repo) => repo.name === 'vendored-tools',
+      (repo) => repo.repositoryRoot === '~/Code/vendored-tools',
     )!
     const unavailable = multiLimitedDoc(TASK).repositories.find(
-      (repo) => repo.name === 'old-checkout',
+      (repo) => repo.repositoryRoot === '~/Code/old-checkout',
     )!
     expect(formatRepositoryCount(notCaptured)).toBeNull()
     expect(formatRepositoryCount(unavailable)).toBeNull()
@@ -186,14 +187,14 @@ describe('repository and scope tags', () => {
     })
     expect(formatRepositoryCount(limited.repositories[0]!)).toBe('500+')
     expect(
-      repositoryTag(limited.repositories.find((r) => r.name === 'site')!),
+      repositoryTag(limited.repositories.find((r) => r.repositoryRoot === '~/Code/site')!),
     ).toEqual({ label: 'Not started · budget used', tone: 'warn' })
     expect(
-      repositoryTag(limited.repositories.find((r) => r.name === 'tools')!),
+      repositoryTag(limited.repositories.find((r) => r.repositoryRoot === '~/Code/tools')!),
     ).toEqual({ label: 'Not captured', tone: 'warn' })
     expect(
       repositoryTag(
-        limited.repositories.find((r) => r.name === 'old-checkout')!,
+        limited.repositories.find((r) => r.repositoryRoot === '~/Code/old-checkout')!,
       ),
     ).toEqual({ label: 'Unavailable', tone: 'warn' })
     expect(repositoryTag(unmergedDoc(TASK).repositories[1]!)).toEqual({
@@ -230,12 +231,7 @@ describe('repository and scope tags', () => {
     })
     expect(
       scopeTag(
-        scopeCustom({
-          state: 'available',
-          reason: null,
-          rowCount: 0,
-          unmergedUnknown: true,
-        }),
+        workingScope({ rowCount: 0, unmergedUnknown: true }),
       ),
     ).toEqual({ label: 'Conflicts unknown', tone: 'warn' })
   })

@@ -3,6 +3,7 @@
  */
 import { accepted, base, readyContext } from './scenarioBase'
 import type { ScenarioDefinition } from './scenarios'
+import { QUEUE_SELECTED_CHROME } from './scenarioCatalogTaskChanges'
 import { RETRY_BUDGET_DONE_TASK_ID, taskLoadFor } from './taskFixtures'
 import {
   TASK_OVERFLOW_STOP_LINEAGE_ID,
@@ -39,6 +40,7 @@ export const TASK_OVERFLOW_SCENARIOS: readonly ScenarioDefinition[] = [
     seed: {
       openTaskId: RETRY_BUDGET_DONE_TASK_ID,
       eventsPaneOpen: true,
+      changesChrome: QUEUE_SELECTED_CHROME,
       taskOverflowMenuOpen: true,
     },
   }),

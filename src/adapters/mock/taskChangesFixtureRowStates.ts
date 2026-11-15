@@ -1,11 +1,14 @@
 import type { TaskChangesObservation, TaskChangesRow, TaskId } from '../../model'
 import {
   HARFLOW_MCP_ROOT,
+  contentAvailable,
   contentState,
+  bytesB64,
+  committedScope,
   observation,
   repoBase,
   row,
-  scopeAvailable,
+  workingScope,
 } from './taskChangesFixtureBuilders'
 
 const SPECS: readonly Parameters<typeof row>[0][] = [
@@ -60,11 +63,13 @@ const SPECS: readonly Parameters<typeof row>[0][] = [
     content: contentState('not_captured', 'path_too_long', null),
   },
   {
-    path: 'legacy/caf\\xe9.txt',
+    // Raw path bytes `legacy/caf` + 0xE9 + `.txt`: not valid UTF-8, so the
+    // engine sends `path_bytes_b64` and the row's content stays normal.
+    pathBytesB64: bytesB64('legacy/caf\xe9.txt'),
     status: 'modified',
     additions: 1,
     deletions: 1,
-    content: contentState('not_captured', 'bytes_not_utf8', null),
+    content: contentAvailable(24),
   },
 ]
 
@@ -75,18 +80,12 @@ function committedRows(): readonly TaskChangesRow[] {
 export function rowStatesDoc(taskId: TaskId): TaskChangesObservation {
   return observation({
     taskId,
-    selectedEntry: {
-      repositoryRoot: HARFLOW_MCP_ROOT,
-      scope: 'committed_range',
-      path: 'src/big_module.py',
-    },
     repositories: [
       repoBase({
-        name: 'HarflowMCP',
         repositoryRoot: HARFLOW_MCP_ROOT,
         worktree: HARFLOW_MCP_ROOT,
-        committed: scopeAvailable({ rowCount: 8, rows: committedRows() }),
-        working: scopeAvailable({
+        committed: committedScope({ rowCount: 8, rows: committedRows() }),
+        working: workingScope({
           rowCount: 1,
           rows: [
             row({

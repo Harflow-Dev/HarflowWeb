@@ -30,6 +30,8 @@ export function TaskChangesHost({
       taskObservation={state.load.observation}
       selectedEntry={state.selectedChangeEntry}
       expandedRepos={state.expandedRepos}
+      turns={state.changesTurns}
+      textPanels={state.changesTextPanels}
       onSelectEntry={onSelectEntry}
       onSelectTab={onSelectTab}
       onSelectTurn={onSelectTurn}

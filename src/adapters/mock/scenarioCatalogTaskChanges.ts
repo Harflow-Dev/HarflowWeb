@@ -4,7 +4,14 @@
 import { accepted, base, readyContext } from './scenarioBase'
 import type { ScenarioDefinition } from './scenarios'
 import type { TaskChangesChromeSeed } from './scenarioSeed'
-import { HARFLOW_MCP_ROOT, SAME_PATH_WORKING } from './taskChangesFixtures'
+import {
+  BIG_MODULE_ENTRY,
+  HARFLOW_MCP_ROOT,
+  QUEUE_ENTRY,
+  SAME_PATH_WORKING,
+  textSpecimenPanels,
+  turnsMembers,
+} from './taskChangesFixtures'
 import {
   TASK_CHANGES_ERROR_ID,
   TASK_CHANGES_INCOMPLETE_ID,
@@ -25,6 +32,8 @@ import {
 import { taskLoadFor } from './taskFixtures'
 
 const tasks = (taskId: string) => taskLoadFor(taskId)
+
+const VENDORED_TOOLS_ROOT = '~/Code/vendored-tools'
 
 function changesScenario(
   id: ScenarioDefinition['id'],
@@ -57,6 +66,11 @@ function changesScenario(
   })
 }
 
+/** Chrome that selects queue.py, as the design's single state draws it. */
+export const QUEUE_SELECTED_CHROME: TaskChangesChromeSeed = {
+  selectedEntry: QUEUE_ENTRY,
+}
+
 export const TASK_CHANGES_LOADING_SCENARIO = changesScenario(
   'task-changes-loading',
   'Task Changes loading',
@@ -71,6 +85,7 @@ export const TASK_CHANGES_SCENARIOS: readonly ScenarioDefinition[] = [
     'Task · Changes · one repository',
     'Approved task/changes-single (M05 G-DIFF). Repository, then scope, then rows.',
     TASK_CHANGES_SINGLE_ID,
+    { changesChrome: { selectedEntry: QUEUE_ENTRY } },
   ),
   changesScenario(
     'task-changes-multi',
@@ -97,6 +112,7 @@ export const TASK_CHANGES_SCENARIOS: readonly ScenarioDefinition[] = [
     'Task · Changes · row states',
     'Approved task/changes-row-states (M05 G-DIFF). Truncated, binary, omitted, not captured.',
     TASK_CHANGES_ROW_STATES_ID,
+    { changesChrome: { selectedEntry: BIG_MODULE_ENTRY } },
   ),
   changesScenario(
     'task-changes-incomplete',
@@ -109,6 +125,12 @@ export const TASK_CHANGES_SCENARIOS: readonly ScenarioDefinition[] = [
     'Task · Changes · not captured',
     'Approved task/changes-not-captured (M05 G-DIFF). Per-repository reasons; capture.state stays available.',
     TASK_CHANGES_NOT_CAPTURED_ID,
+    {
+      // The design draws the alternates repository open to show its caption.
+      changesChrome: {
+        expandedRepos: [HARFLOW_MCP_ROOT, VENDORED_TOOLS_ROOT],
+      },
+    },
   ),
   changesScenario(
     'task-changes-unmerged',
@@ -139,6 +161,7 @@ export const TASK_CHANGES_SCENARIOS: readonly ScenarioDefinition[] = [
     'Task · Changes · reading one diff',
     'Approved task/changes-text (M05 G-DIFF). Loading, chunk, and cursor refusal panels.',
     TASK_CHANGES_TEXT_ID,
+    { changesChrome: { textPanels: textSpecimenPanels() } },
   ),
   TASK_CHANGES_LOADING_SCENARIO,
   changesScenario(
@@ -152,6 +175,11 @@ export const TASK_CHANGES_SCENARIOS: readonly ScenarioDefinition[] = [
     'Task · Changes · which turn',
     'Approved task/changes-turns (M05 G-DIFF). Turn picker defaults to the current member.',
     TASK_CHANGES_TURNS_ID,
-    { changesChrome: { turnTaskId: null } },
+    {
+      changesChrome: {
+        selectedEntry: QUEUE_ENTRY,
+        turns: turnsMembers(),
+      },
+    },
   ),
 ]

@@ -1,6 +1,8 @@
 import type {
   TaskChangesEntryRef,
   TaskChangesObservation,
+  TaskChangesTextPanel,
+  TaskChangesTurnMember,
   TaskId,
 } from '../model'
 import {
@@ -11,13 +13,20 @@ import {
   TURNS_CAPTION,
   UNMERGED_CAPTION,
   ZERO_COMPLETE_CAPTION,
+  taskLevelNotCapturedNote,
 } from '../presentation/taskChangesCopy'
 import {
+  changesRepositoryCountLabel,
   changesShowsZeroCompleteCaption,
   changesTabCount,
+  changesUsesSummaryLayout,
   showsTaskLevelNotCapturedReasons,
 } from '../presentation/taskChangesCounts'
-import { scopeTitle } from '../presentation/taskChangesFormat'
+import { shortTaskId } from '../presentation/taskChangesFormat'
+import {
+  observationHasReportedConflict,
+  scopeCountsAndPatchSeparate,
+} from '../presentation/taskChangesScopes'
 import { ChangesPaneNote } from './TaskChangesChrome'
 import { TaskChangesDiffBlock } from './TaskChangesDiffBlock'
 import {
@@ -31,6 +40,8 @@ type Props = {
   readonly loadingText: boolean
   readonly selectedEntry: TaskChangesEntryRef | null
   readonly expandedRepos: readonly string[]
+  readonly turns: readonly TaskChangesTurnMember[] | null
+  readonly textPanels: readonly TaskChangesTextPanel[] | null
   readonly onSelectEntry: (entry: TaskChangesEntryRef) => void
   readonly onSelectTurn: (taskId: TaskId) => void
   readonly onToggleRepo: (repositoryRoot: string, expanded: boolean) => void
@@ -42,16 +53,16 @@ export function TaskChangesCapture({
   loadingText,
   selectedEntry,
   expandedRepos,
+  turns,
+  textPanels,
   onSelectEntry,
   onSelectTurn,
   onToggleRepo,
   onUnavailable,
 }: Props) {
-  const multi = observation.repositories.length > 1
-  const selected = selectedEntry ?? observation.selectedEntry
+  const summaryLayout = changesUsesSummaryLayout(observation)
   const text = loadingText ? null : observation.text
-  const panels = loadingText ? null : observation.textPanels
-  const textSpecimen = panels !== null && panels.length > 0
+  const textSpecimen = textPanels !== null && textPanels.length > 0
   return (
     <ChangesPaneShell>
       {!textSpecimen &&
@@ -63,22 +74,31 @@ export function TaskChangesCapture({
           body={INCOMPLETE_NOTE.body}
         />
       ) : null}
-      {observation.turns ? (
-        <TurnBar observation={observation} onSelectTurn={onSelectTurn} />
+      {turns ? (
+        <TurnBar
+          observation={observation}
+          turns={turns}
+          onSelectTurn={onSelectTurn}
+        />
       ) : null}
       {textSpecimen ? (
         <TaskChangesDiffBlock
-          selectedEntry={selected}
-          scopeLabel={null}
+          selectedEntry={selectedEntry}
           text={null}
-          textPanels={panels}
+          textPanels={textPanels}
           loadingText={false}
           samePathCaption={false}
           onUnavailable={onUnavailable}
         />
       ) : (
         <>
-          {multi ? (
+          {observation.capture.state === 'not_captured' ? (
+            <ChangesPaneNote
+              tone="warn"
+              {...taskLevelNotCapturedNote(observation.capture.reason)}
+            />
+          ) : null}
+          {summaryLayout ? (
             <p className="hd-m05-attribution">{CHANGES_ATTRIBUTION}</p>
           ) : null}
           {observation.repositories.map((repo) => (
@@ -86,8 +106,9 @@ export function TaskChangesCapture({
               key={repo.repositoryRoot}
               repo={repo}
               expanded={expandedRepos.includes(repo.repositoryRoot)}
-              selectedEntry={selected}
-              paneAttribution={multi}
+              count={changesRepositoryCountLabel(observation, repo)}
+              selectedEntry={selectedEntry}
+              summaryLayout={summaryLayout}
               onToggleRepo={onToggleRepo}
               onSelectEntry={onSelectEntry}
               onUnavailable={onUnavailable}
@@ -97,15 +118,17 @@ export function TaskChangesCapture({
             <ChangesReasonsList items={[TASK_LEVEL_NOT_CAPTURED_REASON]} />
           ) : null}
           <TaskChangesDiffBlock
-            selectedEntry={selected}
-            scopeLabel={selected ? scopeTitle(selected.scope) : null}
+            selectedEntry={selectedEntry}
             text={text}
             textPanels={null}
             loadingText={loadingText}
-            samePathCaption={selectedScopeSeparate(observation, selected)}
+            samePathCaption={selectedScopeSeparate(observation, selectedEntry)}
             onUnavailable={onUnavailable}
           />
-          <CaptureCaptions observation={observation} />
+          <CaptureCaptions
+            observation={observation}
+            summaryLayout={summaryLayout}
+          />
         </>
       )}
     </ChangesPaneShell>
@@ -114,35 +137,34 @@ export function TaskChangesCapture({
 
 function CaptureCaptions({
   observation,
+  summaryLayout,
 }: {
   readonly observation: TaskChangesObservation
+  readonly summaryLayout: boolean
 }) {
-  const completeZero = changesShowsZeroCompleteCaption(observation)
-  const reported = observation.repositories.some(
-    (repo) => repo.reason === 'reported_conflict',
-  )
-  const multiCounted =
-    observation.repositories.length > 1 && changesTabCount(observation) !== null
+  const multiCounted = summaryLayout && changesTabCount(observation) !== null
   return (
     <>
-      {completeZero ? (
+      {changesShowsZeroCompleteCaption(observation) ? (
         <p className="hd-m05-caption">{ZERO_COMPLETE_CAPTION}</p>
       ) : null}
       {multiCounted ? <p className="hd-m05-caption">{MULTI_TAB_CAPTION}</p> : null}
-      {reported ? <p className="hd-m05-caption">{UNMERGED_CAPTION}</p> : null}
+      {observationHasReportedConflict(observation) ? (
+        <p className="hd-m05-caption">{UNMERGED_CAPTION}</p>
+      ) : null}
     </>
   )
 }
 
 function TurnBar({
   observation,
+  turns,
   onSelectTurn,
 }: {
   readonly observation: TaskChangesObservation
+  readonly turns: readonly TaskChangesTurnMember[]
   readonly onSelectTurn: (taskId: TaskId) => void
 }) {
-  const turns = observation.turns
-  if (turns === null) return null
   const current = turns.find((turn) => turn.taskId === observation.taskId)
   return (
     <>
@@ -162,7 +184,7 @@ function TurnBar({
           </select>
         </label>
         <span className="caption hd-faint hd-mono">
-          task {current?.taskId ?? observation.taskId}
+          task {shortTaskId(current?.taskId ?? observation.taskId)}
         </span>
       </div>
       <p className="hd-m05-caption">{TURNS_CAPTION}</p>
@@ -187,5 +209,6 @@ function selectedScopeSeparate(
   const repo = observation.repositories.find(
     (item) => item.repositoryRoot === selected.repositoryRoot,
   )
-  return repo?.scopes[selected.scope]?.countsAndPatchSeparate === true
+  const scope = repo?.scopes[selected.scope]
+  return scope !== undefined && scope !== null && scopeCountsAndPatchSeparate(scope)
 }

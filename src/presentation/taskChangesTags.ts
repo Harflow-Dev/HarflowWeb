@@ -1,4 +1,9 @@
 import type { TaskChangesRepository, TaskChangesScope } from '../model'
+import {
+  repositoryHasReportedConflict,
+  scopesOf,
+  scopeUnmergedUnknown,
+} from './taskChangesScopes'
 
 export type ChangesTagTone = 'warn' | 'ok' | 'info' | 'neutral'
 
@@ -29,15 +34,12 @@ export function repositoryTag(
     if (repo.reason === 'repository_identity_changed') {
       return { label: 'Identity changed', tone: 'warn' }
     }
-    if (repo.reason === 'working_tree_not_captured') {
-      return { label: 'Working tree not captured', tone: 'warn' }
-    }
     return { label: 'Not captured', tone: 'warn' }
   }
   if (repo.state === 'unavailable') {
     return { label: 'Unavailable', tone: 'warn' }
   }
-  if (repo.reason === 'reported_conflict') {
+  if (repositoryHasReportedConflict(repo)) {
     return { label: 'Reported conflict', tone: 'info' }
   }
   if (anyScopeUnmergedUnknown(repo)) {
@@ -54,7 +56,7 @@ export function scopeTag(scope: TaskChangesScope): ChangesTag | null {
     if (scope.reason === 'capture_timeout') {
       return { label: 'Incomplete · time limit', tone: 'warn' }
     }
-    if (scope.unmergedUnknown) {
+    if (scopeUnmergedUnknown(scope)) {
       return { label: 'Conflicts unknown', tone: 'warn' }
     }
     return { label: 'Incomplete', tone: 'warn' }
@@ -65,20 +67,24 @@ export function scopeTag(scope: TaskChangesScope): ChangesTag | null {
       tone: 'warn',
     }
   }
-  if (scope.state === 'available' && scope.unmergedUnknown && scope.rowCount === 0) {
+  if (
+    scope.state === 'available' &&
+    scopeUnmergedUnknown(scope) &&
+    scope.rowCount === 0
+  ) {
     return { label: 'Conflicts unknown', tone: 'warn' }
   }
   return null
 }
 
 function anyScopeUnmergedUnknown(repo: TaskChangesRepository): boolean {
-  const scopes = [repo.scopes.committed_range, repo.scopes.working_tree]
-  return scopes.some((s) => s !== null && s.unmergedUnknown && s.state === 'available')
+  return scopesOf(repo).some(
+    (s) => scopeUnmergedUnknown(s) && s.state === 'available',
+  )
 }
 
 function anyScopeRowsTruncated(repo: TaskChangesRepository): boolean {
-  const scopes = [repo.scopes.committed_range, repo.scopes.working_tree]
-  return scopes.some((s) => s !== null && s.rowsTruncated)
+  return scopesOf(repo).some((s) => s.rowsTruncated)
 }
 
 function workingTreeNotCaptured(repo: TaskChangesRepository): boolean {

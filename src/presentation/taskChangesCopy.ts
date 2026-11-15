@@ -66,10 +66,30 @@ export const ENGINE_UNAVAILABLE_NOTE = {
   body: 'The engine did not answer. No changes are implied.',
 } as const
 
-export const DOCUMENT_UNAVAILABLE_NOTE = {
-  title: 'Stored changes unavailable',
-  body: 'The stored capture is too large to read. Other task history is unaffected.',
-} as const
+const DOCUMENT_UNAVAILABLE_TITLE = 'Stored changes unavailable'
+const HISTORY_UNAFFECTED = 'Other task history is unaffected.'
+
+/** Body text for an unavailable stored document, keyed by `capture.reason`. */
+const DOCUMENT_UNAVAILABLE_BODIES: Readonly<Record<string, string>> = {
+  capture_too_large: `The stored capture is too large to read. ${HISTORY_UNAFFECTED}`,
+  capture_error: `The capture failed when the task settled. ${HISTORY_UNAFFECTED}`,
+  changes_document_invalid: `The stored capture failed validation. ${HISTORY_UNAFFECTED}`,
+  unsupported_engine: `This engine does not support Changes. ${HISTORY_UNAFFECTED}`,
+}
+
+const DOCUMENT_UNAVAILABLE_FALLBACK = `The stored capture could not be read. ${HISTORY_UNAFFECTED}`
+
+export function documentUnavailableNote(reason: string | null): {
+  readonly title: string
+  readonly body: string
+} {
+  return {
+    title: DOCUMENT_UNAVAILABLE_TITLE,
+    body:
+      (reason !== null ? DOCUMENT_UNAVAILABLE_BODIES[reason] : undefined) ??
+      DOCUMENT_UNAVAILABLE_FALLBACK,
+  }
+}
 
 export const INCOMPLETE_NOTE = {
   title: 'Capture incomplete',
@@ -112,3 +132,42 @@ export const TASK_LEVEL_NOT_CAPTURED_REASON = {
   code: 'Task-level, no repositories',
   detail: 'Not captured · outcome never observed, or capture missing',
 } as const
+
+/** Task-level capture refusal with no repositories, keyed by `capture.reason`. */
+export function taskLevelNotCapturedNote(reason: string | null): {
+  readonly title: string
+  readonly body: string
+} {
+  if (reason === 'outcome_unobserved') return NOT_OBSERVED_NOTE
+  return {
+    title: NOT_OBSERVED_NOTE.title,
+    body: 'No stored capture was found for this task. The repository may still have changed.',
+  }
+}
+
+const REPOSITORY_REASON_NOTES: Readonly<Record<string, string>> = {
+  alternates_present:
+    'This repository uses alternates, which capture never accepts. Nothing about it was read.',
+}
+
+/** Caption for a repository that has no scopes, keyed by its reason. */
+export function repositoryReasonNote(reason: string | null): string | null {
+  return reason === null ? null : (REPOSITORY_REASON_NOTES[reason] ?? null)
+}
+
+const SCOPE_REASON_NOTES: Readonly<Record<string, string>> = {
+  git_dir_unverified:
+    'Its Git directory could not be verified, so no command was given this work tree.',
+}
+
+/** Caption for a scope that was not captured, keyed by its reason. */
+export function scopeReasonNote(reason: string | null): string | null {
+  return reason === null ? null : (SCOPE_REASON_NOTES[reason] ?? null)
+}
+
+/** Zero rows in a scope whose conflicts were never examined. */
+export const CLEAN_BILL_NOTE =
+  'No rows in this scope. Conflicts were not examined, so this is not a clean bill.'
+
+/** Zero rows in a scope that was examined. */
+export const ZERO_SCOPE_NOTE = 'No differences observed.'

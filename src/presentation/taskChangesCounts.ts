@@ -3,6 +3,23 @@ import type {
   TaskChangesRepository,
   TaskChangesScope,
 } from '../model'
+import { scopesOf, scopeUnmergedUnknown } from './taskChangesScopes'
+
+/**
+ * Pane layout threshold: from this many repositories the pane is a summary.
+ * The attribution sentence is drawn once at pane level and each repository
+ * hides its own Provenance disclosure (as the design draws it), instead of
+ * repeating both inside every repository body.
+ */
+export const CHANGES_SUMMARY_LAYOUT_MIN_REPOSITORIES = 4
+
+export function changesUsesSummaryLayout(
+  observation: TaskChangesObservation,
+): boolean {
+  return (
+    observation.repositories.length >= CHANGES_SUMMARY_LAYOUT_MIN_REPOSITORIES
+  )
+}
 
 /**
  * Tab count rule (G-DIFF): sum of stored row_count values when every repository
@@ -56,7 +73,7 @@ export function changesCaptureIsComplete(
     for (const scope of scopesOf(repo)) {
       if (scope.state !== 'available') return false
       if (scope.rowsTruncated) return false
-      if (scope.unmergedUnknown) return false
+      if (scopeUnmergedUnknown(scope)) return false
     }
   }
   return true
@@ -96,10 +113,19 @@ export function repositoryStoredRowCount(repo: TaskChangesRepository): number {
 
 export function formatScopeCount(scope: TaskChangesScope): string {
   if (scope.state === 'not_captured') return '—'
-  if (scope.rowsTruncated) return `${scope.rowCount}+`
-  if (scope.state === 'incomplete' && scope.rowCount === 0) return '0+'
-  if (scope.state === 'incomplete') return `${scope.rowCount}+`
-  return String(scope.rowCount)
+  return scope.rowsTruncated ? `${scope.rowCount}+` : String(scope.rowCount)
+}
+
+/**
+ * Repository summary count. Omitted when the complete-zero caption already
+ * says there are no differences, so the same fact is not drawn twice.
+ */
+export function changesRepositoryCountLabel(
+  observation: TaskChangesObservation,
+  repo: TaskChangesRepository,
+): string | null {
+  if (changesShowsZeroCompleteCaption(observation)) return null
+  return formatRepositoryCount(repo)
 }
 
 export function formatRepositoryCount(
@@ -115,13 +141,4 @@ export function formatRepositoryCount(
   const sum = repositoryStoredRowCount(repo)
   if (incomplete) return `${sum}+`
   return String(sum)
-}
-
-function scopesOf(
-  repo: TaskChangesRepository,
-): readonly TaskChangesScope[] {
-  const out: TaskChangesScope[] = []
-  if (repo.scopes.committed_range) out.push(repo.scopes.committed_range)
-  if (repo.scopes.working_tree) out.push(repo.scopes.working_tree)
-  return out
 }

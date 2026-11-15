@@ -2,6 +2,8 @@ import type {
   TaskChangesEntryRef,
   TaskChangesLoad,
   TaskChangesObservation,
+  TaskChangesTextPanel,
+  TaskChangesTurnMember,
   TaskId,
   TaskLoad,
 } from '../model'
@@ -58,6 +60,10 @@ export type TaskScreenState = {
   readonly changesTurnTaskId: TaskId | null
   /** Expanded repository roots (presentation chrome). */
   readonly expandedRepos: readonly string[]
+  /** Turn lineage for the turn picker, seeded chrome; null draws no picker. */
+  readonly changesTurns: readonly TaskChangesTurnMember[] | null
+  /** Stacked text-mode specimen, seeded chrome; null draws the normal pane. */
+  readonly changesTextPanels: readonly TaskChangesTextPanel[] | null
 }
 
 export function initialTaskState(): TaskScreenState {
@@ -77,6 +83,8 @@ export function initialTaskState(): TaskScreenState {
     changesLoad: { kind: 'loading' },
     changesTurnTaskId: null,
     expandedRepos: [],
+    changesTurns: null,
+    changesTextPanels: null,
   }
 }
 
@@ -94,4 +102,6 @@ export type TaskChangesChrome = {
   readonly selectedEntry?: TaskChangesEntryRef | null
   readonly turnTaskId?: TaskId | null
   readonly expandedRepos?: readonly string[]
+  readonly turns?: readonly TaskChangesTurnMember[]
+  readonly textPanels?: readonly TaskChangesTextPanel[]
 }

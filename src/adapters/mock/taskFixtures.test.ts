@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { asTaskId, observedEngineStatus } from '../../model'
 import { taskStatusView } from '../../presentation'
+import { TASK_CHANGES_TURNS_ID } from './taskChangesFixtureIds'
 import {
   EVENTS_READER_FAILED_TASK_ID,
   PRELOAD_TASK_ID,
@@ -104,7 +105,7 @@ describe('taskFixtures', () => {
       'task-changes-text',
       'task-changes-loading',
       'task-changes-error',
-      'task-changes-turns',
+      TASK_CHANGES_TURNS_ID,
     ]
     for (const id of ids) {
       const load = taskLoadFor(asTaskId(id))

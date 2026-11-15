@@ -1,11 +1,22 @@
-import type {
-  TaskChangesEntryRef,
-  TaskChangesRepository,
-  TaskChangesRow,
-  TaskChangesScope,
-  TaskChangesScopeId,
+import {
+  taskChangesRowEntry,
+  type TaskChangesEntryRef,
+  type TaskChangesRepository,
+  type TaskChangesRow,
+  type TaskChangesScope,
+  type TaskChangesScopeId,
 } from '../model'
-import { workingTreeCaption } from '../presentation/taskChangesCopy'
+import {
+  CLEAN_BILL_NOTE,
+  ZERO_SCOPE_NOTE,
+  scopeReasonNote,
+  workingTreeCaption,
+} from '../presentation/taskChangesCopy'
+import {
+  changesDisplayPath,
+  changesRowKey,
+} from '../presentation/taskChangesPaths'
+import { scopeUnmergedUnknown } from '../presentation/taskChangesScopes'
 import { formatScopeCount } from '../presentation/taskChangesCounts'
 import {
   changesRowIsDisabled,
@@ -18,12 +29,6 @@ import {
   scopeTitle,
 } from '../presentation/taskChangesFormat'
 import { ChangesAction, ChangesTagView } from './TaskChangesChrome'
-
-const GIT_DIR_NOTE =
-  'Its Git directory could not be verified, so no command was given this work tree.'
-const CLEAN_BILL_NOTE =
-  'No rows in this scope. Conflicts were not examined, so this is not a clean bill.'
-const ZERO_SCOPE_NOTE = 'No differences observed.'
 
 type Props = {
   readonly repo: TaskChangesRepository
@@ -61,15 +66,14 @@ export function TaskChangesScope({
       {note ? <p className="hd-m05-caption">{note}</p> : null}
       {scope.rows.map((row) => (
         <FileRow
-          key={`${scopeId}:${row.path}`}
+          key={`${scopeId}:${changesRowKey(row)}`}
           repo={repo}
           scopeId={scopeId}
           row={row}
-          selected={changesEntriesEqual(selectedEntry, {
-            repositoryRoot: repo.repositoryRoot,
-            scope: scopeId,
-            path: row.path,
-          })}
+          selected={changesEntriesEqual(
+            selectedEntry,
+            taskChangesRowEntry(repo.repositoryRoot, scopeId, row),
+          )}
           onSelectEntry={onSelectEntry}
         />
       ))}
@@ -109,11 +113,7 @@ function FileRow({
       disabled={disabled}
       aria-current={selected ? 'true' : undefined}
       onClick={() =>
-        onSelectEntry({
-          repositoryRoot: repo.repositoryRoot,
-          scope: scopeId,
-          path: row.path,
-        })
+        onSelectEntry(taskChangesRowEntry(repo.repositoryRoot, scopeId, row))
       }
     >
       <span
@@ -123,7 +123,7 @@ function FileRow({
         {changesStatusLetter(row.status)}
         <span className="hd-sr"> {row.status}</span>
       </span>
-      <span className="hd-file__path">{row.path}</span>
+      <span className="hd-file__path">{changesDisplayPath(row)}</span>
       {state ? <span className="hd-m05-rowstate">{state}</span> : null}
       {row.additions === null ? null : (
         <>
@@ -141,9 +141,9 @@ function scopeNote(
   scope: TaskChangesScope,
 ): string | null {
   if (scope.state === 'not_captured') {
-    return scope.reason === 'git_dir_unverified' ? GIT_DIR_NOTE : null
+    return scopeReasonNote(scope.reason)
   }
-  if (scope.rowCount === 0 && scope.unmergedUnknown) return CLEAN_BILL_NOTE
+  if (scope.rowCount === 0 && scopeUnmergedUnknown(scope)) return CLEAN_BILL_NOTE
   if (scope.rowCount === 0 && scope.state === 'available') return ZERO_SCOPE_NOTE
   if (scopeId !== 'working_tree') return null
   return workingTreeCaption(repo.baselineDirty)

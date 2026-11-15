@@ -26,12 +26,14 @@ const QUEUE_ENTRY: TaskChangesEntryRef = {
   repositoryRoot: HARFLOW_WEB_ROOT,
   scope: 'committed_range',
   path: QUEUE_PY_PATH,
+  pathBytesB64: null,
 }
 
 const CONFIG_ENTRY: TaskChangesEntryRef = {
   repositoryRoot: HARFLOW_WEB_ROOT,
   scope: 'committed_range',
   path: CONFIG_PY_PATH,
+  pathBytesB64: null,
 }
 
 const doneTask = retryBudgetCompletedObservation()
@@ -45,6 +47,8 @@ function paneProps(
     taskObservation: doneTask,
     selectedEntry: null,
     expandedRepos: [HARFLOW_WEB_ROOT],
+    turns: null,
+    textPanels: null,
     onSelectEntry: () => undefined,
     onSelectTab: () => undefined,
     onSelectTurn: () => undefined,
@@ -191,7 +195,7 @@ describe('TaskChangesPane', () => {
         {...paneProps({
           load,
           list: load.observation,
-          selectedEntry: load.observation.selectedEntry,
+          selectedEntry: null,
           onSelectTab,
           onClosePane,
           onUnavailable,
@@ -232,7 +236,7 @@ describe('TaskChangesPane', () => {
         {...paneProps({
           load: empty,
           list: empty.observation,
-          selectedEntry: empty.observation.selectedEntry,
+          selectedEntry: QUEUE_ENTRY,
         })}
       />,
     )
@@ -250,7 +254,7 @@ describe('TaskChangesPane', () => {
         {...paneProps({
           load: missing,
           list: missing.observation,
-          selectedEntry: missing.observation.selectedEntry,
+          selectedEntry: QUEUE_ENTRY,
         })}
       />,
     )
@@ -258,5 +262,61 @@ describe('TaskChangesPane', () => {
     expect(
       screen.getByRole('button', { name: 'Reload changes' }),
     ).toBeInTheDocument()
+  })
+})
+
+describe('TaskChangesPane tablist', () => {
+  function renderTabs(onSelectTab = vi.fn()) {
+    const load = taskChangesLoadFor({
+      taskId: RETRY_BUDGET_DONE_TASK_ID,
+      selectedEntry: null,
+      turnTaskId: null,
+    })
+    if (load.kind !== 'ready') throw new Error('expected ready')
+    render(
+      <TaskChangesPane
+        {...paneProps({ load, list: load.observation, onSelectTab })}
+      />,
+    )
+    return {
+      changes: screen.getByRole('tab', { name: /Changes/ }),
+      artifacts: screen.getByRole('tab', { name: 'Artifacts' }),
+      events: screen.getByRole('tab', { name: 'Events' }),
+      onSelectTab,
+    }
+  }
+
+  it('wires the selected tab to a labelled tabpanel with one tab stop', () => {
+    const { changes, artifacts, events } = renderTabs()
+    const panel = screen.getByRole('tabpanel')
+    expect(changes).toHaveAttribute('aria-controls', panel.id)
+    expect(panel).toHaveAttribute('aria-labelledby', changes.id)
+    expect(changes).toHaveAttribute('tabindex', '0')
+    expect(events).toHaveAttribute('tabindex', '-1')
+    expect(artifacts).toHaveAttribute('tabindex', '-1')
+  })
+
+  it('moves focus with Left, Right, Home and End over enabled tabs only', async () => {
+    const user = userEvent.setup()
+    const { changes, artifacts, events, onSelectTab } = renderTabs()
+    changes.focus()
+    await user.keyboard('{ArrowRight}')
+    // Artifacts is aria-disabled and skipped.
+    expect(events).toHaveFocus()
+    expect(artifacts).not.toHaveFocus()
+    expect(events).toHaveAttribute('tabindex', '0')
+    expect(changes).toHaveAttribute('tabindex', '-1')
+    await user.keyboard('{ArrowRight}')
+    expect(changes).toHaveFocus()
+    await user.keyboard('{ArrowLeft}')
+    expect(events).toHaveFocus()
+    await user.keyboard('{Home}')
+    expect(changes).toHaveFocus()
+    await user.keyboard('{End}')
+    expect(events).toHaveFocus()
+    // Arrow keys move focus only; activation stays on Enter or click.
+    expect(onSelectTab).not.toHaveBeenCalled()
+    await user.keyboard('{Enter}')
+    expect(onSelectTab).toHaveBeenCalledWith('events')
   })
 })

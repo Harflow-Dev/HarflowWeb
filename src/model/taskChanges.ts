@@ -45,36 +45,64 @@ export type TaskChangesContent = {
   readonly bytes: number | null
 }
 
+/**
+ * One listing row. `path` is UTF-8; when the engine cannot give valid UTF-8 it
+ * sends `pathBytesB64` instead and `path` is null. `oldPath` is always null
+ * today (renames are off).
+ */
 export type TaskChangesRow = {
-  readonly path: string
+  readonly path: string | null
+  readonly pathBytesB64: string | null
   readonly pathTruncated: boolean
+  readonly oldPath: string | null
   readonly status: TaskChangesRowStatus
   readonly additions: number | null
   readonly deletions: number | null
+  readonly binary: boolean
   readonly content: TaskChangesContent
 }
 
+/** One advisory conflict name from the agent's index (`path` or `path_bytes_b64`). */
 export type TaskChangesReportedConflict = {
-  readonly path: string
+  readonly path: string | null
+  readonly pathBytesB64: string | null
 }
 
-export type TaskChangesScope = {
+export type TaskChangesReportedConflicts = {
+  readonly names: readonly TaskChangesReportedConflict[]
+  readonly truncated: boolean
+}
+
+type TaskChangesScopeFacts = {
   readonly state: TaskChangesRepoState
   readonly reason: string | null
+  /** ISO-8601 instant this scope was observed. */
+  readonly observedAt: string
   readonly rowCount: number
   readonly rowsTruncated: boolean
-  readonly unmergedUnknown: boolean
-  readonly reportedConflicts: readonly TaskChangesReportedConflict[]
-  readonly countsAndPatchSeparate: boolean
   readonly rows: readonly TaskChangesRow[]
 }
+
+export type TaskChangesCommittedScope = TaskChangesScopeFacts
+
+/**
+ * Only the working-tree scope examines the agent's index, so the conflict
+ * facts and the counts-versus-patch note exist on it alone.
+ */
+export type TaskChangesWorkingTreeScope = TaskChangesScopeFacts & {
+  readonly unmergedUnknown: boolean
+  readonly reportedConflicts: TaskChangesReportedConflicts
+  readonly countsAndPatchSeparate: boolean
+}
+
+export type TaskChangesScope =
+  | TaskChangesCommittedScope
+  | TaskChangesWorkingTreeScope
 
 export type TaskChangesBaselineDirty = boolean | 'unknown'
 
 export type TaskChangesRepository = {
   readonly repositoryRoot: string
-  /** Display name derived for UI; root remains the identity. */
-  readonly name: string
   readonly state: TaskChangesRepoState
   readonly reason: string | null
   readonly attribution: string
@@ -82,11 +110,15 @@ export type TaskChangesRepository = {
   readonly baseProvenance: string | null
   readonly headCommit: string | null
   readonly worktree: string | null
-  readonly observedAtLabel: string | null
+  readonly gitCommonDir: string | null
+  /** ISO-8601 instant the repository was observed. */
+  readonly observedAt: string | null
+  /** True when the engine cut one of the string fields above. */
+  readonly fieldsTruncated: boolean
   readonly baselineDirty: TaskChangesBaselineDirty
   readonly scopes: {
-    readonly committed_range: TaskChangesScope | null
-    readonly working_tree: TaskChangesScope | null
+    readonly committed_range: TaskChangesCommittedScope | null
+    readonly working_tree: TaskChangesWorkingTreeScope | null
   }
 }
 
@@ -95,11 +127,41 @@ export type TaskChangesCapture = {
   readonly reason: string | null
 }
 
-/** Stable selection identity within a list document. */
+/**
+ * Stable selection identity within a list document: the path is UTF-8 text or
+ * its raw bytes (`pathBytesB64`), exactly one of which is set.
+ */
 export type TaskChangesEntryRef = {
   readonly repositoryRoot: string
   readonly scope: TaskChangesScopeId
-  readonly path: string
+  readonly path: string | null
+  readonly pathBytesB64: string | null
+}
+
+export function taskChangesEntryKey(entry: TaskChangesEntryRef | null): string {
+  if (entry === null) return ''
+  return `${entry.repositoryRoot}\0${entry.scope}\0${entry.path ?? ''}\0${entry.pathBytesB64 ?? ''}`
+}
+
+export function taskChangesEntriesEqual(
+  a: TaskChangesEntryRef | null,
+  b: TaskChangesEntryRef | null,
+): boolean {
+  return taskChangesEntryKey(a) === taskChangesEntryKey(b)
+}
+
+/** Entry identity for a listing row. */
+export function taskChangesRowEntry(
+  repositoryRoot: string,
+  scope: TaskChangesScopeId,
+  row: Pick<TaskChangesRow, 'path' | 'pathBytesB64'>,
+): TaskChangesEntryRef {
+  return {
+    repositoryRoot,
+    scope,
+    path: row.path,
+    pathBytesB64: row.pathBytesB64,
+  }
 }
 
 export type DiffLineKind = 'context' | 'add' | 'del' | 'hunk'
@@ -115,7 +177,10 @@ export type TaskChangesTextObservation = {
   readonly status: TaskChangesRowStatus
   readonly additions: number | null
   readonly deletions: number | null
+  readonly binary: boolean
   readonly content: TaskChangesContent
+  /** ISO-8601 instant of the stored capture this chunk reads. */
+  readonly observedAt: string
   readonly offset: number
   readonly returnedBytes: number
   readonly totalBytes: number
@@ -135,47 +200,17 @@ export type TaskChangesTextObservation = {
       }
 }
 
-/** Turn picker members — each turn is its own supervised task. */
-export type TaskChangesTurnMember = {
-  readonly taskId: TaskId
-  readonly turnIndex: number
-  readonly turnCount: number
-  readonly current: boolean
-}
-
-/**
- * Stacked text-mode panels for the changes-text specimen (loading + chunk +
- * refusal drawn together). Ordinary selection uses `text` alone.
- */
-export type TaskChangesTextPanel =
-  | {
-      readonly kind: 'loading'
-      readonly entry: TaskChangesEntryRef
-      readonly scopeLabel: string
-    }
-  | {
-      readonly kind: 'chunk'
-      readonly text: TaskChangesTextObservation
-      readonly scopeLabel: string
-      readonly moreLabel: string
-    }
-  | {
-      readonly kind: 'refusal'
-      readonly entry: TaskChangesEntryRef
-      readonly scopeLabel: string
-    }
-
+/** One `task-changes.v1` list page plus the text of the entry being read. */
 export type TaskChangesObservation = {
   readonly taskId: TaskId
   readonly capture: TaskChangesCapture
+  /** ISO-8601 instant of the stored capture document. */
+  readonly observedAt: string
   readonly repositories: readonly TaskChangesRepository[]
   readonly hasMore: boolean
-  readonly selectedEntry: TaskChangesEntryRef | null
+  readonly nextCursor: string | null
+  /** Text of the entry named by the query; null when none was asked for. */
   readonly text: TaskChangesTextObservation | null
-  /** Present when the screen offers a turn picker. */
-  readonly turns: readonly TaskChangesTurnMember[] | null
-  /** Design changes-text specimen panels; null for ordinary reads. */
-  readonly textPanels: readonly TaskChangesTextPanel[] | null
 }
 
 export type TaskChangesLoad =
@@ -186,7 +221,7 @@ export type TaskChangesLoad =
 /** Query key for a changes observation — task, optional entry, optional turn. */
 export type TaskChangesQuery = {
   readonly taskId: TaskId
-  /** Null selects the fixture default entry when the document has one. */
+  /** Entry whose text to read; null reads the list only. */
   readonly selectedEntry: TaskChangesEntryRef | null
   /** Null reads the opened task; otherwise that turn member's capture. */
   readonly turnTaskId: TaskId | null

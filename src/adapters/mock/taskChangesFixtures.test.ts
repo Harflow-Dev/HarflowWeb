@@ -29,13 +29,13 @@ describe('taskChangesFixtures', () => {
       CONFIG_PY_PATH,
       TEST_QUEUE_PATH,
     ])
-    expect(load.observation.selectedEntry).toEqual(QUEUE_ENTRY)
+    // The list never defaults a selection or attaches text on its own.
+    expect(load.observation.text).toBeNull()
     expect(rows[0]).toMatchObject({
       path: QUEUE_PY_PATH,
       additions: 24,
       deletions: 3,
     })
-    expect(load.observation.text?.lines.length).toBeGreaterThan(0)
   })
 
   it('selects a distinct file identity and its diff text', () => {
@@ -46,8 +46,7 @@ describe('taskChangesFixtures', () => {
     })
     expect(load.kind).toBe('ready')
     if (load.kind !== 'ready') return
-    expect(load.observation.selectedEntry).toEqual(CONFIG_ENTRY)
-    expect(load.observation.text).not.toBeNull()
+    expect(load.observation.text?.entry).toEqual(CONFIG_ENTRY)
     if (load.observation.text === null) return
     const joined = load.observation.text.lines.map((l) => l.text).join('\n')
     expect(joined).toContain("<script>alert('x')</script>")

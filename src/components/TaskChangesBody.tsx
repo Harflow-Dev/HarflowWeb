@@ -3,6 +3,8 @@ import type {
   TaskChangesEntryRef,
   TaskChangesLoad,
   TaskChangesObservation,
+  TaskChangesTextPanel,
+  TaskChangesTurnMember,
   TaskId,
   TaskObservation,
 } from '../model'
@@ -25,6 +27,8 @@ export type TaskChangesBodyProps = {
   readonly taskObservation: TaskObservation
   readonly selectedEntry: TaskChangesEntryRef | null
   readonly expandedRepos: readonly string[]
+  readonly turns: readonly TaskChangesTurnMember[] | null
+  readonly textPanels: readonly TaskChangesTextPanel[] | null
   readonly onSelectEntry: (entry: TaskChangesEntryRef) => void
   readonly onSelectTurn: (taskId: TaskId) => void
   readonly onToggleRepo: (repositoryRoot: string, expanded: boolean) => void
@@ -57,7 +61,10 @@ function CaptureBody(props: TaskChangesBodyProps) {
   }
   if (observation.capture.state === 'unavailable') {
     return (
-      <ChangesDocumentUnavailableBody onUnavailable={props.onUnavailable} />
+      <ChangesDocumentUnavailableBody
+        reason={observation.capture.reason}
+        onUnavailable={props.onUnavailable}
+      />
     )
   }
   if (
@@ -72,6 +79,8 @@ function CaptureBody(props: TaskChangesBodyProps) {
       loadingText={props.load.kind === 'loading'}
       selectedEntry={props.selectedEntry}
       expandedRepos={props.expandedRepos}
+      turns={props.turns}
+      textPanels={props.textPanels}
       onSelectEntry={props.onSelectEntry}
       onSelectTurn={props.onSelectTurn}
       onToggleRepo={props.onToggleRepo}

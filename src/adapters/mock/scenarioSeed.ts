@@ -1,4 +1,9 @@
-import type { TaskChangesEntryRef, TaskId } from '../../model'
+import type {
+  TaskChangesEntryRef,
+  TaskChangesTextPanel,
+  TaskChangesTurnMember,
+  TaskId,
+} from '../../model'
 
 /** Command lifecycle chrome a preview scenario seeds on its open task. */
 export type TaskCommandChromeSeed =
@@ -13,6 +18,10 @@ export type TaskChangesChromeSeed = {
   readonly selectedEntry?: TaskChangesEntryRef | null
   readonly turnTaskId?: TaskId | null
   readonly expandedRepos?: readonly string[]
+  /** Turn lineage drawn by the turn picker (not a task-changes.v1 field). */
+  readonly turns?: readonly TaskChangesTurnMember[]
+  /** Stacked text-mode specimen drawn instead of the list. */
+  readonly textPanels?: readonly TaskChangesTextPanel[]
 }
 
 /**

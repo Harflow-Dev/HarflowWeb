@@ -1,6 +1,8 @@
 import type {
   TaskChangesObservation,
   TaskChangesTextObservation,
+  TaskChangesTextPanel,
+  TaskChangesTurnMember,
   TaskId,
 } from '../../model'
 import {
@@ -8,95 +10,82 @@ import {
   CONFIG_ENTRY,
   CONFIG_PY_PATH,
   HARFLOW_WEB_ROOT,
-  QUEUE_DIFF_RAW,
   QUEUE_ENTRY,
   SAME_PATH_WORKING,
   TEST_ENTRY,
+  committedScope,
   contentAvailable,
   contentState,
   observation,
-  parseDiffLines,
   repoBase,
-  scopeAvailable,
-  WEB_COMMITTED_ROWS,
+  workingScope,
 } from './taskChangesFixtureBuilders'
+import {
+  QUEUE_DIFF_RAW,
+  WEB_COMMITTED_ROWS,
+  parseDiffLines,
+  textObservation,
+} from './taskChangesFixtureSamples'
 import {
   TASK_CHANGES_TURN_1_ID,
   TASK_CHANGES_TURN_2_ID,
   TASK_CHANGES_TURNS_ID,
 } from './taskChangesFixtureIds'
-import { singleDoc } from './taskChangesFixtureDocs'
 
 export function queueText(): TaskChangesTextObservation {
-  const lines = parseDiffLines(QUEUE_DIFF_RAW)
-  return {
+  return textObservation({
     entry: QUEUE_ENTRY,
     status: 'modified',
     additions: 24,
     deletions: 3,
     content: contentAvailable(480),
-    offset: 0,
     returnedBytes: 480,
-    totalBytes: 480,
-    hasMore: false,
-    nextCursor: null,
-    lines,
-    refusal: null,
-  }
+    lines: parseDiffLines(QUEUE_DIFF_RAW),
+  })
 }
 
 export function samePathWorkingText(): TaskChangesTextObservation {
-  return {
+  return textObservation({
     entry: SAME_PATH_WORKING,
     status: 'modified',
     additions: 2,
     deletions: 1,
     content: contentAvailable(80),
-    offset: 0,
     returnedBytes: 80,
-    totalBytes: 80,
-    hasMore: false,
-    nextCursor: null,
     lines: parseDiffLines([
       '@@ -58,4 +58,5 @@ class DeliveryQueue',
       '-    delay = 30',
       '+    delay = 45',
       '+    # local tuning',
     ]),
-    refusal: null,
-  }
+  })
 }
 
 export function bigModuleText(): TaskChangesTextObservation {
-  return {
+  return textObservation({
     entry: BIG_MODULE_ENTRY,
     status: 'modified',
     additions: 412,
     deletions: 90,
     content: contentState('truncated', 'file_limit', 65536),
-    offset: 0,
     returnedBytes: 65536,
     totalBytes: 120000,
-    hasMore: false,
-    nextCursor: null,
     lines: parseDiffLines([
       '@@ -1,4 +1,6 @@',
       ' import asyncio',
       '+import heapq',
       '+import time',
     ]),
-    refusal: null,
-  }
+  })
 }
 
 export function configChunkText(): TaskChangesTextObservation {
-  return {
+  return textObservation({
     entry: CONFIG_ENTRY,
     status: 'modified',
     additions: 2,
     deletions: 0,
     content: contentAvailable(49152),
-    offset: 0,
     returnedBytes: 32768,
     totalBytes: 49152,
     hasMore: true,
@@ -106,118 +95,68 @@ export function configChunkText(): TaskChangesTextObservation {
       ' RETRY_WINDOW = 3600',
       '+RETRY_BUDGET = 5',
     ]),
-    refusal: null,
-  }
+  })
 }
 
 export function testRefusalText(): TaskChangesTextObservation {
-  return {
+  return textObservation({
     entry: TEST_ENTRY,
     status: 'added',
     additions: 31,
     deletions: 0,
     content: contentAvailable(0),
-    offset: 0,
     returnedBytes: 0,
-    totalBytes: 0,
-    hasMore: false,
-    nextCursor: null,
     lines: [],
     refusal: {
       code: 'changes_cursor_expired',
       message: 'The stored changes were replaced since this list loaded.',
       reload: 'first',
     },
-  }
+  })
 }
 
-export function textSpecimenDoc(taskId: TaskId): TaskChangesObservation {
-  const base = singleDoc(taskId)
-  return {
-    ...base,
-    selectedEntry: QUEUE_ENTRY,
-    text: null,
-    textPanels: [
-      { kind: 'loading', entry: QUEUE_ENTRY, scopeLabel: 'Committed' },
-      {
-        kind: 'chunk',
-        text: configChunkText(),
-        scopeLabel: 'Committed',
-        moreLabel: 'Read 32 KiB of 48 KiB stored',
-      },
-      { kind: 'refusal', entry: TEST_ENTRY, scopeLabel: 'Committed' },
-    ],
-  }
-}
-
-export function turnsMembers() {
+/** The stacked text-mode specimen: loading, a paged chunk, then a refusal. */
+export function textSpecimenPanels(): readonly TaskChangesTextPanel[] {
   return [
-    {
-      taskId: TASK_CHANGES_TURNS_ID,
-      turnIndex: 3,
-      turnCount: 3,
-      current: true,
-    },
-    {
-      taskId: TASK_CHANGES_TURN_2_ID,
-      turnIndex: 2,
-      turnCount: 3,
-      current: false,
-    },
-    {
-      taskId: TASK_CHANGES_TURN_1_ID,
-      turnIndex: 1,
-      turnCount: 3,
-      current: false,
-    },
-  ] as const
+    { kind: 'loading', entry: QUEUE_ENTRY },
+    { kind: 'chunk', text: configChunkText() },
+    { kind: 'refusal', entry: TEST_ENTRY },
+  ]
 }
 
-export function turnsDoc(taskId: TaskId): TaskChangesObservation {
-  const base = singleDoc(taskId)
-  return {
-    ...base,
-    text: queueText(),
-    turns: [...turnsMembers()],
-  }
+/** Turn lineage seeded as chrome; each member is its own task. */
+export function turnsMembers(): readonly TaskChangesTurnMember[] {
+  return [
+    { taskId: TASK_CHANGES_TURNS_ID, turnIndex: 3, turnCount: 3, current: true },
+    { taskId: TASK_CHANGES_TURN_2_ID, turnIndex: 2, turnCount: 3, current: false },
+    { taskId: TASK_CHANGES_TURN_1_ID, turnIndex: 1, turnCount: 3, current: false },
+  ]
+}
+
+/** The second turn's text for config.py (its own capture). */
+export function turn2ConfigText(): TaskChangesTextObservation {
+  return textObservation({
+    entry: CONFIG_ENTRY,
+    status: 'modified',
+    additions: 1,
+    deletions: 0,
+    content: contentAvailable(40),
+    returnedBytes: 40,
+    lines: parseDiffLines(['@@ -1,2 +1,3 @@', ' VERSION = 1', '+# turn 2']),
+  })
 }
 
 export function turn2Doc(taskId: TaskId): TaskChangesObservation {
   return observation({
     taskId,
-    selectedEntry: {
-      repositoryRoot: HARFLOW_WEB_ROOT,
-      scope: 'committed_range',
-      path: CONFIG_PY_PATH,
-    },
-    text: {
-      entry: CONFIG_ENTRY,
-      status: 'modified',
-      additions: 1,
-      deletions: 0,
-      content: contentAvailable(40),
-      offset: 0,
-      returnedBytes: 40,
-      totalBytes: 40,
-      hasMore: false,
-      nextCursor: null,
-      lines: parseDiffLines([
-        '@@ -1,2 +1,3 @@',
-        ' VERSION = 1',
-        '+# turn 2',
-      ]),
-      refusal: null,
-    },
-    turns: [...turnsMembers()],
     repositories: [
       repoBase({
-        name: 'HarflowWeb',
         repositoryRoot: HARFLOW_WEB_ROOT,
-        committed: scopeAvailable({
+        committed: committedScope({
           rows: [WEB_COMMITTED_ROWS[1]!],
           rowCount: 1,
         }),
-        working: scopeAvailable({ rows: [], rowCount: 0 }),
+        working: workingScope({ rows: [], rowCount: 0 }),
       }),
     ],
   })
@@ -226,15 +165,14 @@ export function turn2Doc(taskId: TaskId): TaskChangesObservation {
 export function turn1Doc(taskId: TaskId): TaskChangesObservation {
   return observation({
     taskId,
-    selectedEntry: null,
-    turns: [...turnsMembers()],
     repositories: [
       repoBase({
-        name: 'HarflowWeb',
         repositoryRoot: HARFLOW_WEB_ROOT,
-        committed: scopeAvailable({ rows: [], rowCount: 0 }),
-        working: scopeAvailable({ rows: [], rowCount: 0 }),
+        committed: committedScope({ rows: [], rowCount: 0 }),
+        working: workingScope({ rows: [], rowCount: 0 }),
       }),
     ],
   })
 }
+
+export { CONFIG_PY_PATH }

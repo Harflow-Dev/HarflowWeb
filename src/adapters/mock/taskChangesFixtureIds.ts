@@ -20,6 +20,14 @@ export const TASK_CHANGES_NO_REPOSITORY_ID = asTaskId(
 export const TASK_CHANGES_TEXT_ID = asTaskId('task-changes-text')
 export const TASK_CHANGES_LOADING_ID = asTaskId('task-changes-loading')
 export const TASK_CHANGES_ERROR_ID = asTaskId('task-changes-error')
-export const TASK_CHANGES_TURNS_ID = asTaskId('task-changes-turns')
-export const TASK_CHANGES_TURN_2_ID = asTaskId('task-changes-turn-2')
-export const TASK_CHANGES_TURN_1_ID = asTaskId('task-changes-turn-1')
+// Turn members are real tasks, so their ids look like engine task ids; the
+// current turn's id begins 7be02d91 as the design draws it.
+export const TASK_CHANGES_TURNS_ID = asTaskId(
+  '7be02d91-5a3c-4e8f-b1d6-0c42a9e73f58',
+)
+export const TASK_CHANGES_TURN_2_ID = asTaskId(
+  'c3a8f5e0-91b4-4d27-8e6a-5f10b7d92c34',
+)
+export const TASK_CHANGES_TURN_1_ID = asTaskId(
+  '2d9e6b14-07f8-4a53-9c1e-b84a3d60e5f7',
+)

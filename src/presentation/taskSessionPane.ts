@@ -43,6 +43,8 @@ export function seededChangesChromeState(
       chrome.expandedRepos !== undefined
         ? chrome.expandedRepos
         : state.expandedRepos,
+    changesTurns: chrome.turns ?? state.changesTurns,
+    changesTextPanels: chrome.textPanels ?? state.changesTextPanels,
     changesLoad: { kind: 'loading' },
   }
 }
@@ -55,7 +57,7 @@ export function selectedEntryState(
   if (!state.changesPaneOpen) return null
   if (
     state.changesLoad.kind === 'ready' &&
-    changesEntriesEqual(state.changesLoad.observation.selectedEntry, entry) &&
+    changesEntriesEqual(state.changesLoad.observation.text?.entry ?? null, entry) &&
     hasObservation &&
     (changesEntriesEqual(state.changesQueryEntry, entry) ||
       state.changesQueryEntry === null)
@@ -108,6 +110,8 @@ export function closedChangesPaneState(state: TaskScreenState): TaskScreenState 
     changesLoad: { kind: 'loading' },
     changesTurnTaskId: null,
     expandedRepos: [],
+    changesTurns: null,
+    changesTextPanels: null,
   }
 }
 
@@ -129,6 +133,8 @@ export function openedChangesPaneState(state: TaskScreenState): {
       changesLoad: { kind: 'loading' },
       changesTurnTaskId: null,
       expandedRepos: [],
+      changesTurns: null,
+      changesTextPanels: null,
     },
   }
 }
@@ -150,6 +156,8 @@ export function loadingTaskScreenState(taskId: TaskId): TaskScreenState {
     changesLoad: { kind: 'loading' },
     changesTurnTaskId: null,
     expandedRepos: [],
+    changesTurns: null,
+    changesTextPanels: null,
   }
 }
 

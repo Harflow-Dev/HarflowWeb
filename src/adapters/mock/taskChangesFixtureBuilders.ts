@@ -1,12 +1,14 @@
 import type {
-  DiffLine,
+  TaskChangesCommittedScope,
   TaskChangesContent,
   TaskChangesEntryRef,
   TaskChangesObservation,
+  TaskChangesReportedConflict,
   TaskChangesRepository,
   TaskChangesRow,
   TaskChangesRowStatus,
-  TaskChangesScope,
+  TaskChangesScopeId,
+  TaskChangesWorkingTreeScope,
   TaskId,
 } from '../../model'
 
@@ -14,41 +16,57 @@ import type {
 export const DEFAULT_ATTRIBUTION =
   'Observed repository differences; not evidence of task authorship.'
 
+/**
+ * Observation instant of every fixture: today at 10:42 local time, so the
+ * pane's "Today 10:42" provenance line holds whenever the mock runs.
+ */
+function todayAt(hours: number, minutes: number): string {
+  const at = new Date()
+  at.setHours(hours, minutes, 0, 0)
+  return at.toISOString()
+}
+
+export const OBSERVED_AT = todayAt(10, 42)
+
 export const QUEUE_PY_PATH = 'harflow_web/delivery/queue.py'
 export const CONFIG_PY_PATH = 'harflow_web/config.py'
 export const TEST_QUEUE_PATH = 'tests/test_delivery_queue.py'
 export const HARFLOW_WEB_ROOT = '~/Code/Harflow/HarflowWeb'
 export const HARFLOW_MCP_ROOT = '~/Code/Harflow/HarflowMCP'
 
-export const QUEUE_ENTRY: TaskChangesEntryRef = {
-  repositoryRoot: HARFLOW_WEB_ROOT,
-  scope: 'committed_range',
-  path: QUEUE_PY_PATH,
+export function entryOf(
+  repositoryRoot: string,
+  scope: TaskChangesScopeId,
+  path: string,
+): TaskChangesEntryRef {
+  return { repositoryRoot, scope, path, pathBytesB64: null }
 }
 
-export const CONFIG_ENTRY: TaskChangesEntryRef = {
-  repositoryRoot: HARFLOW_WEB_ROOT,
-  scope: 'committed_range',
-  path: CONFIG_PY_PATH,
-}
-
-export const TEST_ENTRY: TaskChangesEntryRef = {
-  repositoryRoot: HARFLOW_WEB_ROOT,
-  scope: 'committed_range',
-  path: TEST_QUEUE_PATH,
-}
-
-export const SAME_PATH_WORKING: TaskChangesEntryRef = {
-  repositoryRoot: HARFLOW_WEB_ROOT,
-  scope: 'working_tree',
-  path: QUEUE_PY_PATH,
-}
-
-export const BIG_MODULE_ENTRY: TaskChangesEntryRef = {
-  repositoryRoot: HARFLOW_MCP_ROOT,
-  scope: 'committed_range',
-  path: 'src/big_module.py',
-}
+export const QUEUE_ENTRY = entryOf(
+  HARFLOW_WEB_ROOT,
+  'committed_range',
+  QUEUE_PY_PATH,
+)
+export const CONFIG_ENTRY = entryOf(
+  HARFLOW_WEB_ROOT,
+  'committed_range',
+  CONFIG_PY_PATH,
+)
+export const TEST_ENTRY = entryOf(
+  HARFLOW_WEB_ROOT,
+  'committed_range',
+  TEST_QUEUE_PATH,
+)
+export const SAME_PATH_WORKING = entryOf(
+  HARFLOW_WEB_ROOT,
+  'working_tree',
+  QUEUE_PY_PATH,
+)
+export const BIG_MODULE_ENTRY = entryOf(
+  HARFLOW_MCP_ROOT,
+  'committed_range',
+  'src/big_module.py',
+)
 
 export function contentAvailable(bytes = 0): TaskChangesContent {
   return { state: 'available', reason: null, bytes }
@@ -62,81 +80,85 @@ export function contentState(
   return { state, reason, bytes }
 }
 
+/** Standard base64 of a byte string (each char code is one byte). */
+export function bytesB64(raw: string): string {
+  return btoa(raw)
+}
+
 export function row(args: {
-  readonly path: string
+  readonly path?: string
+  readonly pathBytesB64?: string
   readonly status: TaskChangesRowStatus
   readonly additions?: number | null
   readonly deletions?: number | null
   readonly content?: TaskChangesContent
   readonly pathTruncated?: boolean
 }): TaskChangesRow {
+  const content = args.content ?? contentAvailable()
   return {
-    path: args.path,
+    path: args.path ?? null,
+    pathBytesB64: args.pathBytesB64 ?? null,
     pathTruncated: args.pathTruncated ?? false,
+    oldPath: null,
     status: args.status,
     additions: args.additions === undefined ? 0 : args.additions,
     deletions: args.deletions === undefined ? 0 : args.deletions,
-    content: args.content ?? contentAvailable(),
+    binary: content.state === 'binary',
+    content,
   }
 }
 
-export function scopeAvailable(args: {
-  readonly rows: readonly TaskChangesRow[]
-  readonly rowCount?: number
-  readonly rowsTruncated?: boolean
-  readonly unmergedUnknown?: boolean
-  readonly countsAndPatchSeparate?: boolean
-}): TaskChangesScope {
-  return {
-    state: 'available',
-    reason: null,
-    rowCount: args.rowCount ?? args.rows.length,
-    rowsTruncated: args.rowsTruncated ?? false,
-    unmergedUnknown: args.unmergedUnknown ?? false,
-    reportedConflicts: [],
-    countsAndPatchSeparate: args.countsAndPatchSeparate ?? false,
-    rows: args.rows,
-  }
-}
-
-export function scopeCustom(args: {
-  readonly state: TaskChangesScope['state']
-  readonly reason: string | null
+type ScopeArgs = {
+  readonly state?: TaskChangesCommittedScope['state']
+  readonly reason?: string | null
   readonly rows?: readonly TaskChangesRow[]
   readonly rowCount?: number
   readonly rowsTruncated?: boolean
-  readonly unmergedUnknown?: boolean
-  readonly countsAndPatchSeparate?: boolean
-}): TaskChangesScope {
+}
+
+export function committedScope(args: ScopeArgs = {}): TaskChangesCommittedScope {
   const rows = args.rows ?? []
   return {
-    state: args.state,
-    reason: args.reason,
+    state: args.state ?? 'available',
+    reason: args.reason ?? null,
+    observedAt: OBSERVED_AT,
     rowCount: args.rowCount ?? rows.length,
     rowsTruncated: args.rowsTruncated ?? false,
-    unmergedUnknown: args.unmergedUnknown ?? false,
-    reportedConflicts: [],
-    countsAndPatchSeparate: args.countsAndPatchSeparate ?? false,
     rows,
   }
 }
 
+export function workingScope(
+  args: ScopeArgs & {
+    readonly unmergedUnknown?: boolean
+    readonly reportedConflicts?: readonly TaskChangesReportedConflict[]
+    readonly countsAndPatchSeparate?: boolean
+  } = {},
+): TaskChangesWorkingTreeScope {
+  return {
+    ...committedScope(args),
+    unmergedUnknown: args.unmergedUnknown ?? false,
+    reportedConflicts: {
+      names: args.reportedConflicts ?? [],
+      truncated: false,
+    },
+    countsAndPatchSeparate: args.countsAndPatchSeparate ?? false,
+  }
+}
+
 export function repoBase(args: {
-  readonly name: string
   readonly repositoryRoot: string
   readonly worktree?: string | null
   readonly baselineDirty?: boolean | 'unknown'
   readonly state?: TaskChangesRepository['state']
   readonly reason?: string | null
-  readonly committed?: TaskChangesScope | null
-  readonly working?: TaskChangesScope | null
+  readonly committed?: TaskChangesCommittedScope | null
+  readonly working?: TaskChangesWorkingTreeScope | null
   readonly baseCommit?: string | null
   readonly headCommit?: string | null
-  readonly observedAtLabel?: string | null
 }): TaskChangesRepository {
   return {
     repositoryRoot: args.repositoryRoot,
-    name: args.name,
     state: args.state ?? 'available',
     reason: args.reason ?? null,
     attribution: DEFAULT_ATTRIBUTION,
@@ -147,8 +169,9 @@ export function repoBase(args: {
       args.worktree === undefined
         ? '~/Code/Harflow/HarflowWeb'
         : args.worktree,
-    observedAtLabel:
-      args.observedAtLabel === undefined ? 'Today 10:42' : args.observedAtLabel,
+    gitCommonDir: `${args.repositoryRoot}/.git`,
+    observedAt: OBSERVED_AT,
+    fieldsTruncated: false,
     baselineDirty: args.baselineDirty ?? false,
     scopes: {
       committed_range: args.committed ?? null,
@@ -163,10 +186,6 @@ export function observation(args: {
   readonly captureState?: TaskChangesObservation['capture']['state']
   readonly captureReason?: string | null
   readonly hasMore?: boolean
-  readonly selectedEntry?: TaskChangesObservation['selectedEntry']
-  readonly text?: TaskChangesObservation['text']
-  readonly turns?: TaskChangesObservation['turns']
-  readonly textPanels?: TaskChangesObservation['textPanels']
 }): TaskChangesObservation {
   return {
     taskId: args.taskId,
@@ -174,66 +193,10 @@ export function observation(args: {
       state: args.captureState ?? 'available',
       reason: args.captureReason ?? null,
     },
+    observedAt: OBSERVED_AT,
     repositories: args.repositories,
     hasMore: args.hasMore ?? false,
-    selectedEntry: args.selectedEntry ?? null,
-    text: args.text ?? null,
-    turns: args.turns ?? null,
-    textPanels: args.textPanels ?? null,
+    nextCursor: null,
+    text: null,
   }
 }
-
-export function parseDiffLines(raw: readonly string[]): readonly DiffLine[] {
-  return raw.map((line) => {
-    if (line.startsWith('@@')) return { kind: 'hunk' as const, text: line }
-    if (line.startsWith('+')) {
-      return { kind: 'add' as const, text: line.slice(1) }
-    }
-    if (line.startsWith('-')) {
-      return { kind: 'del' as const, text: line.slice(1) }
-    }
-    const text = line.startsWith(' ') ? line.slice(1) : line
-    return { kind: 'context' as const, text }
-  })
-}
-
-export const QUEUE_DIFF_RAW = [
-  '@@ -41,9 +41,18 @@ class DeliveryQueue',
-  ' def next_attempt(self, target):',
-  '-    return self._attempts[target] + 1',
-  '+    window = self._window(target)',
-  '+    if len(window) >= self.retry_budget:',
-  '+        self._mark_exhausted(target)',
-  '+        return None',
-  '+    window.append(self._clock())',
-  '+    return len(window)',
-] as const
-
-export const WEB_COMMITTED_ROWS: readonly TaskChangesRow[] = [
-  row({
-    path: 'harflow_web/delivery/queue.py',
-    status: 'modified',
-    additions: 24,
-    deletions: 3,
-  }),
-  row({
-    path: 'harflow_web/config.py',
-    status: 'modified',
-    additions: 2,
-    deletions: 0,
-  }),
-  row({
-    path: 'tests/test_delivery_queue.py',
-    status: 'added',
-    additions: 31,
-    deletions: 0,
-  }),
-]
-
-export const WEB_WORKING_NAME_ONLY = row({
-  path: 'notes/retry-budget.md',
-  status: 'untracked',
-  additions: null,
-  deletions: null,
-  content: contentState('not_captured', 'untracked', null),
-})

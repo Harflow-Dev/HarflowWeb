@@ -23,9 +23,11 @@ export function applyTaskChangesSeed(
   const chrome = seed.changesChrome
   whenLoaded(
     presenter,
+    // The pane opens after the task load settles (applyTaskOpenSeed), so a
+    // closed pane means "not yet", not "no longer the seeded item".
     (state) => ({
-      open: state.task.selectedTaskId === taskId && state.task.changesPaneOpen,
-      kind: state.task.load.kind,
+      open: state.task.selectedTaskId === taskId,
+      kind: state.task.changesPaneOpen ? state.task.load.kind : 'loading',
     }),
     () => presenter.seedTaskChangesChrome(taskId, chrome),
   )

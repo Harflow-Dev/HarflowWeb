@@ -9,7 +9,8 @@ import {
   TEXT_LOADING_CAPTION,
   TEXT_REFUSAL_NOTE,
 } from '../presentation/taskChangesCopy'
-import { formatStoredKiB } from '../presentation/taskChangesFormat'
+import { formatStoredKiB, scopeTitle } from '../presentation/taskChangesFormat'
+import { changesEntryDisplayPath } from '../presentation/taskChangesPaths'
 import {
   ChangesAction,
   ChangesPaneNote,
@@ -18,7 +19,6 @@ import {
 
 type Props = {
   readonly selectedEntry: TaskChangesEntryRef | null
-  readonly scopeLabel: string | null
   readonly text: TaskChangesTextObservation | null
   readonly textPanels: readonly TaskChangesTextPanel[] | null
   readonly loadingText: boolean
@@ -28,7 +28,6 @@ type Props = {
 
 export function TaskChangesDiffBlock({
   selectedEntry,
-  scopeLabel,
   text,
   textPanels,
   loadingText,
@@ -51,7 +50,7 @@ export function TaskChangesDiffBlock({
   if (loadingText && selectedEntry !== null) {
     return (
       <>
-        <DiffHead path={selectedEntry.path} scopeLabel={scopeLabel} />
+        <DiffHead entry={selectedEntry} />
         <div role="group" aria-busy="true" aria-label="Reading diff">
           <ChangesPaneSkelLines count={2} />
         </div>
@@ -62,7 +61,7 @@ export function TaskChangesDiffBlock({
   if (text === null || selectedEntry === null) return null
   return (
     <>
-      <TextObservationView text={text} scopeLabel={scopeLabel} onUnavailable={onUnavailable} />
+      <TextObservationView text={text} onUnavailable={onUnavailable} />
       {samePathCaption ? <p className="hd-m05-caption">{SAME_PATH_CAPTION}</p> : null}
     </>
   )
@@ -78,7 +77,7 @@ function TextPanelView({
   if (panel.kind === 'loading') {
     return (
       <>
-        <DiffHead path={panel.entry.path} scopeLabel={panel.scopeLabel} />
+        <DiffHead entry={panel.entry} />
         <div role="group" aria-busy="true" aria-label="Reading diff">
           <ChangesPaneSkelLines count={2} />
         </div>
@@ -89,64 +88,43 @@ function TextPanelView({
   if (panel.kind === 'refusal') {
     return (
       <>
-        <DiffHead path={panel.entry.path} scopeLabel={panel.scopeLabel} />
+        <DiffHead entry={panel.entry} />
         <RefusalNote onUnavailable={onUnavailable} />
       </>
     )
   }
-  return (
-    <TextObservationView
-      text={panel.text}
-      scopeLabel={panel.scopeLabel}
-      moreLabel={panel.moreLabel}
-      onUnavailable={onUnavailable}
-    />
-  )
+  return <TextObservationView text={panel.text} onUnavailable={onUnavailable} />
 }
 
 function TextObservationView({
   text,
-  scopeLabel,
-  moreLabel,
   onUnavailable,
 }: {
   readonly text: TaskChangesTextObservation
-  readonly scopeLabel: string | null
-  readonly moreLabel?: string
   readonly onUnavailable: (label: string) => void
 }) {
   if (text.refusal !== null) {
     return (
       <>
-        <DiffHead path={text.entry.path} scopeLabel={scopeLabel} />
+        <DiffHead entry={text.entry} />
         <RefusalNote onUnavailable={onUnavailable} />
       </>
     )
   }
   return (
     <>
-      <DiffHead path={text.entry.path} scopeLabel={scopeLabel} />
-      <DiffLines path={text.entry.path} lines={text.lines} />
-      <DiffMore
-        text={text}
-        {...(moreLabel === undefined ? {} : { moreLabel })}
-        onUnavailable={onUnavailable}
-      />
+      <DiffHead entry={text.entry} />
+      <DiffLines path={changesEntryDisplayPath(text.entry)} lines={text.lines} />
+      <DiffMore text={text} onUnavailable={onUnavailable} />
     </>
   )
 }
 
-function DiffHead({
-  path,
-  scopeLabel,
-}: {
-  readonly path: string
-  readonly scopeLabel: string | null
-}) {
+function DiffHead({ entry }: { readonly entry: TaskChangesEntryRef }) {
   return (
     <div className="hd-m05-diffhead">
-      <span className="hd-file__path">{path}</span>
-      {scopeLabel ? <span className="hd-m05-tag">{scopeLabel}</span> : null}
+      <span className="hd-file__path">{changesEntryDisplayPath(entry)}</span>
+      <span className="hd-m05-tag">{scopeTitle(entry.scope)}</span>
     </div>
   )
 }
@@ -188,17 +166,13 @@ function DiffLineRow({ line }: { readonly line: DiffLine }) {
 
 function DiffMore({
   text,
-  moreLabel,
   onUnavailable,
 }: {
   readonly text: TaskChangesTextObservation
-  readonly moreLabel?: string
   readonly onUnavailable: (label: string) => void
 }) {
   if (text.hasMore) {
-    const label =
-      moreLabel ??
-      `Read ${formatStoredKiB(text.returnedBytes)} of ${formatStoredKiB(text.totalBytes)} stored`
+    const label = `Read ${formatStoredKiB(text.returnedBytes)} of ${formatStoredKiB(text.totalBytes)} stored`
     return (
       <div className="hd-m05-more">
         <span className="caption hd-faint">{label}</span>
@@ -213,13 +187,6 @@ function DiffMore({
         <span className="caption hd-faint">
           Stored text ends here · {end} of a larger patch
         </span>
-      </div>
-    )
-  }
-  if (moreLabel) {
-    return (
-      <div className="hd-m05-more">
-        <span className="caption hd-faint">{moreLabel}</span>
       </div>
     )
   }

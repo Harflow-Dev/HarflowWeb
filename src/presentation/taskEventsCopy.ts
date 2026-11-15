@@ -17,7 +17,19 @@ export const EVENTS_HISTORY_UNAVAILABLE = {
   action: 'Retry history read',
 } as const
 
+/** Design 40b8a19 `events-page-error`: a transient older-page read failure. */
 export const EVENTS_PAGE_ERROR = {
+  title: "Earlier records couldn't be read",
+  body: 'Records below stay. Retrying reads the same earlier page again.',
+  action: 'Retry history read',
+} as const
+
+/**
+ * The engine refused the older cursor (expired or invalid): the contract asks
+ * for a reload from the newest page. Undesigned; copy kept from before the
+ * retry wording was designed. Never offers the same-cursor retry.
+ */
+export const EVENTS_CURSOR_REFUSED = {
   title: "Earlier records couldn't be read",
   body: 'Records below stay. Reloading starts again from the newest page.',
   action: 'Reload from newest',

@@ -110,6 +110,13 @@ export type TaskScreenState = {
  */
 export type EventsEarlierState = {
   readonly status: 'idle' | 'loading' | 'loaded' | 'error'
+  /**
+   * Why the last read failed. `transient`: the read did not answer, the same
+   * cursor can be read again. `cursor`: the engine refused the cursor
+   * (expired or invalid); the contract says reload from the newest page, so
+   * the same cursor is never offered again. Null unless `status` is `error`.
+   */
+  readonly failure: 'transient' | 'cursor' | null
   readonly records: readonly TaskEventsRecord[]
   /** Valid only once `status` is `loaded`. */
   readonly hasOlder: boolean
@@ -118,6 +125,7 @@ export type EventsEarlierState = {
 
 export const IDLE_EVENTS_EARLIER: EventsEarlierState = {
   status: 'idle',
+  failure: null,
   records: [],
   hasOlder: false,
   olderCursor: null,

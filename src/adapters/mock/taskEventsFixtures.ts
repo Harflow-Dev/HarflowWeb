@@ -112,7 +112,11 @@ const SPECIMENS: ReadonlyMap<string, TaskEventsObservation> = new Map([
 /** The one older page: seq 40, reaching the beginning. */
 function olderAnswer(taskId: TaskId): TaskEventsOlderLoad {
   if (taskId === TASK_EVENTS_PAGE_ERROR_ID) {
-    return { kind: 'refused', code: 'event_cursor_expired' }
+    // A transient transport failure: the same cursor can be read again.
+    return {
+      kind: 'unavailable',
+      message: 'The older page could not be read.',
+    }
   }
   return {
     kind: 'ready',

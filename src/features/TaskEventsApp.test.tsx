@@ -77,7 +77,7 @@ describe('Events tab switching and paging', () => {
     )
   })
 
-  it('page-error Reload from newest is an unavailable command', async () => {
+  it('page-error Retry history read re-reads and stays an error while the read fails', async () => {
     const user = userEvent.setup()
     window.location.hash = '#task-events-page-error'
     render(<PreviewShell />)
@@ -85,11 +85,11 @@ describe('Events tab switching and paging', () => {
     await user.click(
       within(pane).getByRole('button', { name: EVENTS_PAGE_ERROR.action }),
     )
+    // A working command: it retries, and the failing read lands back in the note.
     expect(
-      screen.getByRole('status'),
-    ).toHaveTextContent(
-      `${EVENTS_PAGE_ERROR.action} is unavailable in this exploratory slice.`,
-    )
+      await within(pane).findByRole('button', { name: EVENTS_PAGE_ERROR.action }),
+    ).toBeInTheDocument()
+    expect(screen.getByRole('status')).not.toHaveTextContent('unavailable')
   })
 })
 

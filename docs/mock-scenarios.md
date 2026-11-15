@@ -145,7 +145,7 @@ populated fixture and shows a single “Mock engine” badge.
 | Task · Changes · which turn | Approved `task/changes-turns` (M05). Turn picker on the current member |
 | Task · Events · facts and records | Approved `task/events-populated` (M05). Notices 2, turns 3; pane open on Events |
 | Task · Events · paged | Approved `task/events-page` (M05). Load earlier adds a bounded page |
-| Task · Events · page error | Approved `task/events-page-error` (M05). Loaded records stay |
+| Task · Events · page error | Approved `task/events-page-error` (M05). Transient older-page failure; loaded records stay, Retry history read re-reads the same page |
 | Task · Events · not started | Approved `task/events-not-started` (M05). Pending launch note on every tab |
 | Task · Events · loading | Approved `task/events-loading` (M05). Deferred Events observation |
 | Task · Events · empty | Approved `task/events-empty` (M05). Empty window does not qualify totals |

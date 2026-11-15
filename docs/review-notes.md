@@ -488,10 +488,12 @@ grant approvals, answer questions, or touch the task store.
     (idle | loading | loaded | error) with the older records read. "Reached
     its beginning" appears only after a read whose `hasOlder` is false; Load
     earlier stays while `hasOlder` is true. The page-error state is reached
-    through the mock's seeded `event_cursor_expired` answer. An error leaves
-    the newest records and offers no retry; Reload from newest stays an
-    unavailable command. The reading position is kept with the transcript
-    anchor helper.
+    through a seeded transient (unavailable) older-page answer. A transient
+    failure leaves the rows shown and offers a working Retry history read that
+    re-issues the same cursor (fenced the same way); a cursor refusal
+    (`failure: cursor`) never offers it and keeps the pre-design Reload from
+    newest note (an unavailable command; undesigned). The reading position is
+    kept with the transcript anchor helper.
   - Every approved task fixture answers Events from its status (running,
     owner lost, settling, unobserved exit and terminal states differ only in
     `log.state`; the display does not). Task fixtures with `detailsPane: null`
@@ -552,8 +554,12 @@ grant approvals, answer questions, or touch the task store.
   with `aria-expanded`; it is not rendered when no pane can render
   (unavailable task). `loading-pane` keeps the real title when the listing
   knows it (known deviation, provenance.md) and otherwise follows the design.
-  Open item: design `events-page-error` wording (Retry history read, same
-  page re-read) from `40b8a19` is not yet adopted in Web. Screenshots under
+  Events older-page failures: a transient read failure shows the design
+  copy and a working "Retry history read" that re-reads the same cursor,
+  keeps the rows and position; a cursor refusal (expired/invalid) follows the
+  contract (reload from the newest page, never a same-cursor retry) and is an
+  undesigned state that needs a design (its note and dead action are the
+  pre-design copy). Screenshots under
   `~/.codex/workflows/screenshots/2026-11-15-harflowweb-task-pane-topbar/`.
 
 ## Unresolved questions

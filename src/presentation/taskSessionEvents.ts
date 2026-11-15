@@ -64,7 +64,12 @@ export function olderPosition(state: TaskScreenState): {
   readonly hasOlder: boolean
   readonly cursor: string | null
 } {
-  if (state.eventsEarlier.status === 'loaded') {
+  // Once a page was read the position is that page's, also while a later
+  // read is loading or failed (a retry reads the same cursor again).
+  if (
+    state.eventsEarlier.status === 'loaded' ||
+    state.eventsEarlier.records.length > 0
+  ) {
     return {
       hasOlder: state.eventsEarlier.hasOlder,
       cursor: state.eventsEarlier.olderCursor,
@@ -74,17 +79,29 @@ export function olderPosition(state: TaskScreenState): {
   return { hasOlder: list?.hasOlder ?? false, cursor: list?.olderCursor ?? null }
 }
 
-/** Marks a Load earlier read as started; null when it cannot start. */
+/**
+ * Marks a Load earlier read as started; null when it cannot start. A
+ * transient failure can be retried with the same cursor; a cursor refusal
+ * cannot (the contract asks for a reload from the newest page).
+ */
 export function startedEarlierState(
   state: TaskScreenState,
 ): TaskScreenState | null {
   if (!state.changesPaneOpen || state.paneTab !== 'events') return null
   if (state.eventsLoad.kind !== 'ready') return null
   if (state.eventsEarlier.status === 'loading') return null
-  if (state.eventsEarlier.status === 'error') return null
+  if (
+    state.eventsEarlier.status === 'error' &&
+    state.eventsEarlier.failure !== 'transient'
+  ) {
+    return null
+  }
   const position = olderPosition(state)
   if (!position.hasOlder || position.cursor === null) return null
-  return { ...state, eventsEarlier: { ...state.eventsEarlier, status: 'loading' } }
+  return {
+    ...state,
+    eventsEarlier: { ...state.eventsEarlier, status: 'loading', failure: null },
+  }
 }
 
 export function applyOlderEventsLoad(args: {
@@ -106,7 +123,11 @@ export function applyOlderEventsLoad(args: {
   if (load.kind !== 'ready') {
     args.publish({
       ...state,
-      eventsEarlier: { ...state.eventsEarlier, status: 'error' },
+      eventsEarlier: {
+        ...state.eventsEarlier,
+        status: 'error',
+        failure: load.kind === 'refused' ? 'cursor' : 'transient',
+      },
     })
     return
   }
@@ -115,6 +136,7 @@ export function applyOlderEventsLoad(args: {
     ...state,
     eventsEarlier: {
       status: 'loaded',
+      failure: null,
       records: [...load.page.records, ...state.eventsEarlier.records],
       hasOlder: load.page.hasOlder,
       olderCursor: load.page.olderCursor,

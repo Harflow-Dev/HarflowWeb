@@ -839,7 +839,7 @@ describe('TaskSession events', () => {
     session.dispose()
   })
 
-  it('keeps newest records when the engine refuses the cursor as expired', async () => {
+  it('keeps newest records when the older read fails transiently', async () => {
     const session = await readyEvents(TASK_EVENTS_PAGE_ERROR_ID)
     session.loadEarlierEvents()
     await flush()
@@ -847,9 +847,13 @@ describe('TaskSession events', () => {
     expect(state.eventsEarlier.status).toBe('error')
     expect(state.eventsEarlier.records).toEqual([])
     expect(state.eventsList?.records).toHaveLength(3)
-    // An error does not start another read.
+    expect(state.eventsEarlier.failure).toBe('transient')
+    // A transient failure retries the same cursor; this specimen keeps failing.
     session.loadEarlierEvents()
+    expect(session.getState().eventsEarlier.status).toBe('loading')
+    await flush()
     expect(session.getState().eventsEarlier.status).toBe('error')
+    expect(session.getState().eventsList?.records).toHaveLength(3)
     session.dispose()
   })
 

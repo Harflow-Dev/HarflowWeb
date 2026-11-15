@@ -7,6 +7,7 @@ import {
   EVENTS_ACTIVITY_COUNT,
   EVENTS_ACTIVITY_HEADING,
   EVENTS_BEGINNING,
+  EVENTS_CURSOR_REFUSED,
   EVENTS_EMPTY_CAPTION,
   EVENTS_EMPTY_ROWS,
   EVENTS_HISTORY_UNAVAILABLE,
@@ -85,6 +86,7 @@ export function TaskEventsRecords({
       <p className="hd-m05-caption">{EVENTS_RECORDS_CAPTION}</p>
       <EarlierChrome
         status={earlier.status}
+        failure={earlier.failure}
         hasOlder={hasOlder}
         onLoadEarlier={loadEarlier}
         onUnavailable={onUnavailable}
@@ -114,11 +116,13 @@ function ActivityFacts({ count }: { readonly count: number }) {
 
 function EarlierChrome({
   status,
+  failure,
   hasOlder,
   onLoadEarlier,
   onUnavailable,
 }: {
   readonly status: EventsEarlierState['status']
+  readonly failure: EventsEarlierState['failure']
   readonly hasOlder: boolean
   readonly onLoadEarlier: (button: HTMLElement) => void
   readonly onUnavailable: (label: string) => void
@@ -126,18 +130,26 @@ function EarlierChrome({
   if (status === 'error') {
     // The design draws the note where the Load earlier button was: inside the
     // paging row, so it is inset like that row.
+    const retry = failure === 'transient'
+    const copy = retry ? EVENTS_PAGE_ERROR : EVENTS_CURSOR_REFUSED
     return (
       <div className="hd-m05-more">
-        <ChangesPaneNote
-          tone="warn"
-          title={EVENTS_PAGE_ERROR.title}
-          body={EVENTS_PAGE_ERROR.body}
-        >
+        <ChangesPaneNote tone="warn" title={copy.title} body={copy.body}>
           <div className="hd-row hd-m05-actions">
-            <ChangesAction
-              label={EVENTS_PAGE_ERROR.action}
-              onUnavailable={onUnavailable}
-            />
+            {retry ? (
+              <button
+                type="button"
+                className="hd-btn hd-btn--secondary hd-btn--sm"
+                onClick={(event) => onLoadEarlier(event.currentTarget)}
+              >
+                {copy.action}
+              </button>
+            ) : (
+              <ChangesAction
+                label={copy.action}
+                onUnavailable={onUnavailable}
+              />
+            )}
           </div>
         </ChangesPaneNote>
       </div>

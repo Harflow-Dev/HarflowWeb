@@ -59,6 +59,7 @@ describe('Events Load earlier reading position', () => {
       <Harness
         answer={{
           status: 'loaded',
+      failure: null,
           records: [ASSISTANT_START],
           hasOlder: false,
           olderCursor: null,
@@ -87,6 +88,7 @@ describe('Events Load earlier reading position', () => {
       <Harness
         answer={{
           status: 'loaded',
+      failure: null,
           records: [ASSISTANT_START],
           hasOlder: true,
           olderCursor: 'older:more',
@@ -115,6 +117,7 @@ describe('Events Load earlier reading position', () => {
     act(() => {
       setEarlierFromOutside({
         status: 'loaded',
+      failure: null,
         records: [ASSISTANT_START],
         hasOlder: false,
         olderCursor: null,

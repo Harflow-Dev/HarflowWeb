@@ -30,6 +30,18 @@ export function taskShowsSummary(observation: TaskObservation): boolean {
   )
 }
 
+/**
+ * A completed or failed task whose process exit was never observed (the
+ * outcome is inferred). Other statuses never carry this state.
+ */
+export function taskExitNotObserved(observation: TaskObservation): boolean {
+  const status = taskEngineStatus(observation)
+  return (
+    (status === 'completed' || status === 'failed') &&
+    observation.exitObserved === false
+  )
+}
+
 /** Supervision applies only while the engine reports the run as running. */
 export function runningSupervision(
   observation: TaskObservation,

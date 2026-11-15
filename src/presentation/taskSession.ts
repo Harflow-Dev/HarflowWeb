@@ -29,7 +29,6 @@ import {
 import {
   beginPaneChangesObservation,
   closedChangesPaneState,
-  entryForPath,
   loadingTaskScreenState,
   openedChangesPaneState,
   seededChangesChromeState,
@@ -201,12 +200,6 @@ export class TaskSession {
     if (!next) return
     this.publish(next)
     this.beginChangesObservation()
-  }
-
-  /** @deprecated Prefer selectChangedEntry. */
-  selectChangedFile(path: string): void {
-    const entry = entryForPath(this.state.changesList, path)
-    if (entry) this.selectChangedEntry(entry)
   }
 
   selectChangesTurn(turnTaskId: TaskId): void {

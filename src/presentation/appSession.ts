@@ -188,9 +188,6 @@ export class AppSession {
   setTaskChangesPaneOpen(open: boolean): void {
     this.children.task.setChangesPaneOpen(open)
   }
-  selectTaskChangedFile(path: string): void {
-    this.children.task.selectChangedFile(path)
-  }
   selectTaskChangedEntry(entry: TaskChangesEntryRef): void {
     this.children.task.selectChangedEntry(entry)
   }

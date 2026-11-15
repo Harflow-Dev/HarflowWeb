@@ -49,6 +49,7 @@ export function changesCaptureIsComplete(
   observation: TaskChangesObservation,
 ): boolean {
   if (observation.capture.state !== 'available') return false
+  if (observation.hasMore) return false
   if (observation.repositories.length === 0) return false
   for (const repo of observation.repositories) {
     if (repo.state !== 'available') return false

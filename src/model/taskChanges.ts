@@ -191,16 +191,3 @@ export type TaskChangesQuery = {
   /** Null reads the opened task; otherwise that turn member's capture. */
   readonly turnTaskId: TaskId | null
 }
-
-/** @deprecated Alias kept for transitional call sites during the G-DIFF rewrite. */
-export type ChangedFileRow = {
-  readonly path: string
-  readonly additions: number
-  readonly deletions: number
-}
-
-/** @deprecated Prefer TaskChangesTextObservation.lines. */
-export type DiffContent =
-  | { readonly kind: 'lines'; readonly lines: readonly DiffLine[] }
-  | { readonly kind: 'empty' }
-  | { readonly kind: 'unavailable'; readonly message: string }

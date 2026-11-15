@@ -2,41 +2,6 @@ import type { ReactNode } from 'react'
 import { SkelLine } from './skeletonPrimitives'
 
 /**
- * Task Changes first-page skeleton — Design `task/changes-loading`
- * (M05 approval; formerly `m05-proposal/changes-loading`).
- * StatusRegion remains the only polite live region.
- */
-export function ChangesLoadingBody(): ReactNode {
-  return (
-    <div
-      className="hd-m05-panebody"
-      role="group"
-      aria-busy="true"
-      aria-label="Reading stored changes"
-    >
-      <div className="hd-m05-panenote hd-m05-panenote--info">
-        <strong>Reading stored changes</strong>
-      </div>
-      <PaneSkeletonLines count={4} />
-    </div>
-  )
-}
-
-/** Diff region skeleton while the file list stays mounted (file switch). */
-export function ChangesDiffLoadingBody(): ReactNode {
-  return (
-    <div
-      role="group"
-      aria-busy="true"
-      aria-label="Reading diff"
-      className="hw-changes-diff-skel"
-    >
-      <PaneSkeletonLines count={2} />
-    </div>
-  )
-}
-
-/**
  * Task Events pane skeleton — Design `task/events-loading`
  * (M05 approval; formerly `m05-proposal/events-loading`).
  */

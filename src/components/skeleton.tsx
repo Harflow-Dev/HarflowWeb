@@ -39,7 +39,5 @@ export {
   SettingsMcpApprovalsLoading,
 } from './skeletonSettings'
 export {
-  ChangesDiffLoadingBody,
-  ChangesLoadingBody,
   EventsLoadingBody,
 } from './skeletonTaskPane'

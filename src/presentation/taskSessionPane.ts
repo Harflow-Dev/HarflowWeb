@@ -92,6 +92,8 @@ export function selectedTurnState(
     selectedChangeEntry: null,
     changesList: null,
     changesLoad: { kind: 'loading' },
+    // Each turn is its own capture: expansion restarts from that turn's defaults.
+    expandedRepos: [],
   }
 }
 
@@ -129,23 +131,6 @@ export function openedChangesPaneState(state: TaskScreenState): {
       expandedRepos: [],
     },
   }
-}
-
-export function entryForPath(
-  list: TaskScreenState['changesList'],
-  path: string,
-): TaskChangesEntryRef | null {
-  if (!list) return null
-  for (const repo of list.repositories) {
-    for (const scopeId of ['committed_range', 'working_tree'] as const) {
-      const scope = repo.scopes[scopeId]
-      if (!scope) continue
-      if (scope.rows.some((row) => row.path === path)) {
-        return { repositoryRoot: repo.repositoryRoot, scope: scopeId, path }
-      }
-    }
-  }
-  return null
 }
 
 export function loadingTaskScreenState(taskId: TaskId): TaskScreenState {

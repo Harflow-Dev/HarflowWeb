@@ -587,12 +587,6 @@ body,
   gap: 8px;
 }
 
-.hw-changes-diff-skel {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
 .hw-compose-help {
   margin: 0;
   text-align: center;

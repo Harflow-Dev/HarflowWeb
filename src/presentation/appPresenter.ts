@@ -84,7 +84,6 @@ export type AppPresenter = {
   setWorkflowRunViewMode(mode: WorkflowRunViewMode): void
   openTask(taskId: TaskId): void
   setTaskChangesPaneOpen(open: boolean): void
-  selectTaskChangedFile(path: string): void
   selectTaskChangedEntry(entry: TaskChangesEntryRef): void
   setTaskPaneTab(tab: TaskPaneTab): void
   selectTaskChangesTurn(taskId: TaskId): void
@@ -175,7 +174,6 @@ export function createAppPresenter(deps: Deps): AppPresenter {
     setWorkflowRunViewMode: (mode) => session.setWorkflowRunViewMode(mode),
     openTask: (taskId) => session.openTask(taskId),
     setTaskChangesPaneOpen: (open) => session.setTaskChangesPaneOpen(open),
-    selectTaskChangedFile: (path) => session.selectTaskChangedFile(path),
     selectTaskChangedEntry: (entry) => session.selectTaskChangedEntry(entry),
     setTaskPaneTab: (tab) => session.setTaskPaneTab(tab),
     selectTaskChangesTurn: (taskId) => session.selectTaskChangesTurn(taskId),

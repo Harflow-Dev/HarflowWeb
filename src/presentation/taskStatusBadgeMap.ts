@@ -1,5 +1,9 @@
 import type { EngineTaskStatus, TaskObservation } from '../model'
-import { formatElapsed, runningSupervision } from './taskObservation'
+import {
+  formatElapsed,
+  runningSupervision,
+  taskExitNotObserved,
+} from './taskObservation'
 import type { TaskCommandChrome, TaskStatusBadge } from './taskStatusTypes'
 
 function elapsedSuffix(observation: TaskObservation): string {
@@ -24,7 +28,7 @@ function runningBadge(observation: TaskObservation): TaskStatusBadge {
 }
 
 function completedBadge(observation: TaskObservation): TaskStatusBadge {
-  if (observation.exitObserved === false) {
+  if (taskExitNotObserved(observation)) {
     return { tone: 'done', glyph: 'check', label: 'Done · exit not observed' }
   }
   return {
@@ -39,7 +43,7 @@ function failedBadge(
   chrome: TaskCommandChrome,
 ): TaskStatusBadge {
   // A Continue in flight keeps the plain failed clock; the banner carries it.
-  if (chrome !== 'continue-starting' && observation.exitObserved === false) {
+  if (chrome !== 'continue-starting' && taskExitNotObserved(observation)) {
     return { tone: 'failed', glyph: 'x', label: 'Failed · exit not observed' }
   }
   return {

@@ -66,16 +66,9 @@ export function applyTaskChangesLoad(
   }
   if (args.expectedTurn !== args.state.changesTurnTaskId) return
   if (args.load.kind === 'ready') {
+    // Turn reads return that turn's task id on the observation.
     if (args.load.observation.taskId !== (args.expectedTurn ?? args.expectedTask)) {
-      // Turn reads return that turn's task id on the observation.
-      if (args.load.observation.taskId !== args.expectedTask) {
-        if (
-          args.expectedTurn === null ||
-          args.load.observation.taskId !== args.expectedTurn
-        ) {
-          return
-        }
-      }
+      return
     }
     if (
       args.expectedEntry !== null &&

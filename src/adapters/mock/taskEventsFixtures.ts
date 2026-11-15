@@ -21,6 +21,10 @@ import {
   TASK_EVENTS_POPULATED_ID,
 } from './taskEventsFixtureIds'
 import {
+  TASK_PANE_RUNNING_OPEN_ID,
+  TASK_TOPBAR_FACTS_ID,
+} from './taskPaneTopbarFixtures'
+import {
   ASSISTANT_DONE,
   ASSISTANT_START,
   genericRecords,
@@ -64,7 +68,19 @@ function pagedObservation(taskId: TaskId): TaskEventsObservation {
   })
 }
 
+/** Design EVENTS.populated for a run still going: the log is open. */
+function runningPopulated(taskId: TaskId): TaskEventsObservation {
+  return observation(taskId, {
+    log: { state: 'open' },
+    toolCallsObserved: 2,
+    records: [TOOL_RESULT],
+    recoveredTranscript: true,
+  })
+}
+
 const SPECIMENS: ReadonlyMap<string, TaskEventsObservation> = new Map([
+  [TASK_PANE_RUNNING_OPEN_ID, runningPopulated(TASK_PANE_RUNNING_OPEN_ID)],
+  [TASK_TOPBAR_FACTS_ID, runningPopulated(TASK_TOPBAR_FACTS_ID)],
   [
     TASK_EVENTS_POPULATED_ID,
     observation(TASK_EVENTS_POPULATED_ID, {

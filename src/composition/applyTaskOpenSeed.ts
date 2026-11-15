@@ -21,14 +21,11 @@ function afterTaskReady(
   whenLoaded: WhenLoaded,
   taskId: ReturnType<typeof asTaskId>,
   apply: () => void,
-  requirePane = false,
 ): void {
   whenLoaded(
     presenter,
     (state) => ({
-      open:
-        state.task.selectedTaskId === taskId &&
-        (!requirePane || state.task.changesPaneOpen),
+      open: state.task.selectedTaskId === taskId,
       kind: state.task.load.kind,
     }),
     apply,
@@ -66,12 +63,9 @@ export function applyTaskOpenSeed(
   }
   if (seed.eventsFactsReveal !== undefined) {
     const group = seed.eventsFactsReveal
-    afterTaskReady(
-      presenter,
-      whenLoaded,
-      taskId,
-      () => presenter.revealTaskEventsFacts(group),
-      true,
+    // Reveal opens the Events pane itself; it does not wait for it.
+    afterTaskReady(presenter, whenLoaded, taskId, () =>
+      presenter.revealTaskEventsFacts(group),
     )
   }
   if (seed.taskCommandChrome !== undefined) {

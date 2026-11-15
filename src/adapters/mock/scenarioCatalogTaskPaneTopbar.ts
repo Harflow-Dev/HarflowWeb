@@ -13,7 +13,8 @@ import {
   TASK_STATUS_FAILED_CONTINUE_ID,
   TASK_STATUS_RUNNING_STOP_ID,
 } from './taskStatusFixtures'
-import { RETRY_BUDGET_DONE_TASK_ID, taskLoadFor } from './taskFixtures'
+import { TASK_CHANGES_SINGLE_ID } from './taskChangesFixtureIds'
+import { taskLoadFor } from './taskFixtures'
 import { QUEUE_SELECTED_CHROME } from './scenarioCatalogTaskChanges'
 
 const tasks = (taskId: string) => taskLoadFor(taskId)
@@ -64,21 +65,16 @@ export const TASK_PANE_TOPBAR_SCENARIOS: readonly ScenarioDefinition[] = [
     'pane-split',
     'Task · Pane beside the transcript',
     'Approved task/pane-split (M05). Split at 1280×800 detail width.',
-    RETRY_BUDGET_DONE_TASK_ID,
-    {
-      eventsPaneOpen: true,
-      paneTab: 'changes',
-      changesChrome: QUEUE_SELECTED_CHROME,
-    },
+    TASK_CHANGES_SINGLE_ID,
+    { eventsPaneOpen: true, changesChrome: QUEUE_SELECTED_CHROME },
   ),
   paneScenario(
     'pane-overlay',
     'Task · Pane over the transcript',
     'Approved task/pane-overlay (M05). Overlay at 1000×620 detail width.',
-    RETRY_BUDGET_DONE_TASK_ID,
+    TASK_CHANGES_SINGLE_ID,
     {
       eventsPaneOpen: true,
-      paneTab: 'changes',
       changesChrome: QUEUE_SELECTED_CHROME,
       frame: 'minimum',
     },

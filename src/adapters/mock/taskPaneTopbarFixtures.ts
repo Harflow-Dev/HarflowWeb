@@ -6,10 +6,20 @@ import { EDIT_REPO_ENFORCEMENT } from './taskEnforcementFixtures'
 import { runningConversation } from './taskConversationFixtures'
 import { slotReleaseTranscript } from './mappedTaskTranscripts'
 
-export const TASK_TOPBAR_FACTS_ID = asTaskId('task-topbar-facts')
-export const TASK_TOPBAR_RESOURCE_ID = asTaskId('task-topbar-resource')
-export const TASK_TOPBAR_MINIMUM_ID = asTaskId('task-topbar-minimum')
-export const TASK_PANE_RUNNING_OPEN_ID = asTaskId('task-pane-running-open')
+// The design draws one id, 7be02d91, for these specimens; distinct full ids
+// share that eight-character prefix (see taskEventsFixtureIds.ts).
+export const TASK_TOPBAR_FACTS_ID = asTaskId(
+  '7be02d91-5a3c-4e8f-b1d6-0c42a9e73f09',
+)
+export const TASK_TOPBAR_RESOURCE_ID = asTaskId(
+  '7be02d91-5a3c-4e8f-b1d6-0c42a9e73f0a',
+)
+export const TASK_TOPBAR_MINIMUM_ID = asTaskId(
+  '7be02d91-5a3c-4e8f-b1d6-0c42a9e73f0b',
+)
+export const TASK_PANE_RUNNING_OPEN_ID = asTaskId(
+  '7be02d91-5a3c-4e8f-b1d6-0c42a9e73f08',
+)
 
 function runningBase(
   taskId: ReturnType<typeof asTaskId>,
@@ -46,10 +56,12 @@ export const TASK_PANE_TOPBAR_OBSERVATIONS: readonly TaskObservation[] = [
   }),
   runningBase(TASK_TOPBAR_RESOURCE_ID, {
     notices: ['Checkout is on the default branch.'],
+    observedAt: '2026-11-15T10:00:00Z',
     resources: {
       names: ['heavy-build'],
+      reservationId: 'res-heavy-build-1',
       state: 'held',
-      heldForSeconds: 240,
+      grantedAt: '2026-11-15T09:56:00Z',
     },
   }),
   runningBase(TASK_TOPBAR_MINIMUM_ID, {

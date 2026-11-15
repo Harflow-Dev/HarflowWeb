@@ -65,16 +65,23 @@ function resourceCardFor(
   return {
     title: `Holding ${name}`,
     detail: TASK_RESOURCE_HELD.detail,
-    note: heldSinceNote(resources.heldForSeconds),
+    note: heldSinceNote(resources.grantedAt, observation.observedAt),
     linkLabel: TASK_RESOURCE_HELD.linkLabel,
   }
 }
 
-/** Design held card: “Since 4m ago” from observed hold age. */
-function heldSinceNote(heldForSeconds: number | undefined): string {
-  if (heldForSeconds === undefined) return 'Held'
-  const minutes = Math.max(1, Math.round(heldForSeconds / 60))
-  return `Since ${minutes}m ago`
+/**
+ * Design held card: “Since 4m ago”, the grant time against the time the
+ * status was read. No line when either time is unknown or unreadable.
+ */
+function heldSinceNote(
+  grantedAt: string | undefined,
+  observedAt: string | undefined,
+): string | null {
+  if (grantedAt === undefined || observedAt === undefined) return null
+  const elapsed = Date.parse(observedAt) - Date.parse(grantedAt)
+  if (!Number.isFinite(elapsed) || elapsed < 0) return null
+  return `Since ${Math.max(1, Math.floor(elapsed / 60000))}m ago`
 }
 
 /** Design `topbar()`: no meta while pending; turns follow the harness line. */

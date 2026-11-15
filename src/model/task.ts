@@ -151,6 +151,8 @@ export type TaskObservation = {
   readonly exitObserved?: boolean
   /** Post-finish grace while last events or capture may still arrive. */
   readonly settling?: boolean
+  /** When this status snapshot was read (ISO-8601); ages are relative to it. */
+  readonly observedAt?: string
   /** Observed run duration in seconds; presentation formats the badge clock. */
   readonly elapsedSeconds?: number
   /** Number of turns in the continuation chain, when the engine reports it. */
@@ -195,13 +197,16 @@ export type TaskObservation = {
 }
 
 /**
- * Additive status `resources` object (contracts.md). Names are reservation
- * names; `heldForSeconds` is observed hold age for the “Since …” line.
+ * Additive status `resources` object (HarflowMCP docs/contracts.md): `names`,
+ * `reservation_id`, `state` (`held` | `released`), `granted_at`. Only the
+ * fields the task card reads are modelled; times are ISO-8601 strings.
  */
 export type TaskResources = {
   readonly names: readonly string[]
+  readonly reservationId: string
   readonly state: 'held' | 'released'
-  readonly heldForSeconds?: number
+  /** When the reservation was granted (`granted_at`). */
+  readonly grantedAt?: string
 }
 
 export type TaskLoad =

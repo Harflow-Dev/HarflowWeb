@@ -53,7 +53,9 @@ export function TaskResourceCard({
     <div className="hd-m05-resource">
       <strong>{card.title}</strong>
       <span>{card.detail}</span>
-      <span className="hd-faint">{card.note}</span>
+      {card.note !== null ? (
+        <span className="hd-faint">{card.note}</span>
+      ) : null}
       <button
         type="button"
         className="hd-m05-resource__link"

@@ -94,7 +94,8 @@ export type TaskStatusBody =
 export type TaskStatusResourceCard = {
   readonly title: string
   readonly detail: string
-  readonly note: string
+  /** Null draws no note line (hold age unknown). */
+  readonly note: string | null
   readonly linkLabel: string
 }
 

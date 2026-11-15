@@ -59,6 +59,8 @@ function changesScenario(
     seed: {
       openTaskId,
       eventsPaneOpen: true,
+      // Every state here draws the Changes tab, including the running one.
+      paneTab: 'changes',
       ...(extra?.changesChrome !== undefined
         ? { changesChrome: extra.changesChrome }
         : {}),

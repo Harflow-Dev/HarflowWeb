@@ -8,8 +8,8 @@ import {
 import type { TaskChangesChrome, TaskScreenState } from './taskState'
 
 export type ChangesPaneHost = {
-  disposed(): boolean
-  state(): TaskScreenState
+  isDisposed(): boolean
+  getState(): TaskScreenState
   readonly loadTaskChanges: LoadTaskChangesUseCase
   changesEpoch(): number
   bumpChangesEpoch(): number
@@ -110,17 +110,26 @@ export function closedChangesPaneState(state: TaskScreenState): TaskScreenState 
     expandedRepos: [],
     changesTurns: null,
     changesTextPanels: null,
+    eventsList: null,
+    eventsLoad: { kind: 'loading' },
+    eventsEarlierLoaded: false,
+    eventsEarlierError: false,
   }
 }
 
 export function openedChangesPaneState(state: TaskScreenState): {
   readonly next: TaskScreenState
   readonly observeChanges: boolean
+  readonly observeEvents: boolean
 } {
-  const usesEvents =
+  const transcriptEvents =
     state.load.kind === 'ready' && state.load.observation.detailsPane === 'events'
+  const eventsTab = state.paneTab === 'events'
+  // Changes stays observed on every pane tab so the Changes count remains accurate
+  // while Events is selected (design paneHtml uses CHANGES[…].count independently).
   return {
-    observeChanges: !usesEvents,
+    observeChanges: !transcriptEvents,
+    observeEvents: !transcriptEvents && eventsTab,
     next: {
       ...state,
       changesPaneOpen: true,
@@ -132,6 +141,10 @@ export function openedChangesPaneState(state: TaskScreenState): {
       expandedRepos: [],
       changesTurns: null,
       changesTextPanels: null,
+      eventsList: null,
+      eventsLoad: { kind: 'loading' },
+      eventsEarlierLoaded: false,
+      eventsEarlierError: false,
     },
   }
 }
@@ -154,6 +167,11 @@ export function loadingTaskScreenState(taskId: TaskId): TaskScreenState {
     expandedRepos: [],
     changesTurns: null,
     changesTextPanels: null,
+    paneTab: 'changes',
+    eventsList: null,
+    eventsLoad: { kind: 'loading' },
+    eventsEarlierLoaded: false,
+    eventsEarlierError: false,
   }
 }
 
@@ -170,7 +188,7 @@ export function toggledExpandedRepos(
 }
 
 export function beginPaneChangesObservation(host: ChangesPaneHost): void {
-  const state = host.state()
+  const state = host.getState()
   if (!state.selectedTaskId || !state.changesPaneOpen) return
   host.setChangesObservation(null)
   beginTaskChangesObservation({
@@ -180,8 +198,8 @@ export function beginPaneChangesObservation(host: ChangesPaneHost): void {
     setHandle: (handle) => host.setChangesObservation(handle),
     apply: (load, gen, expectedTask, expectedEntry, expectedTurn) =>
       applyTaskChangesLoad({
-        state: host.state(),
-        disposed: host.disposed(),
+        state: host.getState(),
+        disposed: host.isDisposed(),
         epoch: host.changesEpoch(),
         gen,
         expectedTask,

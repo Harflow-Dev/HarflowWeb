@@ -137,10 +137,25 @@ export {
   type TaskDialogKind,
   type TaskDialogOpener,
   type TaskChangesChrome,
+  type TaskEventsChrome,
   type TaskOverflowChrome,
   type TaskScreenState,
 } from './taskState'
 export { TaskSession } from './taskSession'
+export {
+  eventsLifecycleFor,
+  type EventsLifecycleKind,
+} from './taskEventsLifecycle'
+export {
+  eventsFactsGroups,
+  enforcementPairs,
+  exitFactValue,
+  harnessFromMeta,
+  taskFactPairs,
+  turnsFactValue,
+  type EventsFactPair,
+  type EventsFactsGroupView,
+} from './taskEventsFacts'
 export {
   taskDialogOpen,
   taskDialogView,

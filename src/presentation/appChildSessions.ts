@@ -13,6 +13,7 @@ import type {
   LoadWorkflowRunUseCase,
   LoadStatisticsUseCase,
   LoadTaskChangesUseCase,
+  LoadTaskEventsUseCase,
   LoadTaskUseCase,
   LoadWorkflowsUseCase,
   StartTaskUseCase,
@@ -39,6 +40,7 @@ export type AppSessionDeps = {
   readonly loadStatistics: LoadStatisticsUseCase
   readonly loadTask: LoadTaskUseCase
   readonly loadTaskChanges: LoadTaskChangesUseCase
+  readonly loadTaskEvents: LoadTaskEventsUseCase
   readonly loadHarnesses: LoadHarnessesUseCase
   readonly loadSettingsGeneral: LoadSettingsGeneralUseCase
   readonly loadNeedsYou: LoadNeedsYouUseCase
@@ -75,7 +77,11 @@ export function createAppChildSessions(deps: AppSessionDeps): AppChildSessions {
     workflows: new WorkflowsSession(deps.loadWorkflows, deps.loadWorkflowRun),
     resources: new ResourcesSession(deps.loadResources),
     statistics: new StatisticsSession(deps.loadStatistics),
-    task: new TaskSession(deps.loadTask, deps.loadTaskChanges),
+    task: new TaskSession(
+      deps.loadTask,
+      deps.loadTaskChanges,
+      deps.loadTaskEvents,
+    ),
     harnesses: new HarnessesSession(deps.loadHarnesses),
     settingsGeneral: new SettingsGeneralSession(deps.loadSettingsGeneral),
     needsYou: new NeedsYouSession(deps.loadNeedsYou),

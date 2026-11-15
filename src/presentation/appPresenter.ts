@@ -13,6 +13,7 @@ import type {
   LoadWorkflowRunUseCase,
   LoadStatisticsUseCase,
   LoadTaskChangesUseCase,
+  LoadTaskEventsUseCase,
   LoadTaskUseCase,
   LoadWorkflowsUseCase,
   StartTaskUseCase,
@@ -45,6 +46,7 @@ import type {
   TaskCommandChrome,
   TaskDialogKind,
   TaskDialogOpener,
+  TaskEventsChrome,
   TaskOverflowChrome,
 } from './taskState'
 
@@ -95,6 +97,9 @@ export type AppPresenter = {
   closeTaskDialog(): void
   seedTaskOverflowChrome(taskId: TaskId, chrome: TaskOverflowChrome): void
   seedTaskChangesChrome(taskId: TaskId, chrome: TaskChangesChrome): void
+  seedTaskEventsChrome(taskId: TaskId, chrome: TaskEventsChrome): void
+  setTaskPaneTab(tab: 'changes' | 'events'): void
+  loadTaskEarlierEvents(): void
   selectStatisticsRange(range: StatisticsRangeId): void
   selectSettingsSection(section: SettingsSection): void
   setExpandedHarness(id: string | null): void
@@ -122,6 +127,7 @@ type Deps = {
   readonly loadStatistics: LoadStatisticsUseCase
   readonly loadTask: LoadTaskUseCase
   readonly loadTaskChanges: LoadTaskChangesUseCase
+  readonly loadTaskEvents: LoadTaskEventsUseCase
   readonly loadHarnesses: LoadHarnessesUseCase
   readonly loadSettingsGeneral: LoadSettingsGeneralUseCase
   readonly loadNeedsYou: LoadNeedsYouUseCase
@@ -185,6 +191,10 @@ export function createAppPresenter(deps: Deps): AppPresenter {
       session.seedTaskOverflowChrome(id, chrome),
     seedTaskChangesChrome: (id, chrome) =>
       session.seedTaskChangesChrome(id, chrome),
+    seedTaskEventsChrome: (id, chrome) =>
+      session.seedTaskEventsChrome(id, chrome),
+    setTaskPaneTab: (tab) => session.setTaskPaneTab(tab),
+    loadTaskEarlierEvents: () => session.loadTaskEarlierEvents(),
     selectStatisticsRange: (range) => session.selectStatisticsRange(range),
     selectSettingsSection: (section) => session.selectSettingsSection(section),
     setExpandedHarness: (id) => session.setExpandedHarness(id),

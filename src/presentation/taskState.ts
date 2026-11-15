@@ -3,6 +3,8 @@ import type {
   TaskChangesLoad,
   TaskChangesObservation,
   TaskChangesTextObservation,
+  TaskEventsLoad,
+  TaskEventsObservation,
   TaskId,
   TaskLoad,
 } from '../model'
@@ -72,6 +74,18 @@ export type TaskScreenState = {
   readonly changesTurns: readonly TaskChangesTurnMember[] | null
   /** Stacked text-mode specimen, seeded chrome; null draws the normal pane. */
   readonly changesTextPanels: readonly TaskChangesTextPanel[] | null
+  /** Active pane tab while the right pane is open. */
+  readonly paneTab: 'changes' | 'events'
+  /**
+   * Last known events document so records stay mounted while chrome updates.
+   * Cleared on pane close / task switch — never reused across identities.
+   */
+  readonly eventsList: TaskEventsObservation | null
+  readonly eventsLoad: TaskEventsLoad
+  /** Design `ui.loaded` for Events: earlier page is shown above the newest. */
+  readonly eventsEarlierLoaded: boolean
+  /** Design pageError chrome: newest records stay; earlier read failed. */
+  readonly eventsEarlierError: boolean
 }
 
 export function initialTaskState(): TaskScreenState {
@@ -92,6 +106,11 @@ export function initialTaskState(): TaskScreenState {
     expandedRepos: [],
     changesTurns: null,
     changesTextPanels: null,
+    paneTab: 'changes',
+    eventsList: null,
+    eventsLoad: { kind: 'loading' },
+    eventsEarlierLoaded: false,
+    eventsEarlierError: false,
   }
 }
 
@@ -110,4 +129,11 @@ export type TaskChangesChrome = {
   readonly expandedRepos?: readonly string[]
   readonly turns?: readonly TaskChangesTurnMember[]
   readonly textPanels?: readonly TaskChangesTextPanel[]
+}
+
+/** Preview / session chrome for the Events tab (design `ui.loaded` / pageError). */
+export type TaskEventsChrome = {
+  readonly paneTab?: 'changes' | 'events'
+  readonly earlierLoaded?: boolean
+  readonly earlierError?: boolean
 }

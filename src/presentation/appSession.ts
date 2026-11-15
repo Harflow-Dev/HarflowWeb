@@ -39,6 +39,7 @@ import type {
   TaskCommandChrome,
   TaskDialogKind,
   TaskDialogOpener,
+  TaskEventsChrome,
   TaskOverflowChrome,
 } from './taskState'
 
@@ -211,6 +212,15 @@ export class AppSession {
   }
   seedTaskChangesChrome(taskId: TaskId, chrome: TaskChangesChrome): void {
     this.children.task.seedTaskChangesChrome(taskId, chrome); this.emit()
+  }
+  seedTaskEventsChrome(taskId: TaskId, chrome: TaskEventsChrome): void {
+    this.children.task.seedTaskEventsChrome(taskId, chrome); this.emit()
+  }
+  setTaskPaneTab(tab: 'changes' | 'events'): void {
+    this.children.task.setPaneTab(tab)
+  }
+  loadTaskEarlierEvents(): void {
+    this.children.task.loadEarlierEvents()
   }
 
   selectStatisticsRange(range: StatisticsRangeId): void {

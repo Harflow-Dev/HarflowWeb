@@ -38,6 +38,10 @@ export const TASK_OPEN_EVENTS_UNAVAILABLE_ID = 'task-open-events-unavailable'
 export const TASK_OPEN_EVENTS_UNAVAILABLE_EXPLANATION =
   'Unavailable. Open Events does not change the pane in this mock.'
 
+export const TASK_ARTIFACTS_UNAVAILABLE_ID = 'task-artifacts-unavailable'
+export const TASK_ARTIFACTS_UNAVAILABLE_EXPLANATION =
+  'Unavailable. Artifacts does not open in this mock.'
+
 export const TASK_BANNER_ACTION_UNAVAILABLE_ID =
   'task-banner-action-unavailable'
 export const TASK_BANNER_ACTION_UNAVAILABLE_EXPLANATION =

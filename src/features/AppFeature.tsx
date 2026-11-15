@@ -168,8 +168,15 @@ export function AppFeature({ presenter }: Props) {
               onToggleChangesPane={(open) =>
                 presenter.setTaskChangesPaneOpen(open)
               }
-              onSelectChangedFile={(path) =>
-                presenter.selectTaskChangedFile(path)
+              onSelectChangedEntry={(entry) =>
+                presenter.selectTaskChangedEntry(entry)
+              }
+              onSelectPaneTab={(tab) => presenter.setTaskPaneTab(tab)}
+              onSelectChangesTurn={(taskId) =>
+                presenter.selectTaskChangesTurn(taskId)
+              }
+              onToggleChangesRepo={(root, expanded) =>
+                presenter.setTaskRepositoryExpanded(root, expanded)
               }
               onToggleOverflowMenu={() =>
                 presenter.setTaskOverflowMenuOpen(!state.task.overflowMenuOpen)

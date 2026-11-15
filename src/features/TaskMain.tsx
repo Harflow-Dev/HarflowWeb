@@ -1,14 +1,15 @@
 import { useEffect, useRef, type ReactNode } from 'react'
-import {
-  Icon,
-  TaskChangesPane,
-  TaskOverflowMenu,
-  TaskPage,
-} from '../components'
+import { Icon, TaskOverflowMenu, TaskPage } from '../components'
 import { TaskLoadingPage } from '../components/skeleton'
-import type { SidebarData, TaskId } from '../model'
+import { TaskChangesHost } from './TaskChangesHost'
+import type {
+  SidebarData,
+  TaskChangesEntryRef,
+  TaskId,
+} from '../model'
 import {
   type TaskDialogOpener,
+  type TaskPaneTab,
   type TaskScreenState,
   overflowMenuView,
   taskStatusView,
@@ -25,7 +26,10 @@ type Props = {
   readonly onUnavailable: (label: string) => void
   readonly onAnnounce: (message: string) => void
   readonly onToggleChangesPane: (open: boolean) => void
-  readonly onSelectChangedFile: (path: string) => void
+  readonly onSelectChangedEntry: (entry: TaskChangesEntryRef) => void
+  readonly onSelectPaneTab: (tab: TaskPaneTab) => void
+  readonly onSelectChangesTurn: (taskId: TaskId) => void
+  readonly onToggleChangesRepo: (root: string, expanded: boolean) => void
   readonly onToggleOverflowMenu: () => void
   readonly onCloseOverflowMenu: () => void
   readonly onOpenDialog: (
@@ -46,7 +50,10 @@ export function TaskMain({
   onUnavailable,
   onAnnounce,
   onToggleChangesPane,
-  onSelectChangedFile,
+  onSelectChangedEntry,
+  onSelectPaneTab,
+  onSelectChangesTurn,
+  onToggleChangesRepo,
   onToggleOverflowMenu,
   onCloseOverflowMenu,
   onOpenDialog,
@@ -215,11 +222,13 @@ export function TaskMain({
         />,
       )}
       {showPane && usesChanges ? (
-        <TaskChangesPane
-          load={state.changesLoad}
-          files={state.changesFiles}
-          selectedPath={state.selectedChangePath}
-          onSelectFile={onSelectChangedFile}
+        <TaskChangesHost
+          state={state}
+          onSelectEntry={onSelectChangedEntry}
+          onSelectTab={onSelectPaneTab}
+          onSelectTurn={onSelectChangesTurn}
+          onToggleRepo={onToggleChangesRepo}
+          onClosePane={() => onToggleChangesPane(false)}
           onUnavailable={onUnavailable}
         />
       ) : null}

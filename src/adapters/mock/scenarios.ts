@@ -20,8 +20,10 @@ import type { PendingLaunchStatusFixtureId } from './pendingLaunchFixtures'
 import { SCENARIOS } from './scenarioCatalog'
 import { resolveScenarioRoute } from './scenarioRoute'
 import type { NewTaskScenarioSeed } from './scenarioSeed'
+import type { TaskPaneTopbarScenarioId } from './scenarioIdsTaskPaneTopbar'
 
 export type { NewTaskScenarioSeed } from './scenarioSeed'
+export type { TaskPaneTopbarScenarioId } from './scenarioIdsTaskPaneTopbar'
 
 export type StatisticsScenario =
   | 'default'
@@ -93,6 +95,7 @@ export type ScenarioId =
   | 'task-events-loading'
   | 'task-events-empty'
   | 'task-events-error'
+  | TaskPaneTopbarScenarioId
   | 'resources-slots'
   | 'statistics-overview'
   | 'task-running'

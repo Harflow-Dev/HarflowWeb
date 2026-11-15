@@ -345,7 +345,7 @@ to 1280×800. Light and dark for each state below.
 | --- | --- |
 | `new-task/centered-starting-plain` | `composer-starting` |
 | `task/changes-loading` | `task-changes-loading` |
-| `task/events-loading` | `task-events-loading` |
+| `task/events-loading` | `task-events-loading` (M05 Events tab body; not the transcript Events body) |
 
 ### Parallel group lane decisions — 2026-11-13
 
@@ -892,7 +892,9 @@ against the design in headless Chrome:
   with `103f624` shows no change except the three migration recaptures
   (`task-running`, `task-failed`, `task-loading`) and the D2B task screens
   (`transcript-*`, `transcript-*/events`, `task-changes-loading`,
-  `task-events-loading`), whose follow-up composer now has the design's
+  and, at that time, `task-events-loading`, which since the Events slice is the
+  M05 Events tab loading body and no longer evidence for the transcript Events
+  loading body), whose follow-up composer now has the design's
   `Queue a message…` copy (earlier in this slice) and 88 px geometry. Those 18
   scenarios are recaptured under `previously-approved-recaptures/`
   (`transcript-*__events-<appearance>.png` for the Events variants). Removing

@@ -465,20 +465,54 @@ grant approvals, answer questions, or touch the task store.
   - Pixel fidelity to native is not claimed.
 - **M05 Events tab (mock-only).** Seven approved Events states at Design
   `6e31cd7` (`events-populated` … `events-error`) seed through composition
-  with `paneTab: 'events'`. Lifecycle follows design `paneHtml`: pending →
-  notStarted; unread status → unavailable; otherwise the Events observation
-  (or loading). Facts groups (Task, What was enforced, Notices, Continuity)
-  are presentation disclosures over observed task facts; open/closed chrome
-  and top-bar reveal chips stay out of scope. Records reuse bounded earlier
-  paging/fencing from the activity transcript pattern. Changes stays observed
-  while Events is selected so the Changes tab count remains correct.
-  Transcript `TaskEventsPane` bodies (including `/events`) stay byte-identical
-  to `f1da745`; M05 Events CSS is scoped under `.hd-m05-events`.
-  `TASK_OPEN_EVENTS_UNAVAILABLE_ID` remains for the failure-banner Open Events
-  action. Screenshots under
+  (`paneTab: 'events'`; `eventsLoadEarlier` asks for the older page once the
+  read is ready). Lifecycle follows design `paneHtml`: pending (or the
+  engine's `task_pending_launch` refusal) → notStarted; unread status →
+  unavailable; otherwise the Events observation (or loading). notStarted and
+  unavailable start no Events read. Facts groups are presentation disclosures
+  over observed task facts; open/closed chrome and top-bar reveal chips stay
+  out of scope.
+  - Model uses contract names: `log.state`, `hasOlder`/`olderCursor`, record
+    `seq` + `kind` + JSON text, and the enforcement block (`os_enforced`,
+    `writes_confined`, `local_commit`, `publish_attempts_allowed`,
+    `network_access`). Presentation maps kind to the record title (unknown
+    kinds are public stubs) and enforcement values to the design labels.
+    `mechanism` is engine free text shown as given; the specimen string
+    stands in for it in the mock. Labels for kinds and freedoms the design
+    does not draw (e.g. Read only, Tool call) are undesigned wording.
+  - Load earlier is a real older-page read ({task, `before` cursor} →
+    page | `event_cursor_expired` | `event_cursor_invalid`), fenced by the
+    Events epoch, task id and cursor. The session keeps `eventsEarlier`
+    (idle | loading | loaded | error) with the older records read. "Reached
+    its beginning" appears only after a read whose `hasOlder` is false; Load
+    earlier stays while `hasOlder` is true. The page-error state is reached
+    through the mock's seeded `event_cursor_expired` answer. An error leaves
+    the newest records and offers no retry; Reload from newest stays an
+    unavailable command. The reading position is kept with the transcript
+    anchor helper.
+  - Every approved task fixture answers Events from its status (running,
+    owner lost, settling, unobserved exit and terminal states differ only in
+    `log.state`; the display does not). Task fixtures with `detailsPane: null`
+    still draw no right-pane toggle, so their Events body is reachable only
+    through the session; a sweep test asserts notStarted / unavailable /
+    ready for all 16 task-status fixtures.
+  - Undesigned: an enforcement block with `recorded: false` shows only
+    Requested and the engine's note as the caption; an absent `local_commit`
+    omits its row. Continuity keeps the nullable `at` and the previous/current
+    server fields in the model; no scenario shows them and no display is
+    invented.
+  - Task ID shows the task id. The design specimen shows one shared id
+    (`7be02d91`), so the expanded-facts text comparison ignores that value.
+  - The page-error note sits inside the paging row as in the design; Events
+    headings inherit the pane line height.
+  Changes stays observed while Events is selected so the Changes tab count
+  remains correct. Transcript `TaskEventsPane` bodies (including `/events`)
+  stay byte-identical to `f1da745`; M05 Events CSS is scoped under
+  `.hd-m05-events`. `TASK_OPEN_EVENTS_UNAVAILABLE_ID` remains for the
+  failure-banner Open Events action. Screenshots under
   `~/.codex/workflows/screenshots/2026-11-15-harflowweb-task-events/`.
-  Pane `innerText` matches design for all 7 Events and all 15 Changes states
-  at 1280×800 light.
+  Pane `innerText` matches design for all 7 Events (collapsed and with every
+  disclosure open) and all 15 Changes states at 1280×800 light.
 - Prior running / failed / loading sidebar captures were retaken: the 16 M05
   states plus `task-running`, `task-failed` and `task-loading` live under
   `docs/visual-validation.md`.

@@ -92,7 +92,9 @@ cohesive sibling modules that re-export through the original public entry.
 - `observeTaskChanges(query, onUpdate) → ObservationHandle` — recorded changes
   for an explicit task + selected path
 - `observeTaskEvents(query, onUpdate) → ObservationHandle` — public normalized
-  events for an explicit task (bounded window; earlier page on request)
+  events for an explicit task (bounded newest window; refusal for a pending launch)
+- `observeTaskEventsOlder(query, onUpdate) → ObservationHandle` — one older page
+  before an `older_cursor`, or an expired/invalid-cursor refusal (reload newest)
 - `observeHarnesses(onUpdate) → ObservationHandle` — fixture installation,
   MCP registration, qualification, and per-harness approval facts. None is
   derived from another. Unknown stays unknown. Missing approvals are not an

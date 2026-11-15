@@ -97,7 +97,8 @@
   `m05-proposal/changes-loading`, `m05-proposal/events-loading` in
   `v2/docs/route-map.md` @ `76ad937…`). Mock preview scenarios
   `task-changes-loading` (deferred `observeTaskChanges`) and
-  `task-events-loading` (transcript loading observation with Events open).
+  `task-events-loading` (deferred Events read on the M05 Events tab; the
+  transcript Events loading body has no capture of its own).
   The diff-switch skeleton (file list stays mounted, diff region shows
   placeholders) derives from the `changes-text` specimen's loading part; its
   designer caption ("the row stays selected and no text is implied") is now

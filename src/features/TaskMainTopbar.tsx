@@ -2,7 +2,6 @@ import { type ReactNode, type RefObject } from 'react'
 import {
   Icon,
   TaskOverflowMenu,
-  TopbarMeta,
 } from '../components'
 import { TaskTopbarChips } from '../components/TaskTopbarChips'
 import { TASK_PANE_ASIDE_ID } from '../components/TaskPaneTabs'
@@ -26,6 +25,8 @@ type Props = {
   readonly state: TaskScreenState
   readonly ready: TaskObservation | null
   readonly showPane: boolean
+  /** False when no pane can render (unavailable task): no toggle. */
+  readonly paneAvailable: boolean
   readonly titleRef: RefObject<HTMLSpanElement | null>
   readonly paneToggleRef: RefObject<HTMLButtonElement | null>
   readonly moreRef: RefObject<HTMLButtonElement | null>
@@ -48,6 +49,7 @@ export function TaskMainTopbar({
   state,
   ready,
   showPane,
+  paneAvailable,
   titleRef,
   paneToggleRef,
   moreRef,
@@ -72,56 +74,62 @@ export function TaskMainTopbar({
       : null
 
   return (
-    <div className="hd-topbar">
-      <span ref={titleRef} className="hd-topbar__title" tabIndex={-1}>
-        {title}
-      </span>
-      {ready ? (
-        <TaskStatusBadge
-          observation={ready}
-          commandChrome={state.commandChrome}
-        />
-      ) : null}
-      {showMeta && readyView?.meta ? (
-        <TopbarMeta>{readyView.meta}</TopbarMeta>
-      ) : null}
-      <span className="hd-topbar__spacer" />
-      {ready ? (
-        <TaskTopbarChips chips={chips} onReveal={onRevealEventsFacts} />
-      ) : null}
-      <button
-        ref={paneToggleRef}
-        type="button"
-        className={`hd-btn hd-btn--icon hd-btn--sm${showPane ? ' is-active' : ''}`}
-        aria-label={showPane ? 'Hide right pane' : 'Show right pane'}
-        aria-expanded={showPane}
-        aria-controls={TASK_PANE_ASIDE_ID}
-        onClick={() => onToggleChangesPane(!showPane)}
-      >
-        <Icon name="panel-right" />
-      </button>
-      {ready && overflowMenu ? (
-        <TaskOverflowMenu
-          menu={overflowMenu}
-          open={state.overflowMenuOpen}
-          moreRef={moreRef}
-          onToggle={onToggleOverflowMenu}
-          onClose={(focusTrigger) => {
-            onCloseOverflowMenu()
-            if (focusTrigger) moreRef.current?.focus()
-          }}
-          onAction={(id) =>
-            handleOverflowAction(id, ready, {
-              onOpenDialog,
-              onOpenParentTask: (taskId) => {
-                focusTitleFor.current = taskId
-                onOpenParentTask(taskId)
-              },
-              onAnnounce,
-            })
-          }
-        />
-      ) : null}
+    <div className="hd-m05-bar">
+      <span />
+      <div className="hd-m05-bar__center">
+        <span ref={titleRef} className="hd-topbar__title" tabIndex={-1}>
+          {title}
+        </span>
+        {ready ? (
+          <TaskStatusBadge
+            observation={ready}
+            commandChrome={state.commandChrome}
+          />
+        ) : null}
+        {showMeta && readyView?.meta ? (
+          <span className="hd-topbar__meta hw-m05-meta">{readyView.meta}</span>
+        ) : null}
+      </div>
+      <div className="hd-m05-bar__right">
+        {ready ? (
+          <TaskTopbarChips chips={chips} onReveal={onRevealEventsFacts} />
+        ) : null}
+        {paneAvailable ? (
+          <button
+            ref={paneToggleRef}
+            type="button"
+            className={`hd-btn hd-btn--icon hd-btn--sm${showPane ? ' is-active' : ''}`}
+            aria-label={showPane ? 'Hide right pane' : 'Show right pane'}
+            aria-expanded={showPane}
+            {...(showPane ? { 'aria-controls': TASK_PANE_ASIDE_ID } : {})}
+            onClick={() => onToggleChangesPane(!showPane)}
+          >
+            <Icon name="panel-right" />
+          </button>
+        ) : null}
+        {ready && overflowMenu ? (
+          <TaskOverflowMenu
+            menu={overflowMenu}
+            open={state.overflowMenuOpen}
+            moreRef={moreRef}
+            onToggle={onToggleOverflowMenu}
+            onClose={(focusTrigger) => {
+              onCloseOverflowMenu()
+              if (focusTrigger) moreRef.current?.focus()
+            }}
+            onAction={(id) =>
+              handleOverflowAction(id, ready, {
+                onOpenDialog,
+                onOpenParentTask: (taskId) => {
+                  focusTitleFor.current = taskId
+                  onOpenParentTask(taskId)
+                },
+                onAnnounce,
+              })
+            }
+          />
+        ) : null}
+      </div>
     </div>
   )
 }

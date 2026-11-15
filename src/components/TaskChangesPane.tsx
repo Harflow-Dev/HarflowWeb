@@ -43,6 +43,7 @@ export type TaskChangesPaneProps = {
   readonly eventsList?: TaskEventsObservation | null
   readonly eventsEarlier?: EventsEarlierState
   readonly eventsFactsReveal?: 'enforcement' | 'notices' | 'continuity' | null
+  readonly eventsFactsRevealSeq?: number
   readonly onSelectTab: (tab: 'changes' | 'events') => void
   readonly onLoadEarlier: () => void
 }
@@ -70,6 +71,7 @@ export function TaskChangesPane({
   eventsList = null,
   eventsEarlier = IDLE_EVENTS_EARLIER,
   eventsFactsReveal = null,
+  eventsFactsRevealSeq = 0,
   onSelectTab,
   onLoadEarlier,
 }: TaskChangesPaneProps) {
@@ -108,6 +110,7 @@ export function TaskChangesPane({
             list={eventsList}
             earlier={eventsEarlier}
             factsReveal={eventsFactsReveal}
+            factsRevealSeq={eventsFactsRevealSeq}
             onLoadEarlier={onLoadEarlier}
             onUnavailable={onUnavailable}
           />

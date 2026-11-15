@@ -1,11 +1,14 @@
 import type { TranscriptObservation } from '../model'
 import { activityView } from '../presentation/transcriptViews'
+import { Icon } from './Icon'
 import { EventsLoadingBody } from './skeletonTaskPane'
+import { TASK_PANE_ASIDE_ID } from './TaskPaneTabs'
 
 type Props = {
   readonly transcript: TranscriptObservation
   readonly executionStatus: 'Running' | 'Done'
   readonly onCopyRecord: () => void
+  readonly onClosePane: () => void
   readonly onUnavailable: (label: string) => void
 }
 
@@ -18,6 +21,7 @@ export function TaskEventsPane({
   transcript,
   executionStatus,
   onCopyRecord,
+  onClosePane,
   onUnavailable,
 }: Props) {
   // Full-pane skeleton only while history itself is loading; a loading summary
@@ -36,7 +40,11 @@ export function TaskEventsPane({
       : null
 
   return (
-    <aside className="hd-pane" aria-label="Task details">
+    <aside
+      id={TASK_PANE_ASIDE_ID}
+      className="hd-pane hd-m05-pane"
+      aria-label="Task details"
+    >
       <div className="hd-pane__head">
         <div className="hd-tabs" role="tablist">
           <button
@@ -72,6 +80,15 @@ export function TaskEventsPane({
             Events
           </button>
         </div>
+        <span className="hd-topbar__spacer" />
+        <button
+          type="button"
+          className="hd-btn hd-btn--icon hd-btn--sm"
+          aria-label="Close right pane"
+          onClick={onClosePane}
+        >
+          <Icon name="x" />
+        </button>
       </div>
       <div className="hd-scroll hd-m05-panescroll">
         {loading ? (

@@ -1,5 +1,6 @@
 import type { TaskObservation } from '../model'
 import { EVENTS_FREEDOM_LABELS } from './taskEventsCopy'
+import { taskEngineStatus } from './taskObservation'
 
 export type EventsFactsRevealId = 'enforcement' | 'notices' | 'continuity'
 
@@ -42,10 +43,7 @@ export function taskTopbarChips(
       ariaLabel: `Show ${n} ${unit}`,
     })
   }
-  if (
-    observation.enforcement &&
-    taskEngineStatusIsPending(observation) === false
-  ) {
+  if (observation.enforcement && taskEngineStatus(observation) !== 'pending') {
     const requested =
       EVENTS_FREEDOM_LABELS[observation.enforcement.freedom] ??
       observation.enforcement.freedom
@@ -68,11 +66,4 @@ export function topbarOmitsMetaForPane(
   if (!paneOpen) return false
   if ((observation.notices?.length ?? 0) > 0) return true
   return observation.continuity?.adoptedAfterRestart === true
-}
-
-function taskEngineStatusIsPending(observation: TaskObservation): boolean {
-  return (
-    observation.statusRead.kind === 'observed' &&
-    observation.statusRead.status === 'pending'
-  )
 }

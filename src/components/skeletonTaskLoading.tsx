@@ -1,113 +1,120 @@
 import type { ReactNode } from 'react'
+import type { TaskPaneLayoutMode } from '../presentation/taskPaneDefaults'
 import { Icon } from './Icon'
 import {
   SkelBlock,
   SkelLine,
   SkelStatus,
 } from './skeletonPrimitives'
-import { EventsLoadingBody } from './skeletonTaskPane'
+import { LoadingTaskPane } from './skeletonTaskLoadingPane'
 import { TaskTranscriptSkeleton } from './skeletonWork'
+import { TASK_PANE_ASIDE_ID } from './TaskPaneTabs'
+
+type LoadingProps = {
+  readonly knownTitle?: string | null
+  readonly paneOpen?: boolean
+  readonly paneMode?: TaskPaneLayoutMode
+  readonly paneTab?: 'changes' | 'events'
+  readonly onTogglePane?: (open: boolean) => void
+}
 
 /**
- * Task first-load skeleton — Design `task` / `task/loading` mirroring
- * `task/running-stop`. Badge, meta, transcript, and Stop shimmer; follow-up
- * frame stays real and disabled. The pane toggle is real. `task/loading-pane`
- * adds the pane with real tab names and a busy body.
+ * Task first-load skeleton: Design `task` / `task/loading` mirroring
+ * `task/running-stop`, with the same bar → body → column/pane structure as the
+ * loaded task. Badge, meta, chip, transcript and Stop shimmer; the follow-up
+ * frame stays real and disabled; the pane toggle is real and More is
+ * disabled. `task/loading-pane` adds the pane: real tab names, a shimmer-only
+ * body (Design `paneBodyPattern`) and Close. The real title stays when the
+ * listing knows it (a known deviation, provenance.md).
  */
 export function TaskLoadingPage({
   knownTitle = null,
   paneOpen = false,
+  paneMode = 'split',
+  paneTab = 'events',
+  onTogglePane,
+}: LoadingProps): ReactNode {
+  const overlay = paneOpen && paneMode === 'overlay'
+  const bodyMode = paneOpen ? paneMode : 'nopane'
+  return (
+    <>
+      <LoadingBar
+        knownTitle={knownTitle}
+        paneOpen={paneOpen}
+        onTogglePane={onTogglePane}
+      />
+      <div className={`hd-m05-body hd-m05-body--${bodyMode}`}>
+        <div
+          className="hd-m05-column"
+          role="group"
+          aria-busy="true"
+          aria-label="Loading Task"
+          {...(overlay ? { inert: true } : {})}
+        >
+          <SkelStatus>Loading task…</SkelStatus>
+          <div className="hd-scroll hd-m05-scroll">
+            <TaskTranscriptSkeleton />
+          </div>
+          <TaskLoadingComposer />
+        </div>
+        {paneOpen ? (
+          <LoadingTaskPane
+            tab={paneTab}
+            onClose={() => onTogglePane?.(false)}
+          />
+        ) : null}
+      </div>
+    </>
+  )
+}
+
+/** Bar shimmer: title, badge, meta, one chip pill; real toggle, disabled More. */
+function LoadingBar({
+  knownTitle,
+  paneOpen,
   onTogglePane,
 }: {
-  readonly knownTitle?: string | null
-  readonly paneOpen?: boolean
-  readonly onTogglePane?: (open: boolean) => void
+  readonly knownTitle: string | null
+  readonly paneOpen: boolean
+  readonly onTogglePane: ((open: boolean) => void) | undefined
 }): ReactNode {
-  const body = (
-    <div
-      role="group"
-      aria-busy="true"
-      aria-label="Loading Task"
-      style={{
-        flex: '1 1 auto',
-        minWidth: 0,
-        display: 'flex',
-        flexDirection: 'column',
-        minHeight: 0,
-      }}
-    >
-      <SkelStatus>Loading task…</SkelStatus>
-      <div className="hd-topbar">
-        {knownTitle ? (
-          <span className="hd-topbar__title">{knownTitle}</span>
-        ) : (
-          <SkelLine width={190} height={14} />
-        )}
-        <SkelBlock width={72} height={22} shape="pill" />
-        <SkelLine width={170} height={10} />
-        <span className="hd-topbar__spacer" />
+  return (
+    <div className="hd-m05-bar">
+      <span />
+      <div className="hd-m05-bar__center">
+        <span className="hd-topbar__title">
+          {knownTitle ?? <SkelLine width={190} height={14} />}
+        </span>
+        <SkelBlock width={114} height={22} shape="pill" />
+        <span className="hd-topbar__meta hw-m05-meta">
+          <SkelLine width={170} height={10} />
+        </span>
+      </div>
+      <div className="hd-m05-bar__right">
+        <SkelBlock width={136} height={24} shape="pill" />
         <button
           type="button"
           className={`hd-btn hd-btn--icon hd-btn--sm${paneOpen ? ' is-active' : ''}`}
           aria-label={paneOpen ? 'Hide right pane' : 'Show right pane'}
           aria-expanded={paneOpen}
-          aria-controls="task-details-pane"
+          {...(paneOpen ? { 'aria-controls': TASK_PANE_ASIDE_ID } : {})}
           onClick={() => onTogglePane?.(!paneOpen)}
         >
           <Icon name="panel-right" />
         </button>
-      </div>
-      <div className="hd-scroll hd-m05-scroll">
-        <TaskTranscriptSkeleton />
-      </div>
-      <TaskLoadingComposer />
-    </div>
-  )
-  if (!paneOpen) return body
-  return (
-    <div className="hd-m05-body hd-m05-body--split" style={{ flex: 1, minHeight: 0 }}>
-      {body}
-      <LoadingTaskPane />
-    </div>
-  )
-}
-
-/** Pane shell for `task/loading-pane`: real tab names, busy body. */
-function LoadingTaskPane(): ReactNode {
-  return (
-    <aside
-      id="task-details-pane"
-      className="hd-pane hd-m05-pane"
-      aria-label="Task details"
-    >
-      <div className="hd-pane__head">
-        <div className="hd-tabs" role="tablist">
-          <button type="button" role="tab" className="hd-tab" aria-selected="false">
-            Changes
-          </button>
+        <span className="hd-m05-more-anchor">
           <button
             type="button"
-            role="tab"
-            className="hd-tab is-disabled"
-            aria-selected="false"
+            className="hd-btn hd-btn--icon hd-btn--sm"
+            aria-label="More actions"
             aria-disabled="true"
+            disabled
           >
-            Artifacts
+            <Icon name="more" />
           </button>
-          <button
-            type="button"
-            role="tab"
-            className="hd-tab is-active"
-            aria-selected="true"
-          >
-            Events
-          </button>
-        </div>
+        </span>
       </div>
-      <div className="hd-scroll hd-m05-panescroll">
-        <EventsLoadingBody />
-      </div>
-    </aside>
+    </div>
   )
 }
 

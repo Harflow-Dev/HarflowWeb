@@ -300,6 +300,62 @@ body,
  * Task right-pane loading (Design M05 changes-loading / events-loading).
  * Shimmer uses existing .hd-skel; panenote/caption mirror m05-proposal.css.
  */
+/*
+ * Task screen shell (Design 40b8a19 m05-proposal.css): one full-width bar,
+ * then a body holding the column and the pane.
+ */
+.hd-m05-main {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  position: relative;
+}
+
+/* Option C: title group centred, controls right. */
+.hd-m05-bar {
+  flex: none;
+  height: var(--titlebar-height);
+  display: grid;
+  grid-template-columns:
+    minmax(0, 1fr) minmax(0, auto) minmax(max-content, 1fr);
+  align-items: center;
+  gap: var(--space-2);
+  padding: 0 var(--space-3) 0 var(--space-4);
+  border-bottom: 1px solid var(--border);
+}
+
+.hd-m05-bar__center {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.hd-m05-bar__center .hd-topbar__title {
+  flex: 0 1 auto;
+  min-width: 80px;
+}
+
+.hd-m05-bar__center .hd-badge {
+  flex: none;
+}
+
+.hd-m05-bar__center .hd-topbar__meta {
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.hd-m05-bar__right {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-1);
+}
+
 /* G-ADAPTIVE body: split beside transcript; overlay over it below 900 detail. */
 .hd-m05-body {
   flex: 1 1 auto;
@@ -340,6 +396,11 @@ body,
   font-size: 12px;
   white-space: nowrap;
   cursor: pointer;
+}
+
+.hd-m05-chip .hd-i--sm {
+  width: 14px;
+  height: 14px;
 }
 
 .hd-m05-chip:hover {
@@ -1630,14 +1691,6 @@ body,
     display: inline-flex;
   }
 
-  .hd-m05-chip__label--wide {
-    display: none;
-  }
-
-  .hd-m05-chip__label--narrow {
-    display: inline;
-  }
-
   /* Drawing stacks Instructions: label above a full-width textarea. */
   .hw-form-row--stack-narrow {
     flex-direction: column;
@@ -1655,6 +1708,33 @@ body,
 
   .hw-editor-title-skel {
     width: 117px !important;
+  }
+}
+
+/*
+ * Task top bar compact form. Design `narrow` is a frame width below 1100,
+ * i.e. a detail width below 836 with the expanded 264 sidebar. A container
+ * query cannot see the frame, so the threshold is expressed on the detail
+ * width (835) and is deliberately independent of the 900 pane split rule.
+ * Meta leaves the visual bar (it stays once as hidden text); chips keep their
+ * icon and notice count.
+ */
+@container hd-main (max-width: 835px) {
+  .hd-m05-bar__center .hw-m05-meta {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+
+  .hd-m05-chip__label--wide {
+    display: none;
+  }
+
+  .hd-m05-chip__label--narrow {
+    display: inline;
   }
 }
 

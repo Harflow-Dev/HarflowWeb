@@ -15,13 +15,24 @@ import {
   toggledExpandedRepos,
 } from './taskSessionPane'
 
-/** Tab chosen the first time the pane opens for this task. */
+/**
+ * Tab chosen when the pane opens. A decided tab (explicit choice, or an
+ * earlier open with the status known) wins; otherwise the first open lands
+ * on Events while the run is live. During load the tab stays provisional and
+ * is resolved by `afterTaskLoad` once the status is known.
+ */
 export function paneTabForOpen(state: TaskScreenState): 'changes' | 'events' {
   if (state.paneOpenedOnce) return state.paneTab
-  // An explicit Events choice (seed / setPaneTab) wins over the default.
-  if (state.paneTab === 'events') return 'events'
   if (state.load.kind !== 'ready') return state.paneTab
   return firstOpenPaneTab(state.load.observation)
+}
+
+/** Open the pane on its tab; the tab is final once the status is known. */
+export function openedPaneState(state: TaskScreenState): ReturnType<
+  typeof openedChangesPaneState
+> {
+  const decided = state.paneOpenedOnce || state.load.kind !== 'loading'
+  return openedChangesPaneState(state, paneTabForOpen(state), decided)
 }
 
 /** Default open after the first ready status for this selection. */
@@ -38,13 +49,23 @@ export function shouldOpenDefaultPane(
   )
 }
 
-/** Apply a load callback and decide whether the default pane should open. */
+/**
+ * Apply a load callback. A pane opened during load resolves its provisional
+ * tab against the status; the default pane opens for a settling task.
+ */
 export function afterTaskLoad(
   state: TaskScreenState,
   load: TaskLoad,
 ): { readonly next: TaskScreenState; readonly openPane: boolean } {
   const wasLoading = state.load.kind === 'loading'
-  const next = reconcileOverflowChrome({ ...state, load })
+  let next = reconcileOverflowChrome({ ...state, load })
+  if (load.kind === 'ready' && next.changesPaneOpen && !next.paneOpenedOnce) {
+    next = {
+      ...next,
+      paneTab: firstOpenPaneTab(load.observation),
+      paneOpenedOnce: true,
+    }
+  }
   return { next, openPane: shouldOpenDefaultPane(wasLoading, next, load) }
 }
 
@@ -65,21 +86,23 @@ export function revealEventsFactsState(
   readonly next: TaskScreenState
   readonly observeChanges: boolean
   readonly observeEvents: boolean
+  /** Events must be (re)started: the tab changed. */
   readonly beginEventsOnly: boolean
 } {
+  const revealed = {
+    eventsFactsReveal: group,
+    eventsFactsRevealSeq: state.eventsFactsRevealSeq + 1,
+  }
   if (!state.changesPaneOpen) {
-    const opened = openedChangesPaneState(
-      { ...state, eventsFactsReveal: group },
-      'events',
-    )
+    const opened = openedChangesPaneState({ ...state, ...revealed }, 'events', true)
     return { ...opened, beginEventsOnly: false }
   }
   const nextTab = paneTabState(state, 'events')
   return {
-    next: { ...(nextTab ?? state), eventsFactsReveal: group },
+    next: { ...(nextTab ?? state), ...revealed },
     observeChanges: false,
     observeEvents: false,
-    beginEventsOnly: true,
+    beginEventsOnly: nextTab !== null,
   }
 }
 

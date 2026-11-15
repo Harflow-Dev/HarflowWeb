@@ -1,4 +1,4 @@
-import { useRef, useSyncExternalStore } from 'react'
+import { useState, useSyncExternalStore } from 'react'
 import {
   MockBadge,
   ParallelGroupCancelDialog,
@@ -41,7 +41,8 @@ type StatusNote = {
 export function AppFeature({ presenter }: Props) {
   usePresenterLifetime(presenter)
   const state = usePresenter(presenter)
-  const mainRef = useRef<HTMLElement>(null)
+  // Held in state so the task screen re-measures once `.hd-main` attaches.
+  const [mainElement, setMainElement] = useState<HTMLElement | null>(null)
   // One ephemeral note for both kinds: the newest replaces the other.
   const ephemeral = useEphemeralNote<StatusNote>()
   const systemDark = useSystemPrefersDark()
@@ -97,8 +98,10 @@ export function AppFeature({ presenter }: Props) {
           showPendingLaunches={showPendingLaunches}
         />
         <main
-          ref={mainRef}
-          className="hd-main"
+          ref={setMainElement}
+          className={
+            state.route === 'task' ? 'hd-main hd-m05-main' : 'hd-main'
+          }
           inert={dialogOpen || undefined}
         >
           {state.route === 'parallel-group' ? (
@@ -168,7 +171,7 @@ export function AppFeature({ presenter }: Props) {
             <TaskMain
               state={state.task}
               sidebar={ready?.sidebar ?? null}
-              mainRef={mainRef}
+              mainElement={mainElement}
               onUnavailable={(label) => ephemeral.show({ kind: 'unavailable', text: label })}
               onAnnounce={(message) => ephemeral.show({ kind: 'announce', text: message })}
               onToggleChangesPane={(open) =>

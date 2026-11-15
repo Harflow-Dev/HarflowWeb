@@ -13,6 +13,7 @@ function renderPane(
       transcript={{ ...transcriptObservationFor('observed'), ...overrides }}
       executionStatus="Done"
       onCopyRecord={() => undefined}
+      onClosePane={() => undefined}
       onUnavailable={() => undefined}
     />,
   )

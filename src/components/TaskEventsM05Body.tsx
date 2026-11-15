@@ -24,6 +24,7 @@ type Props = {
   readonly list: TaskEventsObservation | null
   readonly earlier: EventsEarlierState
   readonly factsReveal?: 'enforcement' | 'notices' | 'continuity' | null
+  readonly factsRevealSeq?: number
   readonly onLoadEarlier: () => void
   readonly onUnavailable: (label: string) => void
 }
@@ -37,6 +38,7 @@ export function TaskEventsM05Body({
   list,
   earlier,
   factsReveal = null,
+  factsRevealSeq = 0,
   onLoadEarlier,
   onUnavailable,
 }: Props) {
@@ -84,6 +86,7 @@ export function TaskEventsM05Body({
         <TaskEventsFacts
           observation={taskObservation}
           reveal={factsReveal}
+          revealSeq={factsRevealSeq}
         />
         <TaskEventsRecords
           observation={unavailableHistory(taskObservation.taskId)}
@@ -103,7 +106,11 @@ export function TaskEventsM05Body({
   }
   return (
     <div className="hd-m05-panebody hd-m05-events">
-      <TaskEventsFacts observation={taskObservation} reveal={factsReveal} />
+      <TaskEventsFacts
+        observation={taskObservation}
+        reveal={factsReveal}
+        revealSeq={factsRevealSeq}
+      />
       <TaskEventsRecords
         observation={observation}
         earlier={earlier}

@@ -25,7 +25,8 @@ import { focusDialogOpener } from './taskOverflowActions'
 type Props = {
   readonly state: TaskScreenState
   readonly sidebar: SidebarData | null
-  readonly mainRef: RefObject<HTMLElement | null>
+  /** The `.hd-main` element, measured for split versus overlay. */
+  readonly mainElement: HTMLElement | null
   readonly onUnavailable: (label: string) => void
   readonly onAnnounce: (message: string) => void
   readonly onToggleChangesPane: (open: boolean) => void
@@ -45,14 +46,16 @@ type Props = {
 }
 
 /**
- * Slim task chrome. Loading/unavailable never keep the prior task's
- * transcript under the newly selected identity. Opening the right pane
- * must not remount the transcript column (scroll position preserved).
+ * Slim task chrome: one full-width bar, then a body holding the transcript
+ * column and the pane (Design 40b8a19). Loading/unavailable never keep the
+ * prior task's transcript under the newly selected identity. Opening the
+ * pane must not remount the transcript column (scroll position preserved).
+ * Only the column is inert while the overlay pane is open.
  */
 export function TaskMain({
   state,
   sidebar,
-  mainRef,
+  mainElement,
   onUnavailable,
   onAnnounce,
   onToggleChangesPane,
@@ -71,9 +74,8 @@ export function TaskMain({
   const title = knownTitle ?? 'Task'
   const ready =
     state.load.kind === 'ready' ? state.load.observation : null
-  const usesEvents = ready?.detailsPane === 'events'
   const showPane = state.changesPaneOpen
-  const layoutMode = usePaneLayoutMode(mainRef)
+  const layoutMode = usePaneLayoutMode(mainElement)
   const overlay = showPane && layoutMode === 'overlay'
   const moreRef = useRef<HTMLButtonElement>(null)
   const paneToggleRef = useRef<HTMLButtonElement>(null)
@@ -81,22 +83,8 @@ export function TaskMain({
   const focusTitleFor = useRef<TaskId | null>(null)
   const composerStopRef = useRef<HTMLButtonElement>(null)
   const bannerStopRef = useRef<HTMLButtonElement>(null)
-  const wasDialog = useRef(false)
-  const openerWhileOpen = useRef<TaskDialogOpener | null>(null)
 
-  useEffect(() => {
-    if (state.dialog !== null) {
-      openerWhileOpen.current = state.dialogOpener
-    }
-    if (wasDialog.current && state.dialog === null) {
-      const opener = openerWhileOpen.current
-      queueMicrotask(() => {
-        focusDialogOpener(opener, moreRef, composerStopRef, bannerStopRef)
-      })
-      openerWhileOpen.current = null
-    }
-    wasDialog.current = state.dialog !== null
-  }, [state.dialog, state.dialogOpener])
+  useDialogFocusReturn(state, moreRef, composerStopRef, bannerStopRef)
 
   useEffect(() => {
     if (state.load.kind === 'loading') return
@@ -109,9 +97,26 @@ export function TaskMain({
     overlay,
     showPane,
     eventsFactsReveal: state.eventsFactsReveal,
+    eventsFactsRevealSeq: state.eventsFactsRevealSeq,
+    taskId: state.selectedTaskId,
+    // The facts group mounts once the Events body leaves its loading state.
+    paneContent: `${state.paneTab}:${state.eventsLoad.kind}`,
+    blocked: state.dialog !== null || state.overflowMenuOpen,
     paneToggleRef,
     onToggleChangesPane,
   })
+
+  if (state.load.kind === 'loading') {
+    return (
+      <TaskLoadingPage
+        knownTitle={knownTitle}
+        paneOpen={showPane}
+        paneMode={layoutMode}
+        paneTab={loadingPaneTab(state, sidebar)}
+        onTogglePane={onToggleChangesPane}
+      />
+    )
+  }
 
   const topbar = (
     <TaskMainTopbar
@@ -119,6 +124,7 @@ export function TaskMain({
       state={state}
       ready={ready}
       showPane={showPane}
+      paneAvailable={ready !== null}
       titleRef={titleRef}
       paneToggleRef={paneToggleRef}
       moreRef={moreRef}
@@ -132,103 +138,71 @@ export function TaskMain({
       focusTitleFor={focusTitleFor}
     />
   )
-
-  function withTopbar(column: ReactNode): ReactNode {
-    return (
-      <div style={columnStyle}>
-        {topbar}
-        {column}
-      </div>
-    )
-  }
-
-  if (state.load.kind === 'loading') {
-    return (
-      <TaskLoadingPage
-        knownTitle={knownTitle}
-        paneOpen={showPane}
-        onTogglePane={onToggleChangesPane}
-      />
-    )
-  }
   if (state.load.kind !== 'ready') {
     return (
-      <div style={columnStyle}>
+      <>
         {topbar}
-        <div className="hd-scroll">
-          <p
-            className="caption hd-faint"
-            role="status"
-            style={{ padding: 'var(--space-5) var(--space-6)' }}
-          >
-            {state.load.message}
-          </p>
+        <div className="hd-m05-body hd-m05-body--nopane">
+          <div className="hd-m05-column">
+            <div className="hd-scroll">
+              <p
+                className="caption hd-faint"
+                role="status"
+                style={{ padding: 'var(--space-5) var(--space-6)' }}
+              >
+                {state.load.message}
+              </p>
+            </div>
+          </div>
         </div>
-      </div>
+      </>
     )
   }
 
   const bodyClass = showPane
     ? `hd-m05-body hd-m05-body--${layoutMode}`
     : 'hd-m05-body hd-m05-body--nopane'
-  const pane = showPane && !usesEvents ? (
-    <TaskChangesHost
-      state={state}
-      onSelectEntry={onSelectChangedEntry}
-      onSelectTurn={onSelectChangesTurn}
-      onToggleRepo={onToggleChangesRepo}
-      onClosePane={() => onToggleChangesPane(false)}
-      onUnavailable={onUnavailable}
-      onSelectTab={onSelectPaneTab}
-      onLoadEarlier={onLoadEarlierEvents}
-    />
-  ) : null
-
-  const pageProps = {
-    observation: state.load.observation,
-    commandChrome: state.commandChrome,
-    onUnavailable,
-    onStop: () => onOpenDialog('stop', 'composer-stop'),
-    onBannerStop: () => onOpenDialog('stop', 'banner-stop'),
-    composerStopRef,
-    bannerStopRef,
-  } as const
-
-  return (
-    <div className={bodyClass} style={bodyStyle}>
-      <div
-        className="hd-m05-column"
-        style={columnStyle}
-        {...(overlay ? { inert: true } : {})}
-      >
-        {usesEvents ? (
-          <TaskPage
-            {...pageProps}
-            eventsPaneOpen={showPane}
-            columnWrapper={withTopbar}
-          />
-        ) : (
-          withTopbar(<TaskPage {...pageProps} />)
-        )}
+  const changesPane =
+    showPane && ready?.detailsPane !== 'events' ? (
+      <TaskChangesHost
+        state={state}
+        onSelectEntry={onSelectChangedEntry}
+        onSelectTurn={onSelectChangesTurn}
+        onToggleRepo={onToggleChangesRepo}
+        onClosePane={() => onToggleChangesPane(false)}
+        onUnavailable={onUnavailable}
+        onSelectTab={onSelectPaneTab}
+        onLoadEarlier={onLoadEarlierEvents}
+      />
+    ) : null
+  // The pane is a sibling of the column; only the column is inert in overlay.
+  const shell = (column: ReactNode, eventsPane: ReactNode): ReactNode => (
+    <div className={bodyClass}>
+      <div className="hd-m05-column" {...(overlay ? { inert: true } : {})}>
+        {column}
       </div>
-      {pane}
+      {eventsPane ?? changesPane}
     </div>
   )
+
+  return (
+    <>
+      {topbar}
+      <TaskPage
+        observation={state.load.observation}
+        commandChrome={state.commandChrome}
+        eventsPaneOpen={showPane && ready?.detailsPane === 'events'}
+        shell={shell}
+        onClosePane={() => onToggleChangesPane(false)}
+        onUnavailable={onUnavailable}
+        onStop={() => onOpenDialog('stop', 'composer-stop')}
+        onBannerStop={() => onOpenDialog('stop', 'banner-stop')}
+        composerStopRef={composerStopRef}
+        bannerStopRef={bannerStopRef}
+      />
+    </>
+  )
 }
-
-const columnStyle = {
-  flex: '1 1 auto',
-  minWidth: 0,
-  display: 'flex',
-  flexDirection: 'column',
-  minHeight: 0,
-} as const
-
-const bodyStyle = {
-  flex: '1 1 auto',
-  minHeight: 0,
-  minWidth: 0,
-} as const
 
 function resolveKnownTitle(
   state: TaskScreenState,
@@ -241,4 +215,40 @@ function resolveKnownTitle(
   const rows = [...sidebar.running, ...sidebar.recent]
   const match = rows.find((row) => row.mappedTaskId === state.selectedTaskId)
   return match?.title ?? null
+}
+
+/** Tab drawn while loading: an explicit choice, else the status default guess. */
+function loadingPaneTab(
+  state: TaskScreenState,
+  sidebar: SidebarData | null,
+): 'changes' | 'events' {
+  if (state.paneOpenedOnce) return state.paneTab
+  const running =
+    sidebar?.running.some((row) => row.mappedTaskId === state.selectedTaskId) ??
+    false
+  return running ? 'events' : 'changes'
+}
+
+/** Returns focus to the control that opened a task dialog once it closes. */
+function useDialogFocusReturn(
+  state: TaskScreenState,
+  moreRef: RefObject<HTMLButtonElement | null>,
+  composerStopRef: RefObject<HTMLButtonElement | null>,
+  bannerStopRef: RefObject<HTMLButtonElement | null>,
+): void {
+  const wasDialog = useRef(false)
+  const openerWhileOpen = useRef<TaskDialogOpener | null>(null)
+  useEffect(() => {
+    if (state.dialog !== null) {
+      openerWhileOpen.current = state.dialogOpener
+    }
+    if (wasDialog.current && state.dialog === null) {
+      const opener = openerWhileOpen.current
+      queueMicrotask(() => {
+        focusDialogOpener(opener, moreRef, composerStopRef, bannerStopRef)
+      })
+      openerWhileOpen.current = null
+    }
+    wasDialog.current = state.dialog !== null
+  }, [state.dialog, state.dialogOpener, moreRef, composerStopRef, bannerStopRef])
 }

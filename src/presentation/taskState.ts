@@ -78,8 +78,10 @@ export type TaskScreenState = {
   /** Active pane tab; kept while the pane is closed within the same task. */
   readonly paneTab: 'changes' | 'events'
   /**
-   * True after the owner has opened the pane once on this task. First open
-   * while running lands on Events; later opens keep `paneTab`.
+   * True once the tab is decided for this task: the pane was opened with the
+   * task status known, or a tab was chosen explicitly (seed, click, chip).
+   * Undecided: the first open lands on Events while the run is live and the
+   * pane opened during load resolves when the status arrives.
    */
   readonly paneOpenedOnce: boolean
   /**
@@ -87,6 +89,11 @@ export type TaskScreenState = {
    * Cleared when the pane closes.
    */
   readonly eventsFactsReveal: 'enforcement' | 'notices' | 'continuity' | null
+  /**
+   * Counts chip reveals for this task so a repeated click on the same chip
+   * re-expands and refocuses a group the person collapsed.
+   */
+  readonly eventsFactsRevealSeq: number
   /**
    * Last known events document so records stay mounted while chrome updates.
    * Cleared on pane close / task switch — never reused across identities.
@@ -137,6 +144,7 @@ export function initialTaskState(): TaskScreenState {
     paneTab: 'changes',
     paneOpenedOnce: false,
     eventsFactsReveal: null,
+    eventsFactsRevealSeq: 0,
     eventsList: null,
     eventsLoad: { kind: 'loading' },
     eventsEarlier: IDLE_EVENTS_EARLIER,
@@ -158,12 +166,4 @@ export type TaskChangesChrome = {
   readonly expandedRepos?: readonly string[]
   readonly turns?: readonly TaskChangesTurnMember[]
   readonly textPanels?: readonly TaskChangesTextPanel[]
-}
-
-/** Preview / session chrome for Events facts reveal (top-bar chips). */
-export type TaskEventsChrome = {
-  readonly paneTab?: 'changes' | 'events'
-  readonly earlierLoaded?: boolean
-  readonly earlierError?: boolean
-  readonly factsReveal?: 'enforcement' | 'notices' | 'continuity' | null
 }

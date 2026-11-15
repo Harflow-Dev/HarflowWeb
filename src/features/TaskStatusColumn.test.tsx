@@ -237,7 +237,7 @@ describe('M05 fixture identity', () => {
       within(main).getByText('Migrate events.jsonl reader'),
     ).toBeInTheDocument()
     expect(within(main).getByText('Timed out 12:40')).toBeInTheDocument()
-    expect(main.querySelector('.hw-topbar-meta__full')?.textContent).toBe(
+    expect(main.querySelector('.hw-m05-meta')?.textContent).toBe(
       'Claude · Opus 5.5 · HarflowMCP',
     )
     expect(
@@ -252,7 +252,7 @@ describe('M05 fixture identity', () => {
   it('shows two turns in the continue-started meta line', async () => {
     await mount('task-continue-started')
     const main = screen.getByRole('main')
-    expect(main.querySelector('.hw-topbar-meta__full')?.textContent).toBe(
+    expect(main.querySelector('.hw-m05-meta')?.textContent).toBe(
       'Claude · Opus 5.5 · HarflowMCP · 2 turns',
     )
   })

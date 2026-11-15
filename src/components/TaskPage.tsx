@@ -16,12 +16,29 @@ import { TaskSummarySection } from './TaskSummarySection'
 import { TaskUnavailableHints } from './TaskUnavailableHints'
 import { TranscriptSurface } from './TranscriptSurface'
 
+/** Places the column and an optional Events pane inside the host's body. */
+export type TaskShell = (
+  column: ReactNode,
+  eventsPane: ReactNode,
+) => ReactNode
+
+const defaultShell: TaskShell = (column, pane) => (
+  <>
+    {column}
+    {pane}
+  </>
+)
+
 type Props = {
   readonly observation: TaskObservation
   readonly commandChrome?: TaskCommandChrome
   readonly eventsPaneOpen?: boolean
-  /** When set, wraps the transcript column so Events can sit as a split sibling. */
-  readonly columnWrapper?: (column: ReactNode) => ReactNode
+  /**
+   * Lays out the transcript column and the Events pane as siblings (the
+   * host owns the body, inert region and Changes pane). Default: sequence.
+   */
+  readonly shell?: TaskShell
+  readonly onClosePane?: () => void
   readonly onUnavailable: (label: string) => void
   readonly onLiveMessage?: (message: string) => void
   readonly onStop?: () => void
@@ -35,7 +52,8 @@ export function TaskPage({
   observation,
   commandChrome = null,
   eventsPaneOpen = false,
-  columnWrapper,
+  shell = defaultShell,
+  onClosePane,
   onUnavailable,
   onLiveMessage,
   onStop,
@@ -56,7 +74,8 @@ export function TaskPage({
       {...(onBannerStop ? { onBannerStop } : {})}
       {...(composerStopRef ? { composerStopRef } : {})}
       {...(bannerStopRef ? { bannerStopRef } : {})}
-      {...(columnWrapper ? { columnWrapper } : {})}
+      shell={shell}
+      {...(onClosePane ? { onClosePane } : {})}
       {...(onLiveMessage ? { onLiveMessage } : {})}
     />
   )
@@ -66,7 +85,8 @@ function TranscriptTaskBody({
   observation,
   commandChrome,
   eventsPaneOpen,
-  columnWrapper,
+  shell,
+  onClosePane,
   liveRun,
   onUnavailable,
   onLiveMessage,
@@ -78,7 +98,8 @@ function TranscriptTaskBody({
   readonly observation: TaskObservation
   readonly commandChrome: TaskCommandChrome
   readonly eventsPaneOpen: boolean
-  readonly columnWrapper?: (column: ReactNode) => ReactNode
+  readonly shell: TaskShell
+  readonly onClosePane?: () => void
   readonly liveRun: boolean
   readonly onUnavailable: (label: string) => void
   readonly onLiveMessage?: (message: string) => void
@@ -185,23 +206,17 @@ function TranscriptTaskBody({
     </>
   )
 
-  const wrapped = columnWrapper ? columnWrapper(column) : column
+  const eventsPane = eventsPaneOpen ? (
+    <TaskEventsPane
+      transcript={displayed}
+      executionStatus={liveRun ? 'Running' : 'Done'}
+      onUnavailable={onUnavailable}
+      onClosePane={onClosePane ?? (() => undefined)}
+      onCopyRecord={() => {
+        void copyRecord()
+      }}
+    />
+  ) : null
 
-  if (!eventsPaneOpen) {
-    return <>{wrapped}</>
-  }
-
-  return (
-    <>
-      {wrapped}
-      <TaskEventsPane
-        transcript={displayed}
-        executionStatus={liveRun ? 'Running' : 'Done'}
-        onUnavailable={onUnavailable}
-        onCopyRecord={() => {
-          void copyRecord()
-        }}
-      />
-    </>
-  )
+  return <>{shell(column, eventsPane)}</>
 }

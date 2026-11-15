@@ -8,14 +8,24 @@ import { Icon } from './Icon'
 type Props = {
   readonly observation: TaskObservation
   readonly reveal?: 'enforcement' | 'notices' | 'continuity' | null
+  /** Changes on every chip reveal so a collapsed group opens again. */
+  readonly revealSeq?: number
 }
 
 /** Collapsed facts groups at the top of the M05 Events tab. */
-export function TaskEventsFacts({ observation, reveal = null }: Props) {
+export function TaskEventsFacts({
+  observation,
+  reveal = null,
+  revealSeq = 0,
+}: Props) {
   return (
     <>
       {eventsFactsGroups(observation).map((group) => (
-        <FactsGroup key={group.id} group={group} reveal={reveal === group.id} />
+        <FactsGroup
+          key={reveal === group.id ? `${group.id}#${revealSeq}` : group.id}
+          group={group}
+          reveal={reveal === group.id}
+        />
       ))}
     </>
   )

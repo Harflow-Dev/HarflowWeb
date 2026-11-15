@@ -44,6 +44,7 @@ export function TaskChangesHost({
       eventsList={state.eventsList}
       eventsEarlier={state.eventsEarlier}
       eventsFactsReveal={state.eventsFactsReveal}
+      eventsFactsRevealSeq={state.eventsFactsRevealSeq}
       onSelectTab={onSelectTab}
       onLoadEarlier={onLoadEarlier}
     />

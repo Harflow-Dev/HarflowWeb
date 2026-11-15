@@ -29,8 +29,8 @@ import {
 import {
   closedChangesPaneState,
   loadingTaskScreenState,
-  openedChangesPaneState,
   seededChangesChromeState,
+  type RememberedPane,
 } from './taskSessionPane'
 import {
   afterTaskLoad,
@@ -40,7 +40,7 @@ import {
   nextPaneTabState,
   nextSelectedEntryState,
   nextSelectedTurnState,
-  paneTabForOpen,
+  openedPaneState,
   revealEventsFactsState,
 } from './taskSessionPaneOpen'
 import { TaskPaneObservers } from './taskSessionObservers'
@@ -54,6 +54,10 @@ export class TaskSession {
   private observationEpoch = 0
   private closed = false
   private observation: ObservationHandle | null = null
+  /** Pane open state and tab per task id, kept for the session. */
+  private readonly paneMemory = new Map<TaskId, RememberedPane>()
+  /** The selection came back with remembered pane choices (no default open). */
+  private paneRestored = false
   private readonly listeners = new Set<TaskListener>()
   private readonly loadTask: LoadTaskUseCase
   private readonly panes: TaskPaneObservers
@@ -127,10 +131,12 @@ export class TaskSession {
       this.panes.stopChanges()
       this.panes.stopEvents()
       this.publish(closedChangesPaneState(this.state))
+      this.rememberPane()
       return
     }
-    const opened = openedChangesPaneState(this.state, paneTabForOpen(this.state))
+    const opened = openedPaneState(this.state)
     this.publish(opened.next)
+    this.rememberPane()
     if (opened.observeChanges) this.panes.beginChanges()
     if (opened.observeEvents) this.panes.beginEvents()
   }
@@ -140,106 +146,85 @@ export class TaskSession {
     if (this.closed) return
     const opened = revealEventsFactsState(this.state, group)
     this.publish(opened.next)
-    if (opened.beginEventsOnly) {
-      this.panes.beginEvents()
-      return
-    }
+    this.rememberPane()
+    // Events already open and observed keeps its loaded pages.
+    const beginEvents =
+      opened.beginEventsOnly ||
+      opened.observeEvents ||
+      !this.panes.hasEventsObservation()
     if (opened.observeChanges) this.panes.beginChanges()
-    if (opened.observeEvents) this.panes.beginEvents()
+    if (beginEvents) this.panes.beginEvents()
   }
 
   seedTaskCommandChrome(taskId: TaskId, chrome: TaskCommandChrome): void {
-    if (this.closed) return
-    const next = withSeededCommandChrome(this.state, taskId, chrome)
-    if (next) this.publish(next)
+    this.commit(withSeededCommandChrome(this.state, taskId, chrome))
   }
 
   clearCommandChrome(): void {
-    if (this.closed) return
-    const next = clearedCommandChrome(this.state)
-    if (next) this.publish(next)
+    this.commit(clearedCommandChrome(this.state))
   }
 
   setOverflowMenuOpen(open: boolean): void {
-    if (this.closed) return
-    const next = overflowMenuOpenState(this.state, open)
-    if (next) this.publish(next)
+    this.commit(overflowMenuOpenState(this.state, open))
   }
 
   openTaskDialog(
     dialog: TaskDialogKind,
     opener: TaskDialogOpener | null,
   ): void {
-    if (this.closed) return
-    this.publish(openedTaskDialogState(this.state, dialog, opener))
+    this.commit(openedTaskDialogState(this.state, dialog, opener))
   }
 
   closeTaskDialog(): void {
-    if (this.closed) return
-    const next = closedTaskDialogState(this.state)
-    if (next) this.publish(next)
+    this.commit(closedTaskDialogState(this.state))
   }
 
   seedTaskOverflowChrome(taskId: TaskId, chrome: TaskOverflowChrome): void {
-    if (this.closed) return
-    const next = seededOverflowChromeState(this.state, taskId, chrome)
-    if (next) this.publish(next)
+    this.commit(seededOverflowChromeState(this.state, taskId, chrome))
   }
 
   seedTaskChangesChrome(taskId: TaskId, chrome: TaskChangesChrome): void {
-    if (this.closed) return
-    const next = seededChangesChromeState(this.state, taskId, chrome)
-    if (!next) return
-    this.publish(next)
-    this.panes.beginChanges()
+    if (this.commit(seededChangesChromeState(this.state, taskId, chrome))) {
+      this.panes.beginChanges()
+    }
   }
 
   setPaneTab(tab: 'changes' | 'events'): void {
-    if (this.closed) return
-    const next = nextPaneTabState(this.state, tab)
-    if (!next) return
-    this.publish(next)
+    if (!this.commit(nextPaneTabState(this.state, tab))) return
+    this.rememberPane()
     if (tab === 'events') this.panes.beginEvents()
     else this.panes.stopEvents()
     if (!this.panes.hasChangesObservation()) this.panes.beginChanges()
   }
 
   loadEarlierEvents(): void {
-    if (this.closed) return
-    const next = nextEarlierEventsState(this.state)
-    if (!next) return
-    this.publish(next)
-    this.panes.beginOlder()
+    if (this.commit(nextEarlierEventsState(this.state))) {
+      this.panes.beginOlder()
+    }
   }
 
   selectChangedEntry(entry: TaskChangesEntryRef): void {
-    if (this.closed) return
-    const next = nextSelectedEntryState(
-      this.state,
-      entry,
-      this.panes.hasChangesObservation(),
-    )
-    if (!next) return
-    this.publish(next)
-    this.panes.beginChanges()
+    const has = this.panes.hasChangesObservation()
+    if (this.commit(nextSelectedEntryState(this.state, entry, has))) {
+      this.panes.beginChanges()
+    }
   }
 
   selectChangesTurn(turnTaskId: TaskId): void {
-    if (this.closed) return
-    const next = nextSelectedTurnState(this.state, turnTaskId)
-    if (!next) return
-    this.publish(next)
-    this.panes.beginChanges()
+    if (this.commit(nextSelectedTurnState(this.state, turnTaskId))) {
+      this.panes.beginChanges()
+    }
   }
 
   setRepositoryExpanded(repositoryRoot: string, expanded: boolean): void {
-    if (this.closed) return
-    const next = nextExpandedReposState(
-      this.state,
-      repositoryRoot,
-      expanded,
-    )
-    if (next) this.publish(next)
+    this.commit(nextExpandedReposState(this.state, repositoryRoot, expanded))
+  }
+
+  /** Publish a computed next state; false when closed or nothing changed. */
+  private commit(next: TaskScreenState | null): boolean {
+    if (this.closed || next === null) return false
+    this.publish(next)
+    return true
   }
 
   private publish(next: TaskScreenState): void {
@@ -255,10 +240,25 @@ export class TaskSession {
     this.observation = null
     this.panes.stopChanges()
     this.panes.stopEvents()
-    this.publish(loadingTaskScreenState(taskId))
+    const remembered = this.paneMemory.get(taskId) ?? null
+    this.paneRestored = remembered !== null
+    this.publish(loadingTaskScreenState(taskId, remembered))
     this.observation = this.loadTask.observe(taskId, (load) =>
       this.applyLoad(load, gen, taskId),
     )
+    if (remembered?.open === true) this.setChangesPaneOpen(true)
+  }
+
+  /** Keep the open state and tab so returning to this task restores them. */
+  private rememberPane(): void {
+    const { selectedTaskId, changesPaneOpen, paneTab, paneOpenedOnce } =
+      this.state
+    if (selectedTaskId === null) return
+    this.paneMemory.set(selectedTaskId, {
+      open: changesPaneOpen,
+      tab: paneTab,
+      decided: paneOpenedOnce,
+    })
   }
 
   private applyLoad(load: TaskLoad, gen: number, expected: TaskId): void {
@@ -267,7 +267,7 @@ export class TaskSession {
     if (load.kind === 'ready' && load.observation.taskId !== expected) return
     const { next, openPane } = afterTaskLoad(this.state, load)
     this.publish(next)
-    if (openPane) this.setChangesPaneOpen(true)
+    if (openPane && !this.paneRestored) this.setChangesPaneOpen(true)
     const want = eventsObservationDesired(this.state)
     const has = this.panes.hasEventsObservation()
     if (want && !has) this.panes.beginEvents()

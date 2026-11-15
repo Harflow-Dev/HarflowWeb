@@ -122,9 +122,15 @@ export function closedChangesPaneState(state: TaskScreenState): TaskScreenState 
   }
 }
 
+/**
+ * Pane opened with a tab. `decided` records that the tab is final: either
+ * chosen explicitly or resolved against a known status. An open during load
+ * stays undecided until the status arrives.
+ */
 export function openedChangesPaneState(
   state: TaskScreenState,
-  paneTab: 'changes' | 'events' = state.paneTab,
+  paneTab: 'changes' | 'events',
+  decided: boolean,
 ): {
   readonly next: TaskScreenState
   readonly observeChanges: boolean
@@ -142,7 +148,7 @@ export function openedChangesPaneState(
       ...state,
       changesPaneOpen: true,
       paneTab,
-      paneOpenedOnce: true,
+      paneOpenedOnce: decided,
       changesQueryEntry: null,
       selectedChangeEntry: null,
       changesList: null,
@@ -158,7 +164,17 @@ export function openedChangesPaneState(
   }
 }
 
-export function loadingTaskScreenState(taskId: TaskId): TaskScreenState {
+/** Pane choices kept per task for the session. */
+export type RememberedPane = {
+  readonly open: boolean
+  readonly tab: 'changes' | 'events'
+  readonly decided: boolean
+}
+
+export function loadingTaskScreenState(
+  taskId: TaskId,
+  remembered: RememberedPane | null = null,
+): TaskScreenState {
   return {
     selectedTaskId: taskId,
     load: { kind: 'loading' },
@@ -176,9 +192,10 @@ export function loadingTaskScreenState(taskId: TaskId): TaskScreenState {
     expandedRepos: [],
     changesTurns: null,
     changesTextPanels: null,
-    paneTab: 'changes',
-    paneOpenedOnce: false,
+    paneTab: remembered?.tab ?? 'changes',
+    paneOpenedOnce: remembered?.decided ?? false,
     eventsFactsReveal: null,
+    eventsFactsRevealSeq: 0,
     eventsList: null,
     eventsLoad: { kind: 'loading' },
     eventsEarlier: IDLE_EVENTS_EARLIER,

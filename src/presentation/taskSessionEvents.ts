@@ -28,10 +28,15 @@ export function paneTabState(
   state: TaskScreenState,
   tab: 'changes' | 'events',
 ): TaskScreenState | null {
-  if (tab === state.paneTab) return null
+  // Choosing the tab already shown still settles the first-open default.
+  if (tab === state.paneTab) {
+    return state.paneOpenedOnce ? null : { ...state, paneOpenedOnce: true }
+  }
   return {
     ...state,
     paneTab: tab,
+    // A tab choice is final: the first-open default no longer applies.
+    paneOpenedOnce: true,
     eventsLoad:
       tab === 'events' && state.eventsList === null
         ? { kind: 'loading' }

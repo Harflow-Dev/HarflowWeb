@@ -299,3 +299,58 @@ describe('taskStatusView', () => {
     ).toBe('conversation')
   })
 })
+
+describe('taskStatusView held resource card', () => {
+  const running = { kind: 'observed', status: 'running' } as const
+  const held = {
+    names: ['heavy-build'],
+    reservationId: 'r1',
+    state: 'held',
+    grantedAt: '2026-11-15T09:56:00Z',
+  } as const
+
+  function cardFor(partial: Partial<TaskObservation>) {
+    return taskStatusView(baseObservation({ statusRead: running, ...partial }))
+      .resourceCard
+  }
+
+  it('titles the held card with the resource name and a relative note', () => {
+    const card = cardFor({ resources: held, observedAt: '2026-11-15T10:00:00Z' })
+    expect(card?.title).toBe('Holding heavy-build')
+    expect(card?.note).toBe('Since 4m ago')
+  })
+
+  it('has no note when grantedAt or observedAt is missing', () => {
+    const { grantedAt: _omitted, ...withoutGrant } = held
+    expect(
+      cardFor({ resources: held })?.note,
+    ).toBeNull()
+    expect(
+      cardFor({
+        resources: withoutGrant,
+        observedAt: '2026-11-15T10:00:00Z',
+      })?.note,
+    ).toBeNull()
+  })
+
+  it('has no note when a timestamp cannot be parsed', () => {
+    expect(
+      cardFor({
+        resources: { ...held, grantedAt: 'not-a-date' },
+        observedAt: '2026-11-15T10:00:00Z',
+      })?.note,
+    ).toBeNull()
+    expect(
+      cardFor({ resources: held, observedAt: 'garbage' })?.note,
+    ).toBeNull()
+  })
+
+  it('draws no card for a released reservation', () => {
+    expect(
+      cardFor({
+        resources: { ...held, state: 'released' },
+        observedAt: '2026-11-15T10:00:00Z',
+      }),
+    ).toBeNull()
+  })
+})

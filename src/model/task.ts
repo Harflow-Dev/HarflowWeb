@@ -187,6 +187,21 @@ export type TaskObservation = {
   readonly notices?: readonly string[]
   /** Present only when the engine reported adopted-after-restart. */
   readonly continuity?: TaskContinuity
+  /**
+   * Whole-task `resources` on status (`held` / `released`). Absent when the
+   * task asked for none. Presentation draws the inline resource card.
+   */
+  readonly resources?: TaskResources
+}
+
+/**
+ * Additive status `resources` object (contracts.md). Names are reservation
+ * names; `heldForSeconds` is observed hold age for the “Since …” line.
+ */
+export type TaskResources = {
+  readonly names: readonly string[]
+  readonly state: 'held' | 'released'
+  readonly heldForSeconds?: number
 }
 
 export type TaskLoad =

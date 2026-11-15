@@ -3,7 +3,11 @@ import { taskEngineStatus } from './taskObservation'
 import { badgeForStatus } from './taskStatusBadgeMap'
 import { bannerFor } from './taskStatusBannerMap'
 import { composerFor } from './taskStatusComposerMap'
-import { TASK_PENDING_BODY, TASK_RESOURCE_WAIT } from './taskStatusCopy'
+import {
+  TASK_PENDING_BODY,
+  TASK_RESOURCE_HELD,
+  TASK_RESOURCE_WAIT,
+} from './taskStatusCopy'
 import { noticeFor } from './taskStatusNoticeMap'
 import type {
   TaskCommandChrome,
@@ -50,10 +54,27 @@ function bodyFor(observation: TaskObservation): TaskStatusBody {
 function resourceCardFor(
   observation: TaskObservation,
 ): TaskStatusResourceCard | null {
-  if (!isPending(observation) || observation.launchWait !== 'resources') {
+  if (isPending(observation) && observation.launchWait === 'resources') {
+    return { ...TASK_RESOURCE_WAIT }
+  }
+  const resources = observation.resources
+  if (resources?.state !== 'held' || resources.names.length === 0) {
     return null
   }
-  return { ...TASK_RESOURCE_WAIT }
+  const name = resources.names[0]!
+  return {
+    title: `Holding ${name}`,
+    detail: TASK_RESOURCE_HELD.detail,
+    note: heldSinceNote(resources.heldForSeconds),
+    linkLabel: TASK_RESOURCE_HELD.linkLabel,
+  }
+}
+
+/** Design held card: “Since 4m ago” from observed hold age. */
+function heldSinceNote(heldForSeconds: number | undefined): string {
+  if (heldForSeconds === undefined) return 'Held'
+  const minutes = Math.max(1, Math.round(heldForSeconds / 60))
+  return `Since ${minutes}m ago`
 }
 
 /** Design `topbar()`: no meta while pending; turns follow the harness line. */

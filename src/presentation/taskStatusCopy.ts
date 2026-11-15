@@ -57,6 +57,12 @@ export const TASK_RESOURCE_WAIT = {
   linkLabel: 'Open resource slots',
 } as const
 
+/** Held capacity card (Design `resourceCard('held')`). Title is filled with the name. */
+export const TASK_RESOURCE_HELD = {
+  detail: 'Capacity remains reserved for this task.',
+  linkLabel: 'Open resource slots',
+} as const
+
 export const TASK_CONTINUE_LABEL = 'Continue in a new session'
 
 export const TASK_BANNER_CAPTION = {

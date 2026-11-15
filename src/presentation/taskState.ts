@@ -75,8 +75,18 @@ export type TaskScreenState = {
   readonly changesTurns: readonly TaskChangesTurnMember[] | null
   /** Stacked text-mode specimen, seeded chrome; null draws the normal pane. */
   readonly changesTextPanels: readonly TaskChangesTextPanel[] | null
-  /** Active pane tab while the right pane is open. */
+  /** Active pane tab; kept while the pane is closed within the same task. */
   readonly paneTab: 'changes' | 'events'
+  /**
+   * True after the owner has opened the pane once on this task. First open
+   * while running lands on Events; later opens keep `paneTab`.
+   */
+  readonly paneOpenedOnce: boolean
+  /**
+   * Facts group to expand when chips open Events; null keeps all collapsed.
+   * Cleared when the pane closes.
+   */
+  readonly eventsFactsReveal: 'enforcement' | 'notices' | 'continuity' | null
   /**
    * Last known events document so records stay mounted while chrome updates.
    * Cleared on pane close / task switch — never reused across identities.
@@ -125,6 +135,8 @@ export function initialTaskState(): TaskScreenState {
     changesTurns: null,
     changesTextPanels: null,
     paneTab: 'changes',
+    paneOpenedOnce: false,
+    eventsFactsReveal: null,
     eventsList: null,
     eventsLoad: { kind: 'loading' },
     eventsEarlier: IDLE_EVENTS_EARLIER,
@@ -146,4 +158,12 @@ export type TaskChangesChrome = {
   readonly expandedRepos?: readonly string[]
   readonly turns?: readonly TaskChangesTurnMember[]
   readonly textPanels?: readonly TaskChangesTextPanel[]
+}
+
+/** Preview / session chrome for Events facts reveal (top-bar chips). */
+export type TaskEventsChrome = {
+  readonly paneTab?: 'changes' | 'events'
+  readonly earlierLoaded?: boolean
+  readonly earlierError?: boolean
+  readonly factsReveal?: 'enforcement' | 'notices' | 'continuity' | null
 }

@@ -147,6 +147,19 @@ export {
   type EventsLifecycleKind,
 } from './taskEventsLifecycle'
 export {
+  defaultPaneOpen,
+  firstOpenPaneTab,
+  paneLayoutMode,
+  TASK_PANE_SPLIT_MIN,
+  type TaskPaneLayoutMode,
+} from './taskPaneDefaults'
+export {
+  taskTopbarChips,
+  topbarOmitsMetaForPane,
+  type EventsFactsRevealId,
+  type TaskTopbarChip,
+} from './taskTopbarChips'
+export {
   eventsFactsGroups,
   type EventsFactPair,
   type EventsFactsGroupView,

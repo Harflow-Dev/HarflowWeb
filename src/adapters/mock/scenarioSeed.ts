@@ -73,8 +73,15 @@ export type NewTaskScenarioSeed = {
   readonly taskDialog?: 'stop' | 'takeover'
   /** Open the right pane (Events for transcript states; Changes otherwise). */
   readonly eventsPaneOpen?: boolean
+  /**
+   * Open the pane while the task observation is still deferred (loading-pane).
+   * Requires `eventsPaneOpen`.
+   */
+  readonly openPaneWhileLoading?: boolean
   /** Active pane tab after the pane opens (M05 Changes ↔ Events). */
   readonly paneTab?: 'changes' | 'events'
+  /** Expand an Events facts group (top-bar chip reveal). */
+  readonly eventsFactsReveal?: 'enforcement' | 'notices' | 'continuity'
   /** Seed Changes-pane selection / expansion after the pane is open. */
   readonly changesChrome?: TaskChangesChromeSeed
   /**

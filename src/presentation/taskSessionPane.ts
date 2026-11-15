@@ -106,6 +106,8 @@ export function closedChangesPaneState(state: TaskScreenState): TaskScreenState 
   return {
     ...state,
     changesPaneOpen: false,
+    // paneTab and paneOpenedOnce stay so reopen keeps the person's choice.
+    eventsFactsReveal: null,
     changesQueryEntry: null,
     selectedChangeEntry: null,
     changesList: null,
@@ -120,14 +122,17 @@ export function closedChangesPaneState(state: TaskScreenState): TaskScreenState 
   }
 }
 
-export function openedChangesPaneState(state: TaskScreenState): {
+export function openedChangesPaneState(
+  state: TaskScreenState,
+  paneTab: 'changes' | 'events' = state.paneTab,
+): {
   readonly next: TaskScreenState
   readonly observeChanges: boolean
   readonly observeEvents: boolean
 } {
   const transcriptEvents =
     state.load.kind === 'ready' && state.load.observation.detailsPane === 'events'
-  const eventsTab = state.paneTab === 'events'
+  const eventsTab = paneTab === 'events'
   // Changes stays observed on every pane tab so the Changes count remains accurate
   // while Events is selected (design paneHtml uses CHANGES[…].count independently).
   return {
@@ -136,6 +141,8 @@ export function openedChangesPaneState(state: TaskScreenState): {
     next: {
       ...state,
       changesPaneOpen: true,
+      paneTab,
+      paneOpenedOnce: true,
       changesQueryEntry: null,
       selectedChangeEntry: null,
       changesList: null,
@@ -170,6 +177,8 @@ export function loadingTaskScreenState(taskId: TaskId): TaskScreenState {
     changesTurns: null,
     changesTextPanels: null,
     paneTab: 'changes',
+    paneOpenedOnce: false,
+    eventsFactsReveal: null,
     eventsList: null,
     eventsLoad: { kind: 'loading' },
     eventsEarlier: IDLE_EVENTS_EARLIER,

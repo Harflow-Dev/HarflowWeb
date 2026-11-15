@@ -215,6 +215,11 @@ export class AppSession {
   setTaskPaneTab(tab: 'changes' | 'events'): void {
     this.children.task.setPaneTab(tab)
   }
+  revealTaskEventsFacts(
+    group: 'enforcement' | 'notices' | 'continuity',
+  ): void {
+    this.children.task.revealEventsFacts(group)
+  }
   loadTaskEarlierEvents(): void {
     this.children.task.loadEarlierEvents()
   }

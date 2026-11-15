@@ -19,40 +19,36 @@ import {
   type TaskScreenState,
 } from './taskState'
 import {
-  reconcileOverflowChrome,
-  withoutCommandChrome,
-  withoutTaskDialog,
-  withOverflowMenuOpen,
-  withSeededOverflowChrome,
-  withTaskDialog,
-} from './taskOverflowChrome'
+  clearedCommandChrome,
+  closedTaskDialogState,
+  openedTaskDialogState,
+  overflowMenuOpenState,
+  seededOverflowChromeState,
+  withSeededCommandChrome,
+} from './taskSessionChrome'
 import {
   closedChangesPaneState,
   loadingTaskScreenState,
   openedChangesPaneState,
   seededChangesChromeState,
-  selectedEntryState,
-  selectedTurnState,
-  toggledExpandedRepos,
 } from './taskSessionPane'
 import {
-  eventsReadAllowed,
-  paneTabState,
-  startedEarlierState,
-} from './taskSessionEvents'
+  afterTaskLoad,
+  eventsObservationDesired,
+  nextEarlierEventsState,
+  nextExpandedReposState,
+  nextPaneTabState,
+  nextSelectedEntryState,
+  nextSelectedTurnState,
+  paneTabForOpen,
+  revealEventsFactsState,
+} from './taskSessionPaneOpen'
 import { TaskPaneObservers } from './taskSessionObservers'
+import type { EventsFactsRevealId } from './taskTopbarChips'
 
 export type TaskListener = (state: TaskScreenState) => void
 
-/**
- * Owns selected task identity, transcript observation, and optional
- * Changes-pane observation. Switching task/entry/turn/generation rejects stale
- * callbacks even when cancellation is ignored by the adapter.
- *
- * `changesQueryEntry` is the observation query identity (null = default).
- * `selectedChangeEntry` is display-only and may resolve after a null query
- * without invalidating later updates from that same observation.
- */
+/** Selected task + Changes/Events pane observation; rejects stale callbacks. */
 export class TaskSession {
   private state = initialTaskState()
   private observationEpoch = 0
@@ -133,30 +129,40 @@ export class TaskSession {
       this.publish(closedChangesPaneState(this.state))
       return
     }
-    const opened = openedChangesPaneState(this.state)
+    const opened = openedChangesPaneState(this.state, paneTabForOpen(this.state))
     this.publish(opened.next)
+    if (opened.observeChanges) this.panes.beginChanges()
+    if (opened.observeEvents) this.panes.beginEvents()
+  }
+
+  /** Open Events and expand a facts group (top-bar chip). */
+  revealEventsFacts(group: EventsFactsRevealId): void {
+    if (this.closed) return
+    const opened = revealEventsFactsState(this.state, group)
+    this.publish(opened.next)
+    if (opened.beginEventsOnly) {
+      this.panes.beginEvents()
+      return
+    }
     if (opened.observeChanges) this.panes.beginChanges()
     if (opened.observeEvents) this.panes.beginEvents()
   }
 
   seedTaskCommandChrome(taskId: TaskId, chrome: TaskCommandChrome): void {
     if (this.closed) return
-    if (this.state.selectedTaskId !== taskId) return
-    if (this.state.load.kind !== 'ready') return
-    this.publish(
-      reconcileOverflowChrome({ ...this.state, commandChrome: chrome }),
-    )
+    const next = withSeededCommandChrome(this.state, taskId, chrome)
+    if (next) this.publish(next)
   }
 
   clearCommandChrome(): void {
     if (this.closed) return
-    const next = withoutCommandChrome(this.state)
+    const next = clearedCommandChrome(this.state)
     if (next) this.publish(next)
   }
 
   setOverflowMenuOpen(open: boolean): void {
     if (this.closed) return
-    const next = withOverflowMenuOpen(this.state, open)
+    const next = overflowMenuOpenState(this.state, open)
     if (next) this.publish(next)
   }
 
@@ -165,21 +171,19 @@ export class TaskSession {
     opener: TaskDialogOpener | null,
   ): void {
     if (this.closed) return
-    this.publish(
-      reconcileOverflowChrome(withTaskDialog(this.state, dialog, opener)),
-    )
+    this.publish(openedTaskDialogState(this.state, dialog, opener))
   }
 
   closeTaskDialog(): void {
     if (this.closed) return
-    const next = withoutTaskDialog(this.state)
+    const next = closedTaskDialogState(this.state)
     if (next) this.publish(next)
   }
 
   seedTaskOverflowChrome(taskId: TaskId, chrome: TaskOverflowChrome): void {
     if (this.closed) return
-    const next = withSeededOverflowChrome(this.state, taskId, chrome)
-    if (next) this.publish(reconcileOverflowChrome(next))
+    const next = seededOverflowChromeState(this.state, taskId, chrome)
+    if (next) this.publish(next)
   }
 
   seedTaskChangesChrome(taskId: TaskId, chrome: TaskChangesChrome): void {
@@ -192,21 +196,17 @@ export class TaskSession {
 
   setPaneTab(tab: 'changes' | 'events'): void {
     if (this.closed) return
-    const next = paneTabState(this.state, tab)
+    const next = nextPaneTabState(this.state, tab)
     if (!next) return
     this.publish(next)
-    if (tab === 'events') {
-      this.panes.beginEvents()
-      if (!this.panes.hasChangesObservation()) this.panes.beginChanges()
-      return
-    }
-    this.panes.stopEvents()
+    if (tab === 'events') this.panes.beginEvents()
+    else this.panes.stopEvents()
     if (!this.panes.hasChangesObservation()) this.panes.beginChanges()
   }
 
   loadEarlierEvents(): void {
     if (this.closed) return
-    const next = startedEarlierState(this.state)
+    const next = nextEarlierEventsState(this.state)
     if (!next) return
     this.publish(next)
     this.panes.beginOlder()
@@ -214,7 +214,7 @@ export class TaskSession {
 
   selectChangedEntry(entry: TaskChangesEntryRef): void {
     if (this.closed) return
-    const next = selectedEntryState(
+    const next = nextSelectedEntryState(
       this.state,
       entry,
       this.panes.hasChangesObservation(),
@@ -226,7 +226,7 @@ export class TaskSession {
 
   selectChangesTurn(turnTaskId: TaskId): void {
     if (this.closed) return
-    const next = selectedTurnState(this.state, turnTaskId)
+    const next = nextSelectedTurnState(this.state, turnTaskId)
     if (!next) return
     this.publish(next)
     this.panes.beginChanges()
@@ -234,13 +234,12 @@ export class TaskSession {
 
   setRepositoryExpanded(repositoryRoot: string, expanded: boolean): void {
     if (this.closed) return
-    const expandedRepos = toggledExpandedRepos(
-      this.state.expandedRepos,
+    const next = nextExpandedReposState(
+      this.state,
       repositoryRoot,
       expanded,
     )
-    if (!expandedRepos) return
-    this.publish({ ...this.state, expandedRepos })
+    if (next) this.publish(next)
   }
 
   private publish(next: TaskScreenState): void {
@@ -266,16 +265,12 @@ export class TaskSession {
     if (this.closed || gen !== this.observationEpoch) return
     if (expected !== this.state.selectedTaskId) return
     if (load.kind === 'ready' && load.observation.taskId !== expected) return
-    this.publish(reconcileOverflowChrome({ ...this.state, load }))
-    this.reconcileEventsRead()
-  }
-
-  /** A status read that settles later starts (or drops) the Events read. */
-  private reconcileEventsRead(): void {
-    const state = this.state
-    if (!state.changesPaneOpen || state.paneTab !== 'events') return
-    const allowed = eventsReadAllowed(state)
-    if (allowed && !this.panes.hasEventsObservation()) this.panes.beginEvents()
-    if (!allowed && this.panes.hasEventsObservation()) this.panes.stopEvents()
+    const { next, openPane } = afterTaskLoad(this.state, load)
+    this.publish(next)
+    if (openPane) this.setChangesPaneOpen(true)
+    const want = eventsObservationDesired(this.state)
+    const has = this.panes.hasEventsObservation()
+    if (want && !has) this.panes.beginEvents()
+    if (!want && has) this.panes.stopEvents()
   }
 }

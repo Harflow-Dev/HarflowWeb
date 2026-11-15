@@ -97,6 +97,7 @@ export type AppPresenter = {
   seedTaskOverflowChrome(taskId: TaskId, chrome: TaskOverflowChrome): void
   seedTaskChangesChrome(taskId: TaskId, chrome: TaskChangesChrome): void
   setTaskPaneTab(tab: 'changes' | 'events'): void
+  revealTaskEventsFacts(group: 'enforcement' | 'notices' | 'continuity'): void
   loadTaskEarlierEvents(): void
   selectStatisticsRange(range: StatisticsRangeId): void
   selectSettingsSection(section: SettingsSection): void
@@ -190,6 +191,7 @@ export function createAppPresenter(deps: Deps): AppPresenter {
     seedTaskChangesChrome: (id, chrome) =>
       session.seedTaskChangesChrome(id, chrome),
     setTaskPaneTab: (tab) => session.setTaskPaneTab(tab),
+    revealTaskEventsFacts: (group) => session.revealTaskEventsFacts(group),
     loadTaskEarlierEvents: () => session.loadTaskEarlierEvents(),
     selectStatisticsRange: (range) => session.selectStatisticsRange(range),
     selectSettingsSection: (section) => session.selectSettingsSection(section),

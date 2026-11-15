@@ -58,8 +58,8 @@ independently verified diffs, artifacts, or authorship. Changes pane content is
 a separate recorded-repository observation (not Git, not authorship proof) and
 stays independent of task success. The changes observation query path (`null` =
 fixture default) is kept distinct from the resolved display selection, so later
-updates on the same default observation remain accepted. Switching task closes
-the Changes pane and clears retained file rows; selecting a file keeps the file
+updates on the same default observation remain accepted. Switching task clears retained file rows and loaded pages; pane open state
+and tab are remembered per task id for the session; selecting a file keeps the file
 list mounted while clearing the prior diff under the new identity. Stale
 callbacks are rejected by task, query path, and generation.
 

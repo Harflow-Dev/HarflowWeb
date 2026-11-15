@@ -528,22 +528,32 @@ grant approvals, answer questions, or touch the task store.
   `pane-split`, `pane-overlay`, `loading-pane`, `topbar-facts`,
   `topbar-resource`, `topbar-minimum`. Default pane open is a pure function of
   observed status (settling opens; running/failed stay closed; done/Changes
-  keep seeded open). First open while running selects Events; later closes
-  keep the tab. Split vs overlay uses measured `.hd-main` width (≥900 split).
-  Overlay Escape closes and returns focus to the Show/Hide toggle; the
-  transcript column is `inert` while open. Access / notices / continuity chips
-  open Events and expand the matching facts group. Turn count stays in meta
-  and in Facts; TopbarMeta drops the whole meta line at the minimum frame.
-  Held resource card uses observed `resources` `{names, state, heldForSeconds}`.
-  Pane toggle is always available (`aria-expanded` + `aria-controls`); the
-  design specimen often uses `aria-pressed` — copied behaviour, not the
-  pressed attribute. G-PLATFORM Option C title adjacency is already the
-  shipping top bar; not re-litigated here. Screenshots under
+  keep seeded open). First open while running selects Events (an open during
+  load resolves when the status arrives); later closes keep the tab. Pane open
+  state and tab are remembered per task id for the session; a task never
+  visited uses the status default. Split vs overlay uses the measured
+  `.hd-main` detail width (>=900 split), measured synchronously. Structure
+  mirrors the design: `main.hd-main.hd-m05-main` holds a full-width 44px bar
+  (Option C grid, centred title group; chips, toggle, More at the right), then
+  `.hd-m05-body` with the column and the pane as siblings. Only the column is
+  `inert` while the overlay is open. Overlay Escape closes and returns focus to
+  the opener (chip or toggle); it ignores defaultPrevented events and does
+  nothing while a dialog or the More menu is open. Chips open Events, expand
+  the matching facts group (re-clicking re-expands) and focus its summary.
+  Turn count stays in meta and in Facts. At narrow detail widths (<=835, the
+  design's frame < 1100 with the 264 sidebar) the bar drops the meta visually
+  (kept once as hidden text, no dot) and chips compact; this breakpoint is
+  independent of the 900 split rule. Held resource card reads the engine
+  `resources` fields (`names`, `reservationId`, `state`, `grantedAt`); "Since
+  Nm ago" is computed from `grantedAt` and the status `observedAt`, and the
+  line is omitted when either is unknown. The card shows `names[0]` only, as
+  the design specimen does. The pane toggle keeps the design's Show/Hide labels
+  with `aria-expanded`; it is not rendered when no pane can render
+  (unavailable task). `loading-pane` keeps the real title when the listing
+  knows it (known deviation, provenance.md) and otherwise follows the design.
+  Open item: design `events-page-error` wording (Retry history read, same
+  page re-read) from `40b8a19` is not yet adopted in Web. Screenshots under
   `~/.codex/workflows/screenshots/2026-11-15-harflowweb-task-pane-topbar/`.
-  Recaptures of `task-done`, `task-running-stop`, `task-failed`,
-  `task-changes-single`, and `task-events-populated` show no intentional
-  layout change beyond the always-on pane toggle and top-bar chips where
-  facts exist.
 
 ## Unresolved questions
 

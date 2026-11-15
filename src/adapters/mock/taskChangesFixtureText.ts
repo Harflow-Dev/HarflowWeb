@@ -1,10 +1,12 @@
 import type {
   TaskChangesObservation,
   TaskChangesTextObservation,
-  TaskChangesTextPanel,
-  TaskChangesTurnMember,
   TaskId,
 } from '../../model'
+import type {
+  TaskChangesTextPanelSeed,
+  TaskChangesTurnSeed,
+} from './scenarioSeed'
 import {
   BIG_MODULE_ENTRY,
   CONFIG_ENTRY,
@@ -116,7 +118,7 @@ export function testRefusalText(): TaskChangesTextObservation {
 }
 
 /** The stacked text-mode specimen: loading, a paged chunk, then a refusal. */
-export function textSpecimenPanels(): readonly TaskChangesTextPanel[] {
+export function textSpecimenPanels(): readonly TaskChangesTextPanelSeed[] {
   return [
     { kind: 'loading', entry: QUEUE_ENTRY },
     { kind: 'chunk', text: configChunkText() },
@@ -125,7 +127,7 @@ export function textSpecimenPanels(): readonly TaskChangesTextPanel[] {
 }
 
 /** Turn lineage seeded as chrome; each member is its own task. */
-export function turnsMembers(): readonly TaskChangesTurnMember[] {
+export function turnsMembers(): readonly TaskChangesTurnSeed[] {
   return [
     { taskId: TASK_CHANGES_TURNS_ID, turnIndex: 3, turnCount: 3, current: true },
     { taskId: TASK_CHANGES_TURN_2_ID, turnIndex: 2, turnCount: 3, current: false },

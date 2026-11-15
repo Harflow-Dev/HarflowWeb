@@ -1,7 +1,9 @@
 import { useRef, useState, type KeyboardEvent } from 'react'
-import type { TaskPaneTab } from '../presentation/taskState'
 import { Icon } from './Icon'
-import { TASK_ARTIFACTS_UNAVAILABLE_ID } from './taskUnavailable'
+import {
+  TASK_ARTIFACTS_UNAVAILABLE_ID,
+  TASK_OPEN_EVENTS_UNAVAILABLE_ID,
+} from './taskUnavailable'
 
 /** Ids tying the tablist to the pane body it controls. */
 export const TASK_PANE_PANEL_ID = 'task-pane-panel'
@@ -9,55 +11,58 @@ export const TASK_PANE_CHANGES_TAB_ID = 'task-pane-tab-changes'
 
 type Props = {
   readonly changesCount: string | null
-  readonly onSelectTab: (tab: TaskPaneTab) => void
   readonly onClosePane: () => void
   readonly onUnavailable: (label: string) => void
 }
 
-type EnabledTab = TaskPaneTab
+type TabKey = 'changes' | 'artifacts' | 'events'
+const ORDER: readonly TabKey[] = ['changes', 'artifacts', 'events']
 
 /**
  * Changes / Artifacts / Events tablist plus Close, matching design paneHtml.
- * Roving tabindex over the enabled tabs: Left/Right wrap, Home/End jump, and
- * the aria-disabled Artifacts tab is skipped. Arrow keys move focus only;
- * Enter or Space activates, as for a click.
+ * Roving tabindex over every tab: Left/Right wrap and Home/End jump. Artifacts
+ * and Events are aria-disabled but stay focusable so keyboard users reach
+ * their explanation; activating them only reports "unavailable". Arrow keys
+ * move focus only.
  */
 export function TaskPaneTabs({
   changesCount,
-  onSelectTab,
   onClosePane,
   onUnavailable,
 }: Props) {
-  const refs = useRef<Record<EnabledTab, HTMLButtonElement | null>>({
+  const refs = useRef<Record<TabKey, HTMLButtonElement | null>>({
     changes: null,
+    artifacts: null,
     events: null,
   })
-  const [focused, setFocused] = useState<EnabledTab>('changes')
-  const order: readonly EnabledTab[] = ['changes', 'events']
+  const [focused, setFocused] = useState<TabKey>('changes')
 
   function onKeyDown(event: KeyboardEvent<HTMLDivElement>): void {
-    const index = order.indexOf(focused)
-    const target = nextTab(event.key, index, order.length)
+    const target = nextTab(event.key, ORDER.indexOf(focused), ORDER.length)
     if (target === null) return
     event.preventDefault()
-    const next = order[target]
+    const next = ORDER[target]
     if (next !== undefined) refs.current[next]?.focus()
   }
+
+  const tabProps = (key: TabKey) => ({
+    ref: (el: HTMLButtonElement | null) => {
+      refs.current[key] = el
+    },
+    role: 'tab' as const,
+    type: 'button' as const,
+    tabIndex: focused === key ? 0 : -1,
+    onFocus: () => setFocused(key),
+  })
 
   return (
     <div className="hd-pane__head">
       <div className="hd-tabs" role="tablist" onKeyDown={onKeyDown}>
         <button
-          ref={(el) => {
-            refs.current.changes = el
-          }}
+          {...tabProps('changes')}
           id={TASK_PANE_CHANGES_TAB_ID}
-          type="button"
-          role="tab"
           aria-selected="true"
           aria-controls={TASK_PANE_PANEL_ID}
-          tabIndex={focused === 'changes' ? 0 : -1}
-          onFocus={() => setFocused('changes')}
           className="hd-tab is-active"
         >
           Changes
@@ -69,11 +74,9 @@ export function TaskPaneTabs({
           ) : null}
         </button>
         <button
-          type="button"
-          role="tab"
+          {...tabProps('artifacts')}
           aria-selected="false"
           aria-disabled="true"
-          tabIndex={-1}
           className="hd-tab is-disabled"
           aria-describedby={TASK_ARTIFACTS_UNAVAILABLE_ID}
           onClick={() => onUnavailable('Artifacts')}
@@ -81,16 +84,12 @@ export function TaskPaneTabs({
           Artifacts
         </button>
         <button
-          ref={(el) => {
-            refs.current.events = el
-          }}
-          type="button"
-          role="tab"
+          {...tabProps('events')}
           aria-selected="false"
-          tabIndex={focused === 'events' ? 0 : -1}
-          onFocus={() => setFocused('events')}
+          aria-disabled="true"
           className="hd-tab"
-          onClick={() => onSelectTab('events')}
+          aria-describedby={TASK_OPEN_EVENTS_UNAVAILABLE_ID}
+          onClick={() => onUnavailable('Open Events')}
         >
           Events
         </button>

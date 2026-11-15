@@ -19,8 +19,8 @@ import {
   asTaskId,
   type TaskChangesObservation,
   type TaskChangesTextObservation,
-  type TaskChangesTextPanel,
 } from '../model'
+import type { TaskChangesTextPanel } from '../presentation/taskState'
 import { TaskChangesPane, type TaskChangesPaneProps } from './TaskChangesPane'
 
 afterEach(() => {
@@ -42,7 +42,6 @@ function props(
     turns: null,
     textPanels: null,
     onSelectEntry: () => undefined,
-    onSelectTab: () => undefined,
     onSelectTurn: () => undefined,
     onToggleRepo: () => undefined,
     onClosePane: () => undefined,

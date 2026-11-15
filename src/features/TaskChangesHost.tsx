@@ -1,11 +1,10 @@
 import { TaskChangesPane } from '../components'
 import type { TaskChangesEntryRef, TaskId } from '../model'
-import type { TaskPaneTab, TaskScreenState } from '../presentation'
+import type { TaskScreenState } from '../presentation'
 
 type Props = {
   readonly state: TaskScreenState
   readonly onSelectEntry: (entry: TaskChangesEntryRef) => void
-  readonly onSelectTab: (tab: TaskPaneTab) => void
   readonly onSelectTurn: (taskId: TaskId) => void
   readonly onToggleRepo: (root: string, expanded: boolean) => void
   readonly onClosePane: () => void
@@ -16,7 +15,6 @@ type Props = {
 export function TaskChangesHost({
   state,
   onSelectEntry,
-  onSelectTab,
   onSelectTurn,
   onToggleRepo,
   onClosePane,
@@ -33,7 +31,6 @@ export function TaskChangesHost({
       turns={state.changesTurns}
       textPanels={state.changesTextPanels}
       onSelectEntry={onSelectEntry}
-      onSelectTab={onSelectTab}
       onSelectTurn={onSelectTurn}
       onToggleRepo={onToggleRepo}
       onClosePane={onClosePane}

@@ -46,7 +46,6 @@ import type {
   TaskDialogKind,
   TaskDialogOpener,
   TaskOverflowChrome,
-  TaskPaneTab,
 } from './taskState'
 
 export type AppPresenter = {
@@ -85,7 +84,6 @@ export type AppPresenter = {
   openTask(taskId: TaskId): void
   setTaskChangesPaneOpen(open: boolean): void
   selectTaskChangedEntry(entry: TaskChangesEntryRef): void
-  setTaskPaneTab(tab: TaskPaneTab): void
   selectTaskChangesTurn(taskId: TaskId): void
   setTaskRepositoryExpanded(repositoryRoot: string, expanded: boolean): void
   seedTaskCommandChrome(taskId: TaskId, chrome: TaskCommandChrome): void
@@ -175,7 +173,6 @@ export function createAppPresenter(deps: Deps): AppPresenter {
     openTask: (taskId) => session.openTask(taskId),
     setTaskChangesPaneOpen: (open) => session.setTaskChangesPaneOpen(open),
     selectTaskChangedEntry: (entry) => session.selectTaskChangedEntry(entry),
-    setTaskPaneTab: (tab) => session.setTaskPaneTab(tab),
     selectTaskChangesTurn: (taskId) => session.selectTaskChangesTurn(taskId),
     setTaskRepositoryExpanded: (root, expanded) =>
       session.setTaskRepositoryExpanded(root, expanded),

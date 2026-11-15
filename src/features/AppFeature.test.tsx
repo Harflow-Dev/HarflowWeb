@@ -1454,8 +1454,15 @@ describe('AppFeature navigation', () => {
       screen.getByRole('button', { name: 'Toggle right pane' }),
     )
     await screen.findByRole('complementary', { name: 'Task details' })
-    await user.click(screen.getByRole('tab', { name: 'Events' }))
-    expect(presenter.getState().task.paneTab).toBe('events')
+    const before = presenter.getState().task
+    const paneBody = document.querySelector('[role="tabpanel"]')!.innerHTML
+    const events = screen.getByRole('tab', { name: 'Events' })
+    await user.click(events)
+    events.focus()
+    await user.keyboard('{Enter}')
+    // Events is unavailable in this slice: nothing about the task or pane changes.
+    expect(presenter.getState().task).toBe(before)
+    expect(document.querySelector('[role="tabpanel"]')!.innerHTML).toBe(paneBody)
     expect(
       screen.getByRole('button', {
         name: 'Send follow-up (unavailable in this slice)',

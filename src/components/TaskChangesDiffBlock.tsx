@@ -2,8 +2,8 @@ import type {
   DiffLine,
   TaskChangesEntryRef,
   TaskChangesTextObservation,
-  TaskChangesTextPanel,
 } from '../model'
+import type { TaskChangesTextPanel } from '../presentation/taskState'
 import {
   SAME_PATH_CAPTION,
   TEXT_LOADING_CAPTION,

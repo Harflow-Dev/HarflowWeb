@@ -26,7 +26,6 @@ export function seededChangesChromeState(
   if (!state.changesPaneOpen) return null
   return {
     ...state,
-    paneTab: chrome.paneTab ?? state.paneTab,
     changesQueryEntry:
       chrome.selectedEntry !== undefined
         ? chrome.selectedEntry
@@ -103,7 +102,6 @@ export function closedChangesPaneState(state: TaskScreenState): TaskScreenState 
   return {
     ...state,
     changesPaneOpen: false,
-    paneTab: 'changes',
     changesQueryEntry: null,
     selectedChangeEntry: null,
     changesList: null,
@@ -126,7 +124,6 @@ export function openedChangesPaneState(state: TaskScreenState): {
     next: {
       ...state,
       changesPaneOpen: true,
-      paneTab: usesEvents ? 'events' : 'changes',
       changesQueryEntry: null,
       selectedChangeEntry: null,
       changesList: null,
@@ -149,7 +146,6 @@ export function loadingTaskScreenState(taskId: TaskId): TaskScreenState {
     dialog: null,
     dialogOpener: null,
     changesPaneOpen: false,
-    paneTab: 'changes',
     changesQueryEntry: null,
     selectedChangeEntry: null,
     changesList: null,

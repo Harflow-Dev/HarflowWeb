@@ -1,7 +1,6 @@
 import type {
   TaskChangesEntryRef,
-  TaskChangesTextPanel,
-  TaskChangesTurnMember,
+  TaskChangesTextObservation,
   TaskId,
 } from '../../model'
 
@@ -12,16 +11,29 @@ export type TaskCommandChromeSeed =
   | 'continue-started'
   | 'continue-unknown'
 
+/** Structural mirror of presentation `TaskChangesTurnMember` (turn lineage chrome). */
+export type TaskChangesTurnSeed = {
+  readonly taskId: TaskId
+  readonly turnIndex: number
+  readonly turnCount: number
+  readonly current: boolean
+}
+
+/** Structural mirror of presentation `TaskChangesTextPanel` (specimen chrome). */
+export type TaskChangesTextPanelSeed =
+  | { readonly kind: 'loading'; readonly entry: TaskChangesEntryRef }
+  | { readonly kind: 'chunk'; readonly text: TaskChangesTextObservation }
+  | { readonly kind: 'refusal'; readonly entry: TaskChangesEntryRef }
+
 /** Changes-pane chrome a preview scenario seeds after the pane opens. */
 export type TaskChangesChromeSeed = {
-  readonly paneTab?: 'changes' | 'events'
   readonly selectedEntry?: TaskChangesEntryRef | null
   readonly turnTaskId?: TaskId | null
   readonly expandedRepos?: readonly string[]
   /** Turn lineage drawn by the turn picker (not a task-changes.v1 field). */
-  readonly turns?: readonly TaskChangesTurnMember[]
+  readonly turns?: readonly TaskChangesTurnSeed[]
   /** Stacked text-mode specimen drawn instead of the list. */
-  readonly textPanels?: readonly TaskChangesTextPanel[]
+  readonly textPanels?: readonly TaskChangesTextPanelSeed[]
 }
 
 /**

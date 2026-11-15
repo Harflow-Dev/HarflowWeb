@@ -40,7 +40,6 @@ import type {
   TaskDialogKind,
   TaskDialogOpener,
   TaskOverflowChrome,
-  TaskPaneTab,
 } from './taskState'
 
 export type AppListener = (state: AppScreenState) => void
@@ -191,7 +190,6 @@ export class AppSession {
   selectTaskChangedEntry(entry: TaskChangesEntryRef): void {
     this.children.task.selectChangedEntry(entry)
   }
-  setTaskPaneTab(tab: TaskPaneTab): void { this.children.task.setPaneTab(tab) }
   selectTaskChangesTurn(taskId: TaskId): void {
     this.children.task.selectChangesTurn(taskId)
   }

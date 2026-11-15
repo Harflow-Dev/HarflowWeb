@@ -15,7 +15,6 @@ import {
   type TaskDialogKind,
   type TaskDialogOpener,
   type TaskOverflowChrome,
-  type TaskPaneTab,
   type TaskScreenState,
 } from './taskState'
 import {
@@ -123,20 +122,6 @@ export class TaskSession {
     const opened = openedChangesPaneState(this.state)
     this.publish(opened.next)
     if (opened.observeChanges) this.beginChangesObservation()
-  }
-
-  setPaneTab(tab: TaskPaneTab): void {
-    if (this.disposed || !this.state.changesPaneOpen) return
-    if (tab === this.state.paneTab) return
-    this.publish({ ...this.state, paneTab: tab })
-    if (
-      tab === 'changes' &&
-      this.state.load.kind === 'ready' &&
-      this.state.load.observation.detailsPane === 'changes' &&
-      !this.changesObservation
-    ) {
-      this.beginChangesObservation()
-    }
   }
 
   seedTaskCommandChrome(taskId: TaskId, chrome: TaskCommandChrome): void {

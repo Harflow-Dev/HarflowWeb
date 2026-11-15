@@ -70,12 +70,20 @@ const DOCUMENT_UNAVAILABLE_TITLE = 'Stored changes unavailable'
 const HISTORY_UNAFFECTED = 'Other task history is unaffected.'
 
 /** Body text for an unavailable stored document, keyed by `capture.reason`. */
-const DOCUMENT_UNAVAILABLE_BODIES: Readonly<Record<string, string>> = {
-  capture_too_large: `The stored capture is too large to read. ${HISTORY_UNAFFECTED}`,
-  capture_error: `The capture failed when the task settled. ${HISTORY_UNAFFECTED}`,
-  changes_document_invalid: `The stored capture failed validation. ${HISTORY_UNAFFECTED}`,
-  unsupported_engine: `This engine does not support Changes. ${HISTORY_UNAFFECTED}`,
-}
+const DOCUMENT_UNAVAILABLE_BODIES: ReadonlyMap<string, string> = new Map([
+  [
+    'capture_too_large',
+    `The stored capture is too large to read. ${HISTORY_UNAFFECTED}`,
+  ],
+  [
+    'capture_error',
+    `The capture failed when the task settled. ${HISTORY_UNAFFECTED}`,
+  ],
+  [
+    'changes_document_invalid',
+    `The stored capture failed validation. ${HISTORY_UNAFFECTED}`,
+  ],
+])
 
 const DOCUMENT_UNAVAILABLE_FALLBACK = `The stored capture could not be read. ${HISTORY_UNAFFECTED}`
 
@@ -86,7 +94,7 @@ export function documentUnavailableNote(reason: string | null): {
   return {
     title: DOCUMENT_UNAVAILABLE_TITLE,
     body:
-      (reason !== null ? DOCUMENT_UNAVAILABLE_BODIES[reason] : undefined) ??
+      (reason !== null ? DOCUMENT_UNAVAILABLE_BODIES.get(reason) : undefined) ??
       DOCUMENT_UNAVAILABLE_FALLBACK,
   }
 }
@@ -145,24 +153,28 @@ export function taskLevelNotCapturedNote(reason: string | null): {
   }
 }
 
-const REPOSITORY_REASON_NOTES: Readonly<Record<string, string>> = {
-  alternates_present:
+const REPOSITORY_REASON_NOTES: ReadonlyMap<string, string> = new Map([
+  [
+    'alternates_present',
     'This repository uses alternates, which capture never accepts. Nothing about it was read.',
-}
+  ],
+])
 
 /** Caption for a repository that has no scopes, keyed by its reason. */
 export function repositoryReasonNote(reason: string | null): string | null {
-  return reason === null ? null : (REPOSITORY_REASON_NOTES[reason] ?? null)
+  return reason === null ? null : (REPOSITORY_REASON_NOTES.get(reason) ?? null)
 }
 
-const SCOPE_REASON_NOTES: Readonly<Record<string, string>> = {
-  git_dir_unverified:
+const SCOPE_REASON_NOTES: ReadonlyMap<string, string> = new Map([
+  [
+    'git_dir_unverified',
     'Its Git directory could not be verified, so no command was given this work tree.',
-}
+  ],
+])
 
 /** Caption for a scope that was not captured, keyed by its reason. */
 export function scopeReasonNote(reason: string | null): string | null {
-  return reason === null ? null : (SCOPE_REASON_NOTES[reason] ?? null)
+  return reason === null ? null : (SCOPE_REASON_NOTES.get(reason) ?? null)
 }
 
 /** Zero rows in a scope whose conflicts were never examined. */

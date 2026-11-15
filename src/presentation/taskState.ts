@@ -2,8 +2,7 @@ import type {
   TaskChangesEntryRef,
   TaskChangesLoad,
   TaskChangesObservation,
-  TaskChangesTextPanel,
-  TaskChangesTurnMember,
+  TaskChangesTextObservation,
   TaskId,
   TaskLoad,
 } from '../model'
@@ -17,8 +16,19 @@ export type TaskDialogKind = 'stop' | 'takeover'
 /** Control that opened the dialog; used to restore focus on close. */
 export type TaskDialogOpener = 'more' | 'composer-stop' | 'banner-stop'
 
-/** Right-pane tab — Artifacts stays unavailable in this slice. */
-export type TaskPaneTab = 'changes' | 'events'
+/** One turn of a continuation chain; each turn is its own supervised task. */
+export type TaskChangesTurnMember = {
+  readonly taskId: TaskId
+  readonly turnIndex: number
+  readonly turnCount: number
+  readonly current: boolean
+}
+
+/** One panel of the seeded stacked text-mode specimen (chrome, not observation). */
+export type TaskChangesTextPanel =
+  | { readonly kind: 'loading'; readonly entry: TaskChangesEntryRef }
+  | { readonly kind: 'chunk'; readonly text: TaskChangesTextObservation }
+  | { readonly kind: 'refusal'; readonly entry: TaskChangesEntryRef }
 
 export type TaskScreenState = {
   readonly selectedTaskId: TaskId | null
@@ -39,10 +49,8 @@ export type TaskScreenState = {
   readonly dialog: TaskDialogKind | null
   /** Which control opened the dialog; null when seeded without a trigger. */
   readonly dialogOpener: TaskDialogOpener | null
-  /** Right pane open — Changes or Events body by paneTab. */
+  /** Right pane open (the Changes pane; Events content is a later slice). */
   readonly changesPaneOpen: boolean
-  /** Active pane tab (presentation chrome). */
-  readonly paneTab: TaskPaneTab
   /**
    * Entry used for the active changes observation query.
    * Null means the fixture default — distinct from resolved display selection.
@@ -76,7 +84,6 @@ export function initialTaskState(): TaskScreenState {
     dialog: null,
     dialogOpener: null,
     changesPaneOpen: false,
-    paneTab: 'changes',
     changesQueryEntry: null,
     selectedChangeEntry: null,
     changesList: null,
@@ -98,7 +105,6 @@ export type TaskOverflowChrome = {
 
 /** Preview / session chrome for the Changes pane. */
 export type TaskChangesChrome = {
-  readonly paneTab?: TaskPaneTab
   readonly selectedEntry?: TaskChangesEntryRef | null
   readonly turnTaskId?: TaskId | null
   readonly expandedRepos?: readonly string[]

@@ -171,7 +171,6 @@ export function AppFeature({ presenter }: Props) {
               onSelectChangedEntry={(entry) =>
                 presenter.selectTaskChangedEntry(entry)
               }
-              onSelectPaneTab={(tab) => presenter.setTaskPaneTab(tab)}
               onSelectChangesTurn={(taskId) =>
                 presenter.selectTaskChangesTurn(taskId)
               }

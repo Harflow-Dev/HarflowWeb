@@ -38,7 +38,6 @@ function renderPane(
     turns,
     textPanels: null,
     onSelectEntry: () => undefined,
-    onSelectTab: () => undefined,
     onSelectTurn: () => undefined,
     onToggleRepo: () => undefined,
     onClosePane: () => undefined,

@@ -24,11 +24,15 @@ export function applyTaskChangesSeed(
   whenLoaded(
     presenter,
     // The pane opens after the task load settles (applyTaskOpenSeed), so a
-    // closed pane means "not yet", not "no longer the seeded item".
-    (state) => ({
-      open: state.task.selectedTaskId === taskId,
-      kind: state.task.changesPaneOpen ? state.task.load.kind : 'loading',
-    }),
+    // ready task with a closed pane means "not yet". Any other load kind is
+    // reported as is, so an unavailable task ends the wait.
+    (state) => {
+      const kind = state.task.load.kind
+      return {
+        open: state.task.selectedTaskId === taskId,
+        kind: kind === 'ready' && !state.task.changesPaneOpen ? 'loading' : kind,
+      }
+    },
     () => presenter.seedTaskChangesChrome(taskId, chrome),
   )
 }

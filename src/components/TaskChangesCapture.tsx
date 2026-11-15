@@ -1,10 +1,9 @@
 import type {
   TaskChangesEntryRef,
   TaskChangesObservation,
-  TaskChangesTextPanel,
-  TaskChangesTurnMember,
   TaskId,
 } from '../model'
+import type { TaskChangesTextPanel, TaskChangesTurnMember } from '../presentation/taskState'
 import {
   CHANGES_ATTRIBUTION,
   INCOMPLETE_NOTE,

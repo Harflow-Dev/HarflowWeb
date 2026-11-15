@@ -413,16 +413,25 @@ grant approvals, answer questions, or touch the task store.
     HarflowMCP's own fixture does not exercise; the contract allows it (a scope
     cut short before the conflict step) but no fixture covers it.
   - **Undesigned copy.** The unavailable-document body is chosen by
-    `capture.reason` (`capture_too_large` is the drawn text; `capture_error`,
-    `changes_document_invalid` and the older-engine message are derived from
-    the drawn reasons list and have no designed body; no code path produces
-    the older-engine case yet, because it needs the capability handshake). A
+    `capture.reason` (`capture_too_large` is the drawn text; `capture_error` and
+    `changes_document_invalid` are derived from the drawn reasons list and
+    have no designed body; the older-engine usage error stays only in the
+    drawn reasons list, because no model path produces it before the
+    capability handshake exists). A
     `not_captured` capture with no repositories draws the not-observed note
     above the drawn reasons list; `capture_missing` wording is undesigned.
-  - **Tabs.** The Changes pane tablist is a roving tablist (Left/Right wrap,
-    Home/End, aria-disabled Artifacts skipped, arrows move focus only) with a
-    labelled `tabpanel`; no pixel changes. The Events pane tablist keeps its
-    existing markup.
+  - **Tabs.** The Changes pane tablist is a roving tablist over all three
+    tabs (Left/Right wrap, Home/End; arrows move focus only) with a labelled
+    `tabpanel`; no pixel changes. Artifacts and Events are `aria-disabled`,
+    stay focusable and point at their explanation ids; activating them only
+    reports "unavailable" and changes neither the pane nor any state (Events
+    content is the next slice, so there is no pane-tab state). The Events pane
+    tablist keeps its existing markup.
+  - **Intended deviation: `changes-row-states` selection.** Web seeds
+    `src/big_module.py` as the selected row (the design draws no selection but
+    does draw that file's diff text), because Web needs a selection to show
+    text. Row-states text compares equal to the design at the text level
+    because the design also draws that diff.
 - **M05 remaining deviations (honest list).**
   - Settling Changes copy is drawn when the lifecycle maps to settling (or
     the dedicated incomplete/settling capture); status fixtures that leave

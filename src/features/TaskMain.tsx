@@ -9,7 +9,6 @@ import type {
 } from '../model'
 import {
   type TaskDialogOpener,
-  type TaskPaneTab,
   type TaskScreenState,
   overflowMenuView,
   taskStatusView,
@@ -27,7 +26,6 @@ type Props = {
   readonly onAnnounce: (message: string) => void
   readonly onToggleChangesPane: (open: boolean) => void
   readonly onSelectChangedEntry: (entry: TaskChangesEntryRef) => void
-  readonly onSelectPaneTab: (tab: TaskPaneTab) => void
   readonly onSelectChangesTurn: (taskId: TaskId) => void
   readonly onToggleChangesRepo: (root: string, expanded: boolean) => void
   readonly onToggleOverflowMenu: () => void
@@ -51,7 +49,6 @@ export function TaskMain({
   onAnnounce,
   onToggleChangesPane,
   onSelectChangedEntry,
-  onSelectPaneTab,
   onSelectChangesTurn,
   onToggleChangesRepo,
   onToggleOverflowMenu,
@@ -225,7 +222,6 @@ export function TaskMain({
         <TaskChangesHost
           state={state}
           onSelectEntry={onSelectChangedEntry}
-          onSelectTab={onSelectPaneTab}
           onSelectTurn={onSelectChangesTurn}
           onToggleRepo={onToggleChangesRepo}
           onClosePane={() => onToggleChangesPane(false)}

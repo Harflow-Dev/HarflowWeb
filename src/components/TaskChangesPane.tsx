@@ -2,14 +2,12 @@ import type {
   TaskChangesEntryRef,
   TaskChangesLoad,
   TaskChangesObservation,
-  TaskChangesTextPanel,
-  TaskChangesTurnMember,
   TaskId,
   TaskObservation,
 } from '../model'
+import type { TaskChangesTextPanel, TaskChangesTurnMember } from '../presentation/taskState'
 import { changesTabCount } from '../presentation/taskChangesCounts'
 import { changesLifecycleFor } from '../presentation/taskChangesLifecycle'
-import type { TaskPaneTab } from '../presentation/taskState'
 import { TaskChangesBody } from './TaskChangesBody'
 import {
   TASK_PANE_CHANGES_TAB_ID,
@@ -26,7 +24,6 @@ export type TaskChangesPaneProps = {
   readonly turns: readonly TaskChangesTurnMember[] | null
   readonly textPanels: readonly TaskChangesTextPanel[] | null
   readonly onSelectEntry: (entry: TaskChangesEntryRef) => void
-  readonly onSelectTab: (tab: TaskPaneTab) => void
   readonly onSelectTurn: (taskId: TaskId) => void
   readonly onToggleRepo: (repositoryRoot: string, expanded: boolean) => void
   readonly onClosePane: () => void
@@ -47,7 +44,6 @@ export function TaskChangesPane({
   turns,
   textPanels,
   onSelectEntry,
-  onSelectTab,
   onSelectTurn,
   onToggleRepo,
   onClosePane,
@@ -63,7 +59,6 @@ export function TaskChangesPane({
     <aside className="hd-pane hd-m05-pane" aria-label="Task details">
       <TaskPaneTabs
         changesCount={count}
-        onSelectTab={onSelectTab}
         onClosePane={onClosePane}
         onUnavailable={onUnavailable}
       />

@@ -47,7 +47,6 @@ function paneProps(taskObservation: TaskObservation): TaskChangesPaneProps {
     turns: null,
     textPanels: null,
     onSelectEntry: () => undefined,
-    onSelectTab: () => undefined,
     onSelectTurn: () => undefined,
     onToggleRepo: () => undefined,
     onClosePane: () => undefined,

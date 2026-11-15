@@ -174,10 +174,13 @@ describe('reason-keyed copy', () => {
     expect(documentUnavailableNote('changes_document_invalid').body).toContain(
       'validation',
     )
-    expect(documentUnavailableNote('unsupported_engine').body).toContain(
-      'does not support Changes',
-    )
     expect(documentUnavailableNote(null).body).toContain('could not be read')
+    // Prototype keys are not reasons.
+    for (const key of ['toString', 'constructor', '__proto__', 'hasOwnProperty']) {
+      expect(documentUnavailableNote(key).body).toContain('could not be read')
+      expect(repositoryReasonNote(key)).toBeNull()
+      expect(scopeReasonNote(key)).toBeNull()
+    }
   })
 
   it('keys repository and scope captions by contract reason', () => {

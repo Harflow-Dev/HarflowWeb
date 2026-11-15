@@ -3,11 +3,10 @@ import type {
   TaskChangesEntryRef,
   TaskChangesLoad,
   TaskChangesObservation,
-  TaskChangesTextPanel,
-  TaskChangesTurnMember,
   TaskId,
   TaskObservation,
 } from '../model'
+import type { TaskChangesTextPanel, TaskChangesTurnMember } from '../presentation/taskState'
 import { changesLifecycleFor } from '../presentation/taskChangesLifecycle'
 import { TaskChangesCapture } from './TaskChangesCapture'
 import {

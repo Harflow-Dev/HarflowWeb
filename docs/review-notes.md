@@ -372,11 +372,57 @@ grant approvals, answer questions, or touch the task store.
   The pane follows repository → scope → rows with the engine attribution
   sentence, Provenance disclosure, tab-count rule, lifecycle overrides
   (pending / unread / running / inferred / settling / stored capture), and
-  turn picker. Artifacts stays in the tab bar but is unavailable (contract
-  gap: no `task-artifacts` fixture); Events keeps today's content. Confirms
+  turn picker. Artifacts stays in the tab bar but is unavailable: that is a
+  scope choice, not a contract gap (HarflowMCP has `task-artifacts.v1`,
+  `docs/task-artifacts.md` and `ctl-task-artifacts-*` fixtures; the content
+  design is provisional). Events keeps today's content. Confirms
   for Retry / Load more / Reload stay unavailable. Screenshots under
   `~/.codex/workflows/screenshots/2026-11-14-harflowweb-task-changes/`;
   transcript screens checked pixel-identical to `b60b2fc`.
+  - **Model follows `task-changes.v1`.** Repository identity is its root (the
+    name is derived in presentation); `observed_at` is stored as an instant
+    and formatted in presentation; `unmerged_unknown`, `reported_conflicts`
+    and `counts_and_patch_separate` exist on the working-tree scope only. A
+    path that is not valid UTF-8 arrives as `path_bytes_b64` (path null);
+    presentation draws the `\xNN` escape and the "Bytes, not UTF-8" label
+    while the row content stays normal. The engine invents no repository
+    reasons such as `reported_conflict`: the "Reported conflict" tag and the
+    advisory caption come from the working-tree scope's conflict names, and a
+    repository with a captured committed range and an uncaptured working tree
+    is `available`.
+  - **UI state is not observation.** No row is selected by default; the
+    design's selected rows (single, row-states, turns, same-path, and the
+    `task-done` / `task-overflow-settled` recaptures) are seeded chrome. So
+    are the turn lineage (not a `task-changes.v1` fact), the stacked text-mode
+    specimen panels, and the alternates repository drawn open in
+    `changes-not-captured`. Display wording (scope label, "Read N of M
+    stored", short task id `7be02d91`) is computed in presentation.
+  - **Summary layout** starts at four repositories
+    (`CHANGES_SUMMARY_LAYOUT_MIN_REPOSITORIES`). As the design draws it, it
+    shows the attribution sentence once at pane level and hides each
+    repository's Provenance disclosure, so Provenance is not reachable in the
+    8-repository states; below four, attribution and Provenance sit inside
+    each repository that has scopes. The tab-count caption shows only when a
+    tab count is drawn. A repository count is not drawn under the
+    complete-zero caption. A scope count gets "+" only for truncated rows.
+  - **Incomplete fixture.** The design draws the working tree of
+    `changes-incomplete` as available, zero rows, "Conflicts unknown". The
+    fixture carries `unmerged_unknown: true` there. The contract's
+    `ctl-task-changes-incomplete.json` has that scope `available` with
+    `unmerged_unknown: false` (index read), so the design's tag is a state
+    HarflowMCP's own fixture does not exercise; the contract allows it (a scope
+    cut short before the conflict step) but no fixture covers it.
+  - **Undesigned copy.** The unavailable-document body is chosen by
+    `capture.reason` (`capture_too_large` is the drawn text; `capture_error`,
+    `changes_document_invalid` and the older-engine message are derived from
+    the drawn reasons list and have no designed body; no code path produces
+    the older-engine case yet, because it needs the capability handshake). A
+    `not_captured` capture with no repositories draws the not-observed note
+    above the drawn reasons list; `capture_missing` wording is undesigned.
+  - **Tabs.** The Changes pane tablist is a roving tablist (Left/Right wrap,
+    Home/End, aria-disabled Artifacts skipped, arrows move focus only) with a
+    labelled `tabpanel`; no pixel changes. The Events pane tablist keeps its
+    existing markup.
 - **M05 remaining deviations (honest list).**
   - Settling Changes copy is drawn when the lifecycle maps to settling (or
     the dedicated incomplete/settling capture); status fixtures that leave

@@ -151,7 +151,10 @@ export type TaskObservation = {
   readonly exitObserved?: boolean
   /** Post-finish grace while last events or capture may still arrive. */
   readonly settling?: boolean
-  /** When this status snapshot was read (ISO-8601); ages are relative to it. */
+  /**
+   * When the adapter read this status (ISO-8601). Not an engine status
+   * field: ages such as the held-resource age are relative to it.
+   */
   readonly observedAt?: string
   /** Observed run duration in seconds; presentation formats the badge clock. */
   readonly elapsedSeconds?: number

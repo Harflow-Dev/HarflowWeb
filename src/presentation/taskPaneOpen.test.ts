@@ -107,10 +107,20 @@ describe('afterTaskLoad openPane', () => {
     expect(afterTaskLoad(stateWith({}), readyLoad(TASK_STATUS_SETTLING_ID)).openPane).toBe(true)
   })
 
-  it('stays false for plain running, failed and completed tasks', () => {
-    for (const id of [RUNNING, FAILED, COMPLETED]) {
+  it('stays false for plain running and failed tasks', () => {
+    for (const id of [RUNNING, FAILED]) {
       expect(afterTaskLoad(stateWith({}), readyLoad(id)).openPane, id).toBe(false)
     }
+  })
+
+  it('opens for a completed task with an observed exit', () => {
+    expect(afterTaskLoad(stateWith({}), readyLoad(COMPLETED)).openPane).toBe(true)
+  })
+
+  it('keeps an inferred done task closed', () => {
+    expect(
+      afterTaskLoad(stateWith({}), readyLoad('task-m05-unknown-done')).openPane,
+    ).toBe(false)
   })
 
   it('stays false when the pane is already open or the task was not loading', () => {

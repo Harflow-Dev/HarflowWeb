@@ -97,10 +97,6 @@ export class TaskSession {
     this.closed = false
     if (this.state.selectedTaskId) {
       this.beginObservation(this.state.selectedTaskId)
-      if (this.state.changesPaneOpen) {
-        this.panes.beginChanges()
-        this.panes.beginEvents()
-      }
     }
   }
 

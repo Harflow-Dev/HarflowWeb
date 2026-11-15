@@ -43,9 +43,9 @@ describe('defaultPaneOpen', () => {
     }
   })
 
-  it('keeps completed without settling closed so seeds own task-done', () => {
+  it('opens a completed task with an observed exit', () => {
     const done = observationFor('task-retry-budget-done')
-    expect(defaultPaneOpen(done)).toBe(false)
+    expect(defaultPaneOpen(done)).toBe(true)
   })
 })
 

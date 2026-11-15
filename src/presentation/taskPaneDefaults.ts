@@ -1,11 +1,13 @@
 import type { TaskObservation } from '../model'
-import { taskEngineStatus } from './taskObservation'
+import { taskEngineStatus, taskExitNotObserved } from './taskObservation'
 
 /**
  * Default right-pane open state from the observed task, as drawn in M05
- * G-ADAPTIVE / status screens. Running and failed stay closed; settling opens
- * Changes. Completed without settling stays closed so scenario seeds (task-done,
- * changes-*) keep owning the open pane.
+ * G-ADAPTIVE / status screens. Running, failed, cancelled and timed-out stay
+ * closed; settling and a completed task with an observed exit open on Changes.
+ * A completed task whose exit was not observed (inferred) stays closed, as
+ * `state-unknown-done` draws it. Transcript routes (Events details) stay
+ * closed until the toggle, as their approved states draw them.
  */
 export function defaultPaneOpen(observation: TaskObservation): boolean {
   if (observation.statusRead.kind === 'unread') return false
@@ -19,8 +21,11 @@ export function defaultPaneOpen(observation: TaskObservation): boolean {
     case 'cancelled':
     case 'timed_out':
     case 'taken_over':
-    case 'completed':
       return false
+    case 'completed':
+      // Transcript routes draw Events closed until the toggle or a deep link.
+      return observation.detailsPane !== 'events' &&
+        !taskExitNotObserved(observation)
   }
 }
 

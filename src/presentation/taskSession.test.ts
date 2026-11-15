@@ -567,15 +567,18 @@ describe('TaskSession', () => {
     session.start()
     session.openTask(RETRY_BUDGET_DONE_TASK_ID)
     await flush()
+    // A completed task with an observed exit opens on Changes by default.
+    expect(session.getState().changesPaneOpen).toBe(true)
+    session.setChangesPaneOpen(false)
     expect(session.getState().changesPaneOpen).toBe(false)
 
     session.setChangesPaneOpen(true)
     expect(session.getState().changesPaneOpen).toBe(true)
     expect(session.getState().changesLoad.kind).toBe('loading')
     await flush()
-    expect(changesQueries()).toEqual([
+    expect(changesQueries().at(-1)).toEqual(
       defaultChangesQuery(RETRY_BUDGET_DONE_TASK_ID),
-    ])
+    )
     const open = session.getState().changesLoad
     expect(open.kind).toBe('ready')
     if (open.kind === 'ready') {

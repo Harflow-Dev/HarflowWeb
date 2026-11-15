@@ -3,6 +3,35 @@ import { Icon } from './Icon'
 import { SkelBlock, SkelLine, SkelParagraph } from './skeletonPrimitives'
 import { TASK_PANE_ASIDE_ID } from './TaskPaneTabs'
 
+/**
+ * A tab that names a surface that is not readable yet: aria-disabled, no
+ * click effect, and only the selected tab is in the tab order (roving).
+ */
+function LoadingTab({
+  label,
+  active,
+  dim = false,
+}: {
+  readonly label: string
+  readonly active: boolean
+  readonly dim?: boolean
+}): ReactNode {
+  return (
+    <button
+      type="button"
+      role="tab"
+      className={
+        active ? 'hd-tab is-active' : dim ? 'hd-tab is-disabled' : 'hd-tab'
+      }
+      aria-selected={active}
+      aria-disabled="true"
+      tabIndex={active ? 0 : -1}
+    >
+      {label}
+    </button>
+  )
+}
+
 /** Pane shell for `task/loading-pane`: real tab names, shimmer-only body. */
 export function LoadingTaskPane({
   tab,
@@ -11,8 +40,6 @@ export function LoadingTaskPane({
   readonly tab: 'changes' | 'events'
   readonly onClose: () => void
 }): ReactNode {
-  const tabClass = (key: 'changes' | 'events') =>
-    key === tab ? 'hd-tab is-active' : 'hd-tab'
   return (
     <aside
       id={TASK_PANE_ASIDE_ID}
@@ -21,31 +48,9 @@ export function LoadingTaskPane({
     >
       <div className="hd-pane__head">
         <div className="hd-tabs" role="tablist">
-          <button
-            type="button"
-            role="tab"
-            className={tabClass('changes')}
-            aria-selected={tab === 'changes'}
-          >
-            Changes
-          </button>
-          <button
-            type="button"
-            role="tab"
-            className="hd-tab is-disabled"
-            aria-selected="false"
-            aria-disabled="true"
-          >
-            Artifacts
-          </button>
-          <button
-            type="button"
-            role="tab"
-            className={tabClass('events')}
-            aria-selected={tab === 'events'}
-          >
-            Events
-          </button>
+          <LoadingTab label="Changes" active={tab === 'changes'} />
+          <LoadingTab label="Artifacts" active={false} dim />
+          <LoadingTab label="Events" active={tab === 'events'} />
         </div>
         <span className="hd-topbar__spacer" />
         <button

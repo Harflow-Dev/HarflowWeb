@@ -128,7 +128,8 @@ describe('TaskSession per-task pane memory', () => {
     h.session.setChangesPaneOpen(true)
     h.session.setPaneTab('changes')
     h.visit(COMPLETED)
-    expect(h.session.getState().changesPaneOpen).toBe(false)
+    // The completed task uses its own default (open on Changes), not RUNNING's.
+    expect(h.session.getState().paneTab).toBe('changes')
     h.visit(RUNNING)
     expect(h.session.getState().changesPaneOpen).toBe(true)
     expect(h.session.getState().paneTab).toBe('changes')

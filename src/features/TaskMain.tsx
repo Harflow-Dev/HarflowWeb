@@ -19,6 +19,7 @@ import {
   type TaskDialogOpener,
   type TaskScreenState,
 } from '../presentation'
+import { loadingPaneTab } from '../presentation/taskSessionPaneOpen'
 import type { EventsFactsRevealId } from '../presentation/taskTopbarChips'
 import { focusDialogOpener } from './taskOverflowActions'
 
@@ -112,7 +113,7 @@ export function TaskMain({
         knownTitle={knownTitle}
         paneOpen={showPane}
         paneMode={layoutMode}
-        paneTab={loadingPaneTab(state, sidebar)}
+        paneTab={loadingPaneTab(state, runningInListing(state, sidebar))}
         onTogglePane={onToggleChangesPane}
       />
     )
@@ -217,18 +218,6 @@ function resolveKnownTitle(
   return match?.title ?? null
 }
 
-/** Tab drawn while loading: an explicit choice, else the status default guess. */
-function loadingPaneTab(
-  state: TaskScreenState,
-  sidebar: SidebarData | null,
-): 'changes' | 'events' {
-  if (state.paneOpenedOnce) return state.paneTab
-  const running =
-    sidebar?.running.some((row) => row.mappedTaskId === state.selectedTaskId) ??
-    false
-  return running ? 'events' : 'changes'
-}
-
 /** Returns focus to the control that opened a task dialog once it closes. */
 function useDialogFocusReturn(
   state: TaskScreenState,
@@ -251,4 +240,15 @@ function useDialogFocusReturn(
     }
     wasDialog.current = state.dialog !== null
   }, [state.dialog, state.dialogOpener, moreRef, composerStopRef, bannerStopRef])
+}
+
+/** The listing places this task under Running (see `loadingPaneTab`). */
+function runningInListing(
+  state: TaskScreenState,
+  sidebar: SidebarData | null,
+): boolean {
+  return (
+    sidebar?.running.some((row) => row.mappedTaskId === state.selectedTaskId) ??
+    false
+  )
 }

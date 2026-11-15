@@ -137,7 +137,7 @@ describe('Events observation fencing', () => {
       stale!({ kind: 'ready', observation: pageEventsObservation() })
     })
     expect(app.presenter.getState().task.selectedTaskId).toBe(other)
-    expect(app.presenter.getState().task.changesPaneOpen).toBe(false)
+    // The other task may open its own default pane; it never shows the stale read.
     expect(app.presenter.getState().task.eventsList).toBeNull()
   })
 

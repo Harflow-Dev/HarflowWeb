@@ -1242,13 +1242,18 @@ describe('AppFeature navigation', () => {
     )
     const main = screen.getByRole('main')
     expect(await within(main).findByText('Done 21:04')).toBeInTheDocument()
+    // A completed task with an observed exit opens on Changes by default.
+    expect(
+      await within(main).findByRole('complementary', { name: 'Task details' }),
+    ).toBeInTheDocument()
+    const toggle = within(main).getByRole('button', {
+      name: /Show right pane|Hide right pane/,
+    })
+    await user.click(toggle)
     expect(
       within(main).queryByRole('complementary', { name: 'Task details' }),
     ).not.toBeInTheDocument()
-
-    await user.click(
-      within(main).getByRole('button', { name: /Show right pane|Hide right pane/ }),
-    )
+    await user.click(toggle)
     const pane = await within(main).findByRole('complementary', {
       name: 'Task details',
     })
@@ -1322,9 +1327,6 @@ describe('AppFeature navigation', () => {
       }),
     )
     await within(screen.getByRole('main')).findByText('Done 21:04')
-    await user.click(
-      screen.getByRole('button', { name: /Show right pane|Hide right pane/ }),
-    )
     const main = screen.getByRole('main')
     const queryNull = {
       taskId: RETRY_BUDGET_DONE_TASK_ID,
@@ -1411,9 +1413,6 @@ describe('AppFeature navigation', () => {
       }),
     )
     await screen.findByText('Done 21:04')
-    await user.click(
-      screen.getByRole('button', { name: /Show right pane|Hide right pane/ }),
-    )
     const queryNull = {
       taskId: RETRY_BUDGET_DONE_TASK_ID,
       selectedEntry: null,
@@ -1466,9 +1465,6 @@ describe('AppFeature navigation', () => {
       }),
     )
     await screen.findByText('Done 21:04')
-    await user.click(
-      screen.getByRole('button', { name: /Show right pane|Hide right pane/ }),
-    )
     await screen.findByRole('complementary', { name: 'Task details' })
     const artifacts = screen.getByRole('tab', { name: 'Artifacts' })
     const events = screen.getByRole('tab', { name: 'Events' })

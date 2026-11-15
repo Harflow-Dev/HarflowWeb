@@ -527,8 +527,9 @@ grant approvals, answer questions, or touch the task store.
   `40b8a19`: `pane-running-closed`, `pane-running-open`, `pane-failed-closed`,
   `pane-split`, `pane-overlay`, `loading-pane`, `topbar-facts`,
   `topbar-resource`, `topbar-minimum`. Default pane open is a pure function of
-  observed status (settling opens; running/failed stay closed; done/Changes
-  keep seeded open). First open while running selects Events (an open during
+  observed status (settling and a completed task with an observed exit open on
+  Changes; running, failed, cancelled, timed out, inferred done and transcript
+  Events routes stay closed). First open while running selects Events (an open during
   load resolves when the status arrives); later closes keep the tab. Pane open
   state and tab are remembered per task id for the session; a task never
   visited uses the status default. Split vs overlay uses the measured
@@ -545,7 +546,7 @@ grant approvals, answer questions, or touch the task store.
   (kept once as hidden text, no dot) and chips compact; this breakpoint is
   independent of the 900 split rule. Held resource card reads the engine
   `resources` fields (`names`, `reservationId`, `state`, `grantedAt`); "Since
-  Nm ago" is computed from `grantedAt` and the status `observedAt`, and the
+  Nm ago" is computed from `grantedAt` and `observedAt` (the adapter's read time of the status, not an engine field), and the
   line is omitted when either is unknown. The card shows `names[0]` only, as
   the design specimen does. The pane toggle keeps the design's Show/Hide labels
   with `aria-expanded`; it is not rendered when no pane can render

@@ -27,6 +27,19 @@ export function paneTabForOpen(state: TaskScreenState): 'changes' | 'events' {
   return firstOpenPaneTab(state.load.observation)
 }
 
+/**
+ * Tab drawn while the task loads: an explicit choice, else a guess from the
+ * work listing. The status is inferred from the listing (Running section) and
+ * may be stale; `afterTaskLoad` resolves the real tab once the status is read.
+ */
+export function loadingPaneTab(
+  state: TaskScreenState,
+  runningInListing: boolean,
+): 'changes' | 'events' {
+  if (state.paneOpenedOnce) return state.paneTab
+  return runningInListing ? 'events' : 'changes'
+}
+
 /** Open the pane on its tab; the tab is final once the status is known. */
 export function openedPaneState(state: TaskScreenState): ReturnType<
   typeof openedChangesPaneState

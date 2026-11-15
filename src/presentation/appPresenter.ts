@@ -26,6 +26,7 @@ import type {
   PendingLaunchId,
   RepositoryId,
   StatisticsRangeId,
+  TaskChangesEntryRef,
   TaskId,
   WorkflowId,
   WorkflowNodeId,
@@ -40,10 +41,12 @@ import type { OpenMenu } from './screenState'
 import type { ApprovalsMode, EffortLevel } from './taskOptions'
 import type { WorkflowRunViewMode } from './workflowRunParallel'
 import type {
+  TaskChangesChrome,
   TaskCommandChrome,
   TaskDialogKind,
   TaskDialogOpener,
   TaskOverflowChrome,
+  TaskPaneTab,
 } from './taskState'
 
 export type AppPresenter = {
@@ -82,6 +85,10 @@ export type AppPresenter = {
   openTask(taskId: TaskId): void
   setTaskChangesPaneOpen(open: boolean): void
   selectTaskChangedFile(path: string): void
+  selectTaskChangedEntry(entry: TaskChangesEntryRef): void
+  setTaskPaneTab(tab: TaskPaneTab): void
+  selectTaskChangesTurn(taskId: TaskId): void
+  setTaskRepositoryExpanded(repositoryRoot: string, expanded: boolean): void
   seedTaskCommandChrome(taskId: TaskId, chrome: TaskCommandChrome): void
   setTaskOverflowMenuOpen(open: boolean): void
   openTaskDialog(
@@ -90,6 +97,7 @@ export type AppPresenter = {
   ): void
   closeTaskDialog(): void
   seedTaskOverflowChrome(taskId: TaskId, chrome: TaskOverflowChrome): void
+  seedTaskChangesChrome(taskId: TaskId, chrome: TaskChangesChrome): void
   selectStatisticsRange(range: StatisticsRangeId): void
   selectSettingsSection(section: SettingsSection): void
   setExpandedHarness(id: string | null): void
@@ -168,6 +176,11 @@ export function createAppPresenter(deps: Deps): AppPresenter {
     openTask: (taskId) => session.openTask(taskId),
     setTaskChangesPaneOpen: (open) => session.setTaskChangesPaneOpen(open),
     selectTaskChangedFile: (path) => session.selectTaskChangedFile(path),
+    selectTaskChangedEntry: (entry) => session.selectTaskChangedEntry(entry),
+    setTaskPaneTab: (tab) => session.setTaskPaneTab(tab),
+    selectTaskChangesTurn: (taskId) => session.selectTaskChangesTurn(taskId),
+    setTaskRepositoryExpanded: (root, expanded) =>
+      session.setTaskRepositoryExpanded(root, expanded),
     seedTaskCommandChrome: (id, c) => session.seedTaskCommandChrome(id, c),
     setTaskOverflowMenuOpen: (open) => session.setTaskOverflowMenuOpen(open),
     openTaskDialog: (dialog, opener) =>
@@ -175,6 +188,8 @@ export function createAppPresenter(deps: Deps): AppPresenter {
     closeTaskDialog: () => session.closeTaskDialog(),
     seedTaskOverflowChrome: (id, chrome) =>
       session.seedTaskOverflowChrome(id, chrome),
+    seedTaskChangesChrome: (id, chrome) =>
+      session.seedTaskChangesChrome(id, chrome),
     selectStatisticsRange: (range) => session.selectStatisticsRange(range),
     selectSettingsSection: (section) => session.selectSettingsSection(section),
     setExpandedHarness: (id) => session.setExpandedHarness(id),

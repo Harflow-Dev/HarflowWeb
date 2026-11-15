@@ -11,13 +11,15 @@ import {
   type ObservationHandle,
   type StartTaskRequest,
   type TaskChangesLoad,
+  type TaskChangesObservation,
   type TaskChangesQuery,
   type TaskId,
   type TaskLoad,
 } from '../model'
+import { taskChangesKey } from '../adapters/mock/mockEngineCore'
 import {
-  CONFIG_PY_PATH,
-  QUEUE_PY_PATH,
+  CONFIG_ENTRY,
+  QUEUE_ENTRY,
   taskChangesLoadFor,
 } from '../adapters/mock/taskChangesFixtures'
 import {
@@ -185,7 +187,7 @@ function createDeferredPort(): {
         }
       },
       observeTaskChanges(query, onUpdate) {
-        const key = `${query.taskId}\0${query.selectedPath ?? ''}`
+        const key = taskChangesKey(query)
         lastChangesCallback = onUpdate
         activeChanges.set(key, onUpdate)
         return {
@@ -217,7 +219,7 @@ function createDeferredPort(): {
       active.get(taskId)?.(load)
     },
     publishChanges(query, load) {
-      const key = `${query.taskId}\0${query.selectedPath ?? ''}`
+      const key = taskChangesKey(query)
       activeChanges.get(key)?.(load)
     },
     captureChangesCallback: () => lastChangesCallback,
@@ -229,6 +231,14 @@ function sessionFor(port: EnginePort): TaskSession {
     createLoadTaskUseCase(port),
     createLoadTaskChangesUseCase(port),
   )
+}
+
+function committedRows(observation: TaskChangesObservation | null) {
+  return observation?.repositories[0]?.scopes.committed_range?.rows ?? null
+}
+
+function defaultChangesQuery(taskId: TaskId): TaskChangesQuery {
+  return { taskId, selectedEntry: null, turnTaskId: null }
 }
 
 function noopHandle(id: string): ObservationHandle {
@@ -498,22 +508,22 @@ describe('TaskSession', () => {
     expect(session.getState().changesLoad.kind).toBe('loading')
     await flush()
     expect(changesQueries()).toEqual([
-      { taskId: RETRY_BUDGET_DONE_TASK_ID, selectedPath: null },
+      defaultChangesQuery(RETRY_BUDGET_DONE_TASK_ID),
     ])
     const open = session.getState().changesLoad
     expect(open.kind).toBe('ready')
     if (open.kind === 'ready') {
-      expect(open.observation.selectedPath).toBe(QUEUE_PY_PATH)
-      expect(open.observation.files).toHaveLength(3)
-      expect(open.observation.diff.kind).toBe('lines')
+      expect(open.observation.selectedEntry).toEqual(QUEUE_ENTRY)
+      expect(committedRows(open.observation)).toHaveLength(3)
+      expect(open.observation.text?.lines.length).toBeGreaterThan(0)
     }
-    expect(session.getState().changesQueryPath).toBeNull()
-    expect(session.getState().selectedChangePath).toBe(QUEUE_PY_PATH)
+    expect(session.getState().changesQueryEntry).toBeNull()
+    expect(session.getState().selectedChangeEntry).toEqual(QUEUE_ENTRY)
 
     session.setChangesPaneOpen(false)
     expect(session.getState().changesPaneOpen).toBe(false)
-    expect(session.getState().selectedChangePath).toBeNull()
-    expect(session.getState().changesFiles).toBeNull()
+    expect(session.getState().selectedChangeEntry).toBeNull()
+    expect(session.getState().changesList).toBeNull()
     session.dispose()
   })
 
@@ -525,48 +535,43 @@ describe('TaskSession', () => {
     session.openTask(RETRY_BUDGET_DONE_TASK_ID)
     publish(RETRY_BUDGET_DONE_TASK_ID, taskLoadFor(RETRY_BUDGET_DONE_TASK_ID))
     session.setChangesPaneOpen(true)
-    const queryNull = {
-      taskId: RETRY_BUDGET_DONE_TASK_ID,
-      selectedPath: null as string | null,
-    }
+    const queryNull = defaultChangesQuery(RETRY_BUDGET_DONE_TASK_ID)
     const first = taskChangesLoadFor(queryNull)
     publishChanges(queryNull, first)
-    expect(session.getState().changesQueryPath).toBeNull()
-    expect(session.getState().selectedChangePath).toBe(QUEUE_PY_PATH)
+    expect(session.getState().changesQueryEntry).toBeNull()
+    expect(session.getState().selectedChangeEntry).toEqual(QUEUE_ENTRY)
     expect(session.getState().changesLoad).toEqual(first)
 
     const sameCallback = captureChangesCallback()
     expect(sameCallback).not.toBeNull()
     expect(typeof sameCallback).toBe('function')
 
+    const updatedLines = [
+      {
+        kind: 'add' as const,
+        text: '        # updated default observation',
+      },
+    ]
     const updated =
-      first.kind === 'ready'
+      first.kind === 'ready' && first.observation.text !== null
         ? {
             kind: 'ready' as const,
             observation: {
               ...first.observation,
-              diff: {
-                kind: 'lines' as const,
-                lines: [
-                  {
-                    kind: 'add' as const,
-                    text: '        # updated default observation',
-                  },
-                ],
+              text: {
+                ...first.observation.text,
+                lines: updatedLines,
               },
             },
           }
         : first
     sameCallback!(updated)
     expect(session.getState().changesLoad).toEqual(updated)
-    expect(session.getState().changesQueryPath).toBeNull()
+    expect(session.getState().changesQueryEntry).toBeNull()
     const afterUpdate = session.getState().changesLoad
     expect(afterUpdate.kind).toBe('ready')
     if (afterUpdate.kind === 'ready') {
-      expect(afterUpdate.observation.diff).toEqual({
-        kind: 'lines',
-        lines: [{ kind: 'add', text: '        # updated default observation' }],
-      })
+      expect(afterUpdate.observation.text?.lines).toEqual(updatedLines)
     }
 
     sameCallback!({
@@ -577,7 +582,7 @@ describe('TaskSession', () => {
       kind: 'unavailable',
       message: 'Changes observation became unavailable.',
     })
-    expect(session.getState().changesQueryPath).toBeNull()
+    expect(session.getState().changesQueryEntry).toBeNull()
     session.dispose()
   })
 
@@ -589,41 +594,39 @@ describe('TaskSession', () => {
     session.openTask(RETRY_BUDGET_DONE_TASK_ID)
     publish(RETRY_BUDGET_DONE_TASK_ID, taskLoadFor(RETRY_BUDGET_DONE_TASK_ID))
     session.setChangesPaneOpen(true)
-    const queryNull = {
-      taskId: RETRY_BUDGET_DONE_TASK_ID,
-      selectedPath: null as string | null,
-    }
+    const queryNull = defaultChangesQuery(RETRY_BUDGET_DONE_TASK_ID)
     publishChanges(queryNull, taskChangesLoadFor(queryNull))
-    expect(session.getState().selectedChangePath).toBe(QUEUE_PY_PATH)
-    expect(session.getState().changesFiles).toHaveLength(3)
+    expect(session.getState().selectedChangeEntry).toEqual(QUEUE_ENTRY)
+    expect(committedRows(session.getState().changesList)).toHaveLength(3)
 
     const staleCallback = captureChangesCallback()
     expect(staleCallback).not.toBeNull()
     expect(typeof staleCallback).toBe('function')
 
-    session.selectChangedFile(CONFIG_PY_PATH)
-    expect(session.getState().changesQueryPath).toBe(CONFIG_PY_PATH)
-    expect(session.getState().selectedChangePath).toBe(CONFIG_PY_PATH)
+    session.selectChangedEntry(CONFIG_ENTRY)
+    expect(session.getState().changesQueryEntry).toEqual(CONFIG_ENTRY)
+    expect(session.getState().selectedChangeEntry).toEqual(CONFIG_ENTRY)
     expect(session.getState().changesLoad.kind).toBe('loading')
-    expect(session.getState().changesFiles).toHaveLength(3)
+    expect(committedRows(session.getState().changesList)).toHaveLength(3)
 
     // Invoke the saved old callback directly (cancellation may clear the map).
     staleCallback!(taskChangesLoadFor(queryNull))
     expect(session.getState().changesLoad.kind).toBe('loading')
-    expect(session.getState().selectedChangePath).toBe(CONFIG_PY_PATH)
+    expect(session.getState().selectedChangeEntry).toEqual(CONFIG_ENTRY)
 
-    const queryConfig = {
+    const queryConfig: TaskChangesQuery = {
       taskId: RETRY_BUDGET_DONE_TASK_ID,
-      selectedPath: CONFIG_PY_PATH,
+      selectedEntry: CONFIG_ENTRY,
+      turnTaskId: null,
     }
     publishChanges(queryConfig, taskChangesLoadFor(queryConfig))
     const load = session.getState().changesLoad
     expect(load.kind).toBe('ready')
     if (load.kind === 'ready') {
-      expect(load.observation.selectedPath).toBe(CONFIG_PY_PATH)
-      expect(load.observation.diff.kind).toBe('lines')
-      if (load.observation.diff.kind === 'lines') {
-        const text = load.observation.diff.lines.map((l) => l.text).join('\n')
+      expect(load.observation.selectedEntry).toEqual(CONFIG_ENTRY)
+      expect(load.observation.text).not.toBeNull()
+      if (load.observation.text !== null) {
+        const text = load.observation.text.lines.map((l) => l.text).join('\n')
         expect(text).toContain("<script>alert('x')</script>")
         expect(text).toContain('日本語')
       }
@@ -639,10 +642,7 @@ describe('TaskSession', () => {
     session.openTask(RETRY_BUDGET_DONE_TASK_ID)
     publish(RETRY_BUDGET_DONE_TASK_ID, taskLoadFor(RETRY_BUDGET_DONE_TASK_ID))
     session.setChangesPaneOpen(true)
-    const query = {
-      taskId: RETRY_BUDGET_DONE_TASK_ID,
-      selectedPath: null as string | null,
-    }
+    const query = defaultChangesQuery(RETRY_BUDGET_DONE_TASK_ID)
     publishChanges(query, taskChangesLoadFor(query))
     const stale = captureChangesCallback()
     expect(stale).not.toBeNull()
@@ -651,7 +651,7 @@ describe('TaskSession', () => {
     session.openTask(SLOT_RELEASE_TASK_ID)
     expect(session.getState().selectedTaskId).toBe(SLOT_RELEASE_TASK_ID)
     expect(session.getState().changesPaneOpen).toBe(false)
-    expect(session.getState().changesFiles).toBeNull()
+    expect(session.getState().changesList).toBeNull()
     expect(session.getState().changesLoad.kind).toBe('loading')
     stale!(taskChangesLoadFor(query))
     expect(session.getState().changesPaneOpen).toBe(false)

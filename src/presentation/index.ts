@@ -136,7 +136,9 @@ export {
   type TaskCommandChrome,
   type TaskDialogKind,
   type TaskDialogOpener,
+  type TaskChangesChrome,
   type TaskOverflowChrome,
+  type TaskPaneTab,
   type TaskScreenState,
 } from './taskState'
 export { TaskSession } from './taskSession'

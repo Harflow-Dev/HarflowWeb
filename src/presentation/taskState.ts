@@ -1,6 +1,7 @@
 import type {
-  ChangedFileRow,
+  TaskChangesEntryRef,
   TaskChangesLoad,
+  TaskChangesObservation,
   TaskId,
   TaskLoad,
 } from '../model'
@@ -13,6 +14,9 @@ export type TaskDialogKind = 'stop' | 'takeover'
 
 /** Control that opened the dialog; used to restore focus on close. */
 export type TaskDialogOpener = 'more' | 'composer-stop' | 'banner-stop'
+
+/** Right-pane tab — Artifacts stays unavailable in this slice. */
+export type TaskPaneTab = 'changes' | 'events'
 
 export type TaskScreenState = {
   readonly selectedTaskId: TaskId | null
@@ -33,21 +37,27 @@ export type TaskScreenState = {
   readonly dialog: TaskDialogKind | null
   /** Which control opened the dialog; null when seeded without a trigger. */
   readonly dialogOpener: TaskDialogOpener | null
-  /** Right pane open — Changes only in this slice. */
+  /** Right pane open — Changes or Events body by paneTab. */
   readonly changesPaneOpen: boolean
+  /** Active pane tab (presentation chrome). */
+  readonly paneTab: TaskPaneTab
   /**
-   * Path used for the active changes observation query.
+   * Entry used for the active changes observation query.
    * Null means the fixture default — distinct from resolved display selection.
    */
-  readonly changesQueryPath: string | null
+  readonly changesQueryEntry: TaskChangesEntryRef | null
   /** Resolved display selection (from last ready observation or explicit pick). */
-  readonly selectedChangePath: string | null
+  readonly selectedChangeEntry: TaskChangesEntryRef | null
   /**
-   * Last known file rows so the list can stay mounted while a new diff loads.
+   * Last known list document so rows stay mounted while a new text loads.
    * Cleared on pane close / task switch — never reused across identities.
    */
-  readonly changesFiles: readonly ChangedFileRow[] | null
+  readonly changesList: TaskChangesObservation | null
   readonly changesLoad: TaskChangesLoad
+  /** Turn member whose capture is being read; null = opened task. */
+  readonly changesTurnTaskId: TaskId | null
+  /** Expanded repository roots (presentation chrome). */
+  readonly expandedRepos: readonly string[]
 }
 
 export function initialTaskState(): TaskScreenState {
@@ -60,10 +70,13 @@ export function initialTaskState(): TaskScreenState {
     dialog: null,
     dialogOpener: null,
     changesPaneOpen: false,
-    changesQueryPath: null,
-    selectedChangePath: null,
-    changesFiles: null,
+    paneTab: 'changes',
+    changesQueryEntry: null,
+    selectedChangeEntry: null,
+    changesList: null,
     changesLoad: { kind: 'loading' },
+    changesTurnTaskId: null,
+    expandedRepos: [],
   }
 }
 
@@ -73,4 +86,12 @@ export type TaskOverflowChrome = {
   readonly anchorOmitted?: boolean
   readonly dialog?: TaskDialogKind | null
   readonly dialogOpener?: TaskDialogOpener | null
+}
+
+/** Preview / session chrome for the Changes pane. */
+export type TaskChangesChrome = {
+  readonly paneTab?: TaskPaneTab
+  readonly selectedEntry?: TaskChangesEntryRef | null
+  readonly turnTaskId?: TaskId | null
+  readonly expandedRepos?: readonly string[]
 }

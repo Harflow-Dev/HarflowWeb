@@ -2,13 +2,20 @@ import type {
   LoadTaskChangesUseCase,
   LoadTaskUseCase,
 } from '../application'
-import type { ObservationHandle, TaskId, TaskLoad } from '../model'
+import type {
+  TaskChangesEntryRef,
+  TaskId,
+  TaskLoad,
+  ObservationHandle,
+} from '../model'
 import {
   initialTaskState,
+  type TaskChangesChrome,
   type TaskCommandChrome,
   type TaskDialogKind,
   type TaskDialogOpener,
   type TaskOverflowChrome,
+  type TaskPaneTab,
   type TaskScreenState,
 } from './taskState'
 import {
@@ -20,19 +27,27 @@ import {
   withTaskDialog,
 } from './taskOverflowChrome'
 import {
-  applyTaskChangesLoad,
-  beginTaskChangesObservation,
-} from './taskSessionChanges'
+  beginPaneChangesObservation,
+  closedChangesPaneState,
+  entryForPath,
+  loadingTaskScreenState,
+  openedChangesPaneState,
+  seededChangesChromeState,
+  selectedEntryState,
+  selectedTurnState,
+  toggledExpandedRepos,
+  type ChangesPaneHost,
+} from './taskSessionPane'
 
 export type TaskListener = (state: TaskScreenState) => void
 
 /**
  * Owns selected task identity, transcript observation, and optional
- * Changes-pane observation. Switching task/file/generation rejects stale
+ * Changes-pane observation. Switching task/entry/turn/generation rejects stale
  * callbacks even when cancellation is ignored by the adapter.
  *
- * `changesQueryPath` is the observation query identity (null = default).
- * `selectedChangePath` is display-only and may resolve after a null query
+ * `changesQueryEntry` is the observation query identity (null = default).
+ * `selectedChangeEntry` is display-only and may resolve after a null query
  * without invalidating later updates from that same observation.
  */
 export class TaskSession {
@@ -93,7 +108,6 @@ export class TaskSession {
       this.observation &&
       this.state.load.kind !== 'loading'
     ) {
-      // Reopening the same task keeps its observation but not seeded chrome.
       this.clearCommandChrome()
       return
     }
@@ -104,35 +118,28 @@ export class TaskSession {
     if (this.disposed || open === this.state.changesPaneOpen) return
     if (!open) {
       this.stopChangesObservation()
-      this.publish({
-        ...this.state,
-        changesPaneOpen: false,
-        changesQueryPath: null,
-        selectedChangePath: null,
-        changesFiles: null,
-        changesLoad: { kind: 'loading' },
-      })
+      this.publish(closedChangesPaneState(this.state))
       return
     }
-    const usesEvents =
-      this.state.load.kind === 'ready' &&
-      this.state.load.observation.detailsPane === 'events'
-    this.publish({
-      ...this.state,
-      changesPaneOpen: true,
-      changesQueryPath: null,
-      selectedChangePath: null,
-      changesFiles: null,
-      changesLoad: { kind: 'loading' },
-    })
-    // Events pane does not observe Changes.
-    if (!usesEvents) this.beginChangesObservation()
+    const opened = openedChangesPaneState(this.state)
+    this.publish(opened.next)
+    if (opened.observeChanges) this.beginChangesObservation()
   }
 
-  /**
-   * Preview seeding: show command lifecycle chrome on one ready task. Ignored
-   * when another task is selected or the observation is not ready yet.
-   */
+  setPaneTab(tab: TaskPaneTab): void {
+    if (this.disposed || !this.state.changesPaneOpen) return
+    if (tab === this.state.paneTab) return
+    this.publish({ ...this.state, paneTab: tab })
+    if (
+      tab === 'changes' &&
+      this.state.load.kind === 'ready' &&
+      this.state.load.observation.detailsPane === 'changes' &&
+      !this.changesObservation
+    ) {
+      this.beginChangesObservation()
+    }
+  }
+
   seedTaskCommandChrome(taskId: TaskId, chrome: TaskCommandChrome): void {
     if (this.disposed) return
     if (this.state.selectedTaskId !== taskId) return
@@ -142,7 +149,6 @@ export class TaskSession {
     )
   }
 
-  /** Drop command lifecycle and overflow chrome; the selected task stays. */
   clearCommandChrome(): void {
     if (this.disposed) return
     const next = withoutCommandChrome(this.state)
@@ -171,39 +177,55 @@ export class TaskSession {
     if (next) this.publish(next)
   }
 
-  /** Preview seeding: overflow menu and/or confirmation dialog when ready. */
   seedTaskOverflowChrome(taskId: TaskId, chrome: TaskOverflowChrome): void {
     if (this.disposed) return
     const next = withSeededOverflowChrome(this.state, taskId, chrome)
     if (next) this.publish(reconcileOverflowChrome(next))
   }
 
-  selectChangedFile(path: string): void {
-    if (this.disposed || !this.state.changesPaneOpen) return
-    if (
-      this.state.changesLoad.kind === 'ready' &&
-      this.state.changesLoad.observation.selectedPath === path &&
-      this.changesObservation &&
-      (this.state.changesQueryPath === path ||
-        this.state.changesQueryPath === null)
-    ) {
-      return
-    }
-    if (
-      path === this.state.changesQueryPath &&
-      this.changesObservation &&
-      this.state.changesLoad.kind !== 'loading'
-    ) {
-      return
-    }
-    // Keep file rows mounted; clear prior diff under the new identity.
-    this.publish({
-      ...this.state,
-      changesQueryPath: path,
-      selectedChangePath: path,
-      changesLoad: { kind: 'loading' },
-    })
+  seedTaskChangesChrome(taskId: TaskId, chrome: TaskChangesChrome): void {
+    if (this.disposed) return
+    const next = seededChangesChromeState(this.state, taskId, chrome)
+    if (!next) return
+    this.publish(next)
     this.beginChangesObservation()
+  }
+
+  selectChangedEntry(entry: TaskChangesEntryRef): void {
+    if (this.disposed) return
+    const next = selectedEntryState(
+      this.state,
+      entry,
+      this.changesObservation !== null,
+    )
+    if (!next) return
+    this.publish(next)
+    this.beginChangesObservation()
+  }
+
+  /** @deprecated Prefer selectChangedEntry. */
+  selectChangedFile(path: string): void {
+    const entry = entryForPath(this.state.changesList, path)
+    if (entry) this.selectChangedEntry(entry)
+  }
+
+  selectChangesTurn(turnTaskId: TaskId): void {
+    if (this.disposed) return
+    const next = selectedTurnState(this.state, turnTaskId)
+    if (!next) return
+    this.publish(next)
+    this.beginChangesObservation()
+  }
+
+  setRepositoryExpanded(repositoryRoot: string, expanded: boolean): void {
+    if (this.disposed) return
+    const expandedRepos = toggledExpandedRepos(
+      this.state.expandedRepos,
+      repositoryRoot,
+      expanded,
+    )
+    if (!expandedRepos) return
+    this.publish({ ...this.state, expandedRepos })
   }
 
   private beginObservation(taskId: TaskId): void {
@@ -211,23 +233,8 @@ export class TaskSession {
     const gen = this.observationEpoch
     this.observation?.cancel()
     this.observation = null
-    // Close Changes on every task switch so unsupported states never trap an
-    // open pane without a close control, and clear stale change content now.
     this.stopChangesObservation()
-    this.publish({
-      selectedTaskId: taskId,
-      load: { kind: 'loading' },
-      commandChrome: null,
-      overflowMenuOpen: false,
-      overflowAnchorOmitted: false,
-      dialog: null,
-      dialogOpener: null,
-      changesPaneOpen: false,
-      changesQueryPath: null,
-      selectedChangePath: null,
-      changesFiles: null,
-      changesLoad: { kind: 'loading' },
-    })
+    this.publish(loadingTaskScreenState(taskId))
     this.observation = this.loadTask.observe(taskId, (load) =>
       this.applyLoad(load, gen, taskId),
     )
@@ -236,29 +243,24 @@ export class TaskSession {
   private beginChangesObservation(): void {
     if (!this.state.selectedTaskId || !this.state.changesPaneOpen) return
     this.changesObservation?.cancel()
-    this.changesObservation = null
-    beginTaskChangesObservation({
-      state: this.state,
+    beginPaneChangesObservation(this.paneHost())
+  }
+
+  private paneHost(): ChangesPaneHost {
+    return {
+      disposed: () => this.disposed,
+      state: () => this.state,
       loadTaskChanges: this.loadTaskChanges,
-      bumpEpoch: () => {
+      changesEpoch: () => this.changesEpoch,
+      bumpChangesEpoch: () => {
         this.changesEpoch += 1
         return this.changesEpoch
       },
-      setHandle: (handle) => {
+      setChangesObservation: (handle) => {
         this.changesObservation = handle
       },
-      apply: (load, gen, expectedTask, expectedQueryPath) =>
-        applyTaskChangesLoad({
-          state: this.state,
-          disposed: this.disposed,
-          epoch: this.changesEpoch,
-          gen,
-          expectedTask,
-          expectedQueryPath,
-          load,
-          publish: (next) => this.publish(next),
-        }),
-    })
+      publish: (next) => this.publish(next),
+    }
   }
 
   private stopChangesObservation(): void {
@@ -271,7 +273,6 @@ export class TaskSession {
     if (this.disposed || gen !== this.observationEpoch) return
     if (expected !== this.state.selectedTaskId) return
     if (load.kind === 'ready' && load.observation.taskId !== expected) return
-    // Menu/dialog chrome only survives while the new load still supports it.
     this.publish(reconcileOverflowChrome({ ...this.state, load }))
   }
 

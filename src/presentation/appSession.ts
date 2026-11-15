@@ -7,6 +7,7 @@ import type {
   PendingLaunchId,
   RepositoryId,
   StatisticsRangeId,
+  TaskChangesEntryRef,
   TaskId,
   WorkflowId,
   WorkflowNodeId,
@@ -34,10 +35,12 @@ import type { PendingLaunchStopOutcome } from './pendingLaunchesState'
 import type { OpenMenu } from './screenState'
 import type { WorkflowRunViewMode } from './workflowRunParallel'
 import type {
+  TaskChangesChrome,
   TaskCommandChrome,
   TaskDialogKind,
   TaskDialogOpener,
   TaskOverflowChrome,
+  TaskPaneTab,
 } from './taskState'
 
 export type AppListener = (state: AppScreenState) => void
@@ -161,15 +164,9 @@ export class AppSession {
   closeWorkflowRun(): void { this.children.workflows.closeRun() }
   setWorkflowRunTask(task: string): void { this.children.workflows.setTask(task) }
   setWorkflowRunGoal(goal: string): void { this.children.workflows.setGoal(goal) }
-  setWorkflowRunGoalOpen(open: boolean): void {
-    this.children.workflows.setGoalOpen(open)
-  }
-  selectWorkflowRunRepository(id: RepositoryId): void {
-    this.children.workflows.selectRepository(id)
-  }
-  selectWorkflowRunOverride(id: WorkflowOverrideId): void {
-    this.children.workflows.selectOverride(id)
-  }
+  setWorkflowRunGoalOpen(open: boolean): void { this.children.workflows.setGoalOpen(open) }
+  selectWorkflowRunRepository(id: RepositoryId): void { this.children.workflows.selectRepository(id) }
+  selectWorkflowRunOverride(id: WorkflowOverrideId): void { this.children.workflows.selectOverride(id) }
 
   openWorkflowEditor(id: WorkflowId): void {
     closePendingLaunches(this.children.pendingLaunches)
@@ -179,51 +176,46 @@ export class AppSession {
   }
 
   closeWorkflowEditor(): void { this.children.workflowEditor.close() }
-
-  selectWorkflowNode(id: WorkflowNodeId): void {
-    this.children.workflowEditor.select(id)
-  }
-
+  selectWorkflowNode(id: WorkflowNodeId): void { this.children.workflowEditor.select(id) }
   selectWorkflowRunNode(id: WorkflowNodeId | null): void {
     this.children.workflowExecution.selectNode(id)
   }
-
   setWorkflowRunViewMode(mode: WorkflowRunViewMode): void {
     this.children.workflowExecution.setViewMode(mode)
   }
-
-  openTask(taskId: TaskId): void {
-    parallelNav.openTask(this.nav, taskId)
-  }
+  openTask(taskId: TaskId): void { parallelNav.openTask(this.nav, taskId) }
 
   setTaskChangesPaneOpen(open: boolean): void {
     this.children.task.setChangesPaneOpen(open)
   }
-
   selectTaskChangedFile(path: string): void {
     this.children.task.selectChangedFile(path)
   }
-
-  seedTaskCommandChrome(taskId: TaskId, chrome: TaskCommandChrome): void {
-    this.children.task.seedTaskCommandChrome(taskId, chrome)
-    this.emit()
+  selectTaskChangedEntry(entry: TaskChangesEntryRef): void {
+    this.children.task.selectChangedEntry(entry)
   }
-
+  setTaskPaneTab(tab: TaskPaneTab): void { this.children.task.setPaneTab(tab) }
+  selectTaskChangesTurn(taskId: TaskId): void {
+    this.children.task.selectChangesTurn(taskId)
+  }
+  setTaskRepositoryExpanded(root: string, expanded: boolean): void {
+    this.children.task.setRepositoryExpanded(root, expanded)
+  }
+  seedTaskCommandChrome(taskId: TaskId, chrome: TaskCommandChrome): void {
+    this.children.task.seedTaskCommandChrome(taskId, chrome); this.emit()
+  }
   setTaskOverflowMenuOpen(open: boolean): void {
     this.children.task.setOverflowMenuOpen(open)
   }
-
   openTaskDialog(dialog: TaskDialogKind, opener: TaskDialogOpener | null): void {
     this.children.task.openTaskDialog(dialog, opener)
   }
-
-  closeTaskDialog(): void {
-    this.children.task.closeTaskDialog()
-  }
-
+  closeTaskDialog(): void { this.children.task.closeTaskDialog() }
   seedTaskOverflowChrome(taskId: TaskId, chrome: TaskOverflowChrome): void {
-    this.children.task.seedTaskOverflowChrome(taskId, chrome)
-    this.emit()
+    this.children.task.seedTaskOverflowChrome(taskId, chrome); this.emit()
+  }
+  seedTaskChangesChrome(taskId: TaskId, chrome: TaskChangesChrome): void {
+    this.children.task.seedTaskChangesChrome(taskId, chrome); this.emit()
   }
 
   selectStatisticsRange(range: StatisticsRangeId): void {
@@ -240,48 +232,18 @@ export class AppSession {
     this.children.harnesses.setExpandedId(id)
   }
 
-  setAppearance(appearance: Appearance): void {
-    this.children.newTask.setAppearance(appearance)
-  }
-
-  cycleAppearance(): void {
-    this.children.newTask.cycleAppearance()
-  }
-
-  setSidebarCollapsed(collapsed: boolean): void {
-    this.children.newTask.setSidebarCollapsed(collapsed)
-  }
-
-  setPrompt(prompt: string): void {
-    this.children.newTask.setPrompt(prompt)
-  }
-
-  setOpenMenu(menu: OpenMenu): void {
-    this.children.newTask.setOpenMenu(menu)
-  }
-
+  setAppearance(appearance: Appearance): void { this.children.newTask.setAppearance(appearance) }
+  cycleAppearance(): void { this.children.newTask.cycleAppearance() }
+  setSidebarCollapsed(collapsed: boolean): void { this.children.newTask.setSidebarCollapsed(collapsed) }
+  setPrompt(prompt: string): void { this.children.newTask.setPrompt(prompt) }
+  setOpenMenu(menu: OpenMenu): void { this.children.newTask.setOpenMenu(menu) }
   /** Direct New task session for composer options and draft controls. */
   composer(): PresenterSession { return this.children.newTask }
-
-  selectRepository(id: RepositoryId): void {
-    this.children.newTask.selectRepository(id)
-  }
-
-  selectHarness(id: HarnessId): void {
-    this.children.newTask.selectHarness(id)
-  }
-
-  selectModel(id: ModelId): void {
-    this.children.newTask.selectModel(id)
-  }
-
-  selectAccess(access: AccessLevel): void {
-    this.children.newTask.selectAccess(access)
-  }
-
-  submit(): void {
-    this.children.newTask.submit()
-  }
+  selectRepository(id: RepositoryId): void { this.children.newTask.selectRepository(id) }
+  selectHarness(id: HarnessId): void { this.children.newTask.selectHarness(id) }
+  selectModel(id: ModelId): void { this.children.newTask.selectModel(id) }
+  selectAccess(access: AccessLevel): void { this.children.newTask.selectAccess(access) }
+  submit(): void { this.children.newTask.submit() }
 
   /** Leaving the task route drops command lifecycle chrome seeded on it. */
   private setRoute(next: AppRoute): void {

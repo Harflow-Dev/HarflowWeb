@@ -40,6 +40,10 @@ export {
   type LoadTaskChangesUseCase,
 } from './loadTaskChanges'
 export {
+  createLoadTaskEventsUseCase,
+  type LoadTaskEventsUseCase,
+} from './loadTaskEvents'
+export {
   createLoadHarnessesUseCase,
   type LoadHarnessesUseCase,
 } from './loadHarnesses'

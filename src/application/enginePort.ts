@@ -17,6 +17,8 @@ import type {
   StatisticsRangeId,
   TaskChangesLoad,
   TaskChangesQuery,
+  TaskEventsLoad,
+  TaskEventsQuery,
   TaskId,
   TaskLoad,
   WorkflowEditorLoad,
@@ -127,6 +129,16 @@ export type EnginePort = {
   observeTaskChanges(
     query: TaskChangesQuery,
     onUpdate: (load: TaskChangesLoad) => void,
+  ): ObservationHandle
+
+  /**
+   * Read stored public events for an explicit task id.
+   * Unmapped ids must yield unavailable — never another task’s history.
+   * Mock-only presentation — not a public ctl events protocol.
+   */
+  observeTaskEvents(
+    query: TaskEventsQuery,
+    onUpdate: (load: TaskEventsLoad) => void,
   ): ObservationHandle
 
   /**

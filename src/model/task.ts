@@ -47,6 +47,26 @@ export type TaskStatusRead =
 
 export type TaskSupervision = 'owner_lost' | 'unverified'
 
+/**
+ * Enforcement reporting observed for this task. Field names follow the
+ * contract enforcement block (camelCase). Presentation maps booleans and
+ * enumerations to the Events facts copy.
+ */
+export type TaskEnforcement = {
+  readonly requested: string
+  readonly mechanism: string
+  readonly osSandbox: boolean
+  readonly writesConfined: boolean
+  readonly directCommitCommands: 'denied' | 'allowed' | 'not_enforced'
+  readonly publishAttempts: boolean
+  readonly network: string
+}
+
+/** Continuity evidence from `supervision.adopted_after_restart`. */
+export type TaskContinuity = {
+  readonly adoptedAfterRestart: true
+}
+
 /** Launch has no task record yet because it is waiting for slot resources. */
 export type TaskLaunchWait = 'resources'
 
@@ -147,6 +167,17 @@ export type TaskObservation = {
    * when last read. Presentation derives the labelled "won't be stopped" list.
    */
   readonly earlierTurnRunningTasks?: readonly EarlierTurnRunningTask[]
+  /** Enforcement reporting when the engine recorded it for this task. */
+  readonly enforcement?: TaskEnforcement
+  /** Status notices listed in Events facts; omitted means none. */
+  readonly notices?: readonly string[]
+  /** Present only when the engine reported adopted-after-restart. */
+  readonly continuity?: TaskContinuity
+  /**
+   * Public ctl `task_id` for facts display when the mock catalog key differs
+   * from the specimen id.
+   */
+  readonly publicTaskId?: string
 }
 
 export type TaskLoad =

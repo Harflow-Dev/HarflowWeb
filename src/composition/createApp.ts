@@ -10,6 +10,7 @@ import {
   createLoadSettingsGeneralUseCase,
   createLoadStatisticsUseCase,
   createLoadTaskChangesUseCase,
+  createLoadTaskEventsUseCase,
   createLoadTaskUseCase,
   createLoadWorkflowEditorUseCase,
   createLoadWorkflowExecutionUseCase,
@@ -52,6 +53,7 @@ export function createApp(scenario: ScenarioId = 'populated'): AppBundle {
   const loadStatistics = createLoadStatisticsUseCase(mock.engine)
   const loadTask = createLoadTaskUseCase(mock.engine)
   const loadTaskChanges = createLoadTaskChangesUseCase(mock.engine)
+  const loadTaskEvents = createLoadTaskEventsUseCase(mock.engine)
   const loadHarnesses = createLoadHarnessesUseCase(mock.engine)
   const loadNeedsYou = createLoadNeedsYouUseCase(mock.engine)
   const loadSettingsGeneral = createLoadSettingsGeneralUseCase(mock.engine)
@@ -63,6 +65,7 @@ export function createApp(scenario: ScenarioId = 'populated'): AppBundle {
     loadStatistics,
     loadTask,
     loadTaskChanges,
+    loadTaskEvents,
     loadHarnesses,
     loadSettingsGeneral,
     loadNeedsYou,

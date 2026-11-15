@@ -28,6 +28,8 @@ type Props = {
   readonly onSelectChangedEntry: (entry: TaskChangesEntryRef) => void
   readonly onSelectChangesTurn: (taskId: TaskId) => void
   readonly onToggleChangesRepo: (root: string, expanded: boolean) => void
+  readonly onSelectPaneTab: (tab: 'changes' | 'events') => void
+  readonly onLoadEarlierEvents: () => void
   readonly onToggleOverflowMenu: () => void
   readonly onCloseOverflowMenu: () => void
   readonly onOpenDialog: (
@@ -51,6 +53,8 @@ export function TaskMain({
   onSelectChangedEntry,
   onSelectChangesTurn,
   onToggleChangesRepo,
+  onSelectPaneTab,
+  onLoadEarlierEvents,
   onToggleOverflowMenu,
   onCloseOverflowMenu,
   onOpenDialog,
@@ -226,6 +230,8 @@ export function TaskMain({
           onToggleRepo={onToggleChangesRepo}
           onClosePane={() => onToggleChangesPane(false)}
           onUnavailable={onUnavailable}
+          onSelectTab={onSelectPaneTab}
+          onLoadEarlier={onLoadEarlierEvents}
         />
       ) : null}
     </div>

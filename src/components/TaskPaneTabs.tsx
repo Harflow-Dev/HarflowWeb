@@ -1,16 +1,16 @@
 import { useRef, useState, type KeyboardEvent } from 'react'
 import { Icon } from './Icon'
-import {
-  TASK_ARTIFACTS_UNAVAILABLE_ID,
-  TASK_OPEN_EVENTS_UNAVAILABLE_ID,
-} from './taskUnavailable'
+import { TASK_ARTIFACTS_UNAVAILABLE_ID } from './taskUnavailable'
 
 /** Ids tying the tablist to the pane body it controls. */
 export const TASK_PANE_PANEL_ID = 'task-pane-panel'
 export const TASK_PANE_CHANGES_TAB_ID = 'task-pane-tab-changes'
+export const TASK_PANE_EVENTS_TAB_ID = 'task-pane-tab-events'
 
 type Props = {
   readonly changesCount: string | null
+  readonly activeTab?: 'changes' | 'events'
+  readonly onSelectTab?: (tab: 'changes' | 'events') => void
   readonly onClosePane: () => void
   readonly onUnavailable: (label: string) => void
 }
@@ -20,13 +20,13 @@ const ORDER: readonly TabKey[] = ['changes', 'artifacts', 'events']
 
 /**
  * Changes / Artifacts / Events tablist plus Close, matching design paneHtml.
- * Roving tabindex over every tab: Left/Right wrap and Home/End jump. Artifacts
- * and Events are aria-disabled but stay focusable so keyboard users reach
- * their explanation; activating them only reports "unavailable". Arrow keys
- * move focus only.
+ * Roving tabindex over every tab: Left/Right wrap and Home/End jump.
+ * Events is enabled when onSelectTab is provided. Artifacts stay unavailable.
  */
 export function TaskPaneTabs({
   changesCount,
+  activeTab = 'changes',
+  onSelectTab,
   onClosePane,
   onUnavailable,
 }: Props) {
@@ -35,9 +35,28 @@ export function TaskPaneTabs({
     artifacts: null,
     events: null,
   })
-  const [focused, setFocused] = useState<TabKey>('changes')
+  const [focused, setFocused] = useState<TabKey>(activeTab)
 
   function onKeyDown(event: KeyboardEvent<HTMLDivElement>): void {
+    if (
+      (event.key === 'Enter' || event.key === ' ') &&
+      (focused === 'changes' || focused === 'events')
+    ) {
+      event.preventDefault()
+      if (focused === 'events' && onSelectTab === undefined) {
+        onUnavailable('Open Events')
+        return
+      }
+      onSelectTab?.(focused)
+      return
+    }
+    if (event.key === 'Enter' || event.key === ' ') {
+      if (focused === 'artifacts') {
+        event.preventDefault()
+        onUnavailable('Artifacts')
+      }
+      return
+    }
     const target = nextTab(event.key, ORDER.indexOf(focused), ORDER.length)
     if (target === null) return
     event.preventDefault()
@@ -55,15 +74,21 @@ export function TaskPaneTabs({
     onFocus: () => setFocused(key),
   })
 
+  const eventsEnabled = onSelectTab !== undefined
+  const eventsSelected = activeTab === 'events'
+
   return (
     <div className="hd-pane__head">
       <div className="hd-tabs" role="tablist" onKeyDown={onKeyDown}>
         <button
           {...tabProps('changes')}
           id={TASK_PANE_CHANGES_TAB_ID}
-          aria-selected="true"
+          aria-selected={activeTab === 'changes' ? 'true' : 'false'}
           aria-controls={TASK_PANE_PANEL_ID}
-          className="hd-tab is-active"
+          className={
+            activeTab === 'changes' ? 'hd-tab is-active' : 'hd-tab'
+          }
+          onClick={() => onSelectTab?.('changes')}
         >
           Changes
           {changesCount !== null ? (
@@ -85,11 +110,14 @@ export function TaskPaneTabs({
         </button>
         <button
           {...tabProps('events')}
-          aria-selected="false"
-          aria-disabled="true"
-          className="hd-tab"
-          aria-describedby={TASK_OPEN_EVENTS_UNAVAILABLE_ID}
-          onClick={() => onUnavailable('Open Events')}
+          id={TASK_PANE_EVENTS_TAB_ID}
+          aria-selected={eventsSelected ? 'true' : 'false'}
+          aria-controls={eventsEnabled ? TASK_PANE_PANEL_ID : undefined}
+          className={eventsSelected ? 'hd-tab is-active' : 'hd-tab'}
+          onClick={() => {
+            if (eventsEnabled) onSelectTab('events')
+            else onUnavailable('Open Events')
+          }}
         >
           Events
         </button>

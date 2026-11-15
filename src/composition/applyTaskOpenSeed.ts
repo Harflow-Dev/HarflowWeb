@@ -2,6 +2,7 @@ import type { NewTaskScenarioSeed } from '../adapters/mock'
 import { asTaskId } from '../model'
 import type { AppPresenter, AppScreenState } from '../presentation'
 import { applyTaskChangesSeed } from './applyTaskChangesSeed'
+import { applyTaskEventsSeed } from './applyTaskEventsSeed'
 import { applyTaskOverflowSeed } from './applyTaskOverflowSeed'
 
 type LoadProbe = {
@@ -24,6 +25,17 @@ export function applyTaskOpenSeed(
   if (seed.openTaskId === undefined) return
   const taskId = asTaskId(seed.openTaskId)
   presenter.openTask(taskId)
+  if (seed.paneTab !== undefined) {
+    const tab = seed.paneTab
+    whenLoaded(
+      presenter,
+      (state) => ({
+        open: state.task.selectedTaskId === taskId,
+        kind: state.task.load.kind,
+      }),
+      () => presenter.setTaskPaneTab(tab),
+    )
+  }
   if (seed.eventsPaneOpen === true) {
     whenLoaded(
       presenter,
@@ -45,6 +57,7 @@ export function applyTaskOpenSeed(
       () => presenter.seedTaskCommandChrome(taskId, chrome),
     )
   }
+  applyTaskEventsSeed(presenter, seed, whenLoaded)
   applyTaskOverflowSeed(presenter, seed, whenLoaded)
   applyTaskChangesSeed(presenter, seed, whenLoaded)
 }

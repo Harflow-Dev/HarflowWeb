@@ -177,6 +177,8 @@ export function AppFeature({ presenter }: Props) {
               onToggleChangesRepo={(root, expanded) =>
                 presenter.setTaskRepositoryExpanded(root, expanded)
               }
+              onSelectPaneTab={(tab) => presenter.setTaskPaneTab(tab)}
+              onLoadEarlierEvents={() => presenter.loadTaskEarlierEvents()}
               onToggleOverflowMenu={() =>
                 presenter.setTaskOverflowMenuOpen(!state.task.overflowMenuOpen)
               }

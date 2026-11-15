@@ -312,11 +312,69 @@ body,
   margin: 0;
 }
 
+/* Transcript Events keep the pre-slice heading metrics (f1da745). */
 .hd-m05-h {
   margin: var(--space-2) 0 0;
   font-size: 13px;
   line-height: 18px;
   font-weight: 600;
+}
+
+/*
+ * M05 Events tab (TaskEventsM05Body only). Scoped so transcript TaskEventsPane
+ * stays byte-identical to f1da745 while the tab matches Design 6e31cd7.
+ */
+.hd-m05-events .hd-m05-h {
+  margin: 10px 0 2px;
+  font-size: 12px;
+  line-height: 17px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.hd-m05-events .hd-m05-facts {
+  border-bottom: 1px solid var(--border);
+}
+
+.hd-m05-events .hd-m05-facts > summary {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 28px;
+  cursor: pointer;
+  list-style: none;
+  font-weight: 500;
+  font-size: 13px;
+}
+
+.hd-m05-events .hd-m05-facts > summary::-webkit-details-marker {
+  display: none;
+}
+
+.hd-m05-events .hd-m05-facts > summary .hd-tab__count {
+  margin-left: auto;
+}
+
+.hd-m05-events .hd-m05-facts__body {
+  padding: 0 0 8px 20px;
+  font-size: 13px;
+  line-height: 19px;
+}
+
+.hd-m05-events .hd-m05-record summary {
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.hd-m05-events .hd-m05-record pre {
+  white-space: pre-wrap;
+  margin: 4px 0;
+  padding: 8px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  background: var(--surface-sunken);
+  border-radius: var(--radius-sm);
+  overflow: auto;
 }
 
 .hd-m05-panenote {
@@ -397,6 +455,7 @@ body,
 }
 
 .hd-m05-prov dl,
+.hd-m05-events .hd-m05-facts dl,
 .hd-m05-reasons {
   display: grid;
   grid-template-columns: auto 1fr;
@@ -407,11 +466,13 @@ body,
 }
 
 .hd-m05-prov dt,
+.hd-m05-events .hd-m05-facts dt,
 .hd-m05-reasons dt {
   color: var(--text-tertiary);
 }
 
 .hd-m05-prov dd,
+.hd-m05-events .hd-m05-facts dd,
 .hd-m05-reasons dd {
   margin: 0;
   overflow-wrap: anywhere;
@@ -1229,7 +1290,8 @@ body,
 }
 
 .hd-m05-request[open] summary .hd-i,
-.hd-m05-repo[open] > summary > .hd-i-chevron-right {
+.hd-m05-repo[open] > summary > .hd-i-chevron-right,
+.hd-m05-events .hd-m05-facts[open] > summary > .hd-i-chevron-right {
   transform: rotate(90deg);
 }
 

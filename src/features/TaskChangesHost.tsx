@@ -9,6 +9,8 @@ type Props = {
   readonly onToggleRepo: (root: string, expanded: boolean) => void
   readonly onClosePane: () => void
   readonly onUnavailable: (label: string) => void
+  readonly onSelectTab: (tab: 'changes' | 'events') => void
+  readonly onLoadEarlier: () => void
 }
 
 /** Bind task screen state to the Changes pane. Ready observation required. */
@@ -19,6 +21,8 @@ export function TaskChangesHost({
   onToggleRepo,
   onClosePane,
   onUnavailable,
+  onSelectTab,
+  onLoadEarlier,
 }: Props) {
   if (state.load.kind !== 'ready') return null
   return (
@@ -35,6 +39,13 @@ export function TaskChangesHost({
       onToggleRepo={onToggleRepo}
       onClosePane={onClosePane}
       onUnavailable={onUnavailable}
+      paneTab={state.paneTab}
+      eventsLoad={state.eventsLoad}
+      eventsList={state.eventsList}
+      eventsEarlierLoaded={state.eventsEarlierLoaded}
+      eventsEarlierError={state.eventsEarlierError}
+      onSelectTab={onSelectTab}
+      onLoadEarlier={onLoadEarlier}
     />
   )
 }

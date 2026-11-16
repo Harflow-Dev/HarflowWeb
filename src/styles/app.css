@@ -398,11 +398,6 @@ body,
   cursor: pointer;
 }
 
-.hd-m05-chip .hd-i--sm {
-  width: 14px;
-  height: 14px;
-}
-
 .hd-m05-chip:hover {
   background: var(--surface-hover);
   color: var(--text);
@@ -956,16 +951,6 @@ body,
 
 .hd-menu__check {
   color: var(--accent);
-}
-
-.hd-i {
-  display: inline-block;
-  width: 16px;
-  height: 16px;
-  flex: none;
-  background: currentColor;
-  -webkit-mask: var(--hd-i) center / contain no-repeat;
-  mask: var(--hd-i) center / contain no-repeat;
 }
 
 :focus-visible {

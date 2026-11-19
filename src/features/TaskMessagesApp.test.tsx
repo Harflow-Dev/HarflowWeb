@@ -45,6 +45,20 @@ function composer(): HTMLElement {
 }
 
 describe('Task screen queued message scenarios', () => {
+  it('shows Send now on a running task with no queued messages', async () => {
+    await mount('task-running')
+    expect(
+      within(composer()).getByRole('button', { name: 'Send now' }),
+    ).toBeDisabled()
+  })
+
+  it('draws no Send now on a failed task', async () => {
+    await mount('task-failed')
+    expect(
+      within(composer()).queryByRole('button', { name: 'Send now' }),
+    ).toBeNull()
+  })
+
   it('message-queued draws two Queued bubbles with Cancel and Send now', async () => {
     await mount('message-queued')
     const root = transcript()

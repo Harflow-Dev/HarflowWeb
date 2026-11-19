@@ -67,8 +67,8 @@ grant approvals, answer questions, or touch the task store.
   (records of another `target.task_id` are ignored; bubbles follow `seq`);
   uncertain stays `delivering` with a reason. `messaging.v1` is observed at
   engine level (`EnginePort.observeMessagingCapability`, like the pending-launch
-  capability), not read from the task: available adds a disabled Send now on a
-  running task whose status carries the `messages` ledger; unavailable locks the
+  capability), not read from the task: available adds a disabled Send now on every
+  running task; unavailable locks the
   composer (no placeholder, hint, or Send now). The mock default is available;
   `message-unsupported` seeds it unavailable. Cancel removes a queued message
   in the mock, focuses the outcome line (only in response to Cancel, never on
@@ -94,15 +94,14 @@ grant approvals, answer questions, or touch the task store.
   `undeliverable` (superseded entries); a queued or delivering record without
   `text` (the contract makes text optional); messaging unavailable on a settled
   task (the composer there is unchanged).
-- **Open design conflict: Send now** (pending owner decision). The approved
-  `task/message-*` states draw Send now on a running task, while
-  `task/running-stop` and the other approved running states do not. The engine
-  always emits a `messages` list on task status (HarflowMCP
-  `src/harflow_mcp/server.py` ~91-93, possibly empty), so the Web rule "Send now
-  requires the capability and a status read carrying a messages ledger" only
-  separates the two designs in the mock. With a real adapter it equals
-  "capability supported", and Send now would appear on every running task. The
-  mock keeps both designs pixel-correct meanwhile.
+- **Owner decision 2026-11-19: Send now on every running task when
+  messaging.v1 is supported.** The approved running-task design states (e.g.
+  `task/running-stop`, `pane-running-*`, `topbar-*`) predate this and draw no
+  Send now; this is a known, accepted difference until the design is updated.
+  Send now shows whenever the capability is ready and supported, regardless of
+  the status `messages` ledger (the engine always emits it). While the
+  capability is loading the composer stays unchanged (no flash of Send now).
+  Settled tasks keep the standard composer without Send now.
 - **Pending launches** (Design `83d820f` / approval `2934681`): all 21 approved
   `task/pending-*` states are reachable from `/preview`. The “Pending launches”
   nav item appears only when the mock engine reports capability

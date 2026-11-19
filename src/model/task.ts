@@ -201,7 +201,7 @@ export type TaskObservation = {
   /**
    * Status `messages` ledger when messaging.v1 is offered. Empty or absent
    * means no retained records; delivered/cancelled keep metadata only.
-   * Presence also marks a status read that carries the ledger (Send now).
+   * Data only: it does not gate any control.
    */
   readonly messages?: readonly TaskMessage[]
 }

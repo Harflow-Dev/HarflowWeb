@@ -35,9 +35,9 @@ describe('taskStatusView', () => {
   const SUPPORTED = { kind: 'ready', supported: true } as const
   const UNSUPPORTED = { kind: 'ready', supported: false } as const
 
-  it('shows Send now when the engine offers messaging.v1 and status carries the ledger', () => {
+  it('shows Send now on a running task with no messages ledger when messaging.v1 is supported', () => {
     const view = taskStatusView(
-      baseObservation({ statusRead: RUNNING, messages: [] }),
+      baseObservation({ statusRead: RUNNING }),
       null,
       SUPPORTED,
     )
@@ -45,21 +45,34 @@ describe('taskStatusView', () => {
     expect(view.composer.locked).toBe(false)
   })
 
-  it('keeps the prior shell while the capability is unobserved or the status has no ledger', () => {
-    const loading = taskStatusView(
+  it('shows Send now on a running task with an empty ledger', () => {
+    const view = taskStatusView(
       baseObservation({ statusRead: RUNNING, messages: [] }),
+      null,
+      SUPPORTED,
+    )
+    expect(view.composer.showSendNow).toBe(true)
+  })
+
+  it('keeps the prior shell without Send now while the capability is loading', () => {
+    const loading = taskStatusView(
+      baseObservation({ statusRead: RUNNING }),
       null,
       { kind: 'loading' },
     )
     expect(loading.composer.showSendNow).toBe(false)
     expect(loading.composer.locked).toBe(false)
-    const noLedger = taskStatusView(
-      baseObservation({ statusRead: RUNNING }),
-      null,
-      SUPPORTED,
-    )
-    expect(noLedger.composer.showSendNow).toBe(false)
-    expect(noLedger.composer.locked).toBe(false)
+  })
+
+  it('draws no Send now on settled tasks even when supported', () => {
+    for (const status of ['failed', 'completed'] as const) {
+      const view = taskStatusView(
+        baseObservation({ statusRead: { kind: 'observed', status } }),
+        null,
+        SUPPORTED,
+      )
+      expect(view.composer.showSendNow).toBe(false)
+    }
   })
 
   it('locks the composer without Send now when the engine lacks messaging.v1', () => {

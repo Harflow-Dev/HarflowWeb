@@ -77,15 +77,14 @@ export function composerFor(
     const stopMode: TaskComposerStopMode =
       chrome === 'stop-requested' ? 'stopping' : 'stop'
     // An engine that reports no messaging.v1 locks the follow-up input. While
-    // the capability is unobserved the prior shell stays. Send now needs the
-    // capability and a status read that carries the messages ledger.
-    // OPEN DESIGN CONFLICT: the ledger condition is mock-only (see
-    // docs/review-notes.md, "Open design conflict: Send now").
+    // the capability is still loading the prior shell stays (no Send now), so
+    // Send now never flashes in and then disappears. Once the capability is
+    // ready and supported, every running task shows Send now (owner decision
+    // 2026-11-19; see docs/review-notes.md).
     if (messaging.kind === 'ready' && !messaging.supported) {
       return messagingLockedComposer(stopMode)
     }
-    const showSendNow =
-      messaging.kind === 'ready' && observation.messages !== undefined
+    const showSendNow = messaging.kind === 'ready'
     return runningComposer(stopMode, showSendNow)
   }
 

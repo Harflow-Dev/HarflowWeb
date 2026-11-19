@@ -44,7 +44,11 @@ import {
   openedPaneState,
   revealEventsFactsState,
 } from './taskSessionPaneOpen'
-import { cancelledQueuedMessageState } from './taskSessionMessaging'
+import {
+  cancelledQueuedMessageState,
+  seededMessagingChromeState,
+  type TaskMessagingSeed,
+} from './taskSessionMessaging'
 import { MessagingCapabilityWatch } from './taskMessagingCapabilityWatch'
 import { TaskPaneObservers } from './taskSessionObservers'
 import type { EventsFactsRevealId } from './taskTopbarChips'
@@ -89,18 +93,12 @@ export class TaskSession {
   subscribe(listener: TaskListener): () => void {
     this.listeners.add(listener)
     listener(this.state)
-    return () => {
-      this.listeners.delete(listener)
-    }
+    return () => { this.listeners.delete(listener) }
   }
 
-  getState(): TaskScreenState {
-    return this.state
-  }
+  getState(): TaskScreenState { return this.state }
 
-  isDisposed(): boolean {
-    return this.closed
-  }
+  isDisposed(): boolean { return this.closed }
 
   start(): void {
     this.closed = false
@@ -223,9 +221,12 @@ export class TaskSession {
     this.commit(nextExpandedReposState(this.state, root, expanded))
   }
 
-  cancelQueuedMessage(messageId: string): boolean {
-    if (this.closed) return false
-    return this.commit(cancelledQueuedMessageState(this.state, messageId))
+  cancelQueuedMessage(id: string): boolean {
+    return this.commit(cancelledQueuedMessageState(this.state, id))
+  }
+
+  seedTaskMessagingChrome(id: TaskId, seed: TaskMessagingSeed): void {
+    this.commit(seededMessagingChromeState(this.state, id, seed))
   }
 
   /** Publish a computed next state; false when closed or nothing changed. */

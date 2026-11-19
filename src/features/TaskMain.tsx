@@ -194,7 +194,7 @@ export function TaskMain({
       <TaskPage
         observation={state.load.observation}
         commandChrome={state.commandChrome}
-        messagingCancel={state.messagingCancel}
+        messagingChrome={state.messagingChrome}
         messagingCapability={state.messagingCapability}
         eventsPaneOpen={showPane && ready?.detailsPane === 'events'}
         shell={shell}

@@ -3,6 +3,7 @@ import { asTaskId } from '../model'
 import type { AppPresenter, AppScreenState } from '../presentation'
 import { applyTaskChangesSeed } from './applyTaskChangesSeed'
 import { applyTaskEventsSeed } from './applyTaskEventsSeed'
+import { applyTaskMessagingSeed } from './applyTaskMessagingSeed'
 import { applyTaskOverflowSeed } from './applyTaskOverflowSeed'
 
 type LoadProbe = {
@@ -75,6 +76,7 @@ export function applyTaskOpenSeed(
     )
   }
   applyTaskEventsSeed(presenter, seed, whenLoaded)
+  applyTaskMessagingSeed(presenter, seed, whenLoaded)
   applyTaskOverflowSeed(presenter, seed, whenLoaded)
   applyTaskChangesSeed(presenter, seed, whenLoaded)
 }

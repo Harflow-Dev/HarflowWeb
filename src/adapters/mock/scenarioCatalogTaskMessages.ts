@@ -2,7 +2,7 @@
  * Approved task/message-* queued-message scenarios (Design 7de89a4).
  */
 import { accepted, base, readyContext } from './scenarioBase'
-import type { ScenarioDefinition } from './scenarios'
+import type { NewTaskScenarioSeed, ScenarioDefinition } from './scenarios'
 import {
   MESSAGE_CANCELLED_TASK_ID,
   MESSAGE_DELIVERED_TASK_ID,
@@ -12,17 +12,26 @@ import {
   MESSAGE_SEND_NOW_REFUSED_TASK_ID,
   MESSAGE_UNCERTAIN_TASK_ID,
   MESSAGE_UNSUPPORTED_TASK_ID,
+  SEND_NOW_REFUSAL,
 } from './taskMessageFixtures'
 import { taskLoadFor } from './taskFixtures'
 
 const tasks = (taskId: string) => taskLoadFor(taskId)
+
+type MessageScenarioExtra = {
+  readonly messagingCapability?: boolean
+  readonly seed?: Pick<
+    NewTaskScenarioSeed,
+    'taskMessagingOutcome' | 'taskSendNowRefusals'
+  >
+}
 
 function messageScenario(
   id: ScenarioDefinition['id'],
   label: string,
   description: string,
   openTaskId: string,
-  messagingCapability = true,
+  extra: MessageScenarioExtra = {},
 ): ScenarioDefinition {
   return base({
     id,
@@ -32,8 +41,8 @@ function messageScenario(
     tasks,
     startOutcome: accepted,
     holdStart: false,
-    messagingCapability,
-    seed: { openTaskId },
+    messagingCapability: extra.messagingCapability ?? true,
+    seed: { openTaskId, ...extra.seed },
   })
 }
 
@@ -56,18 +65,25 @@ export const TASK_MESSAGES_SCENARIOS: readonly ScenarioDefinition[] = [
     'Task · Message delivered',
     'Approved task/message-delivered (Design 7de89a4). No bubble; Message delivered outcome.',
     MESSAGE_DELIVERED_TASK_ID,
+    { seed: { taskMessagingOutcome: 'delivered' } },
   ),
   messageScenario(
     'message-cancelled',
     'Task · Message cancelled',
     'Approved task/message-cancelled (Design 7de89a4). Remaining queued bubble; cancelled outcome.',
     MESSAGE_CANCELLED_TASK_ID,
+    { seed: { taskMessagingOutcome: 'cancelled' } },
   ),
   messageScenario(
     'message-send-now-refused',
     'Task · Send now refused',
     'Approved task/message-send-now-refused (Design 7de89a4). Refusal note; Cancel stays.',
     MESSAGE_SEND_NOW_REFUSED_TASK_ID,
+    {
+      seed: {
+        taskSendNowRefusals: [{ messageId: 'a', ...SEND_NOW_REFUSAL }],
+      },
+    },
   ),
   messageScenario(
     'message-uncertain',
@@ -80,7 +96,7 @@ export const TASK_MESSAGES_SCENARIOS: readonly ScenarioDefinition[] = [
     'Task · Messages unavailable',
     'Approved task/message-unsupported (Design 7de89a4). Locked composer; no Send now, hint, or placeholder.',
     MESSAGE_UNSUPPORTED_TASK_ID,
-    false,
+    { messagingCapability: false },
   ),
   messageScenario(
     'message-queued-settled',

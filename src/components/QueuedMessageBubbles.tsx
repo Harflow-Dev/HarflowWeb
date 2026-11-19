@@ -12,7 +12,7 @@ type Props = {
    * When omitted, Cancel stays unavailable (Parallel lane mock).
    */
   readonly onCancel?: (messageId: string) => void
-  /** Bumped when Cancel should move focus to the outcome line. */
+  /** Bumped when Cancel should move focus to the outcome line (not on mount). */
   readonly focusOutcomeSeq?: number
 }
 
@@ -27,9 +27,13 @@ export function QueuedMessageBubbles({
 }: Props) {
   const outcomeRef = useRef<HTMLParagraphElement>(null)
   const cancelInteractive = onCancel !== undefined
+  // Starts at the seq seen on mount: only a later Cancel moves focus, never a
+  // remount (reopen, load cycle) that merely carries an old seq.
+  const handledSeq = useRef(focusOutcomeSeq)
 
   useEffect(() => {
-    if (focusOutcomeSeq <= 0) return
+    if (focusOutcomeSeq === handledSeq.current) return
+    handledSeq.current = focusOutcomeSeq
     outcomeRef.current?.focus()
   }, [focusOutcomeSeq])
 

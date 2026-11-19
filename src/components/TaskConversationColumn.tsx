@@ -3,7 +3,7 @@ import type { TaskObservation } from '../model'
 import {
   TASK_OVERFLOW_COPY,
   taskQueuedTailView,
-  type TaskMessagingCancelChrome,
+  type TaskMessagingChrome,
   type TaskStatusView,
 } from '../presentation'
 import { ConversationItems } from './TaskConversationItems'
@@ -16,7 +16,7 @@ import { TaskStatusNotice } from './TaskStatusNotice'
 type Props = {
   readonly observation: TaskObservation
   readonly view: TaskStatusView
-  readonly messagingCancel: TaskMessagingCancelChrome
+  readonly messagingChrome: TaskMessagingChrome
   readonly onUnavailable: (label: string) => void
   readonly onCancelQueuedMessage: (messageId: string) => void
   readonly onBannerStop?: () => void
@@ -31,7 +31,7 @@ type Props = {
 export function TaskConversationColumn({
   observation,
   view,
-  messagingCancel,
+  messagingChrome,
   onUnavailable,
   onCancelQueuedMessage,
   onBannerStop,
@@ -40,7 +40,7 @@ export function TaskConversationColumn({
   const { body } = view
   const items = observation.conversation?.items ?? []
   const hasWorking = items.some((item) => item.kind === 'working')
-  const queueTail = taskQueuedTailView(observation, messagingCancel)
+  const queueTail = taskQueuedTailView(observation, messagingChrome)
   const hasMessaging =
     queueTail.messages.length > 0 || queueTail.outcome !== null
   // With a live working row, bubbles interleave around it. With none (failed),
@@ -85,7 +85,7 @@ export function TaskConversationColumn({
                     pinned: queueTail.pinned,
                     outcome: queueTail.outcome,
                     onCancel: onCancelQueuedMessage,
-                    focusOutcomeSeq: messagingCancel.focusSeq,
+                    focusOutcomeSeq: messagingChrome.focusSeq,
                   },
                 }
               : {})}
@@ -103,7 +103,7 @@ export function TaskConversationColumn({
           <QueuedMessageBubbles
             tail={queueTail}
             onCancel={onCancelQueuedMessage}
-            focusOutcomeSeq={messagingCancel.focusSeq}
+            focusOutcomeSeq={messagingChrome.focusSeq}
           />
         ) : null}
       </div>

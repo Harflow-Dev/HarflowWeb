@@ -38,21 +38,38 @@ const REPO_MCP = {
   path: '~/Code/Harflow/HarflowMCP',
 } as const
 
-function msg(partial: TaskMessage): TaskMessage {
-  return partial
+/** Retained terminal record: metadata only, no text. */
+function retained(
+  taskId: TaskId,
+  id: string,
+  seq: number,
+  status: 'delivered' | 'cancelled',
+): TaskMessage {
+  return {
+    id,
+    seq,
+    status,
+    delivery: 'queue',
+    target: { kind: 'task', taskId },
+  }
 }
 
-function queued(id: string, seq: number, text: string, extra?: Partial<TaskMessage>): TaskMessage {
-  return msg({
+function queued(
+  taskId: TaskId,
+  id: string,
+  seq: number,
+  text: string,
+  delivery: TaskMessage['delivery'] = 'queue',
+): TaskMessage {
+  return {
     id,
     seq,
     status: 'queued',
-    delivery: 'queue',
+    delivery,
     queuedAt: '2026-10-15T00:00:01+00:00',
     text,
-    target: { kind: 'task', taskId: asTaskId('task-message-host') },
-    ...extra,
-  })
+    target: { kind: 'task', taskId },
+  }
 }
 
 function runningBase(
@@ -104,75 +121,75 @@ function failedBase(
 
 export function messageQueuedObservation(): TaskObservation {
   return runningBase(MESSAGE_QUEUED_TASK_ID, [
-    queued('a', 1, MSG_FIRST),
-    queued('b', 2, MSG_SECOND),
+    queued(MESSAGE_QUEUED_TASK_ID, 'a', 1, MSG_FIRST),
+    queued(MESSAGE_QUEUED_TASK_ID, 'b', 2, MSG_SECOND),
   ])
+}
+
+/** Claimed by a dispatch; with a `reason` the delivery is uncertain. */
+function delivering(
+  taskId: TaskId,
+  id: string,
+  seq: number,
+  reason?: string,
+): TaskMessage {
+  return {
+    id,
+    seq,
+    status: 'delivering',
+    delivery: 'queue',
+    queuedAt: '2026-10-15T00:00:01+00:00',
+    text: MSG_FIRST,
+    ...(reason !== undefined ? { reason } : {}),
+    target: { kind: 'task', taskId },
+  }
 }
 
 export function messageDeliveringObservation(): TaskObservation {
   return runningBase(MESSAGE_DELIVERING_TASK_ID, [
-    msg({
-      id: 'a',
-      seq: 1,
-      status: 'delivering',
-      delivery: 'queue',
-      queuedAt: '2026-10-15T00:00:01+00:00',
-      text: MSG_FIRST,
-      target: { kind: 'task', taskId: MESSAGE_DELIVERING_TASK_ID },
-    }),
+    delivering(MESSAGE_DELIVERING_TASK_ID, 'a', 1),
   ])
 }
 
+/** The "Message delivered." outcome is seeded as session chrome, not read here. */
 export function messageDeliveredObservation(): TaskObservation {
   return runningBase(MESSAGE_DELIVERED_TASK_ID, [
-    msg({
-      id: 'a',
-      seq: 1,
-      status: 'delivered',
-      delivery: 'queue',
-      target: { kind: 'task', taskId: MESSAGE_DELIVERED_TASK_ID },
-    }),
+    retained(MESSAGE_DELIVERED_TASK_ID, 'a', 1, 'delivered'),
   ])
 }
 
+/** The "Queued message cancelled." outcome is seeded as session chrome. */
 export function messageCancelledObservation(): TaskObservation {
   return runningBase(MESSAGE_CANCELLED_TASK_ID, [
-    queued('b', 2, MSG_SECOND),
-    msg({
-      id: 'a',
-      seq: 1,
-      status: 'cancelled',
-      delivery: 'queue',
-      target: { kind: 'task', taskId: MESSAGE_CANCELLED_TASK_ID },
-    }),
+    queued(MESSAGE_CANCELLED_TASK_ID, 'b', 2, MSG_SECOND),
+    retained(MESSAGE_CANCELLED_TASK_ID, 'a', 1, 'cancelled'),
   ])
 }
+
+/**
+ * The refusal belongs to the send acknowledgement (ctl-messaging-queued.json
+ * `result.refusal`), so the scenario seeds it as session chrome; the ledger
+ * record is a plain queued entry.
+ */
+export const SEND_NOW_REFUSAL = {
+  code: 'interrupt_unsupported',
+  message: 'Message stays queued: safe interruption is unsupported.',
+} as const
 
 export function messageSendNowRefusedObservation(): TaskObservation {
   return runningBase(MESSAGE_SEND_NOW_REFUSED_TASK_ID, [
-    queued('a', 1, MSG_FIRST, {
-      delivery: 'now',
-      refusal: {
-        code: 'interrupt_unsupported',
-        message:
-          'Message stays queued: safe interruption is unsupported.',
-      },
-    }),
+    queued(MESSAGE_SEND_NOW_REFUSED_TASK_ID, 'a', 1, MSG_FIRST, 'now'),
   ])
 }
 
 export function messageUncertainObservation(): TaskObservation {
   return runningBase(MESSAGE_UNCERTAIN_TASK_ID, [
-    msg({
-      id: 'a',
-      seq: 1,
-      status: 'delivering',
-      delivery: 'queue',
-      queuedAt: '2026-10-15T00:00:01+00:00',
-      text: MSG_FIRST,
-      reason: 'Delivery is uncertain; inspect the continuation before resending',
-      target: { kind: 'task', taskId: MESSAGE_UNCERTAIN_TASK_ID },
-    }),
+    delivering(
+      MESSAGE_UNCERTAIN_TASK_ID,
+      'a',
+      1,
+      'Delivery is uncertain; inspect the continuation before resending',
+    ),
   ])
 }
 
@@ -182,12 +199,8 @@ export function messageUnsupportedObservation(): TaskObservation {
 
 export function messageQueuedSettledObservation(): TaskObservation {
   return failedBase(MESSAGE_QUEUED_SETTLED_TASK_ID, [
-    queued('a', 1, MSG_FIRST, {
-      target: { kind: 'task', taskId: MESSAGE_QUEUED_SETTLED_TASK_ID },
-    }),
-    queued('b', 2, MSG_SECOND, {
-      target: { kind: 'task', taskId: MESSAGE_QUEUED_SETTLED_TASK_ID },
-    }),
+    queued(MESSAGE_QUEUED_SETTLED_TASK_ID, 'a', 1, MSG_FIRST),
+    queued(MESSAGE_QUEUED_SETTLED_TASK_ID, 'b', 2, MSG_SECOND),
   ])
 }
 

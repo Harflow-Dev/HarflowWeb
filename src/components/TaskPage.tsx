@@ -5,9 +5,9 @@ import type {
   TranscriptObservation,
 } from '../model'
 import {
-  EMPTY_MESSAGING_CANCEL,
+  EMPTY_TASK_MESSAGING,
   type TaskCommandChrome,
-  type TaskMessagingCancelChrome,
+  type TaskMessagingChrome,
   taskIsLiveRun,
   taskShowsSummary,
   taskStatusView,
@@ -39,7 +39,7 @@ const defaultShell: TaskShell = (column, pane) => (
 type Props = {
   readonly observation: TaskObservation
   readonly commandChrome?: TaskCommandChrome
-  readonly messagingCancel?: TaskMessagingCancelChrome
+  readonly messagingChrome?: TaskMessagingChrome
   readonly messagingCapability?: MessagingCapabilityLoad
   readonly eventsPaneOpen?: boolean
   /**
@@ -61,7 +61,7 @@ type Props = {
 export function TaskPage({
   observation,
   commandChrome = null,
-  messagingCancel = EMPTY_MESSAGING_CANCEL,
+  messagingChrome = EMPTY_TASK_MESSAGING,
   messagingCapability = UNOBSERVED_MESSAGING,
   eventsPaneOpen = false,
   shell = defaultShell,
@@ -80,7 +80,7 @@ export function TaskPage({
       key={observation.taskId}
       observation={observation}
       commandChrome={commandChrome}
-      messagingCancel={messagingCancel}
+      messagingChrome={messagingChrome}
       messagingCapability={messagingCapability}
       eventsPaneOpen={eventsPaneOpen}
       liveRun={liveRun}
@@ -100,7 +100,7 @@ export function TaskPage({
 function TranscriptTaskBody({
   observation,
   commandChrome,
-  messagingCancel,
+  messagingChrome,
   messagingCapability,
   eventsPaneOpen,
   shell,
@@ -116,7 +116,7 @@ function TranscriptTaskBody({
 }: {
   readonly observation: TaskObservation
   readonly commandChrome: TaskCommandChrome
-  readonly messagingCancel: TaskMessagingCancelChrome
+  readonly messagingChrome: TaskMessagingChrome
   readonly messagingCapability: MessagingCapabilityLoad
   readonly eventsPaneOpen: boolean
   readonly shell: TaskShell
@@ -213,7 +213,7 @@ function TranscriptTaskBody({
         <TaskConversationColumn
           observation={observation}
           view={statusView}
-          messagingCancel={messagingCancel}
+          messagingChrome={messagingChrome}
           onUnavailable={onUnavailable}
           onCancelQueuedMessage={onCancelQueuedMessage ?? (() => undefined)}
           {...(onBannerStop ? { onBannerStop } : {})}

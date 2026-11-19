@@ -1,6 +1,5 @@
 import type {
   ParallelGroupLane,
-  ParallelGroupQueuedDelivery,
   ParallelGroupQueuedMessage,
 } from '../model'
 import type { ParallelGroupQueuedOutcome } from './parallelGroupState'
@@ -26,17 +25,11 @@ export function fencedQueuedMessages(
   return lane.queuedMessages.filter((message) => message.taskId === taskId)
 }
 
-function kindFor(
-  delivery: ParallelGroupQueuedDelivery,
-): 'queued' | 'delivering' | 'uncertain' {
-  return delivery
-}
-
 function messageView(message: ParallelGroupQueuedMessage): QueuedMessageView {
   return queuedMessageView({
     id: message.id,
     text: message.text,
-    kind: kindFor(message.delivery),
+    kind: message.delivery,
   })
 }
 

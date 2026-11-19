@@ -9,6 +9,7 @@ export type TaskMessageStatus =
   | 'queued'
   | 'delivering'
   | 'delivered'
+  | 'undeliverable'
   | 'cancelled'
 
 /**
@@ -27,8 +28,12 @@ export type TaskMessageTarget = {
   readonly taskId: TaskId
 }
 
-/** Send-now refusal carried on an accepted queued response. */
-export type TaskMessageRefusal = {
+/**
+ * `refusal` of a send acknowledgement (ctl-messaging-queued.json
+ * `result.refusal`). It is a command outcome, never a status `messages`
+ * ledger field.
+ */
+export type MessageSendRefusal = {
   readonly code: string
   readonly message: string
 }
@@ -36,6 +41,7 @@ export type TaskMessageRefusal = {
 /**
  * One messages-ledger record.
  * Delivered and cancelled records retain metadata only (no text).
+ * `undeliverable` is listed by the contract (superseded entries).
  * Uncertain delivery stays `delivering` with a `reason` — no invented status.
  */
 export type TaskMessage = {
@@ -47,5 +53,4 @@ export type TaskMessage = {
   readonly text?: string
   readonly reason?: string
   readonly target?: TaskMessageTarget
-  readonly refusal?: TaskMessageRefusal
 }

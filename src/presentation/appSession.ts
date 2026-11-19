@@ -31,6 +31,7 @@ import {
 import type { AppRoute, AppScreenState, SettingsSection } from './appState'
 import type { PresenterSession } from './presenterSession'
 import * as parallelNav from './appSessionParallel'
+import type { TaskMessagingSeed } from './taskSessionMessaging'
 import type { PendingLaunchStopOutcome } from './pendingLaunchesState'
 import type { OpenMenu } from './screenState'
 import type { WorkflowRunViewMode } from './workflowRunParallel'
@@ -222,6 +223,9 @@ export class AppSession {
   }
   loadTaskEarlierEvents(): void {
     this.children.task.loadEarlierEvents()
+  }
+  seedTaskMessagingChrome(taskId: TaskId, seed: TaskMessagingSeed): void {
+    this.children.task.seedTaskMessagingChrome(taskId, seed); this.emit()
   }
   cancelTaskQueuedMessage(messageId: string): boolean {
     return this.children.task.cancelQueuedMessage(messageId)

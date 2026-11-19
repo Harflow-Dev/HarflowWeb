@@ -11,11 +11,11 @@ import type {
   TaskLoad,
 } from '../model'
 import type { TaskCommandChrome } from './taskStatusTypes'
-import type { TaskMessagingCancelChrome } from './taskQueuedMessages'
-import { EMPTY_MESSAGING_CANCEL } from './taskQueuedMessages'
+import type { TaskMessagingChrome } from './taskQueuedMessages'
+import { EMPTY_TASK_MESSAGING } from './taskQueuedMessages'
 
 export type { TaskCommandChrome } from './taskStatusTypes'
-export type { TaskMessagingCancelChrome } from './taskQueuedMessages'
+export type { TaskMessagingChrome } from './taskQueuedMessages'
 
 /** Which confirmation dialog is open (presentation chrome only). */
 export type TaskDialogKind = 'stop' | 'takeover'
@@ -110,7 +110,7 @@ export type TaskScreenState = {
    * Queued-message Cancel chrome for the open task (removed ids, outcome,
    * focus). Cleared when the selected task identity resets.
    */
-  readonly messagingCancel: TaskMessagingCancelChrome
+  readonly messagingChrome: TaskMessagingChrome
   /**
    * Engine `messaging.v1` capability, observed once per session (not per
    * task) and kept across task identity resets.
@@ -170,7 +170,7 @@ export function initialTaskState(): TaskScreenState {
     eventsList: null,
     eventsLoad: { kind: 'loading' },
     eventsEarlier: IDLE_EVENTS_EARLIER,
-    messagingCancel: EMPTY_MESSAGING_CANCEL,
+    messagingChrome: EMPTY_TASK_MESSAGING,
     messagingCapability: { kind: 'loading' },
   }
 }

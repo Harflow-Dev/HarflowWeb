@@ -193,6 +193,49 @@ describe('Task screen queued message scenarios', () => {
     )
   })
 
+  it('Cancel on a finished task focuses the outcome after the failure banner', async () => {
+    const user = userEvent.setup()
+    await mount('message-queued-settled')
+    const root = transcript()
+    await user.click(
+      within(root).getByRole('button', {
+        name: `Cancel queued message: ${MSG_SECOND}`,
+      }),
+    )
+    const outcome = within(root).getByText(QUEUED_MESSAGE_COPY.cancelledOutcome)
+    expect(outcome).toHaveFocus()
+    const banner = root.querySelector('.hd-banner')
+    expect(banner).not.toBeNull()
+    expect(
+      banner!.compareDocumentPosition(outcome) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy()
+    expect(within(root).getByText(MSG_FIRST)).toBeInTheDocument()
+    expect(within(root).queryByText(MSG_SECOND)).toBeNull()
+  })
+
+  it('does not move focus to the outcome when the task is reopened', async () => {
+    const user = userEvent.setup()
+    const app = await mount('message-queued')
+    const root = transcript()
+    await user.click(
+      within(root).getByRole('button', {
+        name: `Cancel queued message: ${MSG_FIRST}`,
+      }),
+    )
+    expect(
+      within(transcript()).getByText(QUEUED_MESSAGE_COPY.cancelledOutcome),
+    ).toHaveFocus()
+    ;(document.activeElement as HTMLElement).blur()
+    await act(async () => {
+      app.presenter.openTask(app.presenter.getState().task.selectedTaskId!)
+      await Promise.resolve()
+    })
+    expect(
+      within(transcript()).getByText(QUEUED_MESSAGE_COPY.cancelledOutcome),
+    ).not.toHaveFocus()
+  })
+
   it('boots message-queued through the preview seeding path', async () => {
     window.location.hash = '#message-queued'
     render(<PreviewShell />)

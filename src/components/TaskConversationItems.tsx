@@ -140,7 +140,13 @@ export function ConversationItems({
   readonly items: readonly ConversationItem[]
   readonly messaging?: MessagingProps
 }) {
-  if (!messaging) {
+  // Settled bubbles sit before the last working row (design lastIndexOf);
+  // pinned bubbles and the outcome follow the live activity. Without a
+  // working row there is no placement here (the column draws the tail).
+  const workingIndex = messaging
+    ? items.map((item) => item.kind).lastIndexOf('working')
+    : -1
+  if (!messaging || workingIndex < 0) {
     return (
       <>
         {items.map((item, index) => (
@@ -149,29 +155,7 @@ export function ConversationItems({
       </>
     )
   }
-
-  const workingIndex = items.findIndex((item) => item.kind === 'working')
   const rows: ReactNode[] = []
-
-  if (workingIndex < 0) {
-    for (let i = 0; i < items.length; i++) {
-      rows.push(<ConversationRow key={i} item={items[i]!} />)
-    }
-    rows.push(
-      <QueuedMessageBubbles
-        key="msgq"
-        tail={{
-          messages: [...messaging.settled, ...messaging.pinned],
-          settled: messaging.settled,
-          pinned: messaging.pinned,
-          outcome: messaging.outcome,
-        }}
-        onCancel={messaging.onCancel}
-        focusOutcomeSeq={messaging.focusOutcomeSeq}
-      />,
-    )
-    return <>{rows}</>
-  }
 
   for (let i = 0; i < workingIndex; i++) {
     rows.push(<ConversationRow key={i} item={items[i]!} />)

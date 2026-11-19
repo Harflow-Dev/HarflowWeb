@@ -65,6 +65,17 @@ export type NewTaskScenarioSeed = {
   readonly openTaskId?: string
   /** Stop or Continue command lifecycle chrome after the task observation is ready. */
   readonly taskCommandChrome?: TaskCommandChromeSeed
+  /**
+   * Transient messaging command outcome for the open task (session chrome:
+   * the status ledger offers no event-level outcome, so the mock seeds it).
+   */
+  readonly taskMessagingOutcome?: 'cancelled' | 'delivered'
+  /** Send-now refusals from send acknowledgements, keyed by message id. */
+  readonly taskSendNowRefusals?: readonly {
+    readonly messageId: string
+    readonly code: string
+    readonly message: string
+  }[]
   /** Open the task overflow More-actions menu after the observation is ready. */
   readonly taskOverflowMenuOpen?: boolean
   /** Screen identity: the approved transcript routes draw no More anchor. */

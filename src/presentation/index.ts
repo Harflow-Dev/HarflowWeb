@@ -103,12 +103,15 @@ export {
   type QueuedLaneTailView,
 } from './parallelGroupQueuedMessages'
 export {
-  EMPTY_MESSAGING_CANCEL,
+  EMPTY_TASK_MESSAGING,
   taskMessageDrawFacts,
   taskMessageView,
   taskQueuedTailView,
-  type TaskMessagingCancelChrome,
+  type TaskMessagingChrome,
+  type TaskMessagingOutcome,
+  type TaskSendNowRefusal,
 } from './taskQueuedMessages'
+export { type TaskMessagingSeed } from './taskSessionMessaging'
 export {
   initialPendingLaunchesState,
   type PendingLaunchesScreenState,

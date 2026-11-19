@@ -38,6 +38,7 @@ import type {
 import { AppSession, type AppListener } from './appSession'
 import type { AppRoute, AppScreenState, SettingsSection } from './appState'
 import type { ParallelGroupQueuedOutcome } from './parallelGroupState'
+import type { TaskMessagingSeed } from './taskSessionMessaging'
 import type { PendingLaunchStopOutcome } from './pendingLaunchesState'
 import type { OpenMenu } from './screenState'
 import type { ApprovalsMode, EffortLevel } from './taskOptions'
@@ -102,6 +103,7 @@ export type AppPresenter = {
   loadTaskEarlierEvents(): void
   /** Cancel a queued task message in the mock; returns false when refused. */
   cancelTaskQueuedMessage(messageId: string): boolean
+  seedTaskMessagingChrome(taskId: TaskId, seed: TaskMessagingSeed): void
   selectStatisticsRange(range: StatisticsRangeId): void
   selectSettingsSection(section: SettingsSection): void
   setExpandedHarness(id: string | null): void
@@ -197,6 +199,8 @@ export function createAppPresenter(deps: Deps): AppPresenter {
     setTaskPaneTab: (tab) => session.setTaskPaneTab(tab),
     revealTaskEventsFacts: (group) => session.revealTaskEventsFacts(group),
     loadTaskEarlierEvents: () => session.loadTaskEarlierEvents(),
+    seedTaskMessagingChrome: (id, seed) =>
+      session.seedTaskMessagingChrome(id, seed),
     cancelTaskQueuedMessage: (messageId) =>
       session.cancelTaskQueuedMessage(messageId),
     selectStatisticsRange: (range) => session.selectStatisticsRange(range),

@@ -53,8 +53,21 @@ body,
   line-height: 16px;
 }
 
-.hw-status:empty {
-  display: none;
+/*
+ * No text: no visible strip. Not display:none, so the live region stays in the
+ * accessibility tree and announces text that arrives later.
+ */
+.hw-status--empty {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  pointer-events: none;
 }
 
 .hw-preview {

@@ -158,7 +158,10 @@ describe('M05 conversation column structure', () => {
           '[role="status"], [role="alert"], [role="log"], [aria-live]',
         ),
       ]
-      expect(live.map((el) => el.className), scenario).toEqual(['hw-status'])
+      expect(
+        live.map((el) => el.classList.contains('hw-status')),
+        scenario,
+      ).toEqual([true])
       cleanup()
     }
   })

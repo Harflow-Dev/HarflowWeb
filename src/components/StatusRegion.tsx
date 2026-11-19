@@ -46,7 +46,10 @@ function useAnnouncedSource(
   return source
 }
 
-/** Accessible live region — kept out of the main design hero composition. */
+/**
+ * Accessible live region — kept out of the main design hero composition.
+ * Always mounted so later text is announced; with no text it draws no box.
+ */
 export function StatusRegion({
   submission,
   contextNote,
@@ -82,7 +85,7 @@ export function StatusRegion({
 
   return (
     <div
-      className="hw-status"
+      className={message === '' ? 'hw-status hw-status--empty' : 'hw-status'}
       role="status"
       aria-live="polite"
       aria-atomic="true"

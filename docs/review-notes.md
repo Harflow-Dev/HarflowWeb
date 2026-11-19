@@ -59,8 +59,23 @@ grant approvals, answer questions, or touch the task store.
   cancelled outcome only for the lane whose id matches the seed (a lane with a
   task), even when its queue is now empty. There are no
   approved 1000 × 620 drawings for these four states; the existing narrow lane
-  rules (360-point floor) still apply. Settled-lane queues and task-screen
-  `messages/*` / caller approvals remain out of scope.
+  rules (360-point floor) still apply. Settled-lane queues and caller approvals
+  remain out of scope.
+- **Task screen queued messages** (Design `7de89a4`, owner approval 2026-11-15):
+  eight `task/message-*` states are reachable from `/preview` (scenario id =
+  design route id). The status `messages` ledger uses contract field names;
+  uncertain stays `delivering` with a reason. `messaging.v1` is the capability
+  flag (`messagingV1` on the observation): `true` adds disabled Send now on a
+  running task; explicit `false` locks the composer (no placeholder, hint, or
+  Send now); absent keeps the prior follow-up shell. Cancel removes a queued
+  message in the mock, focuses the outcome line, and announces through
+  `StatusRegion` (the outcome paragraph is not a live region). Send now is
+  drawn disabled with its title and has no mock behaviour. Shared presentation
+  with Parallel lanes lives in `presentation/queuedMessages.ts`.
+  Open contract gaps the design flags (approval does not close them):
+  send-now refusal codes other than `interrupt_unsupported` have no copy;
+  uncertain delivery uses neutral provisional wording; no settled-target note
+  copy; unsupported has no copy.
 - **Pending launches** (Design `83d820f` / approval `2934681`): all 21 approved
   `task/pending-*` states are reachable from `/preview`. The “Pending launches”
   nav item appears only when the mock engine reports capability

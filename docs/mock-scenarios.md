@@ -168,6 +168,14 @@ populated fixture and shows a single “Mock engine” badge.
 | Transcript capacity | Design `task/transcript-capacity` |
 | Transcript sources | Design `task/transcript-sources` — tool disclosure in the transcript; unsupported stub only in Events |
 | Transcript · Events | Any of the eight with `/events` (hash `#task/transcript-*/events` or scenario id `transcript-*/events`) opens Events at load. Pinned transcript completed states omit Summary; `task/done` keeps its fixture summary. |
+| Task · Messages queued | Approved `task/message-queued` (Design `7de89a4`). Two Queued bubbles with Cancel; Send now beside Send |
+| Task · Message delivering | Approved `task/message-delivering` (Design `7de89a4`). Queued caption, no Cancel; delivery outcome |
+| Task · Message delivered | Approved `task/message-delivered` (Design `7de89a4`). No bubble; Message delivered outcome |
+| Task · Message cancelled | Approved `task/message-cancelled` (Design `7de89a4`). Remaining queued bubble; cancelled outcome |
+| Task · Send now refused | Approved `task/message-send-now-refused` (Design `7de89a4`). Refusal note; Cancel stays |
+| Task · Delivery uncertain | Approved `task/message-uncertain` (Design `7de89a4`). Uncertain caption above live activity; no Cancel |
+| Task · Messages unavailable | Approved `task/message-unsupported` (Design `7de89a4`). Locked composer; no Send now, hint, or placeholder |
+| Task · Queued on a finished task | Approved `task/message-queued-settled` (Design `7de89a4`). Failed task; queued bubbles; standard composer |
 | Needs you empty | Approved `needs-you/empty` specimen. Populated scenarios use `needs-you/waiting` |
 | Needs you loading | Approved `needs-you/loading` main-pane skeleton (Design `9d19fd7`). Deferred Needs you read; populated context keeps live Running/Recent. Open Needs you in the preview after selecting the scenario. Full sidebar `SB` remains out of scope; use **Needs you loading · minimum** for the 1000×620 companion |
 
@@ -177,6 +185,8 @@ M05 G-DIFF Changes scenarios (including `task-changes-loading`) live in
 M05 Events tab scenarios live in `src/adapters/mock/scenarioCatalogTaskEvents.ts`.
 M05 G-ADAPTIVE pane layout and top-bar content scenarios live in
 `src/adapters/mock/scenarioCatalogTaskPaneTopbar.ts`.
+Task-screen queued-message scenarios (`task/message-*`) live in
+`src/adapters/mock/scenarioCatalogTaskMessages.ts` (Design `7de89a4`).
 Minimum-window scenarios (loaded and loading) live in
 `src/adapters/mock/scenarioCatalogMinimum.ts` and reuse `seed.frame: 'minimum'`
 (same `hw-preview__app--minimum` chrome as Sidebar minimum). They keep the

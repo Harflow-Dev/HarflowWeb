@@ -56,7 +56,7 @@ import {
   PRELOAD_PARALLEL_GROUP_ID,
   preloadParallelGroup,
 } from '../adapters/mock/parallelGroupFixtures'
-import { stubPendingLaunchPort } from '../adapters/mock/stubPendingLaunchPort'
+import { stubCapabilityPorts } from '../adapters/mock/stubCapabilityPorts'
 import {
   NIGHTLY_AUDIT_RUN_ID,
   nightlyAuditRun,
@@ -200,7 +200,7 @@ function createTestEngine(options?: {
         },
       }
     },
-    ...stubPendingLaunchPort(),
+    ...stubCapabilityPorts(),
     observeResources(onUpdate) {
       queueMicrotask(() => onUpdate(initialResources))
       return {

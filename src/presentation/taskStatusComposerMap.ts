@@ -79,6 +79,8 @@ export function composerFor(
     // An engine that reports no messaging.v1 locks the follow-up input. While
     // the capability is unobserved the prior shell stays. Send now needs the
     // capability and a status read that carries the messages ledger.
+    // OPEN DESIGN CONFLICT: the ledger condition is mock-only (see
+    // docs/review-notes.md, "Open design conflict: Send now").
     if (messaging.kind === 'ready' && !messaging.supported) {
       return messagingLockedComposer(stopMode)
     }

@@ -19,7 +19,7 @@ type PendingObs = Pick<
  * EnginePort test stubs: capability
  * unsupported, the default inventory, and per-ID default status.
  */
-export function stubPendingLaunchPort(): PendingObs {
+export function stubCapabilityPorts(): PendingObs {
   return {
     observeMessagingCapability(onUpdate) {
       queueMicrotask(() => onUpdate({ kind: 'ready', supported: true }))

@@ -290,3 +290,5 @@ observation data. Unknown or unavailable facts are not coerced to zero.
 
 Tests use controllable promises (`src/adapters/mock/controllable.ts`) rather than
 sleeps or randomness.
+
+Seeded message outcomes (delivered, cancelled, send-now refusals) reset when the same task is reopened from the sidebar; the mock resets, as in the design.

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { idleObservation } from '../adapters/mock/mockObservation'
-import { stubPendingLaunchPort } from '../adapters/mock/stubPendingLaunchPort'
+import { stubCapabilityPorts } from '../adapters/mock/stubCapabilityPorts'
 import {
   createLoadResourcesUseCase,
   type EnginePort,
@@ -52,7 +52,7 @@ function createCapturingPort(initial: ResourcesLoad = populatedResourcesLoad()):
     observeParallelGroup() {
       return noopHandle('parallel-group')
     },
-    ...stubPendingLaunchPort(),
+    ...stubCapabilityPorts(),
     observeStatistics() {
       return noopHandle('stats')
     },

@@ -30,7 +30,7 @@ import {
   type TaskId,
 } from '../model'
 import { populatedComposer, populatedSidebar } from '../adapters/mock/fixtures'
-import { stubPendingLaunchPort } from '../adapters/mock/stubPendingLaunchPort'
+import { stubCapabilityPorts } from '../adapters/mock/stubCapabilityPorts'
 import { populatedHarnessesLoad } from '../adapters/mock/harnessFixtures'
 import { emptyNeedsYouLoad } from '../adapters/mock/needsYouFixtures'
 import { populatedResourcesLoad } from '../adapters/mock/resourceFixtures'
@@ -93,7 +93,7 @@ function transcriptEngine(): EnginePort {
       )
       return handle('pg')
     },
-    ...stubPendingLaunchPort(),
+    ...stubCapabilityPorts(),
     observeResources(onUpdate) {
       queueMicrotask(() => onUpdate(populatedResourcesLoad()))
       return handle('res')

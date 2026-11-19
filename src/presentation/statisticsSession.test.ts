@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { idleObservation } from '../adapters/mock/mockObservation'
-import { stubPendingLaunchPort } from '../adapters/mock/stubPendingLaunchPort'
+import { stubCapabilityPorts } from '../adapters/mock/stubCapabilityPorts'
 import {
   createLoadStatisticsUseCase,
   type EnginePort,
@@ -55,7 +55,7 @@ function createCapturingPort(
     observeParallelGroup() {
       return noopHandle('parallel-group')
     },
-    ...stubPendingLaunchPort(),
+    ...stubCapabilityPorts(),
     observeStatistics(range, onUpdate) {
       ranges.push(range)
       latest = { range, callback: onUpdate }
@@ -134,7 +134,7 @@ function createDeferredPort(): {
       observeParallelGroup() {
         return noopHandle('parallel-group')
       },
-      ...stubPendingLaunchPort(),
+      ...stubCapabilityPorts(),
       observeStatistics(range, onUpdate) {
         active.set(range, onUpdate)
         if (range === '30d') {

@@ -94,6 +94,15 @@ grant approvals, answer questions, or touch the task store.
   `undeliverable` (superseded entries); a queued or delivering record without
   `text` (the contract makes text optional); messaging unavailable on a settled
   task (the composer there is unchanged).
+- **Open design conflict: Send now** (pending owner decision). The approved
+  `task/message-*` states draw Send now on a running task, while
+  `task/running-stop` and the other approved running states do not. The engine
+  always emits a `messages` list on task status (HarflowMCP
+  `src/harflow_mcp/server.py` ~91-93, possibly empty), so the Web rule "Send now
+  requires the capability and a status read carrying a messages ledger" only
+  separates the two designs in the mock. With a real adapter it equals
+  "capability supported", and Send now would appear on every running task. The
+  mock keeps both designs pixel-correct meanwhile.
 - **Pending launches** (Design `83d820f` / approval `2934681`): all 21 approved
   `task/pending-*` states are reachable from `/preview`. The “Pending launches”
   nav item appears only when the mock engine reports capability

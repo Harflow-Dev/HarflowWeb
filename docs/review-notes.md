@@ -63,19 +63,37 @@ grant approvals, answer questions, or touch the task store.
   remain out of scope.
 - **Task screen queued messages** (Design `7de89a4`, owner approval 2026-11-15):
   eight `task/message-*` states are reachable from `/preview` (scenario id =
-  design route id). The status `messages` ledger uses contract field names;
-  uncertain stays `delivering` with a reason. `messaging.v1` is the capability
-  flag (`messagingV1` on the observation): `true` adds disabled Send now on a
-  running task; explicit `false` locks the composer (no placeholder, hint, or
-  Send now); absent keeps the prior follow-up shell. Cancel removes a queued
-  message in the mock, focuses the outcome line, and announces through
-  `StatusRegion` (the outcome paragraph is not a live region). Send now is
-  drawn disabled with its title and has no mock behaviour. Shared presentation
-  with Parallel lanes lives in `presentation/queuedMessages.ts`.
+  design route id). The status `messages` ledger uses contract field names
+  (records of another `target.task_id` are ignored; bubbles follow `seq`);
+  uncertain stays `delivering` with a reason. `messaging.v1` is observed at
+  engine level (`EnginePort.observeMessagingCapability`, like the pending-launch
+  capability), not read from the task: available adds a disabled Send now on a
+  running task whose status carries the `messages` ledger; unavailable locks the
+  composer (no placeholder, hint, or Send now). The mock default is available;
+  `message-unsupported` seeds it unavailable. Cancel removes a queued message
+  in the mock, focuses the outcome line (only in response to Cancel, never on
+  remount), and announces through `StatusRegion` (the outcome paragraph is not
+  a live region). Send now is drawn disabled with its title and has no mock
+  behaviour. Shared presentation with Parallel lanes lives in
+  `presentation/queuedMessages.ts`.
+  Command outcomes are session chrome, not ledger facts: the send-now
+  `refusal {code, message}` exists only on the send acknowledgement
+  (`ctl-messaging-queued.json`), so it is held per message id and seeded for
+  `message-send-now-refused`. "Message delivered." and "Queued message
+  cancelled." are transient outcomes (Cancel sets the latter); the mock seeds
+  them for `message-delivered` and `message-cancelled` because the contract
+  offers no event-level outcome for the task screen, and retained terminal
+  records (metadata only) never produce an outcome line. "Delivery is in
+  progress." stays derived from a delivering record, as in Parallel lanes.
   Open contract gaps the design flags (approval does not close them):
-  send-now refusal codes other than `interrupt_unsupported` have no copy;
-  uncertain delivery uses neutral provisional wording; no settled-target note
-  copy; unsupported has no copy.
+  send-now refusal codes other than `interrupt_unsupported`
+  (`workflow_checkpoint_required`, `continuation_refused`,
+  `continuation_uncertain`) have no copy and draw no note; uncertain delivery
+  uses neutral provisional wording; no settled-target note copy; unsupported
+  has no copy. Further undesigned cases, drawn as nothing: the contract status
+  `undeliverable` (superseded entries); a queued or delivering record without
+  `text` (the contract makes text optional); messaging unavailable on a settled
+  task (the composer there is unchanged).
 - **Pending launches** (Design `83d820f` / approval `2934681`): all 21 approved
   `task/pending-*` states are reachable from `/preview`. The “Pending launches”
   nav item appears only when the mock engine reports capability

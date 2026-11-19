@@ -79,6 +79,11 @@ export type TaskStatusComposer = {
   readonly locked: boolean
   readonly hint: string
   readonly stopMode: TaskComposerStopMode
+  /**
+   * Draw disabled Send now beside Send when messaging.v1 is offered on a
+   * running task. No send-now behaviour in this mock.
+   */
+  readonly showSendNow: boolean
 }
 
 /** Which surface fills the task column below the top bar. */

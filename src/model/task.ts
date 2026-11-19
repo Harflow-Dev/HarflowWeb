@@ -1,5 +1,6 @@
 import type { TaskId } from './ids'
 import type { AccessLevel } from './types'
+import type { TaskMessage } from './taskMessaging'
 import type { TranscriptObservation } from './transcript'
 
 /** Inline run of plain or code-styled text — never HTML. */
@@ -197,6 +198,18 @@ export type TaskObservation = {
    * task asked for none. Presentation draws the inline resource card.
    */
   readonly resources?: TaskResources
+  /**
+   * Engine handshake capability `messaging.v1`. `true` enables Send now on a
+   * running task; explicit `false` locks the follow-up composer (no
+   * placeholder, hint, or Send now). Absent keeps the prior follow-up shell
+   * for fixtures that predate this capability.
+   */
+  readonly messagingV1?: boolean
+  /**
+   * Status `messages` ledger when messaging.v1 is offered. Empty or absent
+   * means no retained records; delivered/cancelled keep metadata only.
+   */
+  readonly messages?: readonly TaskMessage[]
 }
 
 /**

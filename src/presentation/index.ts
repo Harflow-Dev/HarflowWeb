@@ -89,12 +89,27 @@ export {
 } from './parallelGroupChrome'
 export {
   QUEUED_MESSAGE_COPY,
+  partitionQueuedMessages,
+  queuedMessageView,
+  type QueuedMessageDrawFacts,
+  type QueuedMessageKind,
+  type QueuedMessageView,
+  type QueuedMessagesTailView,
+} from './queuedMessages'
+export {
   fencedQueuedMessages,
   groupShowsQueuedCancel,
   queuedLaneTailView,
   type QueuedLaneTailView,
-  type QueuedMessageView,
 } from './parallelGroupQueuedMessages'
+export {
+  EMPTY_MESSAGING_CANCEL,
+  taskMessageDrawFacts,
+  taskMessageView,
+  taskMessagingSupported,
+  taskQueuedTailView,
+  type TaskMessagingCancelChrome,
+} from './taskQueuedMessages'
 export {
   initialPendingLaunchesState,
   type PendingLaunchesScreenState,

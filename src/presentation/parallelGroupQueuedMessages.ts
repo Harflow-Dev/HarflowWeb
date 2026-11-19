@@ -4,40 +4,16 @@ import type {
   ParallelGroupQueuedMessage,
 } from '../model'
 import type { ParallelGroupQueuedOutcome } from './parallelGroupState'
+import {
+  QUEUED_MESSAGE_COPY,
+  partitionQueuedMessages,
+  queuedMessageView,
+  type QueuedMessageView,
+  type QueuedMessagesTailView,
+} from './queuedMessages'
 
-/** Exact copy from Design 2153ab1 / states-parallel-lanes.js. */
-export const QUEUED_MESSAGE_COPY = {
-  captionQueued: 'Queued',
-  captionUncertain: 'Delivery uncertain',
-  deliveryInProgress: 'Delivery is in progress.',
-  uncertainNote:
-    'Delivery could not be confirmed. The message is not requeued.',
-  cancelledOutcome: 'Queued message cancelled.',
-} as const
-
-/** Presentation view for one fenced queued message. */
-export type QueuedMessageView = {
-  readonly id: string
-  readonly text: string
-  readonly caption: string
-  /** Derived from uncertain delivery; null otherwise. */
-  readonly note: string | null
-  readonly pinned: boolean
-  readonly showCancel: boolean
-  /** Accessible name identifying which message Cancel targets. */
-  readonly cancelLabel: string
-}
-
-export type QueuedLaneTailView = {
-  readonly messages: readonly QueuedMessageView[]
-  /** Delivery-progress or cancelled-command outcome; null when none. */
-  readonly outcome: string | null
-}
-
-function captionFor(delivery: ParallelGroupQueuedDelivery): string {
-  if (delivery === 'uncertain') return QUEUED_MESSAGE_COPY.captionUncertain
-  return QUEUED_MESSAGE_COPY.captionQueued
-}
+export { QUEUED_MESSAGE_COPY, type QueuedMessageView }
+export type QueuedLaneTailView = QueuedMessagesTailView
 
 /**
  * Messages that belong to this lane's task. Mismatched task ids are rejected.
@@ -50,17 +26,18 @@ export function fencedQueuedMessages(
   return lane.queuedMessages.filter((message) => message.taskId === taskId)
 }
 
+function kindFor(
+  delivery: ParallelGroupQueuedDelivery,
+): 'queued' | 'delivering' | 'uncertain' {
+  return delivery
+}
+
 function messageView(message: ParallelGroupQueuedMessage): QueuedMessageView {
-  return {
+  return queuedMessageView({
     id: message.id,
     text: message.text,
-    caption: captionFor(message.delivery),
-    note:
-      message.delivery === 'uncertain' ? QUEUED_MESSAGE_COPY.uncertainNote : null,
-    pinned: message.delivery !== 'uncertain',
-    showCancel: message.delivery === 'queued',
-    cancelLabel: `Cancel queued message: ${message.text}`,
-  }
+    kind: kindFor(message.delivery),
+  })
 }
 
 const OUTCOME_COPY: Record<ParallelGroupQueuedOutcome['kind'], string> = {
@@ -79,6 +56,7 @@ export function queuedLaneTailView(
 ): QueuedLaneTailView {
   const fenced = fencedQueuedMessages(lane)
   const messages = fenced.map(messageView)
+  const { settled, pinned } = partitionQueuedMessages(messages)
   const commandOutcome =
     queuedOutcome !== null &&
     queuedOutcome.laneId === lane.id &&
@@ -88,7 +66,7 @@ export function queuedLaneTailView(
   const delivering = fenced.some((message) => message.delivery === 'delivering')
   const outcome =
     commandOutcome ?? (delivering ? QUEUED_MESSAGE_COPY.deliveryInProgress : null)
-  return { messages, outcome }
+  return { messages, settled, pinned, outcome }
 }
 
 /** True when any lane shows an (unavailable) Cancel on a queued message. */

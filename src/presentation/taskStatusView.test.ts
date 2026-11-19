@@ -28,6 +28,31 @@ describe('taskStatusView', () => {
     expect(view.badge.label).toBe('Running 04:12')
     expect(view.composer.stopMode).toBe('stop')
     expect(view.composer.placeholder).toBe('Queue a message…')
+    expect(view.composer.showSendNow).toBe(false)
+  })
+
+  it('shows Send now only when messaging.v1 is reported on a running task', () => {
+    const view = taskStatusView(
+      baseObservation({
+        statusRead: { kind: 'observed', status: 'running' },
+        messagingV1: true,
+      }),
+    )
+    expect(view.composer.showSendNow).toBe(true)
+    expect(view.composer.locked).toBe(false)
+  })
+
+  it('locks the composer without Send now when messaging.v1 is explicitly false', () => {
+    const view = taskStatusView(
+      baseObservation({
+        statusRead: { kind: 'observed', status: 'running' },
+        messagingV1: false,
+      }),
+    )
+    expect(view.composer.showSendNow).toBe(false)
+    expect(view.composer.locked).toBe(true)
+    expect(view.composer.placeholder).toBe('')
+    expect(view.composer.hint).toBe('')
   })
 
   it('maps stop-requested chrome to stopping notice and composer', () => {

@@ -8,6 +8,7 @@ import {
 import { TASK_STATUS_SETTLING_ID } from '../adapters/mock/taskStatusFixtures'
 import {
   createLoadTaskChangesUseCase,
+  createLoadMessagingCapabilityUseCase,
   createLoadTaskEventsUseCase,
   createLoadTaskUseCase,
   type EnginePort,
@@ -39,6 +40,7 @@ function harness() {
     createLoadTaskUseCase(port),
     createLoadTaskChangesUseCase(port),
     createLoadTaskEventsUseCase(port),
+    createLoadMessagingCapabilityUseCase(port),
   )
   session.start()
   return {

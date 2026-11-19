@@ -3,6 +3,7 @@ import { createOneShotObservation } from '../adapters/mock/mockObservation'
 import { stubPendingLaunchPort } from '../adapters/mock/stubPendingLaunchPort'
 import {
   createLoadTaskChangesUseCase,
+  createLoadMessagingCapabilityUseCase,
   createLoadTaskEventsUseCase,
   createLoadTaskUseCase,
   type EnginePort,
@@ -296,6 +297,7 @@ function sessionFor(port: EnginePort): TaskSession {
     createLoadTaskUseCase(port),
     createLoadTaskChangesUseCase(port),
     createLoadTaskEventsUseCase(port),
+    createLoadMessagingCapabilityUseCase(port),
   )
 }
 

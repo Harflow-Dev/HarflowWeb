@@ -1,4 +1,5 @@
 import type {
+  LoadMessagingCapabilityUseCase,
   LoadTaskChangesUseCase,
   LoadTaskEventsUseCase,
   LoadTaskUseCase,
@@ -30,7 +31,7 @@ import {
   closedChangesPaneState,
   loadingTaskScreenState,
   seededChangesChromeState,
-  type RememberedPane,
+  PaneMemory,
 } from './taskSessionPane'
 import {
   afterTaskLoad,
@@ -44,6 +45,7 @@ import {
   revealEventsFactsState,
 } from './taskSessionPaneOpen'
 import { cancelledQueuedMessageState } from './taskSessionMessaging'
+import { MessagingCapabilityWatch } from './taskMessagingCapabilityWatch'
 import { TaskPaneObservers } from './taskSessionObservers'
 import type { EventsFactsRevealId } from './taskTopbarChips'
 
@@ -56,19 +58,25 @@ export class TaskSession {
   private closed = false
   private observation: ObservationHandle | null = null
   /** Pane open state and tab per task id, kept for the session. */
-  private readonly paneMemory = new Map<TaskId, RememberedPane>()
+  private readonly paneMemory = new PaneMemory()
   /** The selection came back with remembered pane choices (no default open). */
   private paneRestored = false
   private readonly listeners = new Set<TaskListener>()
   private readonly loadTask: LoadTaskUseCase
+  private readonly capability: MessagingCapabilityWatch
   private readonly panes: TaskPaneObservers
 
   constructor(
     loadTask: LoadTaskUseCase,
     loadTaskChanges: LoadTaskChangesUseCase,
     loadTaskEvents: LoadTaskEventsUseCase,
+    loadMessagingCapability: LoadMessagingCapabilityUseCase,
   ) {
     this.loadTask = loadTask
+    this.capability = new MessagingCapabilityWatch(
+      loadMessagingCapability,
+      (load) => this.publish({ ...this.state, messagingCapability: load }),
+    )
     this.panes = new TaskPaneObservers({
       isDisposed: () => this.closed,
       getState: () => this.state,
@@ -96,6 +104,7 @@ export class TaskSession {
 
   start(): void {
     this.closed = false
+    this.capability.start()
     if (this.state.selectedTaskId) {
       this.beginObservation(this.state.selectedTaskId)
     }
@@ -106,6 +115,7 @@ export class TaskSession {
     this.observationEpoch += 1
     this.observation?.cancel()
     this.observation = null
+    this.capability.stop()
     this.panes.dispose()
   }
 
@@ -128,12 +138,12 @@ export class TaskSession {
       this.panes.stopChanges()
       this.panes.stopEvents()
       this.publish(closedChangesPaneState(this.state))
-      this.rememberPane()
+      this.paneMemory.remember(this.state)
       return
     }
     const opened = openedPaneState(this.state)
     this.publish(opened.next)
-    this.rememberPane()
+    this.paneMemory.remember(this.state)
     if (opened.observeChanges) this.panes.beginChanges()
     if (opened.observeEvents) this.panes.beginEvents()
   }
@@ -143,7 +153,7 @@ export class TaskSession {
     if (this.closed) return
     const opened = revealEventsFactsState(this.state, group)
     this.publish(opened.next)
-    this.rememberPane()
+    this.paneMemory.remember(this.state)
     // Events already open and observed keeps its loaded pages.
     const beginEvents =
       opened.beginEventsOnly ||
@@ -153,13 +163,11 @@ export class TaskSession {
     if (beginEvents) this.panes.beginEvents()
   }
 
-  seedTaskCommandChrome(taskId: TaskId, chrome: TaskCommandChrome): void {
-    this.commit(withSeededCommandChrome(this.state, taskId, chrome))
+  seedTaskCommandChrome(id: TaskId, chrome: TaskCommandChrome): void {
+    this.commit(withSeededCommandChrome(this.state, id, chrome))
   }
 
-  clearCommandChrome(): void {
-    this.commit(clearedCommandChrome(this.state))
-  }
+  clearCommandChrome(): void { this.commit(clearedCommandChrome(this.state)) }
 
   setOverflowMenuOpen(open: boolean): void {
     this.commit(overflowMenuOpenState(this.state, open))
@@ -172,12 +180,10 @@ export class TaskSession {
     this.commit(openedTaskDialogState(this.state, dialog, opener))
   }
 
-  closeTaskDialog(): void {
-    this.commit(closedTaskDialogState(this.state))
-  }
+  closeTaskDialog(): void { this.commit(closedTaskDialogState(this.state)) }
 
-  seedTaskOverflowChrome(taskId: TaskId, chrome: TaskOverflowChrome): void {
-    this.commit(seededOverflowChromeState(this.state, taskId, chrome))
+  seedTaskOverflowChrome(id: TaskId, chrome: TaskOverflowChrome): void {
+    this.commit(seededOverflowChromeState(this.state, id, chrome))
   }
 
   seedTaskChangesChrome(taskId: TaskId, chrome: TaskChangesChrome): void {
@@ -188,7 +194,7 @@ export class TaskSession {
 
   setPaneTab(tab: 'changes' | 'events'): void {
     if (!this.commit(nextPaneTabState(this.state, tab))) return
-    this.rememberPane()
+    this.paneMemory.remember(this.state)
     if (tab === 'events') this.panes.beginEvents()
     else this.panes.stopEvents()
     if (!this.panes.hasChangesObservation()) this.panes.beginChanges()
@@ -213,8 +219,8 @@ export class TaskSession {
     }
   }
 
-  setRepositoryExpanded(repositoryRoot: string, expanded: boolean): void {
-    this.commit(nextExpandedReposState(this.state, repositoryRoot, expanded))
+  setRepositoryExpanded(root: string, expanded: boolean): void {
+    this.commit(nextExpandedReposState(this.state, root, expanded))
   }
 
   cancelQueuedMessage(messageId: string): boolean {
@@ -242,25 +248,19 @@ export class TaskSession {
     this.observation = null
     this.panes.stopChanges()
     this.panes.stopEvents()
-    const remembered = this.paneMemory.get(taskId) ?? null
+    const remembered = this.paneMemory.get(taskId)
     this.paneRestored = remembered !== null
-    this.publish(loadingTaskScreenState(taskId, remembered))
+    this.publish(
+      loadingTaskScreenState(
+        taskId,
+        remembered,
+        this.state.messagingCapability,
+      ),
+    )
     this.observation = this.loadTask.observe(taskId, (load) =>
       this.applyLoad(load, gen, taskId),
     )
     if (remembered?.open === true) this.setChangesPaneOpen(true)
-  }
-
-  /** Keep the open state and tab so returning to this task restores them. */
-  private rememberPane(): void {
-    const { selectedTaskId, changesPaneOpen, paneTab, paneOpenedOnce } =
-      this.state
-    if (selectedTaskId === null) return
-    this.paneMemory.set(selectedTaskId, {
-      open: changesPaneOpen,
-      tab: paneTab,
-      decided: paneOpenedOnce,
-    })
   }
 
   private applyLoad(load: TaskLoad, gen: number, expected: TaskId): void {

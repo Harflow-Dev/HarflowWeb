@@ -11,6 +11,14 @@ export type TaskMessageStatus =
   | 'delivered'
   | 'cancelled'
 
+/**
+ * Engine handshake capability `messaging.v1`, observed at engine level (not a
+ * task field). Mirrors the pending-launch capability load.
+ */
+export type MessagingCapabilityLoad =
+  | { readonly kind: 'loading' }
+  | { readonly kind: 'ready'; readonly supported: boolean }
+
 export type TaskMessageDelivery = 'queue' | 'now'
 
 /** Target of a task-ledger message (standalone task). */

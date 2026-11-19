@@ -22,6 +22,7 @@ function messageScenario(
   label: string,
   description: string,
   openTaskId: string,
+  messagingCapability = true,
 ): ScenarioDefinition {
   return base({
     id,
@@ -31,6 +32,7 @@ function messageScenario(
     tasks,
     startOutcome: accepted,
     holdStart: false,
+    messagingCapability,
     seed: { openTaskId },
   })
 }
@@ -78,6 +80,7 @@ export const TASK_MESSAGES_SCENARIOS: readonly ScenarioDefinition[] = [
     'Task · Messages unavailable',
     'Approved task/message-unsupported (Design 7de89a4). Locked composer; no Send now, hint, or placeholder.',
     MESSAGE_UNSUPPORTED_TASK_ID,
+    false,
   ),
   messageScenario(
     'message-queued-settled',

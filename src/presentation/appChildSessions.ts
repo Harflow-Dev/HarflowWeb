@@ -3,6 +3,7 @@ import type {
   LoadHarnessesUseCase,
   LoadNeedsYouUseCase,
   LoadParallelGroupUseCase,
+  LoadMessagingCapabilityUseCase,
   LoadPendingLaunchCapabilityUseCase,
   LoadPendingLaunchInventoryUseCase,
   LoadPendingLaunchStatusUseCase,
@@ -48,6 +49,7 @@ export type AppSessionDeps = {
   readonly loadWorkflowEditor: LoadWorkflowEditorUseCase
   readonly loadWorkflowExecution: LoadWorkflowExecutionUseCase
   readonly loadParallelGroup: LoadParallelGroupUseCase
+  readonly loadMessagingCapability: LoadMessagingCapabilityUseCase
   readonly loadPendingLaunchCapability: LoadPendingLaunchCapabilityUseCase
   readonly loadPendingLaunchInventory: LoadPendingLaunchInventoryUseCase
   readonly loadPendingLaunchStatus: LoadPendingLaunchStatusUseCase
@@ -81,6 +83,7 @@ export function createAppChildSessions(deps: AppSessionDeps): AppChildSessions {
       deps.loadTask,
       deps.loadTaskChanges,
       deps.loadTaskEvents,
+      deps.loadMessagingCapability,
     ),
     harnesses: new HarnessesSession(deps.loadHarnesses),
     settingsGeneral: new SettingsGeneralSession(deps.loadSettingsGeneral),

@@ -3,6 +3,7 @@ import {
   createLoadHarnessesUseCase,
   createLoadNeedsYouUseCase,
   createLoadParallelGroupUseCase,
+  createLoadMessagingCapabilityUseCase,
   createLoadPendingLaunchCapabilityUseCase,
   createLoadPendingLaunchInventoryUseCase,
   createLoadPendingLaunchStatusUseCase,
@@ -43,6 +44,8 @@ export function createApp(scenario: ScenarioId = 'populated'): AppBundle {
   const loadWorkflowEditor = createLoadWorkflowEditorUseCase(mock.engine)
   const loadWorkflowExecution = createLoadWorkflowExecutionUseCase(mock.engine)
   const loadParallelGroup = createLoadParallelGroupUseCase(mock.engine)
+  const loadMessagingCapability =
+    createLoadMessagingCapabilityUseCase(mock.engine)
   const loadPendingLaunchCapability =
     createLoadPendingLaunchCapabilityUseCase(mock.engine)
   const loadPendingLaunchInventory =
@@ -73,6 +76,7 @@ export function createApp(scenario: ScenarioId = 'populated'): AppBundle {
     loadWorkflowEditor,
     loadWorkflowExecution,
     loadParallelGroup,
+    loadMessagingCapability,
     loadPendingLaunchCapability,
     loadPendingLaunchInventory,
     loadPendingLaunchStatus,

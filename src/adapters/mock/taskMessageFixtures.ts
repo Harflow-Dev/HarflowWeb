@@ -58,7 +58,6 @@ function queued(id: string, seq: number, text: string, extra?: Partial<TaskMessa
 function runningBase(
   taskId: TaskId,
   messages: readonly TaskMessage[],
-  messagingV1 = true,
 ): TaskObservation {
   return {
     taskId,
@@ -72,7 +71,6 @@ function runningBase(
     repository: REPO_MCP,
     accessLevel: ACCESS_EDIT,
     enforcement: EDIT_REPO_ENFORCEMENT,
-    messagingV1,
     messages,
   }
 }
@@ -100,7 +98,6 @@ function failedBase(
     repository: REPO_MCP,
     accessLevel: ACCESS_EDIT,
     enforcement: EDIT_REPO_ENFORCEMENT,
-    messagingV1: true,
     messages,
   }
 }
@@ -180,7 +177,7 @@ export function messageUncertainObservation(): TaskObservation {
 }
 
 export function messageUnsupportedObservation(): TaskObservation {
-  return runningBase(MESSAGE_UNSUPPORTED_TASK_ID, [], false)
+  return runningBase(MESSAGE_UNSUPPORTED_TASK_ID, [])
 }
 
 export function messageQueuedSettledObservation(): TaskObservation {

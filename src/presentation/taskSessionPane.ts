@@ -1,5 +1,10 @@
 import type { LoadTaskChangesUseCase } from '../application'
-import type { ObservationHandle, TaskChangesEntryRef, TaskId } from '../model'
+import type {
+  MessagingCapabilityLoad,
+  ObservationHandle,
+  TaskChangesEntryRef,
+  TaskId,
+} from '../model'
 import {
   applyTaskChangesLoad,
   beginTaskChangesObservation,
@@ -172,9 +177,30 @@ export type RememberedPane = {
   readonly decided: boolean
 }
 
+/** Pane choices per task id, kept for the session. */
+export class PaneMemory {
+  private readonly byTask = new Map<TaskId, RememberedPane>()
+
+  get(taskId: TaskId): RememberedPane | null {
+    return this.byTask.get(taskId) ?? null
+  }
+
+  /** Keep the open state and tab so returning to this task restores them. */
+  remember(state: TaskScreenState): void {
+    const { selectedTaskId, changesPaneOpen, paneTab, paneOpenedOnce } = state
+    if (selectedTaskId === null) return
+    this.byTask.set(selectedTaskId, {
+      open: changesPaneOpen,
+      tab: paneTab,
+      decided: paneOpenedOnce,
+    })
+  }
+}
+
 export function loadingTaskScreenState(
   taskId: TaskId,
   remembered: RememberedPane | null = null,
+  messagingCapability: MessagingCapabilityLoad = { kind: 'loading' },
 ): TaskScreenState {
   return {
     selectedTaskId: taskId,
@@ -201,6 +227,7 @@ export function loadingTaskScreenState(
     eventsLoad: { kind: 'loading' },
     eventsEarlier: IDLE_EVENTS_EARLIER,
     messagingCancel: EMPTY_MESSAGING_CANCEL,
+    messagingCapability,
   }
 }
 

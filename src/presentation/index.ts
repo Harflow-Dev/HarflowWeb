@@ -106,7 +106,6 @@ export {
   EMPTY_MESSAGING_CANCEL,
   taskMessageDrawFacts,
   taskMessageView,
-  taskMessagingSupported,
   taskQueuedTailView,
   type TaskMessagingCancelChrome,
 } from './taskQueuedMessages'
@@ -193,6 +192,7 @@ export {
 } from './taskObservation'
 export {
   taskStatusView,
+  UNOBSERVED_MESSAGING,
   type TaskStatusView,
   type TaskStatusBadge,
   type TaskStatusNotice,

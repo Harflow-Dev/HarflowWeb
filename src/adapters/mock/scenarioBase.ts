@@ -51,6 +51,7 @@ const settingsGeneral = populatedSettingsGeneralLoad()
 const workflowEditors: DeferredSurface = 'default'
 const workflowExecutions: DeferredSurface = 'default'
 const parallelGroups: DeferredSurface = 'default'
+const messagingCapability = true
 const pendingLaunchCapability = false
 const pendingLaunchInventory = 'default' as const
 const pendingLaunchStatus = 'default' as const
@@ -70,6 +71,7 @@ export function base(
     | 'workflowEditors'
     | 'workflowExecutions'
     | 'parallelGroups'
+    | 'messagingCapability'
     | 'pendingLaunchCapability'
     | 'pendingLaunchInventory'
     | 'pendingLaunchStatus'
@@ -89,7 +91,8 @@ export function base(
         | 'workflowEditors'
         | 'workflowExecutions'
         | 'parallelGroups'
-        | 'pendingLaunchCapability'
+        | 'messagingCapability'
+    | 'pendingLaunchCapability'
         | 'pendingLaunchInventory'
         | 'pendingLaunchStatus'
         | 'seed'
@@ -109,6 +112,7 @@ export function base(
     workflowEditors,
     workflowExecutions,
     parallelGroups,
+    messagingCapability,
     pendingLaunchCapability,
     pendingLaunchInventory,
     pendingLaunchStatus,

@@ -5,6 +5,7 @@ import type {
   ObservationHandle,
   ParallelGroupId,
   ParallelGroupLoad,
+  MessagingCapabilityLoad,
   PendingLaunchCapabilityLoad,
   PendingLaunchId,
   PendingLaunchInventoryLoad,
@@ -186,6 +187,14 @@ export type EnginePort = {
    */
   observePendingLaunchCapability(
     onUpdate: (load: PendingLaunchCapabilityLoad) => void,
+  ): ObservationHandle
+
+  /**
+   * Whether this engine reports the `messaging.v1` handshake capability.
+   * Mock-only — not a public ctl capability probe claim.
+   */
+  observeMessagingCapability(
+    onUpdate: (load: MessagingCapabilityLoad) => void,
   ): ObservationHandle
 
   /**

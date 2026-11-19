@@ -108,8 +108,3 @@ export function taskQueuedTailView(
     outcome: outcomeFor(ledger, chrome),
   }
 }
-
-/** True when the engine reports messaging.v1. */
-export function taskMessagingSupported(observation: TaskObservation): boolean {
-  return observation.messagingV1 === true
-}

@@ -43,6 +43,7 @@ import {
   pendingInventoryReady,
   pendingStatusLoadFor,
 } from './pendingLaunchFixtures'
+import { messagingCapabilityFor } from './messagingCapabilityFixtures'
 import type { ScenarioDefinition } from './scenarios'
 import { workflowEditorLoadFor } from './workflowEditorFixtures'
 import { workflowExecutionLoadFor } from './workflowExecutionFixtures'
@@ -168,13 +169,24 @@ function republishSurfaces(
         : parallelGroupLoadFor(listener.key),
     )
   }
+  republishMessagingCapability(scenario, listeners)
   republishPendingLaunches(scenario, listeners)
+}
+
+function republishMessagingCapability(
+  scenario: ScenarioDefinition,
+  listeners: MockListenerSets,
+): void {
+  for (const listener of listeners.messagingCapability) {
+    listener(messagingCapabilityFor(scenario))
+  }
 }
 
 function republishPendingLaunches(
   scenario: ScenarioDefinition,
   listeners: MockListenerSets,
 ): void {
+
   for (const listener of listeners.pendingCapability) {
     if (scenario.pendingLaunchCapability === 'defer') {
       listener({ kind: 'loading' })

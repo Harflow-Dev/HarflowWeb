@@ -3,6 +3,7 @@ import type {
   LoadHarnessesUseCase,
   LoadNeedsYouUseCase,
   LoadParallelGroupUseCase,
+  LoadMessagingCapabilityUseCase,
   LoadPendingLaunchCapabilityUseCase,
   LoadPendingLaunchInventoryUseCase,
   LoadPendingLaunchStatusUseCase,
@@ -136,6 +137,7 @@ type Deps = {
   readonly loadWorkflowEditor: LoadWorkflowEditorUseCase
   readonly loadWorkflowExecution: LoadWorkflowExecutionUseCase
   readonly loadParallelGroup: LoadParallelGroupUseCase
+  readonly loadMessagingCapability: LoadMessagingCapabilityUseCase
   readonly loadPendingLaunchCapability: LoadPendingLaunchCapabilityUseCase
   readonly loadPendingLaunchInventory: LoadPendingLaunchInventoryUseCase
   readonly loadPendingLaunchStatus: LoadPendingLaunchStatusUseCase

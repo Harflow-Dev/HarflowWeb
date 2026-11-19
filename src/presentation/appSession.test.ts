@@ -6,6 +6,7 @@ import {
   createLoadNeedsYouUseCase,
   createLoadSettingsGeneralUseCase,
   createLoadParallelGroupUseCase,
+  createLoadMessagingCapabilityUseCase,
   createLoadPendingLaunchCapabilityUseCase,
   createLoadPendingLaunchInventoryUseCase,
   createLoadPendingLaunchStatusUseCase,
@@ -328,6 +329,7 @@ function createPresenter(engine: EnginePort) {
     loadWorkflowEditor: createLoadWorkflowEditorUseCase(engine),
     loadWorkflowExecution: createLoadWorkflowExecutionUseCase(engine),
     loadParallelGroup: createLoadParallelGroupUseCase(engine),
+    loadMessagingCapability: createLoadMessagingCapabilityUseCase(engine),
     loadPendingLaunchCapability:
       createLoadPendingLaunchCapabilityUseCase(engine),
     loadPendingLaunchInventory: createLoadPendingLaunchInventoryUseCase(engine),

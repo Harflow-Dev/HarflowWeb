@@ -31,23 +31,42 @@ describe('taskStatusView', () => {
     expect(view.composer.showSendNow).toBe(false)
   })
 
-  it('shows Send now only when messaging.v1 is reported on a running task', () => {
+  const RUNNING = { kind: 'observed', status: 'running' } as const
+  const SUPPORTED = { kind: 'ready', supported: true } as const
+  const UNSUPPORTED = { kind: 'ready', supported: false } as const
+
+  it('shows Send now when the engine offers messaging.v1 and status carries the ledger', () => {
     const view = taskStatusView(
-      baseObservation({
-        statusRead: { kind: 'observed', status: 'running' },
-        messagingV1: true,
-      }),
+      baseObservation({ statusRead: RUNNING, messages: [] }),
+      null,
+      SUPPORTED,
     )
     expect(view.composer.showSendNow).toBe(true)
     expect(view.composer.locked).toBe(false)
   })
 
-  it('locks the composer without Send now when messaging.v1 is explicitly false', () => {
+  it('keeps the prior shell while the capability is unobserved or the status has no ledger', () => {
+    const loading = taskStatusView(
+      baseObservation({ statusRead: RUNNING, messages: [] }),
+      null,
+      { kind: 'loading' },
+    )
+    expect(loading.composer.showSendNow).toBe(false)
+    expect(loading.composer.locked).toBe(false)
+    const noLedger = taskStatusView(
+      baseObservation({ statusRead: RUNNING }),
+      null,
+      SUPPORTED,
+    )
+    expect(noLedger.composer.showSendNow).toBe(false)
+    expect(noLedger.composer.locked).toBe(false)
+  })
+
+  it('locks the composer without Send now when the engine lacks messaging.v1', () => {
     const view = taskStatusView(
-      baseObservation({
-        statusRead: { kind: 'observed', status: 'running' },
-        messagingV1: false,
-      }),
+      baseObservation({ statusRead: RUNNING, messages: [] }),
+      null,
+      UNSUPPORTED,
     )
     expect(view.composer.showSendNow).toBe(false)
     expect(view.composer.locked).toBe(true)

@@ -1,5 +1,9 @@
 import { useState, type ReactNode, type RefObject } from 'react'
-import type { TaskObservation, TranscriptObservation } from '../model'
+import type {
+  MessagingCapabilityLoad,
+  TaskObservation,
+  TranscriptObservation,
+} from '../model'
 import {
   EMPTY_MESSAGING_CANCEL,
   type TaskCommandChrome,
@@ -7,6 +11,7 @@ import {
   taskIsLiveRun,
   taskShowsSummary,
   taskStatusView,
+  UNOBSERVED_MESSAGING,
 } from '../presentation'
 import { mergeTranscriptObservation } from '../presentation/transcriptMerge'
 import { TaskConversationColumn } from './TaskConversationColumn'
@@ -35,6 +40,7 @@ type Props = {
   readonly observation: TaskObservation
   readonly commandChrome?: TaskCommandChrome
   readonly messagingCancel?: TaskMessagingCancelChrome
+  readonly messagingCapability?: MessagingCapabilityLoad
   readonly eventsPaneOpen?: boolean
   /**
    * Lays out the transcript column and the Events pane as siblings (the
@@ -56,6 +62,7 @@ export function TaskPage({
   observation,
   commandChrome = null,
   messagingCancel = EMPTY_MESSAGING_CANCEL,
+  messagingCapability = UNOBSERVED_MESSAGING,
   eventsPaneOpen = false,
   shell = defaultShell,
   onClosePane,
@@ -74,6 +81,7 @@ export function TaskPage({
       observation={observation}
       commandChrome={commandChrome}
       messagingCancel={messagingCancel}
+      messagingCapability={messagingCapability}
       eventsPaneOpen={eventsPaneOpen}
       liveRun={liveRun}
       onUnavailable={onUnavailable}
@@ -93,6 +101,7 @@ function TranscriptTaskBody({
   observation,
   commandChrome,
   messagingCancel,
+  messagingCapability,
   eventsPaneOpen,
   shell,
   onClosePane,
@@ -108,6 +117,7 @@ function TranscriptTaskBody({
   readonly observation: TaskObservation
   readonly commandChrome: TaskCommandChrome
   readonly messagingCancel: TaskMessagingCancelChrome
+  readonly messagingCapability: MessagingCapabilityLoad
   readonly eventsPaneOpen: boolean
   readonly shell: TaskShell
   readonly onClosePane?: () => void
@@ -120,7 +130,7 @@ function TranscriptTaskBody({
   readonly composerStopRef?: RefObject<HTMLButtonElement | null>
   readonly bannerStopRef?: RefObject<HTMLButtonElement | null>
 }) {
-  const statusView = taskStatusView(observation, commandChrome)
+  const statusView = taskStatusView(observation, commandChrome, messagingCapability)
   const observed = observation.transcript
   const [prevObserved, setPrevObserved] = useState(observed)
   const [reading, setReading] = useState<TranscriptObservation | null>(null)

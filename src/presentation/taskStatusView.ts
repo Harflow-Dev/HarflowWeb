@@ -1,4 +1,4 @@
-import type { TaskObservation } from '../model'
+import type { MessagingCapabilityLoad, TaskObservation } from '../model'
 import { taskEngineStatus } from './taskObservation'
 import { badgeForStatus } from './taskStatusBadgeMap'
 import { bannerFor } from './taskStatusBannerMap'
@@ -93,10 +93,14 @@ function metaFor(observation: TaskObservation): string | null {
     : observation.headerMeta
 }
 
+/** Capability not observed (yet): no lock, no Send now. */
+export const UNOBSERVED_MESSAGING: MessagingCapabilityLoad = { kind: 'loading' }
+
 /** Map domain observation and session chrome to approved M05 task status UI. */
 export function taskStatusView(
   observation: TaskObservation,
   commandChrome: TaskCommandChrome = null,
+  messaging: MessagingCapabilityLoad = UNOBSERVED_MESSAGING,
 ): TaskStatusView {
   return {
     badge: badgeForStatus(observation, commandChrome),
@@ -105,6 +109,6 @@ export function taskStatusView(
     resourceCard: resourceCardFor(observation),
     notice: noticeFor(observation, commandChrome),
     banner: bannerFor(observation, commandChrome),
-    composer: composerFor(observation, commandChrome),
+    composer: composerFor(observation, commandChrome, messaging),
   }
 }

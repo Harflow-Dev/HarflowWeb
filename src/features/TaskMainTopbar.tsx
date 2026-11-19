@@ -62,7 +62,11 @@ export function TaskMainTopbar({
   onAnnounce,
   focusTitleFor,
 }: Props): ReactNode {
-  const readyView = ready ? taskStatusView(ready, state.commandChrome) : null
+  const readyView = ready ? taskStatusView(
+        ready,
+        state.commandChrome,
+        state.messagingCapability,
+      ) : null
   const chips = ready ? taskTopbarChips(ready) : []
   const showMeta =
     ready &&

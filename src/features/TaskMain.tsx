@@ -195,6 +195,7 @@ export function TaskMain({
         observation={state.load.observation}
         commandChrome={state.commandChrome}
         messagingCancel={state.messagingCancel}
+        messagingCapability={state.messagingCapability}
         eventsPaneOpen={showPane && ready?.detailsPane === 'events'}
         shell={shell}
         onClosePane={() => onToggleChangesPane(false)}

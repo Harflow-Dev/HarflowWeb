@@ -7,6 +7,7 @@ import type {
   TaskEventsObservation,
   TaskEventsRecord,
   TaskId,
+  MessagingCapabilityLoad,
   TaskLoad,
 } from '../model'
 import type { TaskCommandChrome } from './taskStatusTypes'
@@ -110,6 +111,11 @@ export type TaskScreenState = {
    * focus). Cleared when the selected task identity resets.
    */
   readonly messagingCancel: TaskMessagingCancelChrome
+  /**
+   * Engine `messaging.v1` capability, observed once per session (not per
+   * task) and kept across task identity resets.
+   */
+  readonly messagingCapability: MessagingCapabilityLoad
 }
 
 /**
@@ -165,6 +171,7 @@ export function initialTaskState(): TaskScreenState {
     eventsLoad: { kind: 'loading' },
     eventsEarlier: IDLE_EVENTS_EARLIER,
     messagingCancel: EMPTY_MESSAGING_CANCEL,
+    messagingCapability: { kind: 'loading' },
   }
 }
 

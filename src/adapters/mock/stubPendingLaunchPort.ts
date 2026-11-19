@@ -8,17 +8,28 @@ import {
 
 type PendingObs = Pick<
   EnginePort,
+  | 'observeMessagingCapability'
   | 'observePendingLaunchCapability'
   | 'observePendingLaunchInventory'
   | 'observePendingLaunchStatus'
 >
 
 /**
- * Pending-launch observations for EnginePort test stubs: capability
+ * Pending-launch observations (plus the messaging capability, available) for
+ * EnginePort test stubs: capability
  * unsupported, the default inventory, and per-ID default status.
  */
 export function stubPendingLaunchPort(): PendingObs {
   return {
+    observeMessagingCapability(onUpdate) {
+      queueMicrotask(() => onUpdate({ kind: 'ready', supported: true }))
+      return {
+        id: asObservationId('test-messaging-cap'),
+        cancel() {
+          /* no-op */
+        },
+      }
+    },
     observePendingLaunchCapability(onUpdate) {
       queueMicrotask(() => onUpdate(pendingCapabilityUnsupported()))
       return {

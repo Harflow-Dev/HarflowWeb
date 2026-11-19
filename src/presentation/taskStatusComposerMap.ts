@@ -1,5 +1,4 @@
-import type { TaskObservation } from '../model'
-import { taskMessagingSupported } from './taskQueuedMessages'
+import type { MessagingCapabilityLoad, TaskObservation } from '../model'
 import { TASK_COMPOSER } from './taskStatusCopy'
 import type {
   TaskCommandChrome,
@@ -47,6 +46,7 @@ function messagingLockedComposer(
 export function composerFor(
   observation: TaskObservation,
   chrome: TaskCommandChrome,
+  messaging: MessagingCapabilityLoad,
 ): TaskStatusComposer {
   if (observation.statusRead.kind === 'unread') {
     return lockedComposer(TASK_COMPOSER.placeholderLockedUnavailable)
@@ -57,7 +57,6 @@ export function composerFor(
   }
 
   const status = observation.statusRead.status
-  const messaging = taskMessagingSupported(observation)
 
   if (status === 'taken_over') {
     return lockedComposer(TASK_COMPOSER.placeholderLockedTakenOver)
@@ -77,12 +76,15 @@ export function composerFor(
   if (status === 'running') {
     const stopMode: TaskComposerStopMode =
       chrome === 'stop-requested' ? 'stopping' : 'stop'
-    // Explicit false locks (message-unsupported). Absent keeps the prior
-    // follow-up shell; only messaging.v1 true adds Send now.
-    if (observation.messagingV1 === false) {
+    // An engine that reports no messaging.v1 locks the follow-up input. While
+    // the capability is unobserved the prior shell stays. Send now needs the
+    // capability and a status read that carries the messages ledger.
+    if (messaging.kind === 'ready' && !messaging.supported) {
       return messagingLockedComposer(stopMode)
     }
-    return runningComposer(stopMode, messaging)
+    const showSendNow =
+      messaging.kind === 'ready' && observation.messages !== undefined
+    return runningComposer(stopMode, showSendNow)
   }
 
   // Settled: messaging keeps the standard composer (no Send now).

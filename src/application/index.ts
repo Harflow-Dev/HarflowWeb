@@ -60,6 +60,10 @@ export {
   type LoadSettingsGeneralUseCase,
 } from './loadSettingsGeneral'
 export {
+  createLoadMessagingCapabilityUseCase,
+  type LoadMessagingCapabilityUseCase,
+} from './loadMessagingCapability'
+export {
   createLoadPendingLaunchCapabilityUseCase,
   type LoadPendingLaunchCapabilityUseCase,
 } from './loadPendingLaunchCapability'

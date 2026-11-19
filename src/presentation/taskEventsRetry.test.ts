@@ -7,6 +7,7 @@ import { ASSISTANT_START } from '../adapters/mock/taskEventsRecordFixtures'
 import { taskLoadFor } from '../adapters/mock/taskFixtures'
 import {
   createLoadTaskChangesUseCase,
+  createLoadMessagingCapabilityUseCase,
   createLoadTaskEventsUseCase,
   createLoadTaskUseCase,
   type EnginePort,
@@ -44,6 +45,7 @@ function harness(answers: readonly ('transient' | 'expired' | 'ok')[]) {
     createLoadTaskUseCase(port),
     createLoadTaskChangesUseCase(port),
     createLoadTaskEventsUseCase(port),
+    createLoadMessagingCapabilityUseCase(port),
   )
   session.start()
   session.openTask(TASK_EVENTS_PAGE_ID)

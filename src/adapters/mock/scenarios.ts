@@ -71,6 +71,8 @@ export type ScenarioDefinition = {
   readonly workflowEditors: DeferredSurface
   readonly workflowExecutions: DeferredSurface
   readonly parallelGroups: DeferredSurface
+  /** Engine `messaging.v1` capability; defaults to available. */
+  readonly messagingCapability: boolean | 'defer'
   /** When false (default), Pending launches nav is hidden. */
   readonly pendingLaunchCapability: boolean | 'defer'
   readonly pendingLaunchInventory:

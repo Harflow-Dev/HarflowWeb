@@ -6,6 +6,7 @@ import {
   type NeedsYouLoad,
   type ParallelGroupId,
   type ParallelGroupLoad,
+  type MessagingCapabilityLoad,
   type PendingLaunchCapabilityLoad,
   type PendingLaunchId,
   type PendingLaunchInventoryLoad,
@@ -36,6 +37,7 @@ import {
   createOneShotObservation,
   type KeyedListener,
 } from './mockObservation'
+import { messagingCapabilityFor } from './messagingCapabilityFixtures'
 import type { ScenarioDefinition } from './scenarios'
 import { statisticsLoadFor } from './statisticsFixtures'
 import { taskChangesLoadFor } from './taskChangesFixtures'
@@ -82,6 +84,7 @@ export type MockListenerSets = {
   readonly workflowEditors: Set<KeyedListener<WorkflowId, WorkflowEditorLoad>>
   readonly workflowExecutions: Set<KeyedListener<WorkflowRunId, WorkflowRunLoad>>
   readonly parallelGroups: Set<KeyedListener<ParallelGroupId, ParallelGroupLoad>>
+  readonly messagingCapability: Set<(load: MessagingCapabilityLoad) => void>
   readonly pendingCapability: Set<(load: PendingLaunchCapabilityLoad) => void>
   readonly pendingInventory: Set<(load: PendingLaunchInventoryLoad) => void>
   readonly pendingStatus: Set<
@@ -105,6 +108,7 @@ export function createListenerSets(): MockListenerSets {
     workflowEditors: new Set(),
     workflowExecutions: new Set(),
     parallelGroups: new Set(),
+    messagingCapability: new Set(),
     pendingCapability: new Set(),
     pendingInventory: new Set(),
     pendingStatus: new Set(),
@@ -298,6 +302,11 @@ export function buildMockEnginePort(options: {
           scenario.needsYou === 'defer' ? { kind: 'loading' } : scenario.needsYou
         return load
       })
+    },
+    observeMessagingCapability(onUpdate) {
+      return createObservation(listeners.messagingCapability, onUpdate, () =>
+        messagingCapabilityFor(getScenario()),
+      )
     },
     observePendingLaunchCapability(onUpdate) {
       return createObservation(listeners.pendingCapability, onUpdate, () => {

@@ -223,6 +223,9 @@ export class AppSession {
   loadTaskEarlierEvents(): void {
     this.children.task.loadEarlierEvents()
   }
+  cancelTaskQueuedMessage(messageId: string): boolean {
+    return this.children.task.cancelQueuedMessage(messageId)
+  }
 
   selectStatisticsRange(range: StatisticsRangeId): void {
     this.children.statistics.selectRange(range)

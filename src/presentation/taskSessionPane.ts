@@ -5,6 +5,7 @@ import {
   beginTaskChangesObservation,
   changesEntriesEqual,
 } from './taskSessionChanges'
+import { EMPTY_MESSAGING_CANCEL } from './taskQueuedMessages'
 import {
   IDLE_EVENTS_EARLIER,
   type TaskChangesChrome,
@@ -199,6 +200,7 @@ export function loadingTaskScreenState(
     eventsList: null,
     eventsLoad: { kind: 'loading' },
     eventsEarlier: IDLE_EVENTS_EARLIER,
+    messagingCancel: EMPTY_MESSAGING_CANCEL,
   }
 }
 

@@ -1,10 +1,12 @@
-import { Fragment } from 'react'
+import { Fragment, type ReactNode } from 'react'
 import type {
   ConversationItem,
   ConversationOutputLine,
   InlineRun,
 } from '../model'
+import type { QueuedMessageView } from '../presentation/queuedMessages'
 import { Icon } from './Icon'
+import { QueuedMessageBubbles } from './QueuedMessageBubbles'
 
 function Runs({ runs }: { readonly runs: readonly InlineRun[] }) {
   return (
@@ -47,7 +49,6 @@ function ToolRow({
       </span>
     </>
   )
-  // The design draws a tool with output open and one without as a plain row.
   if (!item.output) {
     return (
       <div className="hd-tool">
@@ -102,17 +103,102 @@ function ConversationRow({ item }: { readonly item: ConversationItem }) {
   }
 }
 
+function BubbleList({
+  messages,
+  onCancel,
+}: {
+  readonly messages: readonly QueuedMessageView[]
+  readonly onCancel: (messageId: string) => void
+}) {
+  if (messages.length === 0) return null
+  return (
+    <QueuedMessageBubbles
+      tail={{
+        messages,
+        settled: messages.filter((m) => !m.pinned),
+        pinned: messages.filter((m) => m.pinned),
+        outcome: null,
+      }}
+      onCancel={onCancel}
+    />
+  )
+}
+
+type MessagingProps = {
+  readonly settled: readonly QueuedMessageView[]
+  readonly pinned: readonly QueuedMessageView[]
+  readonly outcome: string | null
+  readonly onCancel: (messageId: string) => void
+  readonly focusOutcomeSeq: number
+}
+
 /** Agent rows and tool rows for the M05 column — no speaker labels. */
 export function ConversationItems({
   items,
+  messaging,
 }: {
   readonly items: readonly ConversationItem[]
+  readonly messaging?: MessagingProps
 }) {
-  return (
-    <>
-      {items.map((item, index) => (
-        <ConversationRow key={index} item={item} />
-      ))}
-    </>
+  if (!messaging) {
+    return (
+      <>
+        {items.map((item, index) => (
+          <ConversationRow key={index} item={item} />
+        ))}
+      </>
+    )
+  }
+
+  const workingIndex = items.findIndex((item) => item.kind === 'working')
+  const rows: ReactNode[] = []
+
+  if (workingIndex < 0) {
+    for (let i = 0; i < items.length; i++) {
+      rows.push(<ConversationRow key={i} item={items[i]!} />)
+    }
+    rows.push(
+      <QueuedMessageBubbles
+        key="msgq"
+        tail={{
+          messages: [...messaging.settled, ...messaging.pinned],
+          settled: messaging.settled,
+          pinned: messaging.pinned,
+          outcome: messaging.outcome,
+        }}
+        onCancel={messaging.onCancel}
+        focusOutcomeSeq={messaging.focusOutcomeSeq}
+      />,
+    )
+    return <>{rows}</>
+  }
+
+  for (let i = 0; i < workingIndex; i++) {
+    rows.push(<ConversationRow key={i} item={items[i]!} />)
+  }
+  rows.push(
+    <BubbleList
+      key="msgq-settled"
+      messages={messaging.settled}
+      onCancel={messaging.onCancel}
+    />,
   )
+  rows.push(<ConversationRow key={workingIndex} item={items[workingIndex]!} />)
+  for (let i = workingIndex + 1; i < items.length; i++) {
+    rows.push(<ConversationRow key={i} item={items[i]!} />)
+  }
+  rows.push(
+    <QueuedMessageBubbles
+      key="msgq-pinned"
+      tail={{
+        messages: messaging.pinned,
+        settled: [],
+        pinned: messaging.pinned,
+        outcome: messaging.outcome,
+      }}
+      onCancel={messaging.onCancel}
+      focusOutcomeSeq={messaging.focusOutcomeSeq}
+    />,
+  )
+  return <>{rows}</>
 }

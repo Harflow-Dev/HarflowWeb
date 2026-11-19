@@ -43,6 +43,7 @@ import {
   openedPaneState,
   revealEventsFactsState,
 } from './taskSessionPaneOpen'
+import { cancelledQueuedMessageState } from './taskSessionMessaging'
 import { TaskPaneObservers } from './taskSessionObservers'
 import type { EventsFactsRevealId } from './taskTopbarChips'
 
@@ -214,6 +215,11 @@ export class TaskSession {
 
   setRepositoryExpanded(repositoryRoot: string, expanded: boolean): void {
     this.commit(nextExpandedReposState(this.state, repositoryRoot, expanded))
+  }
+
+  cancelQueuedMessage(messageId: string): boolean {
+    if (this.closed) return false
+    return this.commit(cancelledQueuedMessageState(this.state, messageId))
   }
 
   /** Publish a computed next state; false when closed or nothing changed. */

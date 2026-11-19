@@ -99,6 +99,8 @@ export type AppPresenter = {
   setTaskPaneTab(tab: 'changes' | 'events'): void
   revealTaskEventsFacts(group: 'enforcement' | 'notices' | 'continuity'): void
   loadTaskEarlierEvents(): void
+  /** Cancel a queued task message in the mock; returns false when refused. */
+  cancelTaskQueuedMessage(messageId: string): boolean
   selectStatisticsRange(range: StatisticsRangeId): void
   selectSettingsSection(section: SettingsSection): void
   setExpandedHarness(id: string | null): void
@@ -193,6 +195,8 @@ export function createAppPresenter(deps: Deps): AppPresenter {
     setTaskPaneTab: (tab) => session.setTaskPaneTab(tab),
     revealTaskEventsFacts: (group) => session.revealTaskEventsFacts(group),
     loadTaskEarlierEvents: () => session.loadTaskEarlierEvents(),
+    cancelTaskQueuedMessage: (messageId) =>
+      session.cancelTaskQueuedMessage(messageId),
     selectStatisticsRange: (range) => session.selectStatisticsRange(range),
     selectSettingsSection: (section) => session.selectSettingsSection(section),
     setExpandedHarness: (id) => session.setExpandedHarness(id),

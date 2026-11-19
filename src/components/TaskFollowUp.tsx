@@ -1,5 +1,6 @@
 import type { RefObject } from 'react'
 import type { TaskStatusComposer } from '../presentation/taskStatusView'
+import { QUEUED_MESSAGE_COPY } from '../presentation/queuedMessages'
 import { Icon } from './Icon'
 import {
   TASK_STOP_UNAVAILABLE_EXPLANATION,
@@ -16,7 +17,8 @@ type Props = {
 
 /**
  * Follow-up composer shell — send stays unavailable; Stop opens the dialog
- * when mapped, except Stopping… which stays dimmed and inert.
+ * when mapped, except Stopping… which stays dimmed and inert. Send now is
+ * drawn disabled when messaging.v1 is offered on a running task.
  */
 export function TaskFollowUp({ composer, onStop, stopRef }: Props) {
   return (
@@ -84,6 +86,16 @@ export function TaskFollowUp({ composer, onStop, stopRef }: Props) {
               }}
             >
               <Icon name="stop" size="sm" /> Stopping…
+            </button>
+          ) : null}
+          {composer.showSendNow ? (
+            <button
+              type="button"
+              className="hd-btn hd-btn--ghost hd-btn--sm"
+              disabled
+              title={QUEUED_MESSAGE_COPY.sendNowTitle}
+            >
+              {QUEUED_MESSAGE_COPY.sendNowLabel}
             </button>
           ) : null}
           <button

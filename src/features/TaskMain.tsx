@@ -44,6 +44,7 @@ type Props = {
     opener: TaskDialogOpener,
   ) => void
   readonly onOpenParentTask: (taskId: TaskId) => void
+  readonly onCancelQueuedMessage: (messageId: string) => void
 }
 
 /**
@@ -70,6 +71,7 @@ export function TaskMain({
   onCloseOverflowMenu,
   onOpenDialog,
   onOpenParentTask,
+  onCancelQueuedMessage,
 }: Props) {
   const knownTitle = resolveKnownTitle(state, sidebar)
   const title = knownTitle ?? 'Task'
@@ -192,10 +194,12 @@ export function TaskMain({
       <TaskPage
         observation={state.load.observation}
         commandChrome={state.commandChrome}
+        messagingCancel={state.messagingCancel}
         eventsPaneOpen={showPane && ready?.detailsPane === 'events'}
         shell={shell}
         onClosePane={() => onToggleChangesPane(false)}
         onUnavailable={onUnavailable}
+        onCancelQueuedMessage={onCancelQueuedMessage}
         onStop={() => onOpenDialog('stop', 'composer-stop')}
         onBannerStop={() => onOpenDialog('stop', 'banner-stop')}
         composerStopRef={composerStopRef}

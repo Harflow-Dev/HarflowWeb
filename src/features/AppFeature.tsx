@@ -24,7 +24,7 @@ import { PendingLaunchesMain } from './PendingLaunchesMain'
 import { ResourcesMain } from './ResourcesMain'
 import { SettingsMain } from './SettingsMain'
 import { StatisticsMain } from './StatisticsMain'
-import { TaskMain } from './TaskMain'
+import { TaskMainHost } from './TaskMainHost'
 import { useEphemeralNote, usePresenter, usePresenterLifetime } from './usePresenter'
 import { WorkflowRunMain } from './WorkflowRunMain'
 import { WorkflowsMain } from './WorkflowsMain'
@@ -168,39 +168,17 @@ export function AppFeature({ presenter }: Props) {
               onOpenRun={(runId) => presenter.openWorkflowExecution(runId)}
             />
           ) : (
-            <TaskMain
+            <TaskMainHost
               state={state.task}
               sidebar={ready?.sidebar ?? null}
               mainElement={mainElement}
-              onUnavailable={(label) => ephemeral.show({ kind: 'unavailable', text: label })}
-              onAnnounce={(message) => ephemeral.show({ kind: 'announce', text: message })}
-              onToggleChangesPane={(open) =>
-                presenter.setTaskChangesPaneOpen(open)
+              presenter={presenter}
+              onUnavailable={(label) =>
+                ephemeral.show({ kind: 'unavailable', text: label })
               }
-              onSelectChangedEntry={(entry) =>
-                presenter.selectTaskChangedEntry(entry)
+              onAnnounce={(message) =>
+                ephemeral.show({ kind: 'announce', text: message })
               }
-              onSelectChangesTurn={(taskId) =>
-                presenter.selectTaskChangesTurn(taskId)
-              }
-              onToggleChangesRepo={(root, expanded) =>
-                presenter.setTaskRepositoryExpanded(root, expanded)
-              }
-              onSelectPaneTab={(tab) => presenter.setTaskPaneTab(tab)}
-              onRevealEventsFacts={(group) =>
-                presenter.revealTaskEventsFacts(group)
-              }
-              onLoadEarlierEvents={() => presenter.loadTaskEarlierEvents()}
-              onToggleOverflowMenu={() =>
-                presenter.setTaskOverflowMenuOpen(!state.task.overflowMenuOpen)
-              }
-              onCloseOverflowMenu={() =>
-                presenter.setTaskOverflowMenuOpen(false)
-              }
-              onOpenDialog={(dialog, opener) =>
-                presenter.openTaskDialog(dialog, opener)
-              }
-              onOpenParentTask={(taskId) => presenter.openTask(taskId)}
             />
           )}
         </main>

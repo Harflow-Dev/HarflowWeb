@@ -1,7 +1,9 @@
 import { useState, type ReactNode, type RefObject } from 'react'
 import type { TaskObservation, TranscriptObservation } from '../model'
 import {
+  EMPTY_MESSAGING_CANCEL,
   type TaskCommandChrome,
+  type TaskMessagingCancelChrome,
   taskIsLiveRun,
   taskShowsSummary,
   taskStatusView,
@@ -32,6 +34,7 @@ const defaultShell: TaskShell = (column, pane) => (
 type Props = {
   readonly observation: TaskObservation
   readonly commandChrome?: TaskCommandChrome
+  readonly messagingCancel?: TaskMessagingCancelChrome
   readonly eventsPaneOpen?: boolean
   /**
    * Lays out the transcript column and the Events pane as siblings (the
@@ -41,6 +44,7 @@ type Props = {
   readonly onClosePane?: () => void
   readonly onUnavailable: (label: string) => void
   readonly onLiveMessage?: (message: string) => void
+  readonly onCancelQueuedMessage?: (messageId: string) => void
   readonly onStop?: () => void
   readonly onBannerStop?: () => void
   readonly composerStopRef?: RefObject<HTMLButtonElement | null>
@@ -51,11 +55,13 @@ type Props = {
 export function TaskPage({
   observation,
   commandChrome = null,
+  messagingCancel = EMPTY_MESSAGING_CANCEL,
   eventsPaneOpen = false,
   shell = defaultShell,
   onClosePane,
   onUnavailable,
   onLiveMessage,
+  onCancelQueuedMessage,
   onStop,
   onBannerStop,
   composerStopRef,
@@ -67,9 +73,11 @@ export function TaskPage({
       key={observation.taskId}
       observation={observation}
       commandChrome={commandChrome}
+      messagingCancel={messagingCancel}
       eventsPaneOpen={eventsPaneOpen}
       liveRun={liveRun}
       onUnavailable={onUnavailable}
+      {...(onCancelQueuedMessage ? { onCancelQueuedMessage } : {})}
       {...(onStop ? { onStop } : {})}
       {...(onBannerStop ? { onBannerStop } : {})}
       {...(composerStopRef ? { composerStopRef } : {})}
@@ -84,12 +92,14 @@ export function TaskPage({
 function TranscriptTaskBody({
   observation,
   commandChrome,
+  messagingCancel,
   eventsPaneOpen,
   shell,
   onClosePane,
   liveRun,
   onUnavailable,
   onLiveMessage,
+  onCancelQueuedMessage,
   onStop,
   onBannerStop,
   composerStopRef,
@@ -97,12 +107,14 @@ function TranscriptTaskBody({
 }: {
   readonly observation: TaskObservation
   readonly commandChrome: TaskCommandChrome
+  readonly messagingCancel: TaskMessagingCancelChrome
   readonly eventsPaneOpen: boolean
   readonly shell: TaskShell
   readonly onClosePane?: () => void
   readonly liveRun: boolean
   readonly onUnavailable: (label: string) => void
   readonly onLiveMessage?: (message: string) => void
+  readonly onCancelQueuedMessage?: (messageId: string) => void
   readonly onStop?: () => void
   readonly onBannerStop?: () => void
   readonly composerStopRef?: RefObject<HTMLButtonElement | null>
@@ -191,7 +203,9 @@ function TranscriptTaskBody({
         <TaskConversationColumn
           observation={observation}
           view={statusView}
+          messagingCancel={messagingCancel}
           onUnavailable={onUnavailable}
+          onCancelQueuedMessage={onCancelQueuedMessage ?? (() => undefined)}
           {...(onBannerStop ? { onBannerStop } : {})}
           {...(bannerStopRef ? { bannerStopRef } : {})}
         />

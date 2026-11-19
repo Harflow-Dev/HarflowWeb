@@ -168,7 +168,7 @@ populated fixture and shows a single “Mock engine” badge.
 | Transcript capacity | Design `task/transcript-capacity` |
 | Transcript sources | Design `task/transcript-sources` — tool disclosure in the transcript; unsupported stub only in Events |
 | Transcript · Events | Any of the eight with `/events` (hash `#task/transcript-*/events` or scenario id `transcript-*/events`) opens Events at load. Pinned transcript completed states omit Summary; `task/done` keeps its fixture summary. |
-| Task · Running tasks (all) | Owner decision 2026-11-19: every running-task scenario shows a disabled Send now beside Send (messaging.v1 defaults to supported); approved running drawings predate this and omit it. `message-unsupported` still locks the composer |
+| Task · Running tasks (all) | Owner decision 2026-11-19: once the messaging capability is observed, every running-task scenario shows a disabled Send now beside Send (messaging.v1 defaults to supported); approved running drawings predate this and omit it. `message-unsupported` still locks the composer |
 | Task · Messages queued | Approved `task/message-queued` (Design `7de89a4`). Two Queued bubbles with Cancel; Send now beside Send |
 | Task · Message delivering | Approved `task/message-delivering` (Design `7de89a4`). Queued caption, no Cancel; delivery outcome |
 | Task · Message delivered | Approved `task/message-delivered` (Design `7de89a4`). No bubble; Message delivered outcome |

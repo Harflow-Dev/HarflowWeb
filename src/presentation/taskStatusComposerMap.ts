@@ -84,7 +84,7 @@ export function composerFor(
     if (messaging.kind === 'ready' && !messaging.supported) {
       return messagingLockedComposer(stopMode)
     }
-    const showSendNow = messaging.kind === 'ready'
+    const showSendNow = messaging.kind === 'ready' && messaging.supported
     return runningComposer(stopMode, showSendNow)
   }
 

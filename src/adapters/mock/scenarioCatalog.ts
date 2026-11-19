@@ -13,6 +13,7 @@ import {
   TASK_CHANGES_SCENARIOS,
 } from './scenarioCatalogTaskChanges'
 import { TASK_EVENTS_SCENARIOS } from './scenarioCatalogTaskEvents'
+import { TASK_MESSAGES_SCENARIOS } from './scenarioCatalogTaskMessages'
 import { TASK_PANE_TOPBAR_SCENARIOS } from './scenarioCatalogTaskPaneTopbar'
 import { TASK_OVERFLOW_SCENARIOS } from './scenarioCatalogTaskOverflow'
 import { TASK_STATUS_SCENARIOS } from './scenarioCatalogTaskStatuses'
@@ -224,4 +225,5 @@ export const SCENARIOS: readonly ScenarioDefinition[] = [
   ...TASK_CHANGES_SCENARIOS,
   ...TASK_EVENTS_SCENARIOS.filter((s) => s.id !== 'task-events-loading'),
   ...TASK_PANE_TOPBAR_SCENARIOS,
+  ...TASK_MESSAGES_SCENARIOS,
 ]

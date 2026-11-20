@@ -24,7 +24,7 @@ describe('needs you fixtures', () => {
       context: { kind: 'task', taskId: 'task-slot-release' },
     })
     expect(waiting.items[1]).toMatchObject({
-      approveLabel: 'Approve this publish',
+      approveLabel: 'Approve',
       context: {
         kind: 'workflow',
         title: 'Nightly dependency audit',

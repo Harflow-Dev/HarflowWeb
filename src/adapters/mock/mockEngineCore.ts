@@ -1,7 +1,5 @@
-import type { EnginePort } from '../../application'
 import {
   taskChangesEntryKey,
-  type ApprovalRespondOutcome,
   type ContextLoad,
   type HarnessesLoad,
   type NeedsYouLoad,
@@ -13,52 +11,30 @@ import {
   type PendingLaunchInventoryLoad,
   type PendingLaunchStatusLoad,
   type ResourcesLoad,
-  type RespondTaskApprovalRequest,
   type SettingsGeneralLoad,
   type StartTaskOutcome,
-  type StartTaskRequest,
   type StatisticsLoad,
   type StatisticsRangeId,
-  type TaskApprovalRequest,
   type TaskChangesLoad,
   type TaskChangesQuery,
   type TaskEventsLoad,
   type TaskEventsQuery,
   type TaskId,
   type TaskLoad,
-  type WorkflowEditorLoad,
   type WorkflowId,
   type WorkflowRunContextLoad,
   type WorkflowRunId,
   type WorkflowRunLoad,
   type WorkflowsLoad,
+  type WorkflowEditorLoad,
 } from '../../model'
 import { createControllablePromise, type ControllablePromise } from './controllable'
-import {
-  createKeyedObservation,
-  createObservation,
-  createOneShotObservation,
-  type KeyedListener,
-} from './mockObservation'
-import { messagingCapabilityFor } from './messagingCapabilityFixtures'
+import { type KeyedListener } from './mockObservation'
 import type { ScenarioDefinition } from './scenarios'
 import { statisticsLoadFor } from './statisticsFixtures'
 import { taskChangesLoadFor } from './taskChangesFixtures'
-import { taskEventsLoadFor, taskEventsOlderLoadFor } from './taskEventsFixtures'
+import { taskEventsLoadFor } from './taskEventsFixtures'
 import { taskLoadFor } from './taskFixtures'
-import { workflowEditorLoadFor } from './workflowEditorFixtures'
-import {
-  deferredParallelGroupLoading,
-  parallelGroupLoadFor,
-} from './parallelGroupFixtures'
-import {
-  pendingCapabilitySupported,
-  pendingCapabilityUnsupported,
-  pendingInventoryReady,
-  pendingStatusLoadFor,
-} from './pendingLaunchFixtures'
-import { workflowExecutionLoadFor } from './workflowExecutionFixtures'
-import { workflowRunLoadFor } from './workflowRunFixtures'
 
 export type TaskChangesKey = string
 export type TaskEventsKey = string
@@ -152,229 +128,6 @@ export function resolveTaskEventsLoad(
   if (scenario.taskEvents === 'defer') return { kind: 'loading' }
   if (scenario.taskEvents === 'default') return taskEventsLoadFor(query)
   return scenario.taskEvents(query)
-}
-
-export function buildMockEnginePort(options: {
-  readonly getScenario: () => ScenarioDefinition
-  readonly listeners: MockListenerSets
-  readonly onStart: (request: StartTaskRequest) => Promise<StartTaskOutcome>
-  readonly resolveTask: (taskId: TaskId) => TaskLoad
-  readonly onRespondApproval: (
-    request: RespondTaskApprovalRequest,
-  ) => Promise<ApprovalRespondOutcome>
-  readonly onRefreshApproval: (
-    taskId: TaskId,
-    requestId: string,
-  ) => Promise<TaskApprovalRequest | null>
-}): EnginePort {
-  const {
-    getScenario,
-    listeners,
-    onStart,
-    resolveTask,
-    onRespondApproval,
-    onRefreshApproval,
-  } = options
-  return {
-    observeContext(onUpdate) {
-      return createObservation(listeners.context, onUpdate, () => {
-        const scenario = getScenario()
-        const load: ContextLoad =
-          scenario.context === 'defer'
-            ? { kind: 'loading' }
-            : scenario.context
-        return load
-      })
-    },
-    observeWorkflows(onUpdate) {
-      return createObservation(listeners.workflows, onUpdate, () => {
-        const scenario = getScenario()
-        const load: WorkflowsLoad =
-          scenario.workflows === 'defer'
-            ? { kind: 'loading' }
-            : scenario.workflows
-        return load
-      })
-    },
-    observeResources(onUpdate) {
-      return createObservation(listeners.resources, onUpdate, () => {
-        const scenario = getScenario()
-        const load: ResourcesLoad =
-          scenario.resources === 'defer'
-            ? { kind: 'loading' }
-            : scenario.resources
-        return load
-      })
-    },
-    observeStatistics(range, onUpdate) {
-      return createKeyedObservation(
-        listeners.statistics,
-        range,
-        onUpdate,
-        (r) => resolveStatisticsLoad(getScenario(), r),
-      )
-    },
-    observeTask(taskId, onUpdate) {
-      return createKeyedObservation(
-        listeners.tasks,
-        taskId,
-        onUpdate,
-        (id) => resolveTask(id),
-      )
-    },
-    observeTaskChanges(query, onUpdate) {
-      return createKeyedObservation(
-        listeners.taskChanges,
-        taskChangesKey(query),
-        onUpdate,
-        () => resolveTaskChangesLoad(getScenario(), query),
-      )
-    },
-    observeTaskEvents(query, onUpdate) {
-      return createKeyedObservation(
-        listeners.taskEvents,
-        taskEventsKey(query),
-        onUpdate,
-        () => resolveTaskEventsLoad(getScenario(), query),
-      )
-    },
-    observeTaskEventsOlder(query, onUpdate) {
-      return createOneShotObservation(onUpdate, () =>
-        taskEventsOlderLoadFor(query),
-      )
-    },
-    observeWorkflowRun(workflowId, onUpdate) {
-      return createKeyedObservation(
-        listeners.workflowRuns,
-        workflowId,
-        onUpdate,
-        (id) => workflowRunLoadFor(id),
-      )
-    },
-    observeWorkflowEditor(workflowId, onUpdate) {
-      return createKeyedObservation(
-        listeners.workflowEditors,
-        workflowId,
-        onUpdate,
-        (id): WorkflowEditorLoad => {
-          const scenario = getScenario()
-          if (scenario.workflowEditors === 'defer') {
-            return { kind: 'loading' }
-          }
-          return workflowEditorLoadFor(id)
-        },
-      )
-    },
-    observeWorkflowExecution(runId, onUpdate) {
-      return createKeyedObservation(
-        listeners.workflowExecutions,
-        runId,
-        onUpdate,
-        (id): WorkflowRunLoad => {
-          const scenario = getScenario()
-          if (scenario.workflowExecutions === 'defer') {
-            return { kind: 'loading' }
-          }
-          return workflowExecutionLoadFor(id)
-        },
-      )
-    },
-    observeParallelGroup(groupId, onUpdate) {
-      return createKeyedObservation(
-        listeners.parallelGroups,
-        groupId,
-        onUpdate,
-        (id): ParallelGroupLoad => {
-          const scenario = getScenario()
-          if (scenario.parallelGroups === 'defer') {
-            return deferredParallelGroupLoading(id)
-          }
-          return parallelGroupLoadFor(id)
-        },
-      )
-    },
-    observeHarnesses(onUpdate) {
-      return createObservation(listeners.harnesses, onUpdate, () => {
-        const scenario = getScenario()
-        const load: HarnessesLoad =
-          scenario.harnesses === 'defer'
-            ? { kind: 'loading' }
-            : scenario.harnesses
-        return load
-      })
-    },
-    observeSettingsGeneral(onUpdate) {
-      return createObservation(listeners.settingsGeneral, onUpdate, () => {
-        const scenario = getScenario()
-        const load: SettingsGeneralLoad =
-          scenario.settingsGeneral === 'defer'
-            ? { kind: 'loading' }
-            : scenario.settingsGeneral
-        return load
-      })
-    },
-    observeNeedsYou(onUpdate) {
-      return createObservation(listeners.needsYou, onUpdate, () => {
-        const scenario = getScenario()
-        const load: NeedsYouLoad =
-          scenario.needsYou === 'defer' ? { kind: 'loading' } : scenario.needsYou
-        return load
-      })
-    },
-    observeMessagingCapability(onUpdate) {
-      return createObservation(listeners.messagingCapability, onUpdate, () =>
-        messagingCapabilityFor(getScenario()),
-      )
-    },
-    observePendingLaunchCapability(onUpdate) {
-      return createObservation(listeners.pendingCapability, onUpdate, () => {
-        const scenario = getScenario()
-        const load: PendingLaunchCapabilityLoad =
-          scenario.pendingLaunchCapability === 'defer'
-            ? { kind: 'loading' }
-            : scenario.pendingLaunchCapability
-              ? pendingCapabilitySupported()
-              : pendingCapabilityUnsupported()
-        return load
-      })
-    },
-    observePendingLaunchInventory(onUpdate) {
-      return createObservation(listeners.pendingInventory, onUpdate, () => {
-        const scenario = getScenario()
-        const load: PendingLaunchInventoryLoad =
-          scenario.pendingLaunchInventory === 'defer'
-            ? { kind: 'loading' }
-            : scenario.pendingLaunchInventory === 'default'
-              ? pendingInventoryReady()
-              : scenario.pendingLaunchInventory
-        return load
-      })
-    },
-    observePendingLaunchStatus(launchId, onUpdate) {
-      return createKeyedObservation(
-        listeners.pendingStatus,
-        launchId,
-        onUpdate,
-        (id): PendingLaunchStatusLoad => {
-          const scenario = getScenario()
-          return pendingStatusLoadFor(
-            id,
-            scenario.pendingLaunchStatus,
-            scenario.seed?.openPendingLaunchId,
-          )
-        },
-      )
-    },
-    startTask(request) {
-      return onStart(request)
-    },
-    respondTaskApproval(request) {
-      return onRespondApproval(request)
-    },
-    refreshTaskApproval(taskId, requestId) {
-      return onRefreshApproval(taskId, requestId)
-    },
-  }
 }
 
 export function createHeldStartTracker(): {

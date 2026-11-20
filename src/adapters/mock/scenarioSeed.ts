@@ -89,6 +89,25 @@ export type NewTaskScenarioSeed = {
       readonly answeredAt: number
     }
   }[]
+  /**
+   * Needs you task-approval respond refusals held in session chrome,
+   * keyed by task id + request id.
+   */
+  readonly needsYouApprovalRefusals?: readonly {
+    readonly taskId: string
+    readonly requestId: string
+    readonly reason: string
+    readonly interaction?: {
+      readonly answeredBy: 'caller' | 'monitor'
+      readonly answer: 'approve' | 'reject'
+      readonly answeredAt: number
+    }
+  }[]
+  /** Needs you workflow checkpoint opens already stale. */
+  readonly needsYouCheckpointStale?: {
+    readonly runId: string
+    readonly attentionCheckpointId: string
+  }
   /** Open the task overflow More-actions menu after the observation is ready. */
   readonly taskOverflowMenuOpen?: boolean
   /** Screen identity: the approved transcript routes draw no More anchor. */

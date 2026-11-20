@@ -13,6 +13,7 @@ import {
   TASK_CHANGES_SCENARIOS,
 } from './scenarioCatalogTaskChanges'
 import { TASK_EVENTS_SCENARIOS } from './scenarioCatalogTaskEvents'
+import { NEEDS_YOU_APPROVAL_SCENARIOS } from './scenarioCatalogNeedsYouApprovals'
 import { TASK_APPROVAL_SCENARIOS } from './scenarioCatalogTaskApprovals'
 import { TASK_MESSAGES_SCENARIOS } from './scenarioCatalogTaskMessages'
 import { TASK_PANE_TOPBAR_SCENARIOS } from './scenarioCatalogTaskPaneTopbar'
@@ -228,4 +229,5 @@ export const SCENARIOS: readonly ScenarioDefinition[] = [
   ...TASK_PANE_TOPBAR_SCENARIOS,
   ...TASK_MESSAGES_SCENARIOS,
   ...TASK_APPROVAL_SCENARIOS,
+  ...NEEDS_YOU_APPROVAL_SCENARIOS,
 ]

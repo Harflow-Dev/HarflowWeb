@@ -1,52 +1,13 @@
 import type { NeedsYouItem, NeedsYouLoad, NeedsYouObservation } from '../../model'
 import {
-  NIGHTLY_PUBLISH_SNAPSHOT,
-  NIGHTLY_REQUESTER_MODEL,
-} from './nightlyPublishSnapshot'
-import { NIGHTLY_AUDIT_RUN_ID } from './workflowExecutionFixtures'
-import { SLOT_RELEASE_TASK_ID } from './taskFixtures'
+  nightlyPublishNeedsYouApproval,
+  slotReleaseNeedsYouApproval,
+} from './needsYouApprovalFixtures'
 
 /**
  * Approved needs-you/waiting specimen.
  * Approve labels name the action. They do not grant the whole task.
  */
-function slotReleaseApproval(): NeedsYouItem {
-  return {
-    kind: 'approval',
-    id: 'approve-slot-release-test',
-    actionLabel: 'Wants to run a command',
-    exactAction: 'npm test -- --runInBand slot-release',
-    detail: 'In ~/Code/Harflow/HarflowMCP · Claude Code · Opus 5.5',
-    approveLabel: 'Approve once',
-    rejectLabel: 'Reject',
-    context: {
-      kind: 'task',
-      title: 'Fix flaky slot release test',
-      waitingLabel: 'waiting 3m',
-      taskId: SLOT_RELEASE_TASK_ID,
-    },
-  }
-}
-
-function nightlyPublishApproval(): NeedsYouItem {
-  return {
-    kind: 'approval',
-    id: 'approve-nightly-publish',
-    actionLabel: 'Wants to publish',
-    exactAction: NIGHTLY_PUBLISH_SNAPSHOT.publishAction,
-    detail: `${NIGHTLY_PUBLISH_SNAPSHOT.needsYouAccess} · ${NIGHTLY_REQUESTER_MODEL}`,
-    approveLabel: 'Approve this publish',
-    rejectLabel: 'Reject',
-    context: {
-      kind: 'workflow',
-      title: 'Nightly dependency audit',
-      step: 'Open pull request',
-      waitingLabel: 'waiting 1h',
-      runId: NIGHTLY_AUDIT_RUN_ID,
-    },
-  }
-}
-
 function eventsConfigQuestion(): NeedsYouItem {
   return {
     kind: 'question',
@@ -67,8 +28,8 @@ export function waitingNeedsYouObservation(): NeedsYouObservation {
     coverage: 'complete',
     coverageNote: null,
     items: [
-      slotReleaseApproval(),
-      nightlyPublishApproval(),
+      slotReleaseNeedsYouApproval(),
+      nightlyPublishNeedsYouApproval(),
       eventsConfigQuestion(),
     ],
   }

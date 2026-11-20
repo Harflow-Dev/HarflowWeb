@@ -16,6 +16,10 @@ import {
   awaitingCountFor,
   TASK_APPROVAL_ENGINE_CURRENT,
 } from './taskApprovalFixtures'
+import {
+  needsYouEngineRow,
+  publishNeedsYouApproval,
+} from './mockNeedsYouApprovals'
 import { taskLoadFor } from './taskFixtures'
 import type { MockListenerSets } from './mockEngineCore'
 import type { ScenarioDefinition } from './scenarios'
@@ -23,14 +27,20 @@ import type { ScenarioDefinition } from './scenarios'
 export type ApprovalMutationStore = {
   /** Per-task overridden approval row after a successful respond. */
   readonly overrides: Map<string, TaskApprovalRequest>
+  /**
+   * Engine-ahead rows (Needs you stale): present when the feed still shows
+   * an older revision. Cleared once Refresh copies them into overrides.
+   */
+  readonly engineAhead: Map<string, TaskApprovalRequest>
 }
 
 export function createApprovalMutationStore(): ApprovalMutationStore {
-  return { overrides: new Map() }
+  return { overrides: new Map(), engineAhead: new Map() }
 }
 
 export function clearApprovalMutations(store: ApprovalMutationStore): void {
   store.overrides.clear()
+  store.engineAhead.clear()
 }
 
 function applyOverride(
@@ -80,14 +90,15 @@ function engineRow(
   taskId: TaskId,
   store: ApprovalMutationStore,
 ): TaskApprovalRequest | null {
-  if (load.kind !== 'ready' || load.observation.approval === undefined) {
-    return null
+  if (load.kind === 'ready' && load.observation.approval !== undefined) {
+    return (
+      store.overrides.get(taskId) ??
+      TASK_APPROVAL_ENGINE_CURRENT.get(taskId) ??
+      load.observation.approval
+    )
   }
-  return (
-    store.overrides.get(taskId) ??
-    TASK_APPROVAL_ENGINE_CURRENT.get(taskId) ??
-    load.observation.approval
-  )
+  // Needs you inbox rows for tasks without a task-feed approval field.
+  return needsYouEngineRow(taskId, store)
 }
 
 /**
@@ -151,6 +162,7 @@ export async function mockRespondTaskApproval(
     taskId,
     resolveTaskLoadWithApprovals(getScenario(), taskId, store),
   )
+  publishNeedsYouApproval(() => getScenario(), listeners, taskId, next)
   return { kind: 'accepted', request: next }
 }
 
@@ -166,10 +178,12 @@ export async function mockRefreshTaskApproval(
   if (current === null || current.requestId !== requestId) return null
   // The feed catches up to the engine's row once it is re-read.
   store.overrides.set(taskId, current)
+  store.engineAhead.delete(taskId)
   publishTask(
     listeners,
     taskId,
     resolveTaskLoadWithApprovals(getScenario(), taskId, store),
   )
+  publishNeedsYouApproval(() => getScenario(), listeners, taskId, current)
   return current
 }

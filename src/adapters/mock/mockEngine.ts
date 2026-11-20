@@ -26,18 +26,12 @@ import type {
   WorkflowRunContextLoad,
   WorkflowsLoad,
 } from '../../model'
+import { createHeldStartTracker, createListenerSets } from './mockEngineCore'
+import { buildMockEnginePort } from './mockEnginePort'
 import {
-  buildMockEnginePort,
-  createHeldStartTracker,
-  createListenerSets,
-} from './mockEngineCore'
-import {
-  clearApprovalMutations,
-  createApprovalMutationStore,
-  mockRefreshTaskApproval,
-  mockRespondTaskApproval,
-  resolveTaskLoadWithApprovals,
-} from './mockTaskApproval'
+  createMockEngineRuntime,
+  mockEnginePortCallbacks,
+} from './mockEngineSetup'
 import {
   catalogPublishers,
   republishScenario,
@@ -75,48 +69,36 @@ export type MockEngineControls = {
 export function createMockEngine(
   initialScenario: ScenarioId = 'populated',
 ): MockEngineControls {
-  let scenario = scenarioById(initialScenario)
   let startCount = 0
   let lastStart: StartTaskRequest | null = null
   const held = createHeldStartTracker()
   const listeners = createListenerSets()
-  const approvals = createApprovalMutationStore()
-
-  const engine = buildMockEnginePort({
-    getScenario: () => scenario,
-    listeners,
-    resolveTask: (taskId) =>
-      resolveTaskLoadWithApprovals(scenario, taskId, approvals),
-    async onStart(request) {
+  const runtime = createMockEngineRuntime(initialScenario, listeners, {
+    onRequest: (request) => {
       startCount += 1
       lastStart = request
-      if (scenario.holdStart) return held.begin().promise
-      return scenario.startOutcome
     },
-    onRespondApproval: (request) =>
-      mockRespondTaskApproval(request, () => scenario, listeners, approvals),
-    onRefreshApproval: (taskId, requestId) =>
-      mockRefreshTaskApproval(
-        taskId,
-        requestId,
-        () => scenario,
-        listeners,
-        approvals,
-      ),
+    heldStart: () => held.begin(),
+  })
+  const callbacks = mockEnginePortCallbacks(runtime)
+  const engine = buildMockEnginePort({
+    getScenario: runtime.getScenario,
+    listeners,
+    onStart: runtime.onStartTracked,
+    ...callbacks,
   })
 
   return {
     engine,
     setScenario(id) {
-      scenario = scenarioById(id)
       held.take()
-      clearApprovalMutations(approvals)
-      republishScenario(scenario, listeners)
+      runtime.setScenarioRef(scenarioById(id))
+      republishScenario(runtime.getScenario(), listeners)
     },
     ...catalogPublishers(listeners),
     ...surfacePublishers(listeners),
     resolveHeldStart(outcome) {
-      held.take()?.resolve(outcome ?? scenario.startOutcome)
+      held.take()?.resolve(outcome ?? runtime.getScenario().startOutcome)
     },
     startRequestCount: () => startCount,
     lastStartRequest: () => lastStart,

@@ -1,3 +1,4 @@
+import type { NeedsYouApprovalsScenarioId } from './scenarioIdsNeedsYouApprovals'
 import type { TaskApprovalsScenarioId } from './scenarioIdsTaskApprovals'
 import type { TaskMessagesScenarioId } from './scenarioIdsTaskMessages'
 import type { TaskPaneTopbarScenarioId } from './scenarioIdsTaskPaneTopbar'
@@ -80,6 +81,7 @@ export type ScenarioId =
   | 'task-stop-dialog'
   | 'task-stop-dialog-earlier-turns'
   | 'task-takeover-dialog'
+  | NeedsYouApprovalsScenarioId
   | 'needs-you-empty'
   | 'needs-you-loading'
   | 'new-task-loading'

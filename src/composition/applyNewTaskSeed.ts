@@ -11,6 +11,7 @@ import type {
   EffortLevel,
   OpenMenu,
 } from '../presentation'
+import { applyNeedsYouApprovalSeed } from './applyNeedsYouApprovalSeed'
 import { applyParallelGroupSeed } from './applyParallelGroupSeed'
 import { applyPendingLaunchSeed } from './applyPendingLaunchSeed'
 import { applyTaskOpenSeed } from './applyTaskOpenSeed'
@@ -71,6 +72,7 @@ export function applyNewTaskSeed(
   }
   applyParallelGroupSeed(presenter, seed, whenLoaded)
   applyPendingLaunchSeed(presenter, seed, whenLoaded)
+  applyNeedsYouApprovalSeed(presenter, seed, whenLoaded)
 }
 
 type LoadProbe = {

@@ -17,7 +17,9 @@ import {
   createLoadWorkflowExecutionUseCase,
   createLoadWorkflowRunUseCase,
   createLoadWorkflowsUseCase,
+  createAnswerWorkflowAttentionCheckpointUseCase,
   createRefreshTaskApprovalUseCase,
+  createRefreshWorkflowAttentionCheckpointUseCase,
   createRespondTaskApprovalUseCase,
   createStartTaskUseCase,
   type EnginePort,
@@ -37,6 +39,10 @@ export function createAppUseCases(engine: EnginePort): AppSessionDeps {
     loadTaskEvents: createLoadTaskEventsUseCase(engine),
     respondTaskApproval: createRespondTaskApprovalUseCase(engine),
     refreshTaskApproval: createRefreshTaskApprovalUseCase(engine),
+    answerWorkflowAttentionCheckpoint:
+      createAnswerWorkflowAttentionCheckpointUseCase(engine),
+    refreshWorkflowAttentionCheckpoint:
+      createRefreshWorkflowAttentionCheckpointUseCase(engine),
     loadHarnesses: createLoadHarnessesUseCase(engine),
     loadSettingsGeneral: createLoadSettingsGeneralUseCase(engine),
     loadNeedsYou: createLoadNeedsYouUseCase(engine),

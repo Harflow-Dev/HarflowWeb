@@ -1,4 +1,5 @@
 import type {
+  AnswerWorkflowAttentionCheckpointRequest,
   ApprovalRespondOutcome,
   ContextLoad,
   HarnessesLoad,
@@ -27,6 +28,8 @@ import type {
   TaskEventsQuery,
   TaskId,
   TaskLoad,
+  WorkflowCheckpointAnswerOutcome,
+  WorkflowCheckpointRefreshResult,
   WorkflowEditorLoad,
   WorkflowId,
   WorkflowRunContextLoad,
@@ -240,4 +243,21 @@ export type EnginePort = {
     taskId: TaskId,
     requestId: string,
   ): Promise<TaskApprovalRequest | null>
+
+  /**
+   * Answer one workflow attention checkpoint with its token.
+   * Typed `attention_checkpoint_stale` means the answer was not applied.
+   * Mock-only — not a public ctl claim.
+   */
+  answerWorkflowAttentionCheckpoint(
+    request: AnswerWorkflowAttentionCheckpointRequest,
+  ): Promise<WorkflowCheckpointAnswerOutcome>
+
+  /**
+   * Re-read one workflow attention checkpoint token read-only (no resubmit).
+   * Mock-only — not a public ctl claim.
+   */
+  refreshWorkflowAttentionCheckpoint(
+    workflowRunId: WorkflowRunId,
+  ): Promise<WorkflowCheckpointRefreshResult>
 }

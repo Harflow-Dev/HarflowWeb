@@ -1,22 +1,59 @@
-import type { NeedsYouLoad, TaskId, WorkflowRunId } from '../model'
+import type {
+  ApprovalDecision,
+  NeedsYouItem,
+  NeedsYouLoad,
+  TaskId,
+  WorkflowRunId,
+} from '../model'
+import type { NeedsYouScreenState } from '../presentation'
+import {
+  EMPTY_NEEDS_YOU_CHROME,
+  type NeedsYouChrome,
+} from '../presentation/needsYouChrome'
+import { needsYouObservationWaitingCount } from '../presentation/needsYouDisplay'
 import { Icon } from './Icon'
-import { NeedsYouCard } from './NeedsYouCard'
+import { NeedsYouCard, type NeedsYouCardActions } from './NeedsYouCard'
 import { NeedsYouLoadingPage } from './skeleton'
 
 const UNAVAILABLE_ID = 'needs-you-action-unavailable'
-export const NEEDS_YOU_ACTION_EXPLANATION =
-  'Unavailable. This does not approve, reject, send an answer, or open a workflow run.'
+export const NEEDS_YOU_QUESTION_EXPLANATION =
+  'Unavailable. Question replies are not available in this slice.'
 
 type Props = {
-  readonly load: NeedsYouLoad
+  readonly state: NeedsYouScreenState
   readonly onOpenTask: (taskId: TaskId) => void
   readonly onOpenRun: (runId: WorkflowRunId) => void
+  readonly onRespondTask: (itemId: string, decision: ApprovalDecision) => void
+  readonly onRefreshTask: (itemId: string) => void
+  readonly onRespondCheckpoint: (
+    itemId: string,
+    decision: ApprovalDecision,
+  ) => void
+  readonly onRefreshCheckpoint: (itemId: string) => void
 }
 
 /** Approved needs-you/waiting, empty, and main-pane loading composition. */
-export function NeedsYouPage({ load, onOpenTask, onOpenRun }: Props) {
+export function NeedsYouPage({
+  state,
+  onOpenTask,
+  onOpenRun,
+  onRespondTask,
+  onRefreshTask,
+  onRespondCheckpoint,
+  onRefreshCheckpoint,
+}: Props) {
+  const { load } = state
   if (load.kind === 'loading') {
     return <NeedsYouLoadingPage />
+  }
+
+  const actions: NeedsYouCardActions = {
+    onRespondTask,
+    onRefreshTask,
+    onRespondCheckpoint,
+    onRefreshCheckpoint,
+    onOpenTask,
+    onOpenRun,
   }
 
   return (
@@ -25,8 +62,37 @@ export function NeedsYouPage({ load, onOpenTask, onOpenRun }: Props) {
         <h1 className="hd-page__title">Needs you</h1>
         <WaitingBadge load={load} />
       </div>
-      <NeedsYouBody load={load} onOpenTask={onOpenTask} onOpenRun={onOpenRun} />
+      <NeedsYouBody state={state} actions={actions} />
     </div>
+  )
+}
+
+/** Legacy prop shape used by older unit tests that pass `load` only. */
+export function NeedsYouPageFromLoad({
+  load,
+  onOpenTask,
+  onOpenRun,
+}: {
+  readonly load: NeedsYouLoad
+  readonly onOpenTask: (taskId: TaskId) => void
+  readonly onOpenRun: (runId: WorkflowRunId) => void
+}) {
+  const state: NeedsYouScreenState = {
+    load,
+    chrome: EMPTY_NEEDS_YOU_CHROME,
+    displayItems: load.kind === 'ready' ? load.observation.items : [],
+    submittingKey: null,
+  }
+  return (
+    <NeedsYouPage
+      state={state}
+      onOpenTask={onOpenTask}
+      onOpenRun={onOpenRun}
+      onRespondTask={() => {}}
+      onRefreshTask={() => {}}
+      onRespondCheckpoint={() => {}}
+      onRefreshCheckpoint={() => {}}
+    />
   )
 }
 
@@ -34,30 +100,29 @@ function WaitingBadge({ load }: { readonly load: NeedsYouLoad }) {
   if (load.kind !== 'ready' || load.observation.coverage !== 'complete') {
     return null
   }
-  if (load.observation.items.length === 0) return null
+  const waiting = needsYouObservationWaitingCount(load)
+  if (waiting === 0) return null
   return (
-    <span className="hd-badge hd-badge--attention">
-      {load.observation.items.length} waiting
-    </span>
+    <span className="hd-badge hd-badge--attention">{waiting} waiting</span>
   )
 }
 
 function NeedsYouBody({
-  load,
-  onOpenTask,
-  onOpenRun,
+  state,
+  actions,
 }: {
-  readonly load: Extract<NeedsYouLoad, { kind: 'ready' | 'unavailable' }>
-  readonly onOpenTask: (taskId: TaskId) => void
-  readonly onOpenRun: (runId: WorkflowRunId) => void
+  readonly state: NeedsYouScreenState
+  readonly actions: NeedsYouCardActions
 }) {
+  const { load, chrome, displayItems, submittingKey } = state
   if (load.kind === 'unavailable') {
     return <p role="status">{load.message}</p>
   }
+  if (load.kind !== 'ready') return null
   if (load.observation.coverage === 'partial') {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
-        <ActionExplanation />
+        <QuestionExplanation />
         <p className="hd-sr">
           Fixture requests. Not commands or answers on this computer.
         </p>
@@ -65,44 +130,75 @@ function NeedsYouBody({
         <p className="caption">
           {load.observation.items.length} known. Not a complete total.
         </p>
-        {load.observation.items.map((item) => (
-          <NeedsYouCard
-            key={item.id}
-            item={item}
-            unavailableId={UNAVAILABLE_ID}
-            onOpenTask={onOpenTask}
-            onOpenRun={onOpenRun}
-          />
-        ))}
+        <CardList
+          items={displayItems}
+          chrome={chrome}
+          submittingKey={submittingKey}
+          focusResultSeq={chrome.focusResultSeq}
+          focusItemId={chrome.focusItemId}
+          actions={actions}
+        />
       </div>
     )
   }
-  if (load.observation.items.length === 0) {
+  if (displayItems.length === 0) {
     return <NeedsYouEmpty />
   }
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
-      <ActionExplanation />
+      <QuestionExplanation />
       <p className="hd-sr">
         Fixture requests. Not commands or answers on this computer.
       </p>
-      {load.observation.items.map((item) => (
-        <NeedsYouCard
-          key={item.id}
-          item={item}
-          unavailableId={UNAVAILABLE_ID}
-          onOpenTask={onOpenTask}
-          onOpenRun={onOpenRun}
-        />
-      ))}
+      <CardList
+        items={displayItems}
+        chrome={chrome}
+        submittingKey={submittingKey}
+        focusResultSeq={chrome.focusResultSeq}
+        focusItemId={chrome.focusItemId}
+        actions={actions}
+      />
     </div>
   )
 }
 
-function ActionExplanation() {
+function CardList({
+  items,
+  chrome,
+  submittingKey,
+  focusResultSeq,
+  focusItemId,
+  actions,
+}: {
+  readonly items: readonly NeedsYouItem[]
+  readonly chrome: NeedsYouChrome
+  readonly submittingKey: string | null
+  readonly focusResultSeq: number
+  readonly focusItemId: string | null
+  readonly actions: NeedsYouCardActions
+}) {
+  return (
+    <>
+      {items.map((item) => (
+        <NeedsYouCard
+          key={item.id}
+          item={item}
+          chrome={chrome}
+          submittingKey={submittingKey}
+          focusResultSeq={focusResultSeq}
+          focusItemId={focusItemId}
+          unavailableId={UNAVAILABLE_ID}
+          actions={actions}
+        />
+      ))}
+    </>
+  )
+}
+
+function QuestionExplanation() {
   return (
     <p id={UNAVAILABLE_ID} className="hd-sr">
-      {NEEDS_YOU_ACTION_EXPLANATION}
+      {NEEDS_YOU_QUESTION_EXPLANATION}
     </p>
   )
 }

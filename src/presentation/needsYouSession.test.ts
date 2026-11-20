@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest'
-import { createLoadNeedsYouUseCase } from '../application'
-import type { EnginePort } from '../application'
+import {
+  createLoadNeedsYouUseCase,
+  type AnswerWorkflowAttentionCheckpointUseCase,
+  type EnginePort,
+  type RefreshTaskApprovalUseCase,
+  type RefreshWorkflowAttentionCheckpointUseCase,
+  type RespondTaskApprovalUseCase,
+} from '../application'
 import type { NeedsYouLoad } from '../model'
 import { asObservationId } from '../model'
 import { NeedsYouSession } from './needsYouSession'
@@ -19,6 +25,37 @@ function port(loads: NeedsYouLoad[]): {
     },
   } as EnginePort
   return { engine, saved }
+}
+
+const stubRespondApproval: RespondTaskApprovalUseCase = {
+  async execute() {
+    return { kind: 'unknown' }
+  },
+}
+const stubRefreshApproval: RefreshTaskApprovalUseCase = {
+  async execute() {
+    return { kind: 'absent' }
+  },
+}
+const stubAnswerCheckpoint: AnswerWorkflowAttentionCheckpointUseCase = {
+  async execute() {
+    return { kind: 'unknown' }
+  },
+}
+const stubRefreshCheckpoint: RefreshWorkflowAttentionCheckpointUseCase = {
+  async execute() {
+    return { kind: 'failed' }
+  },
+}
+
+function sessionFor(engine: EnginePort): NeedsYouSession {
+  return new NeedsYouSession(
+    createLoadNeedsYouUseCase(engine),
+    stubRespondApproval,
+    stubRefreshApproval,
+    stubAnswerCheckpoint,
+    stubRefreshCheckpoint,
+  )
 }
 
 describe('NeedsYouSession', () => {
@@ -50,7 +87,7 @@ describe('NeedsYouSession', () => {
         observation: { coverage: 'complete', coverageNote: null, items: [] },
       },
     ])
-    const session = new NeedsYouSession(createLoadNeedsYouUseCase(engine))
+    const session = sessionFor(engine)
     session.start()
     await Promise.resolve()
     expect(session.getState().load).toMatchObject({ kind: 'ready' })
@@ -90,7 +127,7 @@ describe('NeedsYouSession', () => {
     const { engine, saved } = port([
       { kind: 'ready', observation: { coverage: 'complete', coverageNote: null, items: [] } },
     ])
-    const session = new NeedsYouSession(createLoadNeedsYouUseCase(engine))
+    const session = sessionFor(engine)
     session.start()
     await Promise.resolve()
     const stale = saved[0]
@@ -106,7 +143,7 @@ describe('NeedsYouSession', () => {
     const { engine, saved } = port([
       { kind: 'ready', observation: { coverage: 'complete', coverageNote: null, items: [] } },
     ])
-    const session = new NeedsYouSession(createLoadNeedsYouUseCase(engine))
+    const session = sessionFor(engine)
     session.start()
     await Promise.resolve()
     expect(session.getState().load.kind).toBe('ready')

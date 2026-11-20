@@ -17,7 +17,9 @@ import type {
   LoadTaskEventsUseCase,
   LoadTaskUseCase,
   LoadWorkflowsUseCase,
+  AnswerWorkflowAttentionCheckpointUseCase,
   RefreshTaskApprovalUseCase,
+  RefreshWorkflowAttentionCheckpointUseCase,
   RespondTaskApprovalUseCase,
   StartTaskUseCase,
 } from '../application'
@@ -57,6 +59,8 @@ export type AppSessionDeps = {
   readonly loadPendingLaunchStatus: LoadPendingLaunchStatusUseCase
   readonly respondTaskApproval: RespondTaskApprovalUseCase
   readonly refreshTaskApproval: RefreshTaskApprovalUseCase
+  readonly answerWorkflowAttentionCheckpoint: AnswerWorkflowAttentionCheckpointUseCase
+  readonly refreshWorkflowAttentionCheckpoint: RefreshWorkflowAttentionCheckpointUseCase
 }
 
 export type AppChildSessions = {
@@ -93,7 +97,13 @@ export function createAppChildSessions(deps: AppSessionDeps): AppChildSessions {
     ),
     harnesses: new HarnessesSession(deps.loadHarnesses),
     settingsGeneral: new SettingsGeneralSession(deps.loadSettingsGeneral),
-    needsYou: new NeedsYouSession(deps.loadNeedsYou),
+    needsYou: new NeedsYouSession(
+      deps.loadNeedsYou,
+      deps.respondTaskApproval,
+      deps.refreshTaskApproval,
+      deps.answerWorkflowAttentionCheckpoint,
+      deps.refreshWorkflowAttentionCheckpoint,
+    ),
     workflowEditor: new WorkflowEditorSession(deps.loadWorkflowEditor),
     workflowExecution: new WorkflowExecutionSession(deps.loadWorkflowExecution),
     parallelGroup: new ParallelGroupSession(deps.loadParallelGroup),

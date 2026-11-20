@@ -270,6 +270,12 @@ function createTestEngine(options?: {
     async refreshTaskApproval() {
       return null
     },
+    async answerWorkflowAttentionCheckpoint() {
+      return { kind: 'unknown' as const }
+    },
+    async refreshWorkflowAttentionCheckpoint() {
+      return { kind: 'failed' as const }
+    },
   }
   return {
     port,

@@ -170,6 +170,18 @@ export function AppFeature({ presenter }: Props) {
               state={state.needsYou}
               onOpenTask={(taskId) => presenter.openTask(taskId)}
               onOpenRun={(runId) => presenter.openWorkflowExecution(runId)}
+              onRespondTask={(itemId, decision) =>
+                presenter.respondNeedsYouTaskApproval(itemId, decision)
+              }
+              onRefreshTask={(itemId) =>
+                presenter.refreshNeedsYouTaskApproval(itemId)
+              }
+              onRespondCheckpoint={(itemId, decision) =>
+                presenter.answerNeedsYouCheckpoint(itemId, decision)
+              }
+              onRefreshCheckpoint={(itemId) =>
+                presenter.refreshNeedsYouCheckpoint(itemId)
+              }
             />
           ) : (
             <TaskMainHost

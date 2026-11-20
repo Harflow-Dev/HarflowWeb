@@ -17,7 +17,9 @@ import type {
   LoadTaskEventsUseCase,
   LoadTaskUseCase,
   LoadWorkflowsUseCase,
+  AnswerWorkflowAttentionCheckpointUseCase,
   RefreshTaskApprovalUseCase,
+  RefreshWorkflowAttentionCheckpointUseCase,
   RespondTaskApprovalUseCase,
   StartTaskUseCase,
 } from '../application'
@@ -42,6 +44,7 @@ import { AppSession, type AppListener } from './appSession'
 import { bindAppPresenter } from './appPresenterBindings'
 import type { AppRoute, AppScreenState, SettingsSection } from './appState'
 import type { ParallelGroupQueuedOutcome } from './parallelGroupState'
+import type { NeedsYouApprovalSeed } from './needsYouSession'
 import type { TaskApprovalSeed } from './taskSessionApproval'
 import type { TaskMessagingSeed } from './taskSessionMessaging'
 import type { PendingLaunchStopOutcome } from './pendingLaunchesState'
@@ -112,6 +115,11 @@ export type AppPresenter = {
   seedTaskApprovalChrome(taskId: TaskId, seed: TaskApprovalSeed): void
   respondTaskApproval(decision: ApprovalDecision): void
   refreshTaskApproval(): void
+  seedNeedsYouApprovalChrome(seed: NeedsYouApprovalSeed): void
+  respondNeedsYouTaskApproval(itemId: string, decision: ApprovalDecision): void
+  refreshNeedsYouTaskApproval(itemId: string): void
+  answerNeedsYouCheckpoint(itemId: string, decision: ApprovalDecision): void
+  refreshNeedsYouCheckpoint(itemId: string): void
   selectStatisticsRange(range: StatisticsRangeId): void
   selectSettingsSection(section: SettingsSection): void
   setExpandedHarness(id: string | null): void
@@ -142,6 +150,8 @@ type Deps = {
   readonly loadTaskEvents: LoadTaskEventsUseCase
   readonly respondTaskApproval: RespondTaskApprovalUseCase
   readonly refreshTaskApproval: RefreshTaskApprovalUseCase
+  readonly answerWorkflowAttentionCheckpoint: AnswerWorkflowAttentionCheckpointUseCase
+  readonly refreshWorkflowAttentionCheckpoint: RefreshWorkflowAttentionCheckpointUseCase
   readonly loadHarnesses: LoadHarnessesUseCase
   readonly loadSettingsGeneral: LoadSettingsGeneralUseCase
   readonly loadNeedsYou: LoadNeedsYouUseCase

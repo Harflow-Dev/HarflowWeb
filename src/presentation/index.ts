@@ -13,7 +13,7 @@ export {
   initialNeedsYouState,
   type NeedsYouScreenState,
 } from './needsYouState'
-export { NeedsYouSession } from './needsYouSession'
+export { NeedsYouSession, type NeedsYouApprovalSeed } from './needsYouSession'
 export {
   createNewTaskPresenter,
   type NewTaskPresenter,

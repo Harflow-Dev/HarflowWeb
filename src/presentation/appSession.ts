@@ -84,6 +84,11 @@ export class AppSession {
     return this.snapshot
   }
 
+  /** @internal Wiring for presenter bindings in this package. */
+  presenterNav(): parallelNav.AppNavContext {
+    return this.nav
+  }
+
   start(): void {
     startAppChildSessions(this.children)
   }
@@ -255,6 +260,9 @@ export class AppSession {
   private setRoute(next: AppRoute): void {
     if (this.route === 'task' && next !== 'task') {
       this.children.task.clearCommandChrome()
+    }
+    if (this.route === 'needs-you' && next !== 'needs-you') {
+      this.children.needsYou.leave()
     }
     this.route = next
   }

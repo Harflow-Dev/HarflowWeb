@@ -20,7 +20,9 @@ import {
   createLoadWorkflowRunUseCase,
   createLoadWorkflowsUseCase,
   createStartTaskUseCase,
+  createAnswerWorkflowAttentionCheckpointUseCase,
   createRefreshTaskApprovalUseCase,
+  createRefreshWorkflowAttentionCheckpointUseCase,
   createRespondTaskApprovalUseCase,
 
   type EnginePort,
@@ -292,6 +294,12 @@ function createTestEngine(options?: {
     async refreshTaskApproval() {
       return null
     },
+    async answerWorkflowAttentionCheckpoint() {
+      return { kind: 'unknown' as const }
+    },
+    async refreshWorkflowAttentionCheckpoint() {
+      return { kind: 'failed' as const }
+    },
   }
 
   return {
@@ -333,6 +341,10 @@ function createPresenter(engine: EnginePort) {
     loadTaskEvents: createLoadTaskEventsUseCase(engine),
     respondTaskApproval: createRespondTaskApprovalUseCase(engine),
     refreshTaskApproval: createRefreshTaskApprovalUseCase(engine),
+    answerWorkflowAttentionCheckpoint:
+      createAnswerWorkflowAttentionCheckpointUseCase(engine),
+    refreshWorkflowAttentionCheckpoint:
+      createRefreshWorkflowAttentionCheckpointUseCase(engine),
     loadHarnesses: createLoadHarnessesUseCase(engine),
     loadNeedsYou: createLoadNeedsYouUseCase(engine),
     loadSettingsGeneral: createLoadSettingsGeneralUseCase(engine),

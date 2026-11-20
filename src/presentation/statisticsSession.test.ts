@@ -103,6 +103,12 @@ function createCapturingPort(
     async refreshTaskApproval() {
       return null
     },
+    async answerWorkflowAttentionCheckpoint() {
+      return { kind: 'unknown' as const }
+    },
+    async refreshWorkflowAttentionCheckpoint() {
+      return { kind: 'failed' as const }
+    },
   }
   return {
     port,
@@ -187,6 +193,12 @@ function createDeferredPort(): {
     },
     async refreshTaskApproval() {
       return null
+    },
+    async answerWorkflowAttentionCheckpoint() {
+      return { kind: 'unknown' as const }
+    },
+    async refreshWorkflowAttentionCheckpoint() {
+      return { kind: 'failed' as const }
     },
     },
     publish(range, load) {

@@ -1,202 +1,175 @@
-import type { NeedsYouItem, TaskId, WorkflowRunId } from '../model'
-import { needsYouContextText } from '../model'
+import type {
+  ApprovalDecision,
+  NeedsYouItem,
+  NeedsYouQuestion,
+  TaskId,
+  WorkflowRunId,
+} from '../model'
+import {
+  isNeedsYouTaskApproval,
+  isNeedsYouWorkflowApproval,
+  needsYouContextText,
+} from '../model'
+import type { NeedsYouChrome } from '../presentation/needsYouChrome'
+import {
+  needsYouTaskApprovalViewFor,
+} from '../presentation/needsYouApprovalCardView'
+import {
+  needsYouCheckpointCardView,
+} from '../presentation/needsYouCheckpointCardView'
+import { checkpointEntryFor } from '../presentation/needsYouChrome'
 import { Icon } from './Icon'
+import {
+  CheckpointNeedsYouCard,
+  TaskApprovalNeedsYouCard,
+} from './NeedsYouApprovalCards'
+
+export type NeedsYouCardActions = {
+  readonly onRespondTask: (itemId: string, decision: ApprovalDecision) => void
+  readonly onRefreshTask: (itemId: string) => void
+  readonly onRespondCheckpoint: (
+    itemId: string,
+    decision: ApprovalDecision,
+  ) => void
+  readonly onRefreshCheckpoint: (itemId: string) => void
+  readonly onOpenTask: (taskId: TaskId) => void
+  readonly onOpenRun: (runId: WorkflowRunId) => void
+}
 
 export function NeedsYouCard({
   item,
+  chrome,
+  submittingKey,
+  focusResultSeq,
+  focusItemId,
   unavailableId,
-  onOpenTask,
-  onOpenRun,
+  actions,
 }: {
   readonly item: NeedsYouItem
+  readonly chrome: NeedsYouChrome
+  readonly submittingKey: string | null
+  readonly focusResultSeq: number
+  readonly focusItemId: string | null
   readonly unavailableId: string
-  readonly onOpenTask: (taskId: TaskId) => void
-  readonly onOpenRun: (runId: WorkflowRunId) => void
+  readonly actions: NeedsYouCardActions
 }) {
-  const label = item.kind === 'approval' ? item.actionLabel : 'Asks a question'
-  return (
-    <section className="hd-approval" aria-label={label}>
-      <div className="hd-approval__head">
-        <Icon name="hand" />
-        <span>{label}</span>
-        <span className="hd-approval__src">{needsYouContextText(item.context)}</span>
-      </div>
-      <div className="hd-approval__body">
-        {item.kind === 'approval' ? (
-          <div className="hd-approval__cmd">{item.exactAction}</div>
-        ) : (
-          <p style={{ margin: 0 }}>{item.prompt}</p>
-        )}
-        <div className="hd-approval__meta">{item.detail}</div>
-      </div>
-      {item.kind === 'approval' ? (
-        <ApprovalActions
-          item={item}
-          unavailableId={unavailableId}
-          onOpenTask={onOpenTask}
-          onOpenRun={onOpenRun}
-        />
-      ) : (
-        <QuestionActions
-          item={item}
-          unavailableId={unavailableId}
-          onOpenTask={onOpenTask}
-          onOpenRun={onOpenRun}
-        />
-      )}
-    </section>
-  )
-}
-
-function ApprovalActions({
-  item,
-  unavailableId,
-  onOpenTask,
-  onOpenRun,
-}: {
-  readonly item: Extract<NeedsYouItem, { kind: 'approval' }>
-  readonly unavailableId: string
-  readonly onOpenTask: (taskId: TaskId) => void
-  readonly onOpenRun: (runId: WorkflowRunId) => void
-}) {
-  return (
-    <div className="hd-approval__actions">
-      <UnavailableButton label={item.approveLabel} tone="primary" unavailableId={unavailableId} />
-      <UnavailableButton label={item.rejectLabel} tone="secondary" unavailableId={unavailableId} />
-      <span style={{ flex: 1 }} />
-      <DestinationButton
+  if (item.kind === 'question') {
+    return (
+      <QuestionCard
         item={item}
         unavailableId={unavailableId}
-        onOpenTask={onOpenTask}
-        onOpenRun={onOpenRun}
+        onOpenTask={actions.onOpenTask}
       />
-    </div>
-  )
+    )
+  }
+  if (isNeedsYouTaskApproval(item)) {
+    const taskId = item.context.taskId ?? ''
+    const submitting =
+      submittingKey === `task:${taskId}\u0000${item.requestId}`
+    const view = needsYouTaskApprovalViewFor(item, chrome.taskApprovals, submitting)
+    return (
+      <TaskApprovalNeedsYouCard
+        itemId={item.id}
+        view={view}
+        focusResultSeq={focusItemId === item.id ? focusResultSeq : 0}
+        actions={actions}
+      />
+    )
+  }
+  if (isNeedsYouWorkflowApproval(item)) {
+    const runId = item.context.runId
+    const entry =
+      runId === null
+        ? null
+        : checkpointEntryFor(chrome, runId, item.attentionCheckpointId)
+    const submitting =
+      runId !== null &&
+      submittingKey === `cp:${runId}\u0000${item.attentionCheckpointId}`
+    const view = needsYouCheckpointCardView(item, entry, submitting)
+    return (
+      <CheckpointNeedsYouCard
+        itemId={item.id}
+        view={view}
+        focusResultSeq={focusItemId === item.id ? focusResultSeq : 0}
+        actions={actions}
+      />
+    )
+  }
+  return null
 }
 
-function QuestionActions({
+function QuestionCard({
   item,
   unavailableId,
   onOpenTask,
-  onOpenRun,
 }: {
-  readonly item: Extract<NeedsYouItem, { kind: 'question' }>
+  readonly item: NeedsYouQuestion
   readonly unavailableId: string
   readonly onOpenTask: (taskId: TaskId) => void
-  readonly onOpenRun: (runId: WorkflowRunId) => void
 }) {
   const replyId = `needs-you-reply-${item.id}`
   return (
-    <div className="hd-approval__actions" aria-label="Reply">
-      <label className="hd-sr" htmlFor={replyId}>
-        Reply
-      </label>
-      <input
-        id={replyId}
-        className="hd-input"
-        type="text"
-        placeholder="Type a reply"
-        disabled
-        aria-disabled="true"
-        aria-describedby={unavailableId}
-        style={{ flex: 1, width: 'auto', minWidth: 0 }}
-      />
-      <UnavailableButton label="Send" tone="primary" unavailableId={unavailableId} />
-      <DestinationButton
-        item={item}
-        unavailableId={unavailableId}
-        onOpenTask={onOpenTask}
-        onOpenRun={onOpenRun}
-      />
-    </div>
-  )
-}
-
-function DestinationButton({
-  item,
-  unavailableId,
-  onOpenTask,
-  onOpenRun,
-}: {
-  readonly item: NeedsYouItem
-  readonly unavailableId: string
-  readonly onOpenTask: (taskId: TaskId) => void
-  readonly onOpenRun: (runId: WorkflowRunId) => void
-}) {
-  if (item.context.kind === 'workflow') {
-    const runId = item.context.runId
-    if (runId === null) {
-      return (
-        <UnavailableButton
-          label="Open run"
-          tone="ghost"
-          icon
-          unavailableId={unavailableId}
+    <section className="hd-approval" aria-label="Asks a question">
+      <div className="hd-approval__head">
+        <Icon name="hand" />
+        <span>Asks a question</span>
+        <span className="hd-approval__src">
+          {needsYouContextText(item.context)}
+        </span>
+      </div>
+      <div className="hd-approval__body">
+        <p style={{ margin: 0 }}>{item.prompt}</p>
+        <div className="hd-approval__meta">{item.detail}</div>
+      </div>
+      <div className="hd-approval__actions" aria-label="Reply">
+        <label className="hd-sr" htmlFor={replyId}>
+          Reply
+        </label>
+        <input
+          id={replyId}
+          className="hd-input"
+          type="text"
+          placeholder="Type a reply"
+          disabled
+          aria-disabled="true"
+          aria-describedby={unavailableId}
+          style={{ flex: 1, width: 'auto', minWidth: 0 }}
         />
-      )
-    }
-    return (
-      <button
-        type="button"
-        className="hd-btn hd-btn--ghost"
-        aria-label={`Open run ${item.context.title}`}
-        onClick={() => onOpenRun(runId)}
-      >
-        <Icon name="external" />
-        Open run
-      </button>
-    )
-  }
-  if (item.context.taskId === null) {
-    return (
-      <UnavailableButton
-        label="Open task"
-        tone="ghost"
-        icon
-        accessibleName={`Open task ${item.context.title}`}
-        unavailableId={unavailableId}
-      />
-    )
-  }
-  const taskId = item.context.taskId
-  return (
-    <button
-      type="button"
-      className="hd-btn hd-btn--ghost"
-      aria-label={`Open task ${item.context.title}`}
-      onClick={() => onOpenTask(taskId)}
-    >
-      <Icon name="external" />
-      Open task
-    </button>
-  )
-}
-
-function UnavailableButton({
-  label,
-  tone,
-  icon = false,
-  accessibleName,
-  unavailableId,
-}: {
-  readonly label: string
-  readonly tone: 'primary' | 'secondary' | 'ghost'
-  readonly icon?: boolean
-  readonly accessibleName?: string
-  readonly unavailableId: string
-}) {
-  return (
-    <button
-      type="button"
-      className={`hd-btn hd-btn--${tone}`}
-      aria-label={accessibleName}
-      aria-disabled="true"
-      aria-describedby={unavailableId}
-      disabled
-      style={{ opacity: 0.45, cursor: 'default' }}
-    >
-      {icon ? <Icon name="external" /> : null}
-      {label}
-    </button>
+        <button
+          type="button"
+          className="hd-btn hd-btn--primary"
+          disabled
+          aria-disabled="true"
+          aria-describedby={unavailableId}
+          style={{ opacity: 0.45, cursor: 'default' }}
+        >
+          Send
+        </button>
+        {item.context.taskId === null ? (
+          <button
+            type="button"
+            className="hd-btn hd-btn--ghost"
+            aria-label={`Open task ${item.context.title}`}
+            disabled
+            aria-disabled="true"
+            aria-describedby={unavailableId}
+            style={{ opacity: 0.45, cursor: 'default' }}
+          >
+            <Icon name="external" />
+            Open task
+          </button>
+        ) : (
+          <button
+            type="button"
+            className="hd-btn hd-btn--ghost"
+            aria-label={`Open task ${item.context.title}`}
+            onClick={() => onOpenTask(item.context.taskId as TaskId)}
+          >
+            <Icon name="external" />
+            Open task
+          </button>
+        )}
+      </div>
+    </section>
   )
 }

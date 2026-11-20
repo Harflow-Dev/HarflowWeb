@@ -1,3 +1,4 @@
+import * as needsYouNav from './appSessionNeedsYou'
 import type { AppPresenter } from './appPresenter'
 import type { AppSession } from './appSession'
 
@@ -75,6 +76,29 @@ function bindTaskChrome(session: AppSession): Pick<
       session.seedTaskApprovalChrome(id, seed),
     respondTaskApproval: (decision) => session.respondTaskApproval(decision),
     refreshTaskApproval: () => session.refreshTaskApproval(),
+  }
+}
+
+function bindNeedsYou(session: AppSession): Pick<
+  AppPresenter,
+  | 'seedNeedsYouApprovalChrome'
+  | 'respondNeedsYouTaskApproval'
+  | 'refreshNeedsYouTaskApproval'
+  | 'answerNeedsYouCheckpoint'
+  | 'refreshNeedsYouCheckpoint'
+> {
+  const ctx = () => session.presenterNav()
+  return {
+    seedNeedsYouApprovalChrome: (seed) =>
+      needsYouNav.seedNeedsYouApprovalChrome(ctx(), seed),
+    respondNeedsYouTaskApproval: (itemId, decision) =>
+      needsYouNav.respondNeedsYouTaskApproval(ctx(), itemId, decision),
+    refreshNeedsYouTaskApproval: (itemId) =>
+      needsYouNav.refreshNeedsYouTaskApproval(ctx(), itemId),
+    answerNeedsYouCheckpoint: (itemId, decision) =>
+      needsYouNav.answerNeedsYouCheckpoint(ctx(), itemId, decision),
+    refreshNeedsYouCheckpoint: (itemId) =>
+      needsYouNav.refreshNeedsYouCheckpoint(ctx(), itemId),
   }
 }
 
@@ -170,6 +194,7 @@ export function bindAppPresenter(session: AppSession): AppPresenter {
     ...bindNavigation(session),
     ...bindWorkflowSurfaces(session),
     ...bindTaskChrome(session),
+    ...bindNeedsYou(session),
     ...bindComposer(session),
   }
 }

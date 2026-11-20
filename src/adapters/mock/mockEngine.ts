@@ -32,6 +32,13 @@ import {
   createListenerSets,
 } from './mockEngineCore'
 import {
+  clearApprovalMutations,
+  createApprovalMutationStore,
+  mockRefreshTaskApproval,
+  mockRespondTaskApproval,
+  resolveTaskLoadWithApprovals,
+} from './mockTaskApproval'
+import {
   catalogPublishers,
   republishScenario,
   surfacePublishers,
@@ -73,16 +80,29 @@ export function createMockEngine(
   let lastStart: StartTaskRequest | null = null
   const held = createHeldStartTracker()
   const listeners = createListenerSets()
+  const approvals = createApprovalMutationStore()
 
   const engine = buildMockEnginePort({
     getScenario: () => scenario,
     listeners,
+    resolveTask: (taskId) =>
+      resolveTaskLoadWithApprovals(scenario, taskId, approvals),
     async onStart(request) {
       startCount += 1
       lastStart = request
       if (scenario.holdStart) return held.begin().promise
       return scenario.startOutcome
     },
+    onRespondApproval: (request) =>
+      mockRespondTaskApproval(request, () => scenario, listeners, approvals),
+    onRefreshApproval: (taskId, requestId) =>
+      mockRefreshTaskApproval(
+        taskId,
+        requestId,
+        () => scenario,
+        listeners,
+        approvals,
+      ),
   })
 
   return {
@@ -90,6 +110,7 @@ export function createMockEngine(
     setScenario(id) {
       scenario = scenarioById(id)
       held.take()
+      clearApprovalMutations(approvals)
       republishScenario(scenario, listeners)
     },
     ...catalogPublishers(listeners),

@@ -26,6 +26,7 @@ import { TASK_EVENTS_BY_ID } from './taskEventsTaskFixtures'
 import { TASK_OVERFLOW_BY_ID } from './taskOverflowFixtures'
 import { TASK_STATUS_BY_ID } from './taskStatusFixtures'
 import { TASK_PANE_TOPBAR_BY_ID } from './taskPaneTopbarFixtures'
+import { TASK_APPROVAL_BY_ID } from './taskApprovalFixtures'
 import { TASK_MESSAGES_BY_ID } from './taskMessageFixtures'
 
 /** Mapped from sidebar row "Fix flaky slot release test". */
@@ -136,6 +137,7 @@ const BY_ID: ReadonlyMap<string, TaskObservation> = new Map([
   ...TASK_EVENTS_BY_ID,
   ...TASK_PANE_TOPBAR_BY_ID,
   ...TASK_MESSAGES_BY_ID,
+  ...TASK_APPROVAL_BY_ID,
 ])
 
 export function taskLoadFor(taskId: string): TaskLoad {

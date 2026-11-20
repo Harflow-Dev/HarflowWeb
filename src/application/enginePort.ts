@@ -1,4 +1,5 @@
 import type {
+  ApprovalRespondOutcome,
   ContextLoad,
   HarnessesLoad,
   NeedsYouLoad,
@@ -11,11 +12,13 @@ import type {
   PendingLaunchInventoryLoad,
   PendingLaunchStatusLoad,
   ResourcesLoad,
+  RespondTaskApprovalRequest,
   SettingsGeneralLoad,
   StartTaskOutcome,
   StartTaskRequest,
   StatisticsLoad,
   StatisticsRangeId,
+  TaskApprovalRequest,
   TaskChangesLoad,
   TaskChangesQuery,
   TaskEventsLoad,
@@ -219,4 +222,22 @@ export type EnginePort = {
    * Unknown forbids automatic retry.
    */
   startTask(request: StartTaskRequest): Promise<StartTaskOutcome>
+
+  /**
+   * Respond to one approval request (approve or reject).
+   * Typed refusals are acknowledgement outcomes, never ledger fields.
+   * Mock-only — not a public ctl claim.
+   */
+  respondTaskApproval(
+    request: RespondTaskApprovalRequest,
+  ): Promise<ApprovalRespondOutcome>
+
+  /**
+   * Re-read one approval ledger row read-only (no resubmit).
+   * Mock-only — not a public ctl claim.
+   */
+  refreshTaskApproval(
+    taskId: TaskId,
+    requestId: string,
+  ): Promise<TaskApprovalRequest | null>
 }

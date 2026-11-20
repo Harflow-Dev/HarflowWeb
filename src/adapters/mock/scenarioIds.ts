@@ -1,3 +1,4 @@
+import type { TaskApprovalsScenarioId } from './scenarioIdsTaskApprovals'
 import type { TaskMessagesScenarioId } from './scenarioIdsTaskMessages'
 import type { TaskPaneTopbarScenarioId } from './scenarioIdsTaskPaneTopbar'
 
@@ -51,6 +52,7 @@ export type ScenarioId =
   | 'task-events-error'
   | TaskPaneTopbarScenarioId
   | TaskMessagesScenarioId
+  | TaskApprovalsScenarioId
   | 'resources-slots'
   | 'statistics-overview'
   | 'task-running'

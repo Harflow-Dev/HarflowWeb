@@ -1,6 +1,7 @@
 import type { EnginePort } from '../../application'
 import {
   taskChangesEntryKey,
+  type ApprovalRespondOutcome,
   type ContextLoad,
   type HarnessesLoad,
   type NeedsYouLoad,
@@ -12,11 +13,13 @@ import {
   type PendingLaunchInventoryLoad,
   type PendingLaunchStatusLoad,
   type ResourcesLoad,
+  type RespondTaskApprovalRequest,
   type SettingsGeneralLoad,
   type StartTaskOutcome,
   type StartTaskRequest,
   type StatisticsLoad,
   type StatisticsRangeId,
+  type TaskApprovalRequest,
   type TaskChangesLoad,
   type TaskChangesQuery,
   type TaskEventsLoad,
@@ -155,8 +158,23 @@ export function buildMockEnginePort(options: {
   readonly getScenario: () => ScenarioDefinition
   readonly listeners: MockListenerSets
   readonly onStart: (request: StartTaskRequest) => Promise<StartTaskOutcome>
+  readonly resolveTask: (taskId: TaskId) => TaskLoad
+  readonly onRespondApproval: (
+    request: RespondTaskApprovalRequest,
+  ) => Promise<ApprovalRespondOutcome>
+  readonly onRefreshApproval: (
+    taskId: TaskId,
+    requestId: string,
+  ) => Promise<TaskApprovalRequest | null>
 }): EnginePort {
-  const { getScenario, listeners, onStart } = options
+  const {
+    getScenario,
+    listeners,
+    onStart,
+    resolveTask,
+    onRespondApproval,
+    onRefreshApproval,
+  } = options
   return {
     observeContext(onUpdate) {
       return createObservation(listeners.context, onUpdate, () => {
@@ -201,7 +219,7 @@ export function buildMockEnginePort(options: {
         listeners.tasks,
         taskId,
         onUpdate,
-        (id) => resolveTaskLoad(getScenario(), id),
+        (id) => resolveTask(id),
       )
     },
     observeTaskChanges(query, onUpdate) {
@@ -349,6 +367,12 @@ export function buildMockEnginePort(options: {
     },
     startTask(request) {
       return onStart(request)
+    },
+    respondTaskApproval(request) {
+      return onRespondApproval(request)
+    },
+    refreshTaskApproval(taskId, requestId) {
+      return onRefreshApproval(taskId, requestId)
     },
   }
 }

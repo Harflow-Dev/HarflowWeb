@@ -76,6 +76,19 @@ export type NewTaskScenarioSeed = {
     readonly code: string
     readonly message: string
   }[]
+  /**
+   * Approval respond refusals held in session chrome (acknowledgement only),
+   * keyed by request id. Seeded for stale / answered-elsewhere / refused.
+   */
+  readonly taskApprovalRefusals?: readonly {
+    readonly requestId: string
+    readonly reason: string
+    readonly interaction?: {
+      readonly answeredBy: 'caller' | 'monitor'
+      readonly answer: 'approve' | 'reject'
+      readonly answeredAt: number
+    }
+  }[]
   /** Open the task overflow More-actions menu after the observation is ready. */
   readonly taskOverflowMenuOpen?: boolean
   /** Screen identity: the approved transcript routes draw no More anchor. */

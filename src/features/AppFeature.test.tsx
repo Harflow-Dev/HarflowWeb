@@ -22,7 +22,9 @@ import {
   createLoadWorkflowRunUseCase,
   createLoadWorkflowsUseCase,
   createStartTaskUseCase,
+  createAnswerWorkflowAttentionCheckpointUseCase,
   createRefreshTaskApprovalUseCase,
+  createRefreshWorkflowAttentionCheckpointUseCase,
   createRespondTaskApprovalUseCase,
 
   type EnginePort,
@@ -427,6 +429,12 @@ function createTestEngine(options?: {
     async refreshTaskApproval() {
       return null
     },
+    async answerWorkflowAttentionCheckpoint() {
+      return { kind: 'unknown' as const }
+    },
+    async refreshWorkflowAttentionCheckpoint() {
+      return { kind: 'failed' as const }
+    },
   }
   return {
     port,
@@ -499,6 +507,10 @@ function renderApp(engine: EnginePort) {
     loadTaskEvents: createLoadTaskEventsUseCase(engine),
     respondTaskApproval: createRespondTaskApprovalUseCase(engine),
     refreshTaskApproval: createRefreshTaskApprovalUseCase(engine),
+    answerWorkflowAttentionCheckpoint:
+      createAnswerWorkflowAttentionCheckpointUseCase(engine),
+    refreshWorkflowAttentionCheckpoint:
+      createRefreshWorkflowAttentionCheckpointUseCase(engine),
     loadHarnesses: createLoadHarnessesUseCase(engine),
     loadNeedsYou: createLoadNeedsYouUseCase(engine),
     loadSettingsGeneral: createLoadSettingsGeneralUseCase(engine),
@@ -1732,7 +1744,7 @@ describe('AppFeature navigation', () => {
     expect(openQuestion).toBeDisabled()
     expect(openQuestion).toHaveAttribute('aria-disabled', 'true')
     expect(openQuestion).toHaveAccessibleDescription(
-      /does not approve, reject, send an answer, or open a workflow run/,
+      /Question replies are not available/,
     )
     await user.click(openQuestion)
     fireEvent.keyDown(openQuestion, { key: 'Enter' })
@@ -1809,9 +1821,15 @@ describe('AppFeature navigation', () => {
     expect(engine.starts).toHaveLength(1)
 
     const command = screen.getByRole('region', { name: 'Wants to run a command' })
-    await user.click(within(command).getByRole('button', { name: 'Approve once' }))
-    await user.click(within(command).getByRole('button', { name: 'Reject' }))
-    await user.click(screen.getByRole('button', { name: 'Send' }))
+    expect(
+      within(command).getByRole('button', { name: 'Approve once' }),
+    ).toBeEnabled()
+    expect(
+      within(command).getByRole('button', { name: 'Reject' }),
+    ).toBeEnabled()
+    const send = screen.getByRole('button', { name: 'Send' })
+    expect(send).toBeDisabled()
+    await user.click(send)
     const openRun = screen.getByRole('button', {
       name: 'Open run Nightly dependency audit',
     })

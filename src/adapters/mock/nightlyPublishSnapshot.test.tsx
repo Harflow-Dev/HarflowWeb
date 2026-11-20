@@ -1,6 +1,6 @@
 import { cleanup, render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { NeedsYouPage } from '../../components/NeedsYouPage'
+import { NeedsYouPageFromLoad } from '../../components/NeedsYouPage'
 import { WorkflowRunView } from '../../components/WorkflowRunView'
 import {
   NIGHTLY_PUBLISH_SNAPSHOT,
@@ -35,7 +35,11 @@ describe('Nightly publish snapshot', () => {
     expect(run.detail.approval.command).toContain(snapshot.remote)
 
     render(
-      <NeedsYouPage load={waitingNeedsYouLoad()} onOpenTask={vi.fn()} onOpenRun={vi.fn()} />,
+      <NeedsYouPageFromLoad
+        load={waitingNeedsYouLoad()}
+        onOpenTask={vi.fn()}
+        onOpenRun={vi.fn()}
+      />,
     )
     expect(screen.getByText(snapshot.publishAction)).toBeInTheDocument()
     expect(screen.getByText(request.detail)).toBeInTheDocument()

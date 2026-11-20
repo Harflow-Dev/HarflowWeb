@@ -180,6 +180,16 @@ populated fixture and shows a single “Mock engine” badge.
 | Needs you empty | Approved `needs-you/empty` specimen. Populated scenarios use `needs-you/waiting` |
 | Needs you loading | Approved `needs-you/loading` main-pane skeleton (Design `9d19fd7`). Deferred Needs you read; populated context keeps live Running/Recent. Open Needs you in the preview after selecting the scenario. Full sidebar `SB` remains out of scope; use **Needs you loading · minimum** for the 1000×620 companion |
 
+Needs you approval scenarios (`needs-you/approval-*`, Design `56b49cb`) live in
+`src/adapters/mock/scenarioCatalogNeedsYouApprovals.ts`:
+
+| Scenario id | Design route | Notes |
+| --- | --- | --- |
+| `needs-you-approval-stale` | `needs-you/approval-stale` | Seeded `not_current` on the command card; Refresh returns owner revision 2; waiting 3 |
+| `needs-you-approval-expired` | `needs-you/approval-expired` | Expired unanswered ledger facts (`decision` null); waiting 2 (drawing keeps 3) |
+| `needs-you-answered-elsewhere` | `needs-you/answered-elsewhere` | Seeded `already_answered` with `answered_by: caller`; waiting 2 (drawing keeps 3) |
+| `needs-you-checkpoint-stale` | `needs-you/checkpoint-stale` | Seeded `attention_checkpoint_stale` on the publish card; Refresh returns a new token; waiting 3 |
+
 First-load skeleton scenarios live in `src/adapters/mock/scenarioCatalogLoading.ts`.
 M05 G-DIFF Changes scenarios (including `task-changes-loading`) live in
 `src/adapters/mock/scenarioCatalogTaskChanges.ts`.

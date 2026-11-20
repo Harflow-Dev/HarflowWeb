@@ -8,7 +8,10 @@ import {
   unavailableNeedsYouLoad,
   waitingNeedsYouLoad,
 } from '../adapters/mock/needsYouFixtures'
-import { NeedsYouPage, NEEDS_YOU_ACTION_EXPLANATION } from './NeedsYouPage'
+import {
+  NEEDS_YOU_QUESTION_EXPLANATION,
+  NeedsYouPageFromLoad,
+} from './NeedsYouPage'
 
 afterEach(() => {
   cleanup()
@@ -20,7 +23,7 @@ describe('NeedsYouPage', () => {
     const onOpenTask = vi.fn()
     const onOpenRun = vi.fn()
     render(
-      <NeedsYouPage
+      <NeedsYouPageFromLoad
         load={waitingNeedsYouLoad()}
         onOpenTask={onOpenTask}
         onOpenRun={onOpenRun}
@@ -39,8 +42,8 @@ describe('NeedsYouPage', () => {
     ).toBeInTheDocument()
     expect(screen.queryByText('Nothing needs you')).not.toBeInTheDocument()
 
-    const approve = screen.getByRole('button', { name: 'Approve once' })
-    const publish = screen.getByRole('button', { name: 'Approve this publish' })
+    const approveOnce = screen.getByRole('button', { name: 'Approve once' })
+    const approveWorkflow = screen.getByRole('button', { name: 'Approve' })
     const send = screen.getByRole('button', { name: 'Send' })
     const openRun = screen.getByRole('button', {
       name: 'Open run Nightly dependency audit',
@@ -49,13 +52,15 @@ describe('NeedsYouPage', () => {
     const openQuestion = screen.getByRole('button', {
       name: 'Open task Migrate events.jsonl reader',
     })
-    for (const control of [approve, publish, send, reply, openQuestion]) {
+    expect(approveOnce).toBeEnabled()
+    expect(approveWorkflow).toBeEnabled()
+    for (const control of [send, reply, openQuestion]) {
       expect(control).toBeDisabled()
       expect(control).toHaveAttribute('aria-disabled', 'true')
-      expect(control).toHaveAccessibleDescription(NEEDS_YOU_ACTION_EXPLANATION)
+      expect(control).toHaveAccessibleDescription(NEEDS_YOU_QUESTION_EXPLANATION)
     }
-    await user.click(approve)
-    await user.click(publish)
+    await user.click(approveOnce)
+    await user.click(approveWorkflow)
     await user.click(send)
     await user.click(openQuestion)
     expect(onOpenTask).not.toHaveBeenCalled()
@@ -77,7 +82,7 @@ describe('NeedsYouPage', () => {
 
   it('shows the approved empty state only for complete coverage with zero items', () => {
     const { rerender } = render(
-      <NeedsYouPage load={emptyNeedsYouLoad()} onOpenTask={vi.fn()} onOpenRun={vi.fn()} />,
+      <NeedsYouPageFromLoad load={emptyNeedsYouLoad()} onOpenTask={vi.fn()} onOpenRun={vi.fn()} />,
     )
     expect(screen.getByText('Nothing needs you')).toBeInTheDocument()
     expect(
@@ -86,7 +91,7 @@ describe('NeedsYouPage', () => {
     expect(screen.queryByText(/waiting/)).not.toBeInTheDocument()
 
     rerender(
-      <NeedsYouPage
+      <NeedsYouPageFromLoad
         load={{ kind: 'ready', observation: partialNeedsYouObservation() }}
         onOpenTask={vi.fn()}
         onOpenRun={vi.fn()}
@@ -98,7 +103,7 @@ describe('NeedsYouPage', () => {
     expect(screen.queryByText('1 waiting')).not.toBeInTheDocument()
 
     rerender(
-      <NeedsYouPage load={unavailableNeedsYouLoad()} onOpenTask={vi.fn()} onOpenRun={vi.fn()} />,
+      <NeedsYouPageFromLoad load={unavailableNeedsYouLoad()} onOpenTask={vi.fn()} onOpenRun={vi.fn()} />,
     )
     expect(screen.queryByText('Nothing needs you')).not.toBeInTheDocument()
     expect(screen.getByRole('status')).toHaveTextContent('Needs you is unavailable.')
@@ -106,7 +111,7 @@ describe('NeedsYouPage', () => {
 
   it('renders main-pane loading skeleton without fake counts, empty, or actions', () => {
     render(
-      <NeedsYouPage load={{ kind: 'loading' }} onOpenTask={vi.fn()} onOpenRun={vi.fn()} />,
+      <NeedsYouPageFromLoad load={{ kind: 'loading' }} onOpenTask={vi.fn()} onOpenRun={vi.fn()} />,
     )
     const loading = screen.getByRole('group', { name: 'Loading Needs you' })
     expect(loading).toHaveAttribute('aria-busy', 'true')
@@ -123,7 +128,7 @@ describe('NeedsYouPage', () => {
 
   it('drops loading busy semantics when ready and restores them when loading returns', () => {
     const { rerender } = render(
-      <NeedsYouPage load={{ kind: 'loading' }} onOpenTask={vi.fn()} onOpenRun={vi.fn()} />,
+      <NeedsYouPageFromLoad load={{ kind: 'loading' }} onOpenTask={vi.fn()} onOpenRun={vi.fn()} />,
     )
     expect(screen.getByRole('group', { name: 'Loading Needs you' })).toHaveAttribute(
       'aria-busy',
@@ -131,7 +136,7 @@ describe('NeedsYouPage', () => {
     )
 
     rerender(
-      <NeedsYouPage
+      <NeedsYouPageFromLoad
         load={waitingNeedsYouLoad()}
         onOpenTask={vi.fn()}
         onOpenRun={vi.fn()}
@@ -139,10 +144,10 @@ describe('NeedsYouPage', () => {
     )
     expect(screen.queryByRole('group', { name: 'Loading Needs you' })).toBeNull()
     expect(screen.getByText('3 waiting')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Approve once' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Approve once' })).toBeEnabled()
 
     rerender(
-      <NeedsYouPage load={{ kind: 'loading' }} onOpenTask={vi.fn()} onOpenRun={vi.fn()} />,
+      <NeedsYouPageFromLoad load={{ kind: 'loading' }} onOpenTask={vi.fn()} onOpenRun={vi.fn()} />,
     )
     expect(screen.getByRole('group', { name: 'Loading Needs you' })).toHaveAttribute(
       'aria-busy',
@@ -154,7 +159,7 @@ describe('NeedsYouPage', () => {
 
   it('keeps HTML-like prompt text as text', () => {
     const { container } = render(
-      <NeedsYouPage
+      <NeedsYouPageFromLoad
         load={{ kind: 'ready', observation: literalNeedsYouObservation() }}
         onOpenTask={vi.fn()}
         onOpenRun={vi.fn()}

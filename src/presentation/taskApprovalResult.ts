@@ -118,6 +118,19 @@ function alreadyAnsweredResult(
   if (interaction === undefined) {
     return result(null, [APPROVAL_COPY.alreadyAnswered], false, false)
   }
+  // DECIDED.answeredCaller (Needs you / menu-bar): raceCaller title + recorded.
+  if (interaction.answeredBy === 'caller') {
+    return result(
+      APPROVAL_COPY.raceCaller,
+      [
+        formatApprovalTimeUtc(interaction.answeredAt),
+        recordedLine(interaction.answer),
+      ],
+      false,
+      false,
+    )
+  }
+  // DECIDED.answeredMonitor (task screen): channel · answer + alreadyAnswered.
   return result(
     `${channelLabel(interaction.answeredBy)} · ${interaction.answer}`,
     [formatApprovalTimeUtc(interaction.answeredAt), APPROVAL_COPY.alreadyAnswered],

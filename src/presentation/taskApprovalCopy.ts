@@ -13,11 +13,19 @@ export const APPROVAL_COPY = {
   unknown: 'Delivery is unknown. The decision will not be retried.',
   byMonitor: 'Answered in Harflow',
   byCaller: 'Answered by the caller',
+  /** DECIDED.answeredCaller title (Needs you / menu-bar caller race). */
+  raceCaller: 'Already answered by the caller',
+  /**
+   * Workflow attention `attention_checkpoint_stale` (COPY.changed). Not a
+   * task-approval refusal reason.
+   */
+  checkpointChanged: 'This request changed. Review it again.',
   expired: 'Expired',
   rejectionSent: 'Harflow rejected the request when it expired.',
   recovery:
     "It can't be approved later. After the task finishes, continue it in a new session.",
   approveOnce: 'Approve once',
+  approve: 'Approve',
   reject: 'Reject',
   refresh: 'Refresh',
   /**

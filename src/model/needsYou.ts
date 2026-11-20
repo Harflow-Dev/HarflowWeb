@@ -1,4 +1,8 @@
 import type { TaskId, WorkflowRunId } from './ids'
+import {
+  isAwaitingDecision,
+  type TaskApprovalRequest,
+} from './taskApproval'
 
 /**
  * Needs you is approvals and questions only.
@@ -25,17 +29,39 @@ export type NeedsYouWorkflowContext = {
 
 export type NeedsYouContext = NeedsYouTaskContext | NeedsYouWorkflowContext
 
-/** One exact action. The label is not permission for the whole task. */
-export type NeedsYouApproval = {
+type NeedsYouApprovalBase = {
   readonly kind: 'approval'
   readonly id: string
   readonly actionLabel: string
   readonly exactAction: string
   readonly detail: string
-  readonly context: NeedsYouContext
   readonly approveLabel: string
   readonly rejectLabel: string
 }
+
+/**
+ * Task approval on Needs you: identity needed to respond plus the ledger row
+ * the card is drawn from. Contract field names via `request` / `requestId` /
+ * `ownerRevision`.
+ */
+export type NeedsYouTaskApproval = NeedsYouApprovalBase & {
+  readonly context: NeedsYouTaskContext
+  readonly requestId: string
+  readonly ownerRevision: number
+  readonly request: TaskApprovalRequest
+}
+
+/**
+ * Workflow attention checkpoint on Needs you. Contract:
+ * `attention_checkpoint_id` (and `runId` from context).
+ */
+export type NeedsYouWorkflowApproval = NeedsYouApprovalBase & {
+  readonly context: NeedsYouWorkflowContext
+  readonly attentionCheckpointId: string
+}
+
+/** One exact action. The label is not permission for the whole task. */
+export type NeedsYouApproval = NeedsYouTaskApproval | NeedsYouWorkflowApproval
 
 export type NeedsYouQuestion = {
   readonly kind: 'question'
@@ -66,13 +92,31 @@ export type NeedsYouBadge =
   | { readonly kind: 'count'; readonly count: number }
   | { readonly kind: 'partial'; readonly knownCount: number }
 
+/** True when the item still needs a human decision in the observation. */
+export function isNeedsYouWaitingItem(item: NeedsYouItem): boolean {
+  if (item.kind === 'question') return true
+  if (item.context.kind === 'workflow') return true
+  if (!isNeedsYouTaskApproval(item)) return true
+  return isAwaitingDecision(item.request)
+}
+
+export function needsYouWaitingCount(
+  items: readonly NeedsYouItem[],
+): number {
+  return items.filter(isNeedsYouWaitingItem).length
+}
+
 export function needsYouBadge(load: NeedsYouLoad): NeedsYouBadge {
   if (load.kind !== 'ready') return { kind: 'unknown' }
   if (load.observation.coverage === 'partial') {
-    return { kind: 'partial', knownCount: load.observation.items.length }
+    return {
+      kind: 'partial',
+      knownCount: needsYouWaitingCount(load.observation.items),
+    }
   }
-  if (load.observation.items.length === 0) return { kind: 'clear' }
-  return { kind: 'count', count: load.observation.items.length }
+  const waiting = needsYouWaitingCount(load.observation.items)
+  if (waiting === 0) return { kind: 'clear' }
+  return { kind: 'count', count: waiting }
 }
 
 export function needsYouContextText(context: NeedsYouContext): string {
@@ -81,4 +125,16 @@ export function needsYouContextText(context: NeedsYouContext): string {
   }
   const step = context.step ? ` · step ${context.step}` : ''
   return `Workflow: ${context.title}${step} · ${context.waitingLabel}`
+}
+
+export function isNeedsYouTaskApproval(
+  item: NeedsYouItem,
+): item is NeedsYouTaskApproval {
+  return item.kind === 'approval' && item.context.kind === 'task'
+}
+
+export function isNeedsYouWorkflowApproval(
+  item: NeedsYouItem,
+): item is NeedsYouWorkflowApproval {
+  return item.kind === 'approval' && item.context.kind === 'workflow'
 }

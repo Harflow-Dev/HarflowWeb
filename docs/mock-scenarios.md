@@ -188,6 +188,18 @@ M05 G-ADAPTIVE pane layout and top-bar content scenarios live in
 `src/adapters/mock/scenarioCatalogTaskPaneTopbar.ts`.
 Task-screen queued-message scenarios (`task/message-*`) live in
 `src/adapters/mock/scenarioCatalogTaskMessages.ts` (Design `7de89a4`).
+Task-screen approval scenarios (`task/approval-*`) live in
+`src/adapters/mock/scenarioCatalogTaskApprovals.ts` (Design `56b49cb`):
+
+| Scenario id | Design route | Notes |
+| --- | --- | --- |
+| `approval-exact` | `task/approval-exact` | Pending exact_action_once; Approve once + Reject; awaiting 1 |
+| `approval-stale` | `task/approval-stale` | Seeded `not_current` refusal + Refresh; awaiting 1 |
+| `approval-expired` | `task/approval-expired` | Expired override ledger facts; awaiting 0 |
+| `approval-answered-elsewhere` | `task/approval-answered-elsewhere` | Seeded `already_answered` (monitor); awaiting 0 |
+| `approval-refused` | `task/approval-refused` | Seeded `settled` refusal; awaiting 0 |
+| `approval-uncertain` | `task/approval-uncertain` | `delivery_unknown` ledger facts; awaiting 0 |
+
 Minimum-window scenarios (loaded and loading) live in
 `src/adapters/mock/scenarioCatalogMinimum.ts` and reuse `seed.frame: 'minimum'`
 (same `hw-preview__app--minimum` chrome as Sidebar minimum). They keep the

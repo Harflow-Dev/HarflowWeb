@@ -101,7 +101,28 @@ grant approvals, answer questions, or touch the task store.
   Send now shows whenever the capability is ready and supported, regardless of
   the status `messages` ledger (the engine always emits it). While the
   capability is loading the composer stays unchanged (no flash of Send now).
-  Settled tasks keep the standard composer without Send now.
+  Settled tasks keep the standard composer without Send now. The approval-base
+  drawing also predates that decision; approval scenarios keep Send now when
+  messaging is ready (accepted difference, same as other running tasks).
+- **Task screen approval states** (Design `56b49cb`, owner approval 2026-11-15):
+  six `task/approval-*` scenarios are reachable from `/preview`. The ledger row
+  uses contract field names; respond refusals (`not_current`, `already_answered`,
+  `settled`, …) live in session chrome keyed by request id, never on the row.
+  Topbar Needs you badge and sidebar attention glyph follow
+  `approval_summary.awaiting_decision_count` honestly (exact/stale = 1; the
+  other four = 0). The drawings keep the Needs you badge on all six because
+  only the card was replaced — that badge-count difference is intentional.
+  Open gaps:
+  - **Post-approve settled state is undrawn.** After a successful Approve once
+    the mock settles the row to decided/sent and the card head reads
+    “Approved by you” (components/approval-card). There is no approved route
+    for that interactive state.
+  - **Other typed refusal copy.** `expired`, `ownership_lost`, `unauthorized`,
+    `unsupported`, `caller_undecidable`, and `incomplete` have no design copy
+    yet; missing/unknown reasons stay non-actionable refresh-only with the
+    `not_current`-style wording. Do not invent per-reason lines.
+  - **Answered elsewhere names only the channel.** The contract reports
+    caller or monitor only — not surface, device, or person (design gap).
 - **Pending launches** (Design `83d820f` / approval `2934681`): all 21 approved
   `task/pending-*` states are reachable from `/preview`. The “Pending launches”
   nav item appears only when the mock engine reports capability

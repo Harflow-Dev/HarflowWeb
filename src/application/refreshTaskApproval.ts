@@ -1,11 +1,8 @@
-import type { TaskApprovalRequest, TaskId } from '../model'
+import type { ApprovalRefreshResult, TaskId } from '../model'
 import type { EnginePort } from './enginePort'
 
 export type RefreshTaskApprovalUseCase = {
-  execute(
-    taskId: TaskId,
-    requestId: string,
-  ): Promise<TaskApprovalRequest | null>
+  execute(taskId: TaskId, requestId: string): Promise<ApprovalRefreshResult>
 }
 
 export function createRefreshTaskApprovalUseCase(
@@ -14,9 +11,12 @@ export function createRefreshTaskApprovalUseCase(
   return {
     async execute(taskId, requestId) {
       try {
-        return await engine.refreshTaskApproval(taskId, requestId)
+        const request = await engine.refreshTaskApproval(taskId, requestId)
+        return request === null
+          ? { kind: 'absent' }
+          : { kind: 'row', request }
       } catch {
-        return null
+        return { kind: 'failed' }
       }
     },
   }

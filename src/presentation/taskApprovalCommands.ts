@@ -17,9 +17,19 @@ export type TaskApprovalCommandHost = {
   publish(next: TaskScreenState): void
 }
 
-/** Respond / refresh approval for the open task. */
+function flightKey(taskId: string, requestId: string): string {
+  return `${taskId}\u0000${requestId}`
+}
+
+/**
+ * Respond / refresh approval for the open task. In-flight respond calls are
+ * keyed by task id + request id here, not in the resettable chrome, so
+ * leaving and returning to a task mid-call cannot submit twice.
+ */
 export class TaskApprovalCommands {
-  private epoch = 0
+  private readonly inFlight = new Set<string>()
+  /** Bumped when a respond starts or settles; a refresh read across it is stale. */
+  private respondEvents = 0
   private readonly host: TaskApprovalCommandHost
   private readonly respond: RespondTaskApprovalUseCase
   private readonly refresh: RefreshTaskApprovalUseCase
@@ -34,33 +44,47 @@ export class TaskApprovalCommands {
     this.refresh = refresh
   }
 
-  respondDecision(decision: ApprovalDecision): void {
-    const state = this.host.getState()
+  /** Set the chrome mirror of the in-flight state for the open request. */
+  withSubmitting(state: TaskScreenState): TaskScreenState {
     const request = currentApprovalRequest(state)
     const taskId = state.selectedTaskId
-    if (request === null || taskId === null) return
-    if (state.approvalChrome.submitting) return
-    this.epoch += 1
-    const epoch = this.epoch
-    this.host.publish(approvalSubmittingState(state, true))
+    const submitting =
+      request !== null &&
+      taskId !== null &&
+      this.inFlight.has(flightKey(taskId, request.requestId))
+    return approvalSubmittingState(state, submitting)
+  }
+
+  respondDecision(decision: ApprovalDecision): void {
+    const state = this.host.getState()
+    const sent = currentApprovalRequest(state)
+    const taskId = state.selectedTaskId
+    if (sent === null || taskId === null) return
+    const key = flightKey(taskId, sent.requestId)
+    if (this.inFlight.has(key)) return
+    this.inFlight.add(key)
+    this.respondEvents += 1
+    this.host.publish(this.withSubmitting(state))
     void this.respond
       .execute({
         taskId,
-        requestId: request.requestId,
+        requestId: sent.requestId,
         decision,
-        ownerRevision: request.ownerRevision,
-        actionDigest: request.actionDigest,
+        ownerRevision: sent.ownerRevision,
+        actionDigest: sent.actionDigest,
       })
       .then((outcome) => {
-        if (this.host.isDisposed() || epoch !== this.epoch) return
-        if (this.host.getState().selectedTaskId !== taskId) return
-        this.host.publish(
-          approvalRespondedState(
-            this.host.getState(),
-            request.requestId,
-            outcome,
-          ),
+        this.inFlight.delete(key)
+        this.respondEvents += 1
+        if (this.host.isDisposed()) return
+        const next = approvalRespondedState(
+          this.host.getState(),
+          taskId,
+          sent,
+          decision,
+          outcome,
         )
+        this.host.publish(this.withSubmitting(next))
       })
   }
 
@@ -69,13 +93,15 @@ export class TaskApprovalCommands {
     const request = currentApprovalRequest(state)
     const taskId = state.selectedTaskId
     if (request === null || taskId === null) return
-    this.epoch += 1
-    const epoch = this.epoch
-    void this.refresh.execute(taskId, request.requestId).then((row) => {
-      if (this.host.isDisposed() || epoch !== this.epoch) return
-      if (this.host.getState().selectedTaskId !== (taskId as TaskId)) return
+    // A refresh never races an in-flight respond: the respond result wins.
+    if (this.inFlight.has(flightKey(taskId, request.requestId))) return
+    const started = this.respondEvents
+    void this.refresh.execute(taskId, request.requestId).then((result) => {
+      if (this.host.isDisposed() || started !== this.respondEvents) return
+      const current = this.host.getState()
+      if (current.selectedTaskId !== (taskId as TaskId)) return
       this.host.publish(
-        approvalRefreshedState(this.host.getState(), request.requestId, row),
+        approvalRefreshedState(current, taskId, request.requestId, result),
       )
     })
   }

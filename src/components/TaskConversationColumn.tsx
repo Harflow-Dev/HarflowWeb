@@ -1,7 +1,7 @@
 import type { RefObject } from 'react'
 import type { ApprovalDecision, TaskObservation } from '../model'
 import {
-  refusalForRequest,
+  approvalEntryFor,
   TASK_OVERFLOW_COPY,
   taskApprovalCardView,
   taskQueuedTailView,
@@ -63,7 +63,7 @@ export function TaskConversationColumn({
       ? null
       : taskApprovalCardView(
           approval,
-          refusalForRequest(approvalChrome, approval.requestId),
+          approvalEntryFor(approvalChrome, approval),
           approvalChrome.submitting,
         )
 

@@ -64,11 +64,23 @@ export type ApprovalRespondRefusal = {
   readonly interaction?: ApprovalRefusalInteraction
 }
 
-/** Outcome of a respond call. */
+/**
+ * Outcome of a respond call. `unknown` means the call threw or timed out
+ * after submission: the result is uncertain and must never be resubmitted.
+ */
 export type ApprovalRespondOutcome =
   | { readonly kind: 'accepted'; readonly request: TaskApprovalRequest }
   | { readonly kind: 'refused'; readonly refusal: ApprovalRespondRefusal }
-  | { readonly kind: 'unknown'; readonly message: string }
+  | { readonly kind: 'unknown' }
+
+/**
+ * Outcome of a read-only refresh: the re-read row, no such row, or a failed
+ * read (which learns nothing).
+ */
+export type ApprovalRefreshResult =
+  | { readonly kind: 'row'; readonly request: TaskApprovalRequest }
+  | { readonly kind: 'absent' }
+  | { readonly kind: 'failed' }
 
 /**
  * One ledger request row (ctl approval projection).
@@ -112,4 +124,20 @@ export type RespondTaskApprovalRequest = {
   readonly decision: ApprovalDecision
   readonly ownerRevision: number
   readonly actionDigest: string
+}
+
+/**
+ * True when the row still needs a human decision: disposition and delivery
+ * are both pending, no human decision exists, and it was not rejected by the
+ * system (`expiry_rejection` or `decided_by: harflow`). Mirrors the ctl
+ * `awaiting_decision_count` definition.
+ */
+export function isAwaitingDecision(request: TaskApprovalRequest): boolean {
+  return (
+    request.disposition === 'pending' &&
+    request.delivery === 'pending' &&
+    request.decision === null &&
+    !request.expiryRejection &&
+    request.decidedBy !== 'harflow'
+  )
 }

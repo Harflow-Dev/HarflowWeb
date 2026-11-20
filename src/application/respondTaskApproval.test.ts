@@ -89,7 +89,7 @@ describe('respondTaskApproval use case', () => {
       ownerRevision: 1,
       actionDigest: 'digest',
     })
-    expect(outcome.kind).toBe('unknown')
+    expect(outcome).toEqual({ kind: 'unknown' })
   })
 })
 
@@ -102,10 +102,19 @@ describe('refreshTaskApproval use case', () => {
       asTaskId('task-1'),
       'req-1',
     )
-    expect(row).toEqual(REQUEST)
+    expect(row).toEqual({ kind: 'row', request: REQUEST })
   })
 
-  it('returns null when the engine throws', async () => {
+  it('tags a missing row as absent', async () => {
+    const engine = port({ refreshTaskApproval: vi.fn(async () => null) })
+    const row = await createRefreshTaskApprovalUseCase(engine).execute(
+      asTaskId('task-1'),
+      'req-1',
+    )
+    expect(row).toEqual({ kind: 'absent' })
+  })
+
+  it('tags a thrown read as failed', async () => {
     const engine = port({
       refreshTaskApproval: vi.fn(async () => {
         throw new Error('boom')
@@ -115,6 +124,6 @@ describe('refreshTaskApproval use case', () => {
       asTaskId('task-1'),
       'req-1',
     )
-    expect(row).toBeNull()
+    expect(row).toEqual({ kind: 'failed' })
   })
 })

@@ -8,6 +8,10 @@ export type RespondTaskApprovalUseCase = {
   execute(request: RespondTaskApprovalRequest): Promise<ApprovalRespondOutcome>
 }
 
+/**
+ * A thrown or timed-out respond leaves the result uncertain: report
+ * `unknown` so callers never resubmit.
+ */
 export function createRespondTaskApprovalUseCase(
   engine: EnginePort,
 ): RespondTaskApprovalUseCase {
@@ -15,15 +19,8 @@ export function createRespondTaskApprovalUseCase(
     async execute(request) {
       try {
         return await engine.respondTaskApproval(request)
-      } catch (error) {
-        const detail =
-          error instanceof Error
-            ? error.message
-            : 'engine respondTaskApproval rejected'
-        return {
-          kind: 'unknown',
-          message: `fixture: owner did not report; ${detail}`,
-        }
+      } catch {
+        return { kind: 'unknown' }
       }
     },
   }

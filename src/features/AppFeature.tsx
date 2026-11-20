@@ -13,6 +13,7 @@ import {
   cancelAllDialogOpen,
   pendingLaunchesNavVisible,
   pendingStopDialogOpen,
+  sidebarWithApprovalGlyph,
   taskDialogView,
   type AppPresenter,
 } from '../presentation'
@@ -64,6 +65,9 @@ export function AppFeature({ presenter }: Props) {
       : newTask.appearance
 
   const ready = newTask.context.kind === 'ready' ? newTask.context : null
+  const sidebar = ready
+    ? sidebarWithApprovalGlyph(ready.sidebar, state.task)
+    : null
   const listingLoading =
     newTask.context.kind === 'loading' ||
     ready?.sidebarListingLoading === true
@@ -84,7 +88,7 @@ export function AppFeature({ presenter }: Props) {
           activeRoute={state.route}
           activeTaskId={state.task.selectedTaskId}
           activeParallelGroupId={state.parallelGroup.groupId}
-          sidebar={ready?.sidebar ?? null}
+          sidebar={sidebar}
           listingLoading={listingLoading}
           needsYou={needsYouBadge(state.needsYou.load)}
           needsYouLoading={state.needsYou.load.kind === 'loading'}

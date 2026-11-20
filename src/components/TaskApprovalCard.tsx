@@ -23,10 +23,18 @@ export function TaskApprovalCard({
   onRespond,
   onRefresh,
 }: Props) {
+  const rootRef = useRef<HTMLDivElement | null>(null)
   const resultRef = useRef<HTMLDivElement | null>(null)
+  // After a respond or a Refresh the card keeps focus: the result block, else
+  // the first decision button, else the card itself.
   useEffect(() => {
     if (focusResultSeq <= 0) return
-    resultRef.current?.focus()
+    const root = rootRef.current
+    const target =
+      resultRef.current ??
+      root?.querySelector<HTMLElement>('.hd-approval__actions button:not(:disabled)') ??
+      root
+    target?.focus()
   }, [focusResultSeq])
 
   const className = view.settled
@@ -34,11 +42,17 @@ export function TaskApprovalCard({
     : 'hd-approval'
 
   return (
-    <div className={className} role="group" aria-label={APPROVAL_COPY.ariaLabel}>
+    <div
+      className={className}
+      role="group"
+      aria-label={APPROVAL_COPY.ariaLabel}
+      tabIndex={-1}
+      ref={rootRef}
+    >
       <div className="hd-approval__head">
         <Icon name={view.headIcon} size="sm" />
         <span>{view.actionLabel}</span>
-        {view.headIcon === 'hand' ? (
+        {view.showSource ? (
           <span className="hd-approval__src">{view.source}</span>
         ) : null}
       </div>
@@ -75,6 +89,7 @@ export function TaskApprovalCard({
           title={view.mode.title}
           lines={view.mode.lines}
           refresh={view.mode.refresh}
+          refreshDisabled={view.mode.refreshDisabled}
           resultRef={resultRef}
           onRefresh={onRefresh}
         />
@@ -87,12 +102,14 @@ function ResultBlock({
   title,
   lines,
   refresh,
+  refreshDisabled,
   resultRef,
   onRefresh,
 }: {
   readonly title: string | null
   readonly lines: readonly string[]
   readonly refresh: boolean
+  readonly refreshDisabled: boolean
   readonly resultRef: RefObject<HTMLDivElement | null>
   readonly onRefresh: () => void
 }) {
@@ -109,8 +126,10 @@ function ResultBlock({
           {title ? (
             <p className="hd-approval__result-title">{title}</p>
           ) : null}
-          {lines.map((line) => (
-            <p key={line}>{line}</p>
+          {lines.map((line, index) => (
+            // Lines are positional facts and may repeat; the index is stable.
+            // oxlint-disable-next-line react/no-array-index-key
+            <p key={`${index}:${line}`}>{line}</p>
           ))}
         </div>
       ) : null}
@@ -119,6 +138,7 @@ function ResultBlock({
           <button
             type="button"
             className="hd-btn hd-btn--secondary"
+            disabled={refreshDisabled}
             onClick={onRefresh}
           >
             {APPROVAL_COPY.refresh}

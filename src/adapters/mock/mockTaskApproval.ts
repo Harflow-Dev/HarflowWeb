@@ -1,16 +1,21 @@
 /**
  * Mock respond / refresh for task approval ledgers.
  */
-import type {
-  ApprovalDecision,
-  ApprovalRespondOutcome,
-  RespondTaskApprovalRequest,
-  TaskApprovalRequest,
-  TaskId,
-  TaskLoad,
-  TaskObservation,
+import {
+  isAwaitingDecision,
+  type ApprovalRespondOutcome,
+  type ApprovalRespondRefusal,
+  type RespondTaskApprovalRequest,
+  type TaskApprovalRequest,
+  type TaskId,
+  type TaskLoad,
+  type TaskObservation,
 } from '../../model'
-import { approvedSentRequest } from './taskApprovalFixtures'
+import {
+  acceptedMonitorRequest,
+  awaitingCountFor,
+  TASK_APPROVAL_ENGINE_CURRENT,
+} from './taskApprovalFixtures'
 import { taskLoadFor } from './taskFixtures'
 import type { MockListenerSets } from './mockEngineCore'
 import type { ScenarioDefinition } from './scenarios'
@@ -37,16 +42,10 @@ function applyOverride(
   }
   const override = store.overrides.get(load.observation.taskId)
   if (override === undefined) return load
-  const awaiting =
-    override.disposition === 'pending' &&
-    override.delivery === 'pending' &&
-    override.decision === null
-      ? 1
-      : 0
   const observation: TaskObservation = {
     ...load.observation,
     approval: override,
-    approvalSummary: { awaitingDecisionCount: awaiting },
+    approvalSummary: { awaitingDecisionCount: awaitingCountFor(override) },
   }
   return { kind: 'ready', observation }
 }
@@ -75,23 +74,60 @@ function publishTask(
   }
 }
 
-function rejectedRequest(
-  base: TaskApprovalRequest,
-  decision: ApprovalDecision,
-): TaskApprovalRequest {
-  if (decision === 'approve') return approvedSentRequest(base)
-  return {
-    ...base,
-    disposition: 'decided',
-    delivery: 'sent',
-    decision: 'reject',
-    decidedBy: 'caller',
-    responder: 'caller',
-    decidedAt: 1792000011,
-    effectiveDecision: 'reject',
-    deliveredDecision: 'reject',
-    ownerRevision: base.ownerRevision + 1,
+/** The row the engine holds now, which may be ahead of what the feed showed. */
+function engineRow(
+  load: TaskLoad,
+  taskId: TaskId,
+  store: ApprovalMutationStore,
+): TaskApprovalRequest | null {
+  if (load.kind !== 'ready' || load.observation.approval === undefined) {
+    return null
   }
+  return (
+    store.overrides.get(taskId) ??
+    TASK_APPROVAL_ENGINE_CURRENT.get(taskId) ??
+    load.observation.approval
+  )
+}
+
+/**
+ * Typed refusal for a respond, or null when it applies. Contract order:
+ * identity / revision (not_current) before row state (expired, settled,
+ * already_answered).
+ */
+function respondRefusal(
+  current: TaskApprovalRequest,
+  request: RespondTaskApprovalRequest,
+): ApprovalRespondRefusal | null {
+  if (
+    current.requestId !== request.requestId ||
+    current.ownerRevision !== request.ownerRevision ||
+    current.actionDigest !== request.actionDigest
+  ) {
+    return { reason: 'not_current' }
+  }
+  if (isAwaitingDecision(current)) return null
+  if (current.disposition === 'expired') return { reason: 'expired' }
+  const humanAnswered =
+    current.disposition === 'pending' &&
+    current.decision !== null &&
+    !current.expiryRejection &&
+    current.decidedBy !== 'harflow'
+  if (humanAnswered && current.decision !== null) {
+    return {
+      reason: 'already_answered',
+      ...(current.decidedAt !== undefined
+        ? {
+            interaction: {
+              answeredBy: current.responder ?? 'caller',
+              answer: current.decision,
+              answeredAt: current.decidedAt,
+            },
+          }
+        : {}),
+    }
+  }
+  return { reason: 'settled' }
 }
 
 export async function mockRespondTaskApproval(
@@ -102,30 +138,19 @@ export async function mockRespondTaskApproval(
 ): Promise<ApprovalRespondOutcome> {
   const taskId = request.taskId as TaskId
   const load = resolveTaskLoadWithApprovals(getScenario(), taskId, store)
-  if (load.kind !== 'ready' || load.observation.approval === undefined) {
-    return {
-      kind: 'refused',
-      refusal: { reason: 'not_current' },
-    }
-  }
-  const current = load.observation.approval
-  if (current.requestId !== request.requestId) {
+  const current = engineRow(load, taskId, store)
+  if (current === null) {
     return { kind: 'refused', refusal: { reason: 'not_current' } }
   }
-  if (
-    current.disposition !== 'pending' ||
-    current.delivery !== 'pending' ||
-    current.decision !== null
-  ) {
-    return { kind: 'refused', refusal: { reason: 'settled' } }
-  }
-  if (current.ownerRevision !== request.ownerRevision) {
-    return { kind: 'refused', refusal: { reason: 'not_current' } }
-  }
-  const next = rejectedRequest(current, request.decision)
+  const refusal = respondRefusal(current, request)
+  if (refusal !== null) return { kind: 'refused', refusal }
+  const next = acceptedMonitorRequest(current, request.decision)
   store.overrides.set(taskId, next)
-  const nextLoad = resolveTaskLoadWithApprovals(getScenario(), taskId, store)
-  publishTask(listeners, taskId, nextLoad)
+  publishTask(
+    listeners,
+    taskId,
+    resolveTaskLoadWithApprovals(getScenario(), taskId, store),
+  )
   return { kind: 'accepted', request: next }
 }
 
@@ -137,10 +162,14 @@ export async function mockRefreshTaskApproval(
   store: ApprovalMutationStore,
 ): Promise<TaskApprovalRequest | null> {
   const load = resolveTaskLoadWithApprovals(getScenario(), taskId, store)
-  publishTask(listeners, taskId, load)
-  if (load.kind !== 'ready' || load.observation.approval === undefined) {
-    return null
-  }
-  if (load.observation.approval.requestId !== requestId) return null
-  return load.observation.approval
+  const current = engineRow(load, taskId, store)
+  if (current === null || current.requestId !== requestId) return null
+  // The feed catches up to the engine's row once it is re-read.
+  store.overrides.set(taskId, current)
+  publishTask(
+    listeners,
+    taskId,
+    resolveTaskLoadWithApprovals(getScenario(), taskId, store),
+  )
+  return current
 }

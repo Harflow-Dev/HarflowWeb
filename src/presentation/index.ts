@@ -112,17 +112,19 @@ export {
   type TaskSendNowRefusal,
 } from './taskQueuedMessages'
 export { type TaskMessagingSeed } from './taskSessionMessaging'
-export { APPROVAL_COPY } from './taskApprovalCopy'
+export { sidebarWithApprovalGlyph } from './sidebarApprovalGlyph'
+export { APPROVAL_COPY, APPROVAL_MAC_COPY } from './taskApprovalCopy'
 export {
   taskApprovalCardView,
   type TaskApprovalCardMode,
   type TaskApprovalCardView,
 } from './taskApprovalCardView'
 export {
+  approvalEntryFor,
   EMPTY_TASK_APPROVAL,
-  refusalForRequest,
   type TaskApprovalChrome,
-  type TaskApprovalRefusalEntry,
+  type TaskApprovalEntry,
+  type TaskApprovalSeedRefusal,
 } from './taskApprovalChrome'
 export { type TaskApprovalSeed } from './taskSessionApproval'
 export {

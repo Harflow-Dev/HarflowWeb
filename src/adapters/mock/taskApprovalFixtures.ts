@@ -5,6 +5,8 @@
  */
 import {
   asTaskId,
+  isAwaitingDecision,
+  type ApprovalDecision,
   type SidebarData,
   type TaskApprovalRequest,
   type TaskId,
@@ -97,28 +99,67 @@ export function deliveryUnknownRequest(): TaskApprovalRequest {
   })
 }
 
-/** Post-approve decided/sent row after a successful Approve once. */
-export function approvedSentRequest(
+/**
+ * Row the engine returns after an accepted Monitor answer: the human decision
+ * is recorded, delivery is reserved (ctl-approval-respond-monitor fixture).
+ * The Web answers through the Monitor channel, like the Mac app.
+ */
+export function acceptedMonitorRequest(
   base: TaskApprovalRequest,
+  decision: ApprovalDecision,
 ): TaskApprovalRequest {
   return {
     ...base,
+    disposition: 'pending',
+    delivery: 'reserved',
+    decision,
+    decidedBy: 'caller',
+    responder: 'monitor',
+    decidedAt: 1792000011,
+    effectiveDecision: null,
+    deliveredDecision: null,
+    ownerRevision: base.ownerRevision + 1,
+  }
+}
+
+/** Another channel already answered: decided, delivery reserved. */
+function answeredElsewhereRequest(): TaskApprovalRequest {
+  return pendingExactRequest({
+    ownerRevision: 2,
+    decision: 'approve',
+    decidedBy: 'caller',
+    responder: 'monitor',
+    decidedAt: 1792000005,
+    delivery: 'reserved',
+  })
+}
+
+/** Settled row: a decision was delivered (ctl-approval-state-sent-approved). */
+function settledSentRequest(): TaskApprovalRequest {
+  return pendingExactRequest({
+    ownerRevision: 3,
     disposition: 'decided',
     delivery: 'sent',
     decision: 'approve',
     decidedBy: 'caller',
-    responder: 'caller',
-    decidedAt: 1792000011,
+    responder: 'monitor',
+    decidedAt: 1792000005,
     effectiveDecision: 'approve',
     deliveredDecision: 'approve',
-    ownerRevision: base.ownerRevision + 1,
-  }
+  })
+}
+
+/** The row the engine holds for the stale scenario: the next revision. */
+export const APPROVAL_STALE_CURRENT = pendingExactRequest({ ownerRevision: 2 })
+
+/** The mock is the feed: its per-task count is derived from the ledger row. */
+export function awaitingCountFor(approval: TaskApprovalRequest): number {
+  return isAwaitingDecision(approval) ? 1 : 0
 }
 
 function approvalObservation(
   taskId: TaskId,
   approval: TaskApprovalRequest,
-  awaitingDecisionCount: number,
 ): TaskObservation {
   return {
     taskId,
@@ -133,18 +174,22 @@ function approvalObservation(
     accessLevel: ACCESS_EDIT,
     enforcement: EDIT_REPO_ENFORCEMENT,
     approval,
-    approvalSummary: { awaitingDecisionCount },
+    approvalSummary: { awaitingDecisionCount: awaitingCountFor(approval) },
   }
 }
 
-export function approvalSidebar(taskId: TaskId, attention: boolean): SidebarData {
+/**
+ * The running row maps to the open task. Its attention glyph is derived from
+ * the observed awaiting count by the screen, not stored here.
+ */
+export function approvalSidebar(taskId: TaskId): SidebarData {
   const base = populatedSidebar()
   const running = base.running.map((entry) => {
     if (entry.title !== 'Fix flaky slot release test') return entry
     return {
       ...entry,
       mappedTaskId: taskId,
-      glyph: attention ? ('attention' as const) : ('running' as const),
+      glyph: 'running' as const,
     }
   })
   return { ...base, running }
@@ -153,32 +198,26 @@ export function approvalSidebar(taskId: TaskId, attention: boolean): SidebarData
 export const APPROVAL_EXACT_OBS = approvalObservation(
   APPROVAL_EXACT_TASK_ID,
   pendingExactRequest(),
-  1,
 )
 export const APPROVAL_STALE_OBS = approvalObservation(
   APPROVAL_STALE_TASK_ID,
   pendingExactRequest(),
-  1,
 )
 export const APPROVAL_EXPIRED_OBS = approvalObservation(
   APPROVAL_EXPIRED_TASK_ID,
   expiredOverrideRequest(),
-  0,
 )
 export const APPROVAL_ANSWERED_OBS = approvalObservation(
   APPROVAL_ANSWERED_TASK_ID,
-  pendingExactRequest(),
-  0,
+  answeredElsewhereRequest(),
 )
 export const APPROVAL_REFUSED_OBS = approvalObservation(
   APPROVAL_REFUSED_TASK_ID,
-  pendingExactRequest(),
-  0,
+  settledSentRequest(),
 )
 export const APPROVAL_UNCERTAIN_OBS = approvalObservation(
   APPROVAL_UNCERTAIN_TASK_ID,
   deliveryUnknownRequest(),
-  0,
 )
 
 export const TASK_APPROVAL_BY_ID: ReadonlyMap<string, TaskObservation> =
@@ -190,6 +229,12 @@ export const TASK_APPROVAL_BY_ID: ReadonlyMap<string, TaskObservation> =
     [APPROVAL_REFUSED_TASK_ID, APPROVAL_REFUSED_OBS],
     [APPROVAL_UNCERTAIN_TASK_ID, APPROVAL_UNCERTAIN_OBS],
   ])
+
+/** Rows the engine holds that differ from what the task feed first shows. */
+export const TASK_APPROVAL_ENGINE_CURRENT: ReadonlyMap<
+  string,
+  TaskApprovalRequest
+> = new Map([[APPROVAL_STALE_TASK_ID, APPROVAL_STALE_CURRENT]])
 
 /** Scripted respond refusal for scenarios that open on a refusal card. */
 export const STALE_REFUSAL = { reason: 'not_current' as const }

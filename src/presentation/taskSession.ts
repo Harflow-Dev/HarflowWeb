@@ -55,6 +55,7 @@ import {
   seededApprovalChromeState,
   type TaskApprovalSeed,
 } from './taskSessionApproval'
+import { retainedApprovalChrome } from './taskApprovalChrome'
 import { TaskApprovalCommands } from './taskApprovalCommands'
 import { MessagingCapabilityWatch } from './taskMessagingCapabilityWatch'
 import { TaskPaneObservers } from './taskSessionObservers'
@@ -283,13 +284,14 @@ export class TaskSession {
     this.panes.stopEvents()
     const remembered = this.paneMemory.get(taskId)
     this.paneRestored = remembered !== null
-    this.publish(
-      loadingTaskScreenState(
+    this.publish({
+      ...loadingTaskScreenState(
         taskId,
         remembered,
         this.state.messagingCapability,
       ),
-    )
+      approvalChrome: retainedApprovalChrome(this.state.approvalChrome),
+    })
     this.observation = this.loadTask.observe(taskId, (load) =>
       this.applyLoad(load, gen, taskId),
     )
@@ -301,7 +303,7 @@ export class TaskSession {
     if (expected !== this.state.selectedTaskId) return
     if (load.kind === 'ready' && load.observation.taskId !== expected) return
     const { next, openPane } = afterTaskLoad(this.state, load)
-    this.publish(next)
+    this.publish(this.approvals.withSubmitting(next))
     if (openPane && !this.paneRestored) this.setChangesPaneOpen(true)
     const want = eventsObservationDesired(this.state)
     const has = this.panes.hasEventsObservation()

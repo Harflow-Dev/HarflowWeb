@@ -32,12 +32,12 @@ async function openSession(
     createLoadMessagingCapabilityUseCase(mock.engine),
     {
       async execute() {
-        return { kind: 'unknown' as const, message: 'stub' }
+        return { kind: 'unknown' as const }
       },
     },
     {
       async execute() {
-        return null
+        return { kind: 'absent' as const }
       },
     },
   )
@@ -103,12 +103,12 @@ describe('TaskSession queued message commands', () => {
       createLoadMessagingCapabilityUseCase(mock.engine),
     {
       async execute() {
-        return { kind: 'unknown' as const, message: 'stub' }
+        return { kind: 'unknown' as const }
       },
     },
     {
       async execute() {
-        return null
+        return { kind: 'absent' as const }
       },
     },
   )

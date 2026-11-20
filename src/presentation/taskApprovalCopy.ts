@@ -20,9 +20,33 @@ export const APPROVAL_COPY = {
   approveOnce: 'Approve once',
   reject: 'Reject',
   refresh: 'Refresh',
-  /** Post-approve settled head (components/approval-card). Undrawn as a route. */
+  /**
+   * Settled heads for this session's own accepted answer. Approved by you is
+   * the components/approval-card head; Rejected by you is undrawn.
+   */
   approvedByYou: 'Approved by you',
+  rejectedByYou: 'Rejected by you',
   runCommand: 'Run command',
   sourceBash: 'Claude · Bash',
   ariaLabel: 'Approval needed',
+} as const
+
+/**
+ * Refusal lines the design does not draw. Verbatim from HarflowMac
+ * CallerApprovalPresentation.swift `refusalMessage` (undrawn in Design).
+ */
+export const APPROVAL_MAC_COPY = {
+  expired: "The request's deadline has passed. This response did not change it.",
+  ownershipLost:
+    'No new decision was applied. The request owner is gone; Harflow may have invalidated the request.',
+  unauthorized:
+    'The engine refused this response from the current caller context. This response did not change the request.',
+  unsupported:
+    "This engine does not support this response. The request was not changed. Respond through the owning caller's MCP or CLI.",
+  callerUndecidable:
+    "The engine could not determine the caller context. The request was not changed and is read-only here. Respond through the owning caller's MCP or CLI.",
+  incomplete:
+    'The complete action is unavailable. The request was not changed. Refresh to read the full action before responding.',
+  unconfirmed:
+    'The result could not be confirmed. This request is read-only here and your answer will not be retried.',
 } as const

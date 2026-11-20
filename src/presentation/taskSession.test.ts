@@ -312,12 +312,12 @@ function sessionFor(port: EnginePort): TaskSession {
     createLoadMessagingCapabilityUseCase(port),
     {
       async execute() {
-        return { kind: 'unknown' as const, message: 'stub' }
+        return { kind: 'unknown' as const }
       },
     },
     {
       async execute() {
-        return null
+        return { kind: 'absent' as const }
       },
     },
   )

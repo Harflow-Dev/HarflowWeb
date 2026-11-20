@@ -1,16 +1,17 @@
 /**
- * Pure mapping: ledger row + optional respond refusal → approval card view.
+ * Pure mapping: ledger row + session entry → approval card view.
  * Result lines come from contract facts and Design COPY/DECIDED (56b49cb).
  */
-import type {
-  ApprovalRespondRefusal,
-  TaskApprovalRequest,
-} from '../model'
+import { isAwaitingDecision, type TaskApprovalRequest } from '../model'
+import type { TaskApprovalEntry } from './taskApprovalChrome'
 import { APPROVAL_COPY } from './taskApprovalCopy'
 import {
-  isPostApprove,
+  answeredResult,
+  factsResult,
   ledgerResult,
+  nonActionableResult,
   refusalResult,
+  type ApprovalResultMode,
 } from './taskApprovalResult'
 
 export type TaskApprovalCardMode =
@@ -18,31 +19,19 @@ export type TaskApprovalCardMode =
       readonly kind: 'decide'
       readonly disabled: boolean
     }
-  | {
-      readonly kind: 'result'
-      readonly title: string | null
-      readonly lines: readonly string[]
-      readonly refresh: boolean
-    }
+  | ApprovalResultMode
 
 export type TaskApprovalCardView = {
   readonly settled: boolean
   readonly actionLabel: string
   readonly source: string
+  /** The source label is drawn only on the hand head. */
+  readonly showSource: boolean
   readonly command: string
   readonly cwdMeta: string
   readonly reasonLine: string | null
-  readonly headIcon: 'hand' | 'check'
+  readonly headIcon: 'hand' | 'check' | 'x'
   readonly mode: TaskApprovalCardMode
-}
-
-function awaitingDecision(request: TaskApprovalRequest): boolean {
-  return (
-    request.disposition === 'pending' &&
-    request.delivery === 'pending' &&
-    request.decision === null &&
-    !request.expiryRejection
-  )
 }
 
 function cwdMeta(cwd: string): string {
@@ -61,58 +50,64 @@ function cardBase(request: TaskApprovalRequest) {
       request.toolName === 'Bash'
         ? APPROVAL_COPY.sourceBash
         : request.toolName,
+    showSource: true,
     command: request.action,
     cwdMeta: cwdMeta(request.cwd),
     reasonLine: reasonLine(request.decisionReason),
   }
 }
 
+function settledHand(
+  request: TaskApprovalRequest,
+  mode: ApprovalResultMode,
+): TaskApprovalCardView {
+  return { ...cardBase(request), settled: true, headIcon: 'hand', mode }
+}
+
+function answeredByYou(
+  request: TaskApprovalRequest,
+  entry: Extract<TaskApprovalEntry, { kind: 'answered' }>,
+): TaskApprovalCardView {
+  const approved = entry.decision === 'approve'
+  return {
+    ...cardBase(request),
+    settled: true,
+    showSource: false,
+    actionLabel: approved
+      ? APPROVAL_COPY.approvedByYou
+      : APPROVAL_COPY.rejectedByYou,
+    headIcon: approved ? 'check' : 'x',
+    mode: answeredResult(),
+  }
+}
+
 /**
- * Map one ledger row and an optional respond refusal to the card view.
- * `submitting` disables decision buttons while the respond call is in flight.
+ * Map one ledger row and its session entry to the card view. Refusal copy is
+ * drawn only for an entry; any other non-awaiting row draws ledger facts.
+ * `submitting` disables decision buttons (and Refresh) while a respond is in
+ * flight.
  */
 export function taskApprovalCardView(
   request: TaskApprovalRequest,
-  refusal: ApprovalRespondRefusal | null,
+  entry: TaskApprovalEntry | null,
   submitting = false,
 ): TaskApprovalCardView {
-  const base = cardBase(request)
-  if (refusal !== null) {
-    return {
-      ...base,
-      settled: true,
-      headIcon: 'hand',
-      mode: refusalResult(refusal),
-    }
+  if (entry?.kind === 'non_actionable') {
+    return settledHand(request, nonActionableResult(submitting))
   }
-  if (awaitingDecision(request)) {
+  if (entry?.kind === 'refusal') {
+    return settledHand(request, refusalResult(entry.refusal, submitting))
+  }
+  const ledger = ledgerResult(request)
+  if (ledger !== null) return settledHand(request, ledger)
+  if (entry?.kind === 'answered') return answeredByYou(request, entry)
+  if (isAwaitingDecision(request)) {
     return {
-      ...base,
+      ...cardBase(request),
       settled: false,
       headIcon: 'hand',
       mode: { kind: 'decide', disabled: submitting },
     }
   }
-  const settled = ledgerResult(request)
-  if (settled !== null) {
-    const postApprove = isPostApprove(request)
-    return {
-      ...base,
-      settled: true,
-      actionLabel: postApprove ? APPROVAL_COPY.approvedByYou : base.actionLabel,
-      headIcon: postApprove ? 'check' : 'hand',
-      mode: settled,
-    }
-  }
-  return {
-    ...base,
-    settled: true,
-    headIcon: 'hand',
-    mode: {
-      kind: 'result',
-      title: null,
-      lines: [APPROVAL_COPY.notCurrent],
-      refresh: true,
-    },
-  }
+  return settledHand(request, factsResult(request))
 }

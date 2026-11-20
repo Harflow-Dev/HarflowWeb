@@ -30,14 +30,13 @@ function approvalScenario(
   label: string,
   description: string,
   openTaskId: TaskId,
-  attention: boolean,
   seed?: ApprovalSeed,
 ): ScenarioDefinition {
   return base({
     id,
     label,
     description,
-    context: readyContext(approvalSidebar(openTaskId, attention)),
+    context: readyContext(approvalSidebar(openTaskId)),
     tasks,
     startOutcome: accepted,
     holdStart: false,
@@ -53,14 +52,12 @@ export const TASK_APPROVAL_SCENARIOS: readonly ScenarioDefinition[] = [
     'Task · Approval exact action',
     'Approved task/approval-exact (Design 56b49cb). Approve once and Reject.',
     APPROVAL_EXACT_TASK_ID,
-    true,
   ),
   approvalScenario(
     'approval-stale',
     'Task · Approval no longer current',
     'Approved task/approval-stale (Design 56b49cb). not_current + Refresh.',
     APPROVAL_STALE_TASK_ID,
-    true,
     {
       taskApprovalRefusals: [
         { requestId: '00000000000000000000000000000001', ...STALE_REFUSAL },
@@ -72,14 +69,12 @@ export const TASK_APPROVAL_SCENARIOS: readonly ScenarioDefinition[] = [
     'Task · Approval expired',
     'Approved task/approval-expired (Design 56b49cb). Expired override facts.',
     APPROVAL_EXPIRED_TASK_ID,
-    false,
   ),
   approvalScenario(
     'approval-answered-elsewhere',
     'Task · Approval answered elsewhere',
     'Approved task/approval-answered-elsewhere (Design 56b49cb). already_answered.',
     APPROVAL_ANSWERED_TASK_ID,
-    false,
     {
       taskApprovalRefusals: [
         {
@@ -94,7 +89,6 @@ export const TASK_APPROVAL_SCENARIOS: readonly ScenarioDefinition[] = [
     'Task · Approval response refused',
     'Approved task/approval-refused (Design 56b49cb). settled refusal.',
     APPROVAL_REFUSED_TASK_ID,
-    false,
     {
       taskApprovalRefusals: [
         { requestId: '00000000000000000000000000000001', ...SETTLED_REFUSAL },
@@ -106,6 +100,5 @@ export const TASK_APPROVAL_SCENARIOS: readonly ScenarioDefinition[] = [
     'Task · Approval delivery uncertain',
     'Approved task/approval-uncertain (Design 56b49cb). delivery_unknown.',
     APPROVAL_UNCERTAIN_TASK_ID,
-    false,
   ),
 ]

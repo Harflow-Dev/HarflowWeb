@@ -77,7 +77,7 @@ function answeredByYou(
       ? APPROVAL_COPY.approvedByYou
       : APPROVAL_COPY.rejectedByYou,
     headIcon: approved ? 'check' : 'x',
-    mode: answeredResult(),
+    mode: answeredResult(request),
   }
 }
 
@@ -92,14 +92,16 @@ export function taskApprovalCardView(
   entry: TaskApprovalEntry | null,
   submitting = false,
 ): TaskApprovalCardView {
+  // Engine facts that settle the row outrank any session entry, so later
+  // facts at the same revision still show. Buttons stay hidden either way.
+  const ledger = ledgerResult(request)
+  if (ledger !== null) return settledHand(request, ledger)
   if (entry?.kind === 'non_actionable') {
     return settledHand(request, nonActionableResult(submitting))
   }
   if (entry?.kind === 'refusal') {
     return settledHand(request, refusalResult(entry.refusal, submitting))
   }
-  const ledger = ledgerResult(request)
-  if (ledger !== null) return settledHand(request, ledger)
   if (entry?.kind === 'answered') return answeredByYou(request, entry)
   if (isAwaitingDecision(request)) {
     return {

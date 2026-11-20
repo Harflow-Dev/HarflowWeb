@@ -116,10 +116,10 @@ function respondRefusal(
   if (humanAnswered && current.decision !== null) {
     return {
       reason: 'already_answered',
-      ...(current.decidedAt !== undefined
+      ...(current.decidedAt !== undefined && current.responder !== undefined
         ? {
             interaction: {
-              answeredBy: current.responder ?? 'caller',
+              answeredBy: current.responder,
               answer: current.decision,
               answeredAt: current.decidedAt,
             },

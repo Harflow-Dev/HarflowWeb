@@ -26,15 +26,11 @@ export function TaskApprovalCard({
   const rootRef = useRef<HTMLDivElement | null>(null)
   const resultRef = useRef<HTMLDivElement | null>(null)
   // After a respond or a Refresh the card keeps focus: the result block, else
-  // the first decision button, else the card itself.
+  // the card itself. Never a decision button, so a second Enter cannot
+  // approve an action the person has not reviewed.
   useEffect(() => {
     if (focusResultSeq <= 0) return
-    const root = rootRef.current
-    const target =
-      resultRef.current ??
-      root?.querySelector<HTMLElement>('.hd-approval__actions button:not(:disabled)') ??
-      root
-    target?.focus()
+    ;(resultRef.current ?? rootRef.current)?.focus()
   }, [focusResultSeq])
 
   const className = view.settled

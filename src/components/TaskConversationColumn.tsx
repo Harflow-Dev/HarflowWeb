@@ -63,7 +63,7 @@ export function TaskConversationColumn({
       ? null
       : taskApprovalCardView(
           approval,
-          approvalEntryFor(approvalChrome, approval),
+          approvalEntryFor(approvalChrome, observation.taskId, approval),
           approvalChrome.submitting,
         )
 

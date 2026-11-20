@@ -147,9 +147,28 @@ export function factsResult(request: TaskApprovalRequest): ApprovalResultMode {
   return result(null, factLines(request), false, false)
 }
 
-/** Settled by this session's own accepted answer: head only, no lines. */
-export function answeredResult(): ApprovalResultMode {
-  return result(null, [], false, false)
+/**
+ * Settled by this session's own accepted answer: head only, unless the
+ * engine's effective decision differs from the recorded one (for example a
+ * delivery-time conversion), in which case the facts are drawn too.
+ */
+export function answeredResult(
+  request: TaskApprovalRequest,
+): ApprovalResultMode {
+  const converted =
+    request.effectiveDecision !== null &&
+    request.effectiveDecision !== request.decision
+  if (!converted) return result(null, [], false, false)
+  const lines = present([
+    request.decision === null ? null : recordedLine(request.decision),
+    `Effective decision: ${request.effectiveDecision}`,
+    request.deliveredDecision === null
+      ? null
+      : `Delivered decision: ${request.deliveredDecision}`,
+    `Delivery: ${request.delivery}`,
+    `Observed execution: ${request.executionOutcome}`,
+  ])
+  return result(null, lines, false, false)
 }
 
 function expiredOverrideResult(

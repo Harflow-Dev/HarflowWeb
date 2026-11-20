@@ -148,6 +148,12 @@ grant approvals, answer questions, or touch the task store.
     an accepted answer, **reserved** (the mock's accepted state) and
     **sending**, have no approved route. Reserved and sending rows seen without
     a session answer draw the fact lines only (see below).
+  - **Own-answer heads hide the source label.** “Approved by you” and
+    “Rejected by you” omit the “Claude · Bash” source shown on the hand head;
+    this is an undrawn choice. When the engine's effective decision differs
+    from the recorded one, the head is followed by the fact lines.
+  - **Refresh gives no feedback when it finds nothing or fails.** The card
+    stays as it was; there is no design copy for that outcome.
   - **Fact-only rows.** Any non-awaiting row without a refusal or session
     answer (reserved, sending, sent-rejected, cancelled, invalidated,
     system-rejected) draws a result block of facts only (who/when when

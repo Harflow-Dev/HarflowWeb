@@ -25,6 +25,7 @@ export type TaskApprovalEntry =
   /** A typed refusal; a successful refresh clears it. */
   | {
       readonly kind: 'refusal'
+      readonly taskId: string
       readonly requestId: string
       readonly refusal: ApprovalRespondRefusal
     }
@@ -34,12 +35,14 @@ export type TaskApprovalEntry =
    */
   | {
       readonly kind: 'non_actionable'
+      readonly taskId: string
       readonly requestId: string
       readonly ownerRevision: number
     }
   /** This session's own accepted acknowledgement (never inferred). */
   | {
       readonly kind: 'answered'
+      readonly taskId: string
       readonly requestId: string
       readonly decision: ApprovalDecision
     }
@@ -73,9 +76,12 @@ export const EMPTY_TASK_APPROVAL: TaskApprovalChrome = {
  */
 export function approvalEntryFor(
   chrome: TaskApprovalChrome,
+  taskId: string,
   request: TaskApprovalRequest,
 ): TaskApprovalEntry | null {
-  const entry = chrome.entries.find((e) => e.requestId === request.requestId)
+  const entry = chrome.entries.find(
+    (e) => e.taskId === taskId && e.requestId === request.requestId,
+  )
   if (entry === undefined) return null
   if (
     entry.kind === 'non_actionable' &&
@@ -88,39 +94,55 @@ export function approvalEntryFor(
 
 /** Typed known reason → refusal entry; missing or unknown → non-actionable. */
 export function refusalEntry(
+  taskId: string,
   requestId: string,
   ownerRevision: number,
   refusal: ApprovalRespondRefusal,
 ): TaskApprovalEntry {
   const reason = refusal.reason
   if (reason === undefined || !KNOWN_REFUSAL_REASONS.has(reason)) {
-    return { kind: 'non_actionable', requestId, ownerRevision }
+    return { kind: 'non_actionable', taskId, requestId, ownerRevision }
   }
-  return { kind: 'refusal', requestId, refusal }
+  return { kind: 'refusal', taskId, requestId, refusal }
 }
 
-/** Replace everything held for this request id with one entry. */
+/**
+ * Replace everything held for this task + request id with one entry. Focus
+ * is requested only when that task's card is the one on screen.
+ */
 export function withApprovalEntry(
   chrome: TaskApprovalChrome,
   entry: TaskApprovalEntry,
+  selectedTaskId: string | null,
 ): TaskApprovalChrome {
-  const rest = chrome.entries.filter((e) => e.requestId !== entry.requestId)
+  const rest = chrome.entries.filter(
+    (e) => !(e.taskId === entry.taskId && e.requestId === entry.requestId),
+  )
   return {
     ...chrome,
     entries: [...rest, entry],
-    focusResultSeq: chrome.focusResultSeq + 1,
+    focusResultSeq:
+      selectedTaskId === entry.taskId
+        ? chrome.focusResultSeq + 1
+        : chrome.focusResultSeq,
   }
 }
 
 /** Drop a typed refusal after a successful re-read; other entries stay. */
 export function withoutApprovalRefusal(
   chrome: TaskApprovalChrome,
+  taskId: string,
   requestId: string,
 ): TaskApprovalChrome {
   return {
     ...chrome,
     entries: chrome.entries.filter(
-      (e) => !(e.kind === 'refusal' && e.requestId === requestId),
+      (e) =>
+        !(
+          e.kind === 'refusal' &&
+          e.taskId === taskId &&
+          e.requestId === requestId
+        ),
     ),
   }
 }

@@ -11,7 +11,7 @@ import { taskApprovalCardView } from './taskApprovalCardView'
 const ID = '00000000000000000000000000000001'
 
 function refusal(reason?: string, rest = {}): TaskApprovalEntry {
-  return refusalEntry(ID, 1, {
+  return refusalEntry('t1', ID, 1, {
     ...(reason === undefined ? {} : { reason }),
     ...rest,
   })
@@ -171,13 +171,14 @@ describe('taskApprovalCardView', () => {
   })
 
   it('non-actionable entry applies only at its owner revision', () => {
-    const entry = refusalEntry(ID, 1, {})
+    const entry = refusalEntry('t1', ID, 1, {})
     const chrome = { entries: [entry], submitting: false, focusResultSeq: 0 }
-    expect(approvalEntryFor(chrome, PENDING)).toEqual(entry)
-    expect(approvalEntryFor(chrome, { ...PENDING, ownerRevision: 2 })).toBeNull()
+    expect(approvalEntryFor(chrome, 't1', PENDING)).toEqual(entry)
+    expect(approvalEntryFor(chrome, 't1', { ...PENDING, ownerRevision: 2 })).toBeNull()
     expect(
-      approvalEntryFor(chrome, { ...PENDING, requestId: 'other' }),
+      approvalEntryFor(chrome, 't1', { ...PENDING, requestId: 'other' }),
     ).toBeNull()
+    expect(approvalEntryFor(chrome, 't2', PENDING)).toBeNull()
   })
 
   it('disables Refresh while submitting', () => {
@@ -225,6 +226,7 @@ describe('taskApprovalCardView', () => {
     it('own approve → Approved by you with a check head, no lines', () => {
       const view = taskApprovalCardView(RESERVED, {
         kind: 'answered',
+        taskId: 't1',
         requestId: ID,
         decision: 'approve',
       })
@@ -237,10 +239,42 @@ describe('taskApprovalCardView', () => {
       expect(view.mode).toMatchObject({ lines: [], refresh: false })
     })
 
+    it('own answer shows facts when the effective decision differs', () => {
+      const view = taskApprovalCardView(
+        {
+          ...RESERVED,
+          disposition: 'decided',
+          delivery: 'sent',
+          effectiveDecision: 'reject',
+          deliveredDecision: 'reject',
+        },
+        { kind: 'answered', taskId: 't1', requestId: ID, decision: 'approve' },
+      )
+      expect(view.actionLabel).toBe(APPROVAL_COPY.approvedByYou)
+      expect(view.mode).toMatchObject({
+        lines: [
+          'Recorded decision: approve',
+          'Effective decision: reject',
+          'Delivered decision: reject',
+          'Delivery: sent',
+          'Observed execution: unknown',
+        ],
+      })
+    })
+
+    it('later ledger facts outrank a non-actionable entry', () => {
+      const view = taskApprovalCardView(
+        { ...RESERVED, delivery: 'delivery_unknown' },
+        refusal(),
+      )
+      expect(view.mode).toMatchObject({ title: APPROVAL_COPY.unknown })
+      expect(view.mode.kind).toBe('result')
+    })
+
     it('own reject → Rejected by you, never the refusal copy', () => {
       const view = taskApprovalCardView(
         { ...RESERVED, decision: 'reject' },
-        { kind: 'answered', requestId: ID, decision: 'reject' },
+        { kind: 'answered', taskId: 't1', requestId: ID, decision: 'reject' },
       )
       expect(view.actionLabel).toBe(APPROVAL_COPY.rejectedByYou)
       expect(view.headIcon).toBe('x')

@@ -41,7 +41,7 @@ export function seededApprovalChromeState(
     ...state,
     approvalChrome: {
       entries: (seed.refusals ?? []).map((entry) =>
-        refusalEntry(entry.requestId, revision, entry.refusal),
+        refusalEntry(taskId, entry.requestId, revision, entry.refusal),
       ),
       submitting: false,
       focusResultSeq: 0,
@@ -85,28 +85,34 @@ export function approvalRespondedState(
       state,
       withApprovalEntry(
         chrome,
-        refusalEntry(sent.requestId, sent.ownerRevision, outcome.refusal),
+        refusalEntry(taskId, sent.requestId, sent.ownerRevision, outcome.refusal),
+        state.selectedTaskId,
       ),
     )
   }
   if (outcome.kind === 'unknown') {
     return withChrome(
       state,
-      withApprovalEntry(chrome, {
-        kind: 'non_actionable',
-        requestId: sent.requestId,
-        ownerRevision: sent.ownerRevision,
-      }),
+      withApprovalEntry(
+        chrome,
+        {
+          kind: 'non_actionable',
+          taskId,
+          requestId: sent.requestId,
+          ownerRevision: sent.ownerRevision,
+        },
+        state.selectedTaskId,
+      ),
     )
   }
   const merged = withApprovalOnLoad(state, taskId, outcome.request)
   return withChrome(
     merged,
-    withApprovalEntry(merged.approvalChrome, {
-      kind: 'answered',
-      requestId: sent.requestId,
-      decision,
-    }),
+    withApprovalEntry(
+      merged.approvalChrome,
+      { kind: 'answered', taskId, requestId: sent.requestId, decision },
+      state.selectedTaskId,
+    ),
   )
 }
 
@@ -122,7 +128,7 @@ export function approvalRefreshedState(
 ): TaskScreenState {
   if (result.kind !== 'row') return state
   const merged = withApprovalOnLoad(state, taskId, result.request)
-  const chrome = withoutApprovalRefusal(merged.approvalChrome, requestId)
+  const chrome = withoutApprovalRefusal(merged.approvalChrome, taskId, requestId)
   return withChrome(merged, {
     ...chrome,
     focusResultSeq: chrome.focusResultSeq + 1,

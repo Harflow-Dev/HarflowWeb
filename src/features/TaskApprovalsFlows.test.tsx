@@ -233,9 +233,23 @@ describe('uncertain and untyped outcomes', () => {
     act(() => app.presenter.openTask(asTaskId('task-approval-stale')))
     await settle()
     await act(async () => {
+      applyNewTaskSeed(
+        app.presenter,
+        scenarioById('approval-stale').seed,
+      )
+      await Promise.resolve()
+    })
+    const focusBefore = chrome(app).focusResultSeq
+    await act(async () => {
       pending.reject()
       await Promise.resolve()
     })
+    // Same request id and revision, different task: the stale card is untouched.
+    expect(within(card()).getByText(APPROVAL_COPY.notCurrent)).toBeVisible()
+    expect(
+      within(card()).queryByText(APPROVAL_MAC_COPY.unconfirmed),
+    ).toBeNull()
+    expect(chrome(app).focusResultSeq).toBe(focusBefore)
     act(() => app.presenter.openTask(asTaskId('task-approval-exact')))
     await settle()
     expect(maybeButton(APPROVAL_COPY.approveOnce)).toBeNull()
@@ -281,7 +295,8 @@ describe('uncertain and untyped outcomes', () => {
     await settle()
     expect(approvalRow(app)?.ownerRevision).toBe(2)
     expect(button(APPROVAL_COPY.approveOnce)).toBeEnabled()
-    expect(document.activeElement).toBe(button(APPROVAL_COPY.approveOnce))
+    expect(document.activeElement).toBe(card())
+    expect(document.activeElement).not.toBe(button(APPROVAL_COPY.approveOnce))
   })
 
   it('a stale revision is refused as not_current before row state', async () => {

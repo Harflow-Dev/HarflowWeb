@@ -108,21 +108,64 @@ grant approvals, answer questions, or touch the task store.
   six `task/approval-*` scenarios are reachable from `/preview`. The ledger row
   uses contract field names; respond refusals (`not_current`, `already_answered`,
   `settled`, …) live in session chrome keyed by request id, never on the row.
+  One model-level `isAwaitingDecision` (disposition and delivery pending, no
+  decision, no system rejection) backs the card, the mock and the fixtures.
   Topbar Needs you badge and sidebar attention glyph follow
   `approval_summary.awaiting_decision_count` honestly (exact/stale = 1; the
   other four = 0). The drawings keep the Needs you badge on all six because
   only the card was replaced — that badge-count difference is intentional.
-  Open gaps:
-  - **Post-approve settled state is undrawn.** After a successful Approve once
-    the mock settles the row to decided/sent and the card head reads
-    “Approved by you” (components/approval-card). There is no approved route
-    for that interactive state.
+  The sidebar attention glyph of the open running task now follows the observed
+  `awaitingDecisionCount` (the same fact as the topbar badge), so both clear
+  together after an Approve or Reject. The scenario catalog no longer hard-codes
+  the glyph. Applying an accepted or refreshed row replaces only the drawn row,
+  and only when its request id is the currently observed one; the per-task count
+  stays with the observation feed.
+  Engineering decisions (owner-level, not design):
+  - **D1. Channel.** The Web answers approvals through Monitor, like the Mac
+    app. The mock's accepted response records `responder: monitor`,
+    `decided_by: caller`, disposition pending, delivery reserved (the
+    `ctl-approval-respond-monitor` shape). `responder` is a channel and never
+    identifies a person.
+  - **D2. “By you”.** “Approved by you” and “Rejected by you” come only from
+    this browser session's own accepted acknowledgement, held in the approval
+    chrome keyed by request id. They are never inferred from ledger fields; a
+    decision found on the ledger alone (any responder) is drawn as facts.
+  - **D3. Uncertain outcomes.** A respond that throws or times out (`unknown`),
+    or a refusal with a missing or unknown reason, is non-actionable: the card
+    shows the untyped line plus Refresh and never offers the decision buttons.
+    The request id at that owner revision stays read-only for the life of the
+    session chrome (it survives task switches), even after a successful re-read.
+    A re-read returning a different owner revision or request id is decidable
+    again. A failed or absent re-read keeps the existing refusal or
+    non-actionable entry and shows nothing new. In-flight respond calls are
+    keyed by task id + request id in the command object, so leaving and
+    returning mid-call cannot submit twice, and Refresh is disabled and ignored
+    while a respond is in flight.
+  Open gaps (undrawn in Design `56b49cb`):
+  - **Own-answer post-states.** After a successful Approve once the card head
+    reads “Approved by you” (components/approval-card) with no lines. **Reject**
+    (“Rejected by you”, with an `x` head icon) and the engine rows that follow
+    an accepted answer, **reserved** (the mock's accepted state) and
+    **sending**, have no approved route. Reserved and sending rows seen without
+    a session answer draw the fact lines only (see below).
+  - **Fact-only rows.** Any non-awaiting row without a refusal or session
+    answer (reserved, sending, sent-rejected, cancelled, invalidated,
+    system-rejected) draws a result block of facts only (who/when when
+    `decided_by` is `caller`, `Recorded decision`, `Delivery`, `Observed
+    execution`) with no invented sentence and no Refresh. Refusal copy is never
+    drawn without a refusal.
   - **Other typed refusal copy.** `expired`, `ownership_lost`, `unauthorized`,
-    `unsupported`, `caller_undecidable`, and `incomplete` have no design copy
-    yet; missing/unknown reasons stay non-actionable refresh-only with the
-    `not_current`-style wording. Do not invent per-reason lines.
+    `unsupported`, `caller_undecidable`, `incomplete` and the untyped /
+    unknown-reason / transport-uncertain state have no design copy. They use the
+    HarflowMac lines verbatim (D4), from
+    `HarflowMac/macos/HfFeatures/MainWindowFeature/Sources/MainWindowFeature/TaskDetail/CallerApprovalPresentation.swift`
+    `refusalMessage`. Refresh is offered for every refusal except
+    `already_answered`, `settled` and `expired` (Mac `canRefresh`).
+    `ownership_lost` does not claim the ledger is unchanged.
   - **Answered elsewhere names only the channel.** The contract reports
-    caller or monitor only — not surface, device, or person (design gap).
+    caller or monitor only — not surface, device, or person (design gap). The
+    who/when line is drawn only for a human decision (`decided_by: caller`) and
+    omits the channel when `responder` is absent (older rows).
 - **Pending launches** (Design `83d820f` / approval `2934681`): all 21 approved
   `task/pending-*` states are reachable from `/preview`. The “Pending launches”
   nav item appears only when the mock engine reports capability

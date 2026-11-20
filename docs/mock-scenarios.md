@@ -193,12 +193,16 @@ Task-screen approval scenarios (`task/approval-*`) live in
 
 | Scenario id | Design route | Notes |
 | --- | --- | --- |
-| `approval-exact` | `task/approval-exact` | Pending exact_action_once; Approve once + Reject; awaiting 1 |
-| `approval-stale` | `task/approval-stale` | Seeded `not_current` refusal + Refresh; awaiting 1 |
+| `approval-exact` | `task/approval-exact` | Pending exact_action_once; Approve once + Reject (accepted via Monitor: pending/reserved row); awaiting 1, clears after an answer |
+| `approval-stale` | `task/approval-stale` | Seeded `not_current` refusal + Refresh; Refresh returns owner revision 2 as a decidable card; awaiting 1 |
 | `approval-expired` | `task/approval-expired` | Expired override ledger facts; awaiting 0 |
-| `approval-answered-elsewhere` | `task/approval-answered-elsewhere` | Seeded `already_answered` (monitor); awaiting 0 |
-| `approval-refused` | `task/approval-refused` | Seeded `settled` refusal; awaiting 0 |
+| `approval-answered-elsewhere` | `task/approval-answered-elsewhere` | Seeded `already_answered` (monitor); ledger row is decided via monitor, delivery reserved; awaiting 0 |
+| `approval-refused` | `task/approval-refused` | Seeded `settled` refusal; ledger row is decided/sent; awaiting 0 |
 | `approval-uncertain` | `task/approval-uncertain` | `delivery_unknown` ledger facts; awaiting 0 |
+
+The awaiting count is derived from each fixture's ledger row (disposition and
+delivery pending, no decision, no system rejection), not hard-coded. The
+sidebar attention glyph of the open task follows that observed count.
 
 Minimum-window scenarios (loaded and loading) live in
 `src/adapters/mock/scenarioCatalogMinimum.ts` and reuse `seed.frame: 'minimum'`

@@ -1,6 +1,7 @@
 import type { NewTaskScenarioSeed } from '../adapters/mock'
 import { asTaskId } from '../model'
 import type { AppPresenter, AppScreenState } from '../presentation'
+import { applyTaskApprovalSeed } from './applyTaskApprovalSeed'
 import { applyTaskChangesSeed } from './applyTaskChangesSeed'
 import { applyTaskEventsSeed } from './applyTaskEventsSeed'
 import { applyTaskMessagingSeed } from './applyTaskMessagingSeed'
@@ -77,6 +78,7 @@ export function applyTaskOpenSeed(
   }
   applyTaskEventsSeed(presenter, seed, whenLoaded)
   applyTaskMessagingSeed(presenter, seed, whenLoaded)
+  applyTaskApprovalSeed(presenter, seed, whenLoaded)
   applyTaskOverflowSeed(presenter, seed, whenLoaded)
   applyTaskChangesSeed(presenter, seed, whenLoaded)
 }

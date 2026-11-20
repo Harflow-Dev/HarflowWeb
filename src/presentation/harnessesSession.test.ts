@@ -81,6 +81,12 @@ function createCapturingPort(): {
     async startTask(_request: StartTaskRequest) {
       return { kind: 'accepted', taskId: asTaskId('unused') }
     },
+    async respondTaskApproval() {
+      return { kind: 'unknown', message: 'stub' }
+    },
+    async refreshTaskApproval() {
+      return null
+    },
   }
   return { port, capture: () => latest }
 }

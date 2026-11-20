@@ -17,6 +17,8 @@ import type {
   LoadTaskEventsUseCase,
   LoadTaskUseCase,
   LoadWorkflowsUseCase,
+  RefreshTaskApprovalUseCase,
+  RespondTaskApprovalUseCase,
   StartTaskUseCase,
 } from '../application'
 import type { AppRoute, AppScreenState, SettingsSection } from './appState'
@@ -53,6 +55,8 @@ export type AppSessionDeps = {
   readonly loadPendingLaunchCapability: LoadPendingLaunchCapabilityUseCase
   readonly loadPendingLaunchInventory: LoadPendingLaunchInventoryUseCase
   readonly loadPendingLaunchStatus: LoadPendingLaunchStatusUseCase
+  readonly respondTaskApproval: RespondTaskApprovalUseCase
+  readonly refreshTaskApproval: RefreshTaskApprovalUseCase
 }
 
 export type AppChildSessions = {
@@ -84,6 +88,8 @@ export function createAppChildSessions(deps: AppSessionDeps): AppChildSessions {
       deps.loadTaskChanges,
       deps.loadTaskEvents,
       deps.loadMessagingCapability,
+      deps.respondTaskApproval,
+      deps.refreshTaskApproval,
     ),
     harnesses: new HarnessesSession(deps.loadHarnesses),
     settingsGeneral: new SettingsGeneralSession(deps.loadSettingsGeneral),

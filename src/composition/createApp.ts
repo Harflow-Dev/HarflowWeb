@@ -1,30 +1,10 @@
 import {
-  createLoadContextUseCase,
-  createLoadHarnessesUseCase,
-  createLoadNeedsYouUseCase,
-  createLoadParallelGroupUseCase,
-  createLoadMessagingCapabilityUseCase,
-  createLoadPendingLaunchCapabilityUseCase,
-  createLoadPendingLaunchInventoryUseCase,
-  createLoadPendingLaunchStatusUseCase,
-  createLoadResourcesUseCase,
-  createLoadSettingsGeneralUseCase,
-  createLoadStatisticsUseCase,
-  createLoadTaskChangesUseCase,
-  createLoadTaskEventsUseCase,
-  createLoadTaskUseCase,
-  createLoadWorkflowEditorUseCase,
-  createLoadWorkflowExecutionUseCase,
-  createLoadWorkflowRunUseCase,
-  createLoadWorkflowsUseCase,
-  createStartTaskUseCase,
-} from '../application'
-import {
   createMockEngine,
   type MockEngineControls,
   type ScenarioId,
 } from '../adapters/mock'
 import { createAppPresenter, type AppPresenter } from '../presentation'
+import { createAppUseCases } from './createAppUseCases'
 
 export type AppBundle = {
   readonly presenter: AppPresenter
@@ -37,49 +17,6 @@ export type AppBundle = {
  */
 export function createApp(scenario: ScenarioId = 'populated'): AppBundle {
   const mock = createMockEngine(scenario)
-  const loadContext = createLoadContextUseCase(mock.engine)
-  const startTask = createStartTaskUseCase(mock.engine)
-  const loadWorkflows = createLoadWorkflowsUseCase(mock.engine)
-  const loadWorkflowRun = createLoadWorkflowRunUseCase(mock.engine)
-  const loadWorkflowEditor = createLoadWorkflowEditorUseCase(mock.engine)
-  const loadWorkflowExecution = createLoadWorkflowExecutionUseCase(mock.engine)
-  const loadParallelGroup = createLoadParallelGroupUseCase(mock.engine)
-  const loadMessagingCapability =
-    createLoadMessagingCapabilityUseCase(mock.engine)
-  const loadPendingLaunchCapability =
-    createLoadPendingLaunchCapabilityUseCase(mock.engine)
-  const loadPendingLaunchInventory =
-    createLoadPendingLaunchInventoryUseCase(mock.engine)
-  const loadPendingLaunchStatus =
-    createLoadPendingLaunchStatusUseCase(mock.engine)
-  const loadResources = createLoadResourcesUseCase(mock.engine)
-  const loadStatistics = createLoadStatisticsUseCase(mock.engine)
-  const loadTask = createLoadTaskUseCase(mock.engine)
-  const loadTaskChanges = createLoadTaskChangesUseCase(mock.engine)
-  const loadTaskEvents = createLoadTaskEventsUseCase(mock.engine)
-  const loadHarnesses = createLoadHarnessesUseCase(mock.engine)
-  const loadNeedsYou = createLoadNeedsYouUseCase(mock.engine)
-  const loadSettingsGeneral = createLoadSettingsGeneralUseCase(mock.engine)
-  const presenter = createAppPresenter({
-    loadContext,
-    startTask,
-    loadWorkflows,
-    loadResources,
-    loadStatistics,
-    loadTask,
-    loadTaskChanges,
-    loadTaskEvents,
-    loadHarnesses,
-    loadSettingsGeneral,
-    loadNeedsYou,
-    loadWorkflowRun,
-    loadWorkflowEditor,
-    loadWorkflowExecution,
-    loadParallelGroup,
-    loadMessagingCapability,
-    loadPendingLaunchCapability,
-    loadPendingLaunchInventory,
-    loadPendingLaunchStatus,
-  })
+  const presenter = createAppPresenter(createAppUseCases(mock.engine))
   return { presenter, mock }
 }

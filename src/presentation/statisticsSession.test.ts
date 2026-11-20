@@ -97,6 +97,12 @@ function createCapturingPort(
     async startTask(_request: StartTaskRequest) {
       return { kind: 'accepted', taskId: asTaskId('unused') }
     },
+    async respondTaskApproval() {
+      return { kind: 'unknown', message: 'stub' }
+    },
+    async refreshTaskApproval() {
+      return null
+    },
   }
   return {
     port,
@@ -176,6 +182,12 @@ function createDeferredPort(): {
       async startTask() {
         return { kind: 'accepted', taskId: asTaskId('unused') }
       },
+    async respondTaskApproval() {
+      return { kind: 'unknown', message: 'stub' }
+    },
+    async refreshTaskApproval() {
+      return null
+    },
     },
     publish(range, load) {
       active.get(range)?.(load)

@@ -50,6 +50,8 @@ export function TaskMainHost({
           onAnnounce(note.text),
         )
       }
+      onRespondApproval={(decision) => presenter.respondTaskApproval(decision)}
+      onRefreshApproval={() => presenter.refreshTaskApproval()}
     />
   )
 }

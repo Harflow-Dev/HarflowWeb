@@ -264,6 +264,12 @@ function createTestEngine(options?: {
         }
       )
     },
+    async respondTaskApproval() {
+      return { kind: 'unknown', message: 'stub' }
+    },
+    async refreshTaskApproval() {
+      return null
+    },
   }
   return {
     port,

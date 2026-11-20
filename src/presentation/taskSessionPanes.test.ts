@@ -41,6 +41,16 @@ function harness() {
     createLoadTaskChangesUseCase(port),
     createLoadTaskEventsUseCase(port),
     createLoadMessagingCapabilityUseCase(port),
+    {
+      async execute() {
+        return { kind: 'unknown' as const, message: 'stub' }
+      },
+    },
+    {
+      async execute() {
+        return null
+      },
+    },
   )
   session.start()
   return {

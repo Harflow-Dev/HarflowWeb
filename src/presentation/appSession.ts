@@ -1,6 +1,7 @@
 import type {
   AccessLevel,
   Appearance,
+  ApprovalDecision,
   HarnessId,
   ModelId,
   ParallelGroupId,
@@ -31,6 +32,7 @@ import {
 import type { AppRoute, AppScreenState, SettingsSection } from './appState'
 import type { PresenterSession } from './presenterSession'
 import * as parallelNav from './appSessionParallel'
+import type { TaskApprovalSeed } from './taskSessionApproval'
 import type { TaskMessagingSeed } from './taskSessionMessaging'
 import type { PendingLaunchStopOutcome } from './pendingLaunchesState'
 import type { OpenMenu } from './screenState'
@@ -185,24 +187,16 @@ export class AppSession {
   }
   openTask(taskId: TaskId): void { parallelNav.openTask(this.nav, taskId) }
 
-  setTaskChangesPaneOpen(open: boolean): void {
-    this.children.task.setChangesPaneOpen(open)
-  }
-  selectTaskChangedEntry(entry: TaskChangesEntryRef): void {
-    this.children.task.selectChangedEntry(entry)
-  }
-  selectTaskChangesTurn(taskId: TaskId): void {
-    this.children.task.selectChangesTurn(taskId)
-  }
+  setTaskChangesPaneOpen(open: boolean): void { this.children.task.setChangesPaneOpen(open) }
+  selectTaskChangedEntry(entry: TaskChangesEntryRef): void { this.children.task.selectChangedEntry(entry) }
+  selectTaskChangesTurn(taskId: TaskId): void { this.children.task.selectChangesTurn(taskId) }
   setTaskRepositoryExpanded(root: string, expanded: boolean): void {
     this.children.task.setRepositoryExpanded(root, expanded)
   }
   seedTaskCommandChrome(taskId: TaskId, chrome: TaskCommandChrome): void {
     this.children.task.seedTaskCommandChrome(taskId, chrome); this.emit()
   }
-  setTaskOverflowMenuOpen(open: boolean): void {
-    this.children.task.setOverflowMenuOpen(open)
-  }
+  setTaskOverflowMenuOpen(open: boolean): void { this.children.task.setOverflowMenuOpen(open) }
   openTaskDialog(dialog: TaskDialogKind, opener: TaskDialogOpener | null): void {
     this.children.task.openTaskDialog(dialog, opener)
   }
@@ -213,23 +207,22 @@ export class AppSession {
   seedTaskChangesChrome(taskId: TaskId, chrome: TaskChangesChrome): void {
     this.children.task.seedTaskChangesChrome(taskId, chrome); this.emit()
   }
-  setTaskPaneTab(tab: 'changes' | 'events'): void {
-    this.children.task.setPaneTab(tab)
-  }
-  revealTaskEventsFacts(
-    group: 'enforcement' | 'notices' | 'continuity',
-  ): void {
+  setTaskPaneTab(tab: 'changes' | 'events'): void { this.children.task.setPaneTab(tab) }
+  revealTaskEventsFacts(group: 'enforcement' | 'notices' | 'continuity'): void {
     this.children.task.revealEventsFacts(group)
   }
-  loadTaskEarlierEvents(): void {
-    this.children.task.loadEarlierEvents()
-  }
+  loadTaskEarlierEvents(): void { this.children.task.loadEarlierEvents() }
   seedTaskMessagingChrome(taskId: TaskId, seed: TaskMessagingSeed): void {
     this.children.task.seedTaskMessagingChrome(taskId, seed); this.emit()
   }
   cancelTaskQueuedMessage(messageId: string): boolean {
     return this.children.task.cancelQueuedMessage(messageId)
   }
+  seedTaskApprovalChrome(taskId: TaskId, seed: TaskApprovalSeed): void {
+    this.children.task.seedTaskApprovalChrome(taskId, seed); this.emit()
+  }
+  respondTaskApproval(decision: ApprovalDecision): void { this.children.task.respondTaskApproval(decision) }
+  refreshTaskApproval(): void { this.children.task.refreshTaskApproval() }
 
   selectStatisticsRange(range: StatisticsRangeId): void {
     this.children.statistics.selectRange(range)

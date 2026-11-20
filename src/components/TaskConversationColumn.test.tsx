@@ -7,6 +7,7 @@ import {
 } from '../adapters/mock/taskMessageFixtures'
 import type { TaskMessage } from '../model'
 import {
+  EMPTY_TASK_APPROVAL,
   EMPTY_TASK_MESSAGING,
   taskStatusView,
 } from '../presentation'
@@ -39,6 +40,7 @@ describe('TaskConversationColumn on a task with no working row', () => {
         observation={observation}
         view={taskStatusView(observation)}
         messagingChrome={{ ...EMPTY_TASK_MESSAGING, outcome: 'cancelled' }}
+        approvalChrome={EMPTY_TASK_APPROVAL}
         onUnavailable={vi.fn()}
         onCancelQueuedMessage={vi.fn()}
       />,

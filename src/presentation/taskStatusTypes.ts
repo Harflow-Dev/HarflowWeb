@@ -12,6 +12,7 @@ export type TaskStatusBadgeTone =
   | 'done'
   | 'failed'
   | 'neutral'
+  | 'attention'
 
 export type TaskStatusBadgeGlyph =
   | 'spin'
@@ -21,6 +22,7 @@ export type TaskStatusBadgeGlyph =
   | 'alert'
   | 'stop'
   | 'queued'
+  | 'hand'
   | 'none'
 
 export type TaskStatusBadge = {

@@ -168,6 +168,12 @@ function createCapturingPort(
     async startTask(_request: StartTaskRequest) {
       return { kind: 'accepted', taskId: asTaskId('unused') }
     },
+    async respondTaskApproval() {
+      return { kind: 'unknown', message: 'stub' }
+    },
+    async refreshTaskApproval() {
+      return null
+    },
   }
   return {
     port,
@@ -275,6 +281,12 @@ function createDeferredPort(): {
       async startTask() {
         return { kind: 'accepted', taskId: asTaskId('unused') }
       },
+    async respondTaskApproval() {
+      return { kind: 'unknown', message: 'stub' }
+    },
+    async refreshTaskApproval() {
+      return null
+    },
     },
     publish(taskId, load) {
       active.get(taskId)?.(load)
@@ -298,6 +310,16 @@ function sessionFor(port: EnginePort): TaskSession {
     createLoadTaskChangesUseCase(port),
     createLoadTaskEventsUseCase(port),
     createLoadMessagingCapabilityUseCase(port),
+    {
+      async execute() {
+        return { kind: 'unknown' as const, message: 'stub' }
+      },
+    },
+    {
+      async execute() {
+        return null
+      },
+    },
   )
 }
 

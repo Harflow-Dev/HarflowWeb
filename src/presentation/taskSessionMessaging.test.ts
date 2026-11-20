@@ -30,6 +30,16 @@ async function openSession(
     createLoadTaskChangesUseCase(mock.engine),
     createLoadTaskEventsUseCase(mock.engine),
     createLoadMessagingCapabilityUseCase(mock.engine),
+    {
+      async execute() {
+        return { kind: 'unknown' as const, message: 'stub' }
+      },
+    },
+    {
+      async execute() {
+        return null
+      },
+    },
   )
   session.start()
   session.openTask(taskId)
@@ -91,7 +101,17 @@ describe('TaskSession queued message commands', () => {
       createLoadTaskChangesUseCase(mock.engine),
       createLoadTaskEventsUseCase(mock.engine),
       createLoadMessagingCapabilityUseCase(mock.engine),
-    )
+    {
+      async execute() {
+        return { kind: 'unknown' as const, message: 'stub' }
+      },
+    },
+    {
+      async execute() {
+        return null
+      },
+    },
+  )
     session.start()
     session.openTask(MESSAGE_QUEUED_TASK_ID)
     expect(session.getState().load.kind).toBe('loading')

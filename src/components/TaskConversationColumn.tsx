@@ -1,14 +1,18 @@
 import type { RefObject } from 'react'
-import type { TaskObservation } from '../model'
+import type { ApprovalDecision, TaskObservation } from '../model'
 import {
+  refusalForRequest,
   TASK_OVERFLOW_COPY,
+  taskApprovalCardView,
   taskQueuedTailView,
+  type TaskApprovalChrome,
   type TaskMessagingChrome,
   type TaskStatusView,
 } from '../presentation'
 import { ConversationItems } from './TaskConversationItems'
 import { Icon } from './Icon'
 import { QueuedMessageBubbles } from './QueuedMessageBubbles'
+import { TaskApprovalCard } from './TaskApprovalCard'
 import { TaskFailureBanner } from './TaskFailureBanner'
 import { TaskRequestHead, TaskResourceCard } from './TaskRequestHead'
 import { TaskStatusNotice } from './TaskStatusNotice'
@@ -17,8 +21,11 @@ type Props = {
   readonly observation: TaskObservation
   readonly view: TaskStatusView
   readonly messagingChrome: TaskMessagingChrome
+  readonly approvalChrome: TaskApprovalChrome
   readonly onUnavailable: (label: string) => void
   readonly onCancelQueuedMessage: (messageId: string) => void
+  readonly onRespondApproval?: (decision: ApprovalDecision) => void
+  readonly onRefreshApproval?: () => void
   readonly onBannerStop?: () => void
   readonly bannerStopRef?: RefObject<HTMLButtonElement | null>
 }
@@ -32,8 +39,11 @@ export function TaskConversationColumn({
   observation,
   view,
   messagingChrome,
+  approvalChrome,
   onUnavailable,
   onCancelQueuedMessage,
+  onRespondApproval,
+  onRefreshApproval,
   onBannerStop,
   bannerStopRef,
 }: Props) {
@@ -47,6 +57,15 @@ export function TaskConversationColumn({
   // all bubbles append after the transcript body including the failure banner.
   const messagingInItems = hasMessaging && hasWorking
   const messagingAfterBanner = hasMessaging && !hasWorking
+  const approval = observation.approval
+  const approvalView =
+    approval === undefined
+      ? null
+      : taskApprovalCardView(
+          approval,
+          refusalForRequest(approvalChrome, approval.requestId),
+          approvalChrome.submitting,
+        )
 
   return (
     <div className="hd-scroll hd-m05-scroll">
@@ -104,6 +123,14 @@ export function TaskConversationColumn({
             tail={queueTail}
             onCancel={onCancelQueuedMessage}
             focusOutcomeSeq={messagingChrome.focusSeq}
+          />
+        ) : null}
+        {approvalView && onRespondApproval && onRefreshApproval ? (
+          <TaskApprovalCard
+            view={approvalView}
+            focusResultSeq={approvalChrome.focusResultSeq}
+            onRespond={onRespondApproval}
+            onRefresh={onRefreshApproval}
           />
         ) : null}
       </div>

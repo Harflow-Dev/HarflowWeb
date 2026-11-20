@@ -10,6 +10,7 @@ import {
   beginTaskChangesObservation,
   changesEntriesEqual,
 } from './taskSessionChanges'
+import { EMPTY_TASK_APPROVAL } from './taskApprovalChrome'
 import { EMPTY_TASK_MESSAGING } from './taskQueuedMessages'
 import {
   IDLE_EVENTS_EARLIER,
@@ -227,6 +228,7 @@ export function loadingTaskScreenState(
     eventsLoad: { kind: 'loading' },
     eventsEarlier: IDLE_EVENTS_EARLIER,
     messagingChrome: EMPTY_TASK_MESSAGING,
+    approvalChrome: EMPTY_TASK_APPROVAL,
     messagingCapability,
   }
 }

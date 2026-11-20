@@ -1,27 +1,19 @@
-import { useState, type ReactNode, type RefObject } from 'react'
+import type { ReactNode, RefObject } from 'react'
 import type {
+  ApprovalDecision,
   MessagingCapabilityLoad,
   TaskObservation,
-  TranscriptObservation,
 } from '../model'
 import {
+  EMPTY_TASK_APPROVAL,
   EMPTY_TASK_MESSAGING,
+  type TaskApprovalChrome,
   type TaskCommandChrome,
   type TaskMessagingChrome,
   taskIsLiveRun,
-  taskShowsSummary,
-  taskStatusView,
   UNOBSERVED_MESSAGING,
 } from '../presentation'
-import { mergeTranscriptObservation } from '../presentation/transcriptMerge'
-import { TaskConversationColumn } from './TaskConversationColumn'
-import { TaskEventsPane } from './TaskEventsPane'
-import { TaskFailureBanner } from './TaskFailureBanner'
-import { TaskFollowUp } from './TaskFollowUp'
-import { TaskStatusNotice } from './TaskStatusNotice'
-import { TaskSummarySection } from './TaskSummarySection'
-import { TaskUnavailableHints } from './TaskUnavailableHints'
-import { TranscriptSurface } from './TranscriptSurface'
+import { TaskTranscriptBody } from './TaskTranscriptBody'
 
 /** Places the column and an optional Events pane inside the host's body. */
 export type TaskShell = (
@@ -40,17 +32,16 @@ type Props = {
   readonly observation: TaskObservation
   readonly commandChrome?: TaskCommandChrome
   readonly messagingChrome?: TaskMessagingChrome
+  readonly approvalChrome?: TaskApprovalChrome
   readonly messagingCapability?: MessagingCapabilityLoad
   readonly eventsPaneOpen?: boolean
-  /**
-   * Lays out the transcript column and the Events pane as siblings (the
-   * host owns the body, inert region and Changes pane). Default: sequence.
-   */
   readonly shell?: TaskShell
   readonly onClosePane?: () => void
   readonly onUnavailable: (label: string) => void
   readonly onLiveMessage?: (message: string) => void
   readonly onCancelQueuedMessage?: (messageId: string) => void
+  readonly onRespondApproval?: (decision: ApprovalDecision) => void
+  readonly onRefreshApproval?: () => void
   readonly onStop?: () => void
   readonly onBannerStop?: () => void
   readonly composerStopRef?: RefObject<HTMLButtonElement | null>
@@ -62,6 +53,7 @@ export function TaskPage({
   observation,
   commandChrome = null,
   messagingChrome = EMPTY_TASK_MESSAGING,
+  approvalChrome = EMPTY_TASK_APPROVAL,
   messagingCapability = UNOBSERVED_MESSAGING,
   eventsPaneOpen = false,
   shell = defaultShell,
@@ -69,23 +61,27 @@ export function TaskPage({
   onUnavailable,
   onLiveMessage,
   onCancelQueuedMessage,
+  onRespondApproval,
+  onRefreshApproval,
   onStop,
   onBannerStop,
   composerStopRef,
   bannerStopRef,
 }: Props) {
-  const liveRun = taskIsLiveRun(observation)
   return (
-    <TranscriptTaskBody
+    <TaskTranscriptBody
       key={observation.taskId}
       observation={observation}
       commandChrome={commandChrome}
       messagingChrome={messagingChrome}
+      approvalChrome={approvalChrome}
       messagingCapability={messagingCapability}
       eventsPaneOpen={eventsPaneOpen}
-      liveRun={liveRun}
+      liveRun={taskIsLiveRun(observation)}
       onUnavailable={onUnavailable}
       {...(onCancelQueuedMessage ? { onCancelQueuedMessage } : {})}
+      {...(onRespondApproval ? { onRespondApproval } : {})}
+      {...(onRefreshApproval ? { onRefreshApproval } : {})}
       {...(onStop ? { onStop } : {})}
       {...(onBannerStop ? { onBannerStop } : {})}
       {...(composerStopRef ? { composerStopRef } : {})}
@@ -95,152 +91,4 @@ export function TaskPage({
       {...(onLiveMessage ? { onLiveMessage } : {})}
     />
   )
-}
-
-function TranscriptTaskBody({
-  observation,
-  commandChrome,
-  messagingChrome,
-  messagingCapability,
-  eventsPaneOpen,
-  shell,
-  onClosePane,
-  liveRun,
-  onUnavailable,
-  onLiveMessage,
-  onCancelQueuedMessage,
-  onStop,
-  onBannerStop,
-  composerStopRef,
-  bannerStopRef,
-}: {
-  readonly observation: TaskObservation
-  readonly commandChrome: TaskCommandChrome
-  readonly messagingChrome: TaskMessagingChrome
-  readonly messagingCapability: MessagingCapabilityLoad
-  readonly eventsPaneOpen: boolean
-  readonly shell: TaskShell
-  readonly onClosePane?: () => void
-  readonly liveRun: boolean
-  readonly onUnavailable: (label: string) => void
-  readonly onLiveMessage?: (message: string) => void
-  readonly onCancelQueuedMessage?: (messageId: string) => void
-  readonly onStop?: () => void
-  readonly onBannerStop?: () => void
-  readonly composerStopRef?: RefObject<HTMLButtonElement | null>
-  readonly bannerStopRef?: RefObject<HTMLButtonElement | null>
-}) {
-  const statusView = taskStatusView(observation, commandChrome, messagingCapability)
-  const observed = observation.transcript
-  const [prevObserved, setPrevObserved] = useState(observed)
-  const [reading, setReading] = useState<TranscriptObservation | null>(null)
-  const [announce, setAnnounce] = useState('')
-
-  if (observed !== prevObserved) {
-    setPrevObserved(observed)
-    setReading(mergeTranscriptObservation(observed, reading))
-    setAnnounce('')
-  }
-
-  const base = reading ?? observed
-  const displayed: TranscriptObservation = announce
-    ? { ...base, liveMessage: announce }
-    : base
-
-  function onReadingChange(next: TranscriptObservation): void {
-    setReading(next)
-    setAnnounce(next.liveMessage)
-    if (next.liveMessage) onLiveMessage?.(next.liveMessage)
-  }
-
-  function publishAnnounce(message: string): void {
-    setAnnounce(message)
-    onLiveMessage?.(message)
-  }
-
-  async function copyRecord(): Promise<void> {
-    const el = document.querySelector('[data-record]')
-    if (!(el instanceof HTMLElement) || !el.textContent) {
-      publishAnnounce('Nothing to copy in this view.')
-      return
-    }
-    const text = el.textContent
-    try {
-      if (!navigator.clipboard?.writeText) throw new Error('unavailable')
-      await navigator.clipboard.writeText(text)
-      publishAnnounce('Copied normalized mock record.')
-    } catch {
-      const selection = window.getSelection()
-      const range = document.createRange()
-      range.selectNodeContents(el)
-      selection?.removeAllRanges()
-      selection?.addRange(range)
-      el.focus()
-      publishAnnounce('Text selected. Use your system copy command to copy it.')
-    }
-  }
-
-  const column = (
-    <>
-      {statusView.body.kind === 'transcript' ? (
-        <>
-          <TranscriptSurface
-            transcript={displayed}
-            onReadingChange={onReadingChange}
-            onAnnounce={publishAnnounce}
-          />
-          {statusView.notice ? (
-            <div className="hw-task-notice-slot">
-              <TaskStatusNotice
-                notice={statusView.notice}
-                onUnavailable={onUnavailable}
-              />
-            </div>
-          ) : null}
-          {statusView.banner ? (
-            <TaskFailureBanner
-              banner={statusView.banner}
-              onUnavailable={onUnavailable}
-              {...(onBannerStop ? { onStop: onBannerStop } : {})}
-              {...(bannerStopRef ? { stopRef: bannerStopRef } : {})}
-            />
-          ) : null}
-          {taskShowsSummary(observation) && observation.summary ? (
-            <TaskSummarySection summary={observation.summary} />
-          ) : null}
-        </>
-      ) : (
-        <TaskConversationColumn
-          observation={observation}
-          view={statusView}
-          messagingChrome={messagingChrome}
-          onUnavailable={onUnavailable}
-          onCancelQueuedMessage={onCancelQueuedMessage ?? (() => undefined)}
-          {...(onBannerStop ? { onBannerStop } : {})}
-          {...(bannerStopRef ? { bannerStopRef } : {})}
-        />
-      )}
-      <TaskFollowUp
-        composer={statusView.composer}
-        onUnavailable={onUnavailable}
-        {...(onStop ? { onStop } : {})}
-        {...(composerStopRef ? { stopRef: composerStopRef } : {})}
-      />
-      <TaskUnavailableHints />
-    </>
-  )
-
-  const eventsPane = eventsPaneOpen ? (
-    <TaskEventsPane
-      transcript={displayed}
-      executionStatus={liveRun ? 'Running' : 'Done'}
-      onUnavailable={onUnavailable}
-      onClosePane={onClosePane ?? (() => undefined)}
-      onCopyRecord={() => {
-        void copyRecord()
-      }}
-    />
-  ) : null
-
-  return <>{shell(column, eventsPane)}</>
 }

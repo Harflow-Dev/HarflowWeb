@@ -20,6 +20,10 @@ function runningBadge(observation: TaskObservation): TaskStatusBadge {
   if (supervision === 'unverified') {
     return { tone: 'warning', glyph: 'alert', label: 'Running · not verified' }
   }
+  const awaiting = observation.approvalSummary?.awaitingDecisionCount ?? 0
+  if (awaiting > 0) {
+    return { tone: 'attention', glyph: 'hand', label: 'Needs you' }
+  }
   return {
     tone: 'running',
     glyph: 'spin',

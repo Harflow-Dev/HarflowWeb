@@ -112,6 +112,19 @@ export {
   type TaskSendNowRefusal,
 } from './taskQueuedMessages'
 export { type TaskMessagingSeed } from './taskSessionMessaging'
+export { APPROVAL_COPY } from './taskApprovalCopy'
+export {
+  taskApprovalCardView,
+  type TaskApprovalCardMode,
+  type TaskApprovalCardView,
+} from './taskApprovalCardView'
+export {
+  EMPTY_TASK_APPROVAL,
+  refusalForRequest,
+  type TaskApprovalChrome,
+  type TaskApprovalRefusalEntry,
+} from './taskApprovalChrome'
+export { type TaskApprovalSeed } from './taskSessionApproval'
 export {
   initialPendingLaunchesState,
   type PendingLaunchesScreenState,

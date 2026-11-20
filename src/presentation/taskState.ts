@@ -11,11 +11,14 @@ import type {
   TaskLoad,
 } from '../model'
 import type { TaskCommandChrome } from './taskStatusTypes'
+import type { TaskApprovalChrome } from './taskApprovalChrome'
+import { EMPTY_TASK_APPROVAL } from './taskApprovalChrome'
 import type { TaskMessagingChrome } from './taskQueuedMessages'
 import { EMPTY_TASK_MESSAGING } from './taskQueuedMessages'
 
 export type { TaskCommandChrome } from './taskStatusTypes'
 export type { TaskMessagingChrome } from './taskQueuedMessages'
+export type { TaskApprovalChrome } from './taskApprovalChrome'
 
 /** Which confirmation dialog is open (presentation chrome only). */
 export type TaskDialogKind = 'stop' | 'takeover'
@@ -112,6 +115,11 @@ export type TaskScreenState = {
    */
   readonly messagingChrome: TaskMessagingChrome
   /**
+   * Approval respond refusals and in-flight state for the open task.
+   * Cleared when the selected task identity resets.
+   */
+  readonly approvalChrome: TaskApprovalChrome
+  /**
    * Engine `messaging.v1` capability, observed once per session (not per
    * task) and kept across task identity resets.
    */
@@ -171,6 +179,7 @@ export function initialTaskState(): TaskScreenState {
     eventsLoad: { kind: 'loading' },
     eventsEarlier: IDLE_EVENTS_EARLIER,
     messagingChrome: EMPTY_TASK_MESSAGING,
+    approvalChrome: EMPTY_TASK_APPROVAL,
     messagingCapability: { kind: 'loading' },
   }
 }

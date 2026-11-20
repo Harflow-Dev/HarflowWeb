@@ -22,6 +22,9 @@ import {
   createLoadWorkflowRunUseCase,
   createLoadWorkflowsUseCase,
   createStartTaskUseCase,
+  createRefreshTaskApprovalUseCase,
+  createRespondTaskApprovalUseCase,
+
   type EnginePort,
 } from '../application'
 import {
@@ -143,6 +146,12 @@ function transcriptEngine(): EnginePort {
     async startTask(_request) {
       return { kind: 'accepted', taskId: TRANSCRIPT_TASK_IDS.observed }
     },
+    async respondTaskApproval() {
+      return { kind: 'unknown', message: 'stub' }
+    },
+    async refreshTaskApproval() {
+      return null
+    },
   }
 }
 
@@ -175,6 +184,8 @@ function renderApp(engine: EnginePort) {
     loadTask: createLoadTaskUseCase(engine),
     loadTaskChanges: createLoadTaskChangesUseCase(engine),
     loadTaskEvents: createLoadTaskEventsUseCase(engine),
+    respondTaskApproval: createRespondTaskApprovalUseCase(engine),
+    refreshTaskApproval: createRefreshTaskApprovalUseCase(engine),
     loadHarnesses: createLoadHarnessesUseCase(engine),
     loadNeedsYou: createLoadNeedsYouUseCase(engine),
     loadSettingsGeneral: createLoadSettingsGeneralUseCase(engine),

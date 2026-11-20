@@ -45,6 +45,8 @@ type Props = {
   ) => void
   readonly onOpenParentTask: (taskId: TaskId) => void
   readonly onCancelQueuedMessage: (messageId: string) => void
+  readonly onRespondApproval: (decision: 'approve' | 'reject') => void
+  readonly onRefreshApproval: () => void
 }
 
 /**
@@ -72,6 +74,8 @@ export function TaskMain({
   onOpenDialog,
   onOpenParentTask,
   onCancelQueuedMessage,
+  onRespondApproval,
+  onRefreshApproval,
 }: Props) {
   const knownTitle = resolveKnownTitle(state, sidebar)
   const title = knownTitle ?? 'Task'
@@ -195,12 +199,15 @@ export function TaskMain({
         observation={state.load.observation}
         commandChrome={state.commandChrome}
         messagingChrome={state.messagingChrome}
+        approvalChrome={state.approvalChrome}
         messagingCapability={state.messagingCapability}
         eventsPaneOpen={showPane && ready?.detailsPane === 'events'}
         shell={shell}
         onClosePane={() => onToggleChangesPane(false)}
         onUnavailable={onUnavailable}
         onCancelQueuedMessage={onCancelQueuedMessage}
+        onRespondApproval={onRespondApproval}
+        onRefreshApproval={onRefreshApproval}
         onStop={() => onOpenDialog('stop', 'composer-stop')}
         onBannerStop={() => onOpenDialog('stop', 'banner-stop')}
         composerStopRef={composerStopRef}

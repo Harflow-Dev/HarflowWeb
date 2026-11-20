@@ -38,5 +38,8 @@ function BadgeGlyph({ glyph }: { readonly glyph: Badge['glyph'] }) {
     )
   }
   if (glyph === 'none') return null
+  if (glyph === 'hand') {
+    return <Icon name="hand" />
+  }
   return <Icon name={glyph} />
 }

@@ -1,5 +1,9 @@
 import type { TaskId } from './ids'
 import type { AccessLevel } from './types'
+import type {
+  TaskApprovalRequest,
+  TaskApprovalSummary,
+} from './taskApproval'
 import type { TaskMessage } from './taskMessaging'
 import type { TranscriptObservation } from './transcript'
 
@@ -204,6 +208,16 @@ export type TaskObservation = {
    * Data only: it does not gate any control.
    */
   readonly messages?: readonly TaskMessage[]
+  /**
+   * The approval request drawn at the end of the task transcript.
+   * Absent means no card. Typed respond refusals are session chrome, not here.
+   */
+  readonly approval?: TaskApprovalRequest
+  /**
+   * Additive `approval_summary` facts. `awaitingDecisionCount` drives the
+   * topbar Needs you badge and the sidebar attention glyph for this task.
+   */
+  readonly approvalSummary?: TaskApprovalSummary
 }
 
 /**

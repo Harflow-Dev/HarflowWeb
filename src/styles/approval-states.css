@@ -1,0 +1,6 @@
+/* Approval states: the result block that replaces the decision buttons of a settled approval card.
+   Ported from HarflowDesign 56b49cb v2/styles/approval-states.css. */
+.hd-approval__result{padding:0 14px 12px;display:flex;flex-direction:column;gap:2px;font-size:12px;line-height:17px;color:var(--text-secondary)}
+.hd-approval__result p{margin:0}
+.hd-approval__result-title{font-size:13px;line-height:19px;font-weight:600;color:var(--text)}
+.hd-approval__result--compact{padding:0 12px 10px}

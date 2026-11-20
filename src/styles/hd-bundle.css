@@ -205,10 +205,6 @@ textarea.hd-input{height:auto;min-height:72px;padding:8px 10px;resize:vertical}
 .hd-approval__meta{font-size:12px;line-height:16px;color:var(--text-tertiary)}
 .hd-approval__actions{display:flex;gap:8px;align-items:center;padding:0 14px 12px}
 .hd-approval--settled .hd-approval__head{background:var(--surface-hover);color:var(--text-secondary)}
-.hd-approval__result{padding:0 14px 12px;display:flex;flex-direction:column;gap:2px;font-size:12px;line-height:17px;color:var(--text-secondary)}
-.hd-approval__result p{margin:0}
-.hd-approval__result-title{font-size:13px;line-height:19px;font-weight:600;color:var(--text)}
-.hd-approval__result--compact{padding:0 12px 10px}
 
 /* ---- List rows (Needs you, Workflows) ---- */
 .hd-list{display:flex;flex-direction:column;border-top:1px solid var(--border)}

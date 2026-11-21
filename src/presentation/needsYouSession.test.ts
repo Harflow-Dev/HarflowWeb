@@ -10,6 +10,7 @@ import {
 import type { NeedsYouLoad } from '../model'
 import { asObservationId } from '../model'
 import { NeedsYouSession } from './needsYouSession'
+import { TaskApprovalRegistry } from './taskApprovalRegistry'
 
 function port(loads: NeedsYouLoad[]): {
   engine: EnginePort
@@ -51,6 +52,7 @@ const stubRefreshCheckpoint: RefreshWorkflowAttentionCheckpointUseCase = {
 function sessionFor(engine: EnginePort): NeedsYouSession {
   return new NeedsYouSession(
     createLoadNeedsYouUseCase(engine),
+    new TaskApprovalRegistry(),
     stubRespondApproval,
     stubRefreshApproval,
     stubAnswerCheckpoint,

@@ -16,6 +16,17 @@ export type NeedsYouCheckpointEntry =
       readonly kind: 'answered'
       readonly decision: 'approve' | 'reject'
     }
+  /**
+   * Typed refusal other than checkpoint_stale. `interaction_already_answered`
+   * has no Refresh; unavailable / required offer Refresh.
+   */
+  | {
+      readonly kind: 'refused'
+      readonly code:
+        | 'interaction_already_answered'
+        | 'attention_checkpoint_unavailable'
+        | 'attention_checkpoint_required'
+    }
 
 export type NeedsYouCheckpointOpenLink =
   | { readonly kind: 'run'; readonly runId: WorkflowRunId; readonly title: string }
@@ -71,6 +82,63 @@ function baseView(
 }
 
 /**
+ * Neutral undrawn line for typed checkpoint refusals Design does not copy.
+ * Makes no claim the drawings do not make.
+ */
+export const CHECKPOINT_REFUSAL_NEUTRAL =
+  'This request is read-only here.' as const
+
+function refusedResult(
+  code: Extract<NeedsYouCheckpointEntry, { kind: 'refused' }>['code'],
+  submitting: boolean,
+): ApprovalResultMode {
+  const refresh =
+    code === 'attention_checkpoint_unavailable' ||
+    code === 'attention_checkpoint_required'
+  return {
+    kind: 'result',
+    title: null,
+    lines: [CHECKPOINT_REFUSAL_NEUTRAL],
+    refresh,
+    refreshDisabled: refresh && submitting,
+  }
+}
+
+const NO_RESULT_LINES: ApprovalResultMode = {
+  kind: 'result',
+  title: null,
+  lines: [],
+  refresh: false,
+  refreshDisabled: false,
+}
+
+function answeredView(
+  item: NeedsYouWorkflowApproval,
+  decision: 'approve' | 'reject',
+): NeedsYouCheckpointCardView {
+  const approved = decision === 'approve'
+  return {
+    ...baseView(item, NO_RESULT_LINES, true, approved ? 'check' : 'x'),
+    actionLabel: approved
+      ? APPROVAL_COPY.approvedByYou
+      : APPROVAL_COPY.rejectedByYou,
+  }
+}
+
+function refreshableResult(
+  line: string,
+  submitting: boolean,
+): ApprovalResultMode {
+  return {
+    kind: 'result',
+    title: null,
+    lines: [line],
+    refresh: true,
+    refreshDisabled: submitting,
+  }
+}
+
+/**
  * Map one workflow checkpoint item + session entry to the card view.
  */
 export function needsYouCheckpointCardView(
@@ -78,44 +146,24 @@ export function needsYouCheckpointCardView(
   entry: NeedsYouCheckpointEntry | null,
   submitting = false,
 ): NeedsYouCheckpointCardView {
-  if (entry?.kind === 'answered') {
-    const approved = entry.decision === 'approve'
-    return baseView(
-      item,
-      { kind: 'result', title: null, lines: [], refresh: false, refreshDisabled: false },
-      true,
-      approved ? 'check' : 'x',
-    )
+  switch (entry?.kind) {
+    case 'answered':
+      return answeredView(item, entry.decision)
+    case 'checkpoint_stale':
+      return baseView(
+        item,
+        refreshableResult(APPROVAL_COPY.checkpointChanged, submitting),
+        true,
+      )
+    case 'refused':
+      return baseView(item, refusedResult(entry.code, submitting), true)
+    case 'non_actionable':
+      return baseView(
+        item,
+        refreshableResult(APPROVAL_MAC_COPY.unconfirmed, submitting),
+        true,
+      )
+    default:
+      return baseView(item, { kind: 'decide', disabled: submitting }, false)
   }
-  if (entry?.kind === 'checkpoint_stale') {
-    return baseView(
-      item,
-      {
-        kind: 'result',
-        title: null,
-        lines: [APPROVAL_COPY.checkpointChanged],
-        refresh: true,
-        refreshDisabled: submitting,
-      },
-      true,
-    )
-  }
-  if (entry?.kind === 'non_actionable') {
-    return baseView(
-      item,
-      {
-        kind: 'result',
-        title: null,
-        lines: [APPROVAL_MAC_COPY.unconfirmed],
-        refresh: true,
-        refreshDisabled: submitting,
-      },
-      true,
-    )
-  }
-  return baseView(
-    item,
-    { kind: 'decide', disabled: submitting },
-    false,
-  )
 }

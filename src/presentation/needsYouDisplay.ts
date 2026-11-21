@@ -9,9 +9,13 @@ import {
 } from '../model'
 import type { NeedsYouChrome } from './needsYouChrome'
 import { checkpointEntryFor } from './needsYouChrome'
+import { needsYouCardSubmitting } from './needsYouCardSubmitting'
 import { approvalEntryFor } from './taskApprovalChrome'
 
 function itemIsSettled(item: NeedsYouItem, chrome: NeedsYouChrome): boolean {
+  // A card whose answer is still in flight must survive the observation
+  // update the answer itself triggers, until its result entry is recorded.
+  if (needsYouCardSubmitting(item, chrome)) return true
   if (isNeedsYouTaskApproval(item)) {
     const taskId = item.context.taskId ?? ''
     return approvalEntryFor(chrome.taskApprovals, taskId, item.request) !== null
@@ -27,7 +31,7 @@ function itemIsSettled(item: NeedsYouItem, chrome: NeedsYouChrome): boolean {
 }
 
 /**
- * Keep settled cards in place when they leave the observation while the
+ * Keep settled (or answering) cards in place when they leave the observation while the
  * person stays on Needs you. New observation items append.
  */
 export function mergeNeedsYouDisplay(

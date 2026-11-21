@@ -13,6 +13,7 @@ import type {
 import { isNeedsYouTaskApproval } from '../model'
 import {
   EMPTY_NEEDS_YOU_CHROME,
+  leaveNeedsYouChrome,
   type NeedsYouSeedCheckpointStale,
   type NeedsYouSeedRefusal,
 } from './needsYouChrome'
@@ -20,6 +21,7 @@ import { refusalEntry } from './taskApprovalChrome'
 import { applyNeedsYouLoad } from './needsYouCommandApply'
 import { NeedsYouCommands } from './needsYouCommands'
 import { initialNeedsYouState, type NeedsYouScreenState } from './needsYouState'
+import type { TaskApprovalRegistry } from './taskApprovalRegistry'
 
 export type NeedsYouListener = (state: NeedsYouScreenState) => void
 
@@ -30,7 +32,8 @@ export type NeedsYouApprovalSeed = {
 
 /**
  * Needs you observation plus approval / checkpoint commands. Leaving the
- * route clears settle-in-place chrome via `leave()`.
+ * route clears settle-in-place chrome via `leave()` while keeping shared
+ * non_actionable / answered task entries.
  */
 export class NeedsYouSession {
   private state = initialNeedsYouState()
@@ -39,22 +42,26 @@ export class NeedsYouSession {
   private observation: ObservationHandle | null = null
   private readonly listeners = new Set<NeedsYouListener>()
   private readonly loadNeedsYou: LoadNeedsYouUseCase
+  private readonly registry: TaskApprovalRegistry
   private readonly commands: NeedsYouCommands
 
   constructor(
     loadNeedsYou: LoadNeedsYouUseCase,
+    registry: TaskApprovalRegistry,
     respondApproval: RespondTaskApprovalUseCase,
     refreshApproval: RefreshTaskApprovalUseCase,
     answerCheckpoint: AnswerWorkflowAttentionCheckpointUseCase,
     refreshCheckpoint: RefreshWorkflowAttentionCheckpointUseCase,
   ) {
     this.loadNeedsYou = loadNeedsYou
+    this.registry = registry
     this.commands = new NeedsYouCommands(
       {
         isDisposed: () => this.disposed,
         getState: () => this.state,
         publish: (next) => this.publish(next),
       },
+      registry,
       respondApproval,
       refreshApproval,
       answerCheckpoint,
@@ -71,7 +78,17 @@ export class NeedsYouSession {
   }
 
   getState(): NeedsYouScreenState {
-    return this.state
+    return {
+      ...this.state,
+      chrome: {
+        ...this.state.chrome,
+        taskApprovals: {
+          ...this.registry.asChrome(),
+          focusResultSeq: this.state.chrome.taskApprovals.focusResultSeq,
+          submitting: this.state.chrome.taskInFlight.length > 0,
+        },
+      },
+    }
   }
 
   start(): void {
@@ -81,6 +98,10 @@ export class NeedsYouSession {
     this.observation?.cancel()
     this.publish({
       ...initialNeedsYouState(),
+      chrome: {
+        ...EMPTY_NEEDS_YOU_CHROME,
+        taskApprovals: this.registry.asChrome(),
+      },
       load: { kind: 'loading' },
     })
     this.observation = this.loadNeedsYou.observe((load) =>
@@ -88,17 +109,25 @@ export class NeedsYouSession {
     )
   }
 
-  /** Clear settle-in-place chrome when the person leaves Needs you. */
+  /**
+   * Clear settle-in-place display, focus, typed refusals, and
+   * checkpoint_stale. Keep non_actionable / answered task entries and
+   * checkpoint non_actionable / answered / refused entries.
+   */
   leave(): void {
     if (this.disposed) return
+    const retained = this.registry.retainNonRefusal()
+    const chrome = leaveNeedsYouChrome({
+      ...this.state.chrome,
+      taskApprovals: retained,
+    })
     this.publish({
       ...this.state,
-      chrome: EMPTY_NEEDS_YOU_CHROME,
+      chrome,
       displayItems:
         this.state.load.kind === 'ready'
           ? this.state.load.observation.items
           : [],
-      submittingKey: null,
     })
   }
 
@@ -130,6 +159,7 @@ export class NeedsYouSession {
           entry.refusal,
         )
       })
+      this.registry.replaceEntries(entries)
       chrome = {
         ...chrome,
         taskApprovals: {

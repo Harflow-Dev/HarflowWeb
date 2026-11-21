@@ -1,9 +1,7 @@
-import type {
-  AnswerWorkflowAttentionCheckpointUseCase,
-  RespondTaskApprovalUseCase,
-} from '../application'
+import type { AnswerWorkflowAttentionCheckpointUseCase } from '../application'
 import type {
   ApprovalDecision,
+  ApprovalRespondOutcome,
   NeedsYouTaskApproval,
   NeedsYouWorkflowApproval,
   TaskId,
@@ -14,80 +12,40 @@ import {
   withTaskApprovalChrome,
   type NeedsYouChrome,
 } from './needsYouChrome'
-import { refusalEntry, withApprovalEntry } from './taskApprovalChrome'
+import type { TaskApprovalRegistry } from './taskApprovalRegistry'
 
 export function taskRespondChrome(
   chrome: NeedsYouChrome,
+  registry: TaskApprovalRegistry,
   item: NeedsYouTaskApproval,
   taskId: TaskId,
   decision: ApprovalDecision,
-  outcome: Awaited<ReturnType<RespondTaskApprovalUseCase['execute']>>,
+  outcome: ApprovalRespondOutcome,
   itemId: string,
 ): { chrome: NeedsYouChrome; updatedItem: NeedsYouTaskApproval | null } {
-  if (outcome.kind === 'refused') {
-    const entry = refusalEntry(
-      taskId,
-      item.requestId,
-      item.ownerRevision,
-      outcome.refusal,
-    )
-    return {
-      chrome: withTaskApprovalChrome(
-        chrome,
-        withApprovalEntry(chrome.taskApprovals, entry, taskId),
-        itemId,
-      ),
-      updatedItem: null,
-    }
-  }
-  if (outcome.kind === 'unknown') {
-    return {
-      chrome: withTaskApprovalChrome(
-        chrome,
-        withApprovalEntry(
-          chrome.taskApprovals,
-          {
-            kind: 'non_actionable',
-            taskId,
-            requestId: item.requestId,
-            ownerRevision: item.ownerRevision,
-          },
-          taskId,
-        ),
-        itemId,
-      ),
-      updatedItem: null,
-    }
+  const priorFocus = chrome.taskApprovals.focusResultSeq
+  const { chrome: nextTask, acceptedRequest } = registry.applyRespond(
+    taskId,
+    item,
+    decision,
+    outcome,
+    taskId,
+  )
+  const nextChrome = withTaskApprovalChrome(
+    chrome,
+    { ...nextTask, focusResultSeq: priorFocus + 1 },
+    itemId,
+  )
+  if (acceptedRequest === null) {
+    return { chrome: nextChrome, updatedItem: null }
   }
   const updated: NeedsYouTaskApproval = {
     ...item,
-    requestId: outcome.request.requestId,
-    ownerRevision: outcome.request.ownerRevision,
-    request: outcome.request,
+    requestId: acceptedRequest.requestId,
+    ownerRevision: acceptedRequest.ownerRevision,
+    request: acceptedRequest,
   }
-  const nextChrome = withTaskApprovalChrome(
-    chrome,
-    withApprovalEntry(
-      chrome.taskApprovals,
-      {
-        kind: 'answered',
-        taskId,
-        requestId: item.requestId,
-        decision,
-      },
-      taskId,
-    ),
-    itemId,
-  )
-  return {
-    chrome: {
-      ...nextChrome,
-      retainedItems: nextChrome.retainedItems.some((r) => r.id === updated.id)
-        ? nextChrome.retainedItems
-        : [...nextChrome.retainedItems, updated],
-    },
-    updatedItem: updated,
-  }
+  return { chrome: nextChrome, updatedItem: updated }
 }
 
 export function checkpointAnswerChrome(
@@ -109,6 +67,15 @@ export function checkpointAnswerChrome(
       itemId,
     )
   }
+  if (outcome.kind === 'refused') {
+    return withCheckpointEntry(
+      chrome,
+      runId,
+      item.attentionCheckpointId,
+      { kind: 'refused', code: outcome.code },
+      itemId,
+    )
+  }
   if (outcome.kind === 'unknown') {
     return withCheckpointEntry(
       chrome,
@@ -121,17 +88,11 @@ export function checkpointAnswerChrome(
       itemId,
     )
   }
-  const next = withCheckpointEntry(
+  return withCheckpointEntry(
     chrome,
     runId,
     item.attentionCheckpointId,
     { kind: 'answered', decision },
     itemId,
   )
-  return {
-    ...next,
-    retainedItems: next.retainedItems.some((r) => r.id === item.id)
-      ? next.retainedItems
-      : [...next.retainedItems, item],
-  }
 }

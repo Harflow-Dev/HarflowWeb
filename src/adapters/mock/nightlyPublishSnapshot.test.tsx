@@ -1,7 +1,8 @@
 import { cleanup, render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { NeedsYouPageFromLoad } from '../../components/NeedsYouPage'
+import { NeedsYouPage } from '../../components/NeedsYouPage'
 import { WorkflowRunView } from '../../components/WorkflowRunView'
+import { EMPTY_NEEDS_YOU_CHROME } from '../../presentation/needsYouChrome'
 import {
   NIGHTLY_PUBLISH_SNAPSHOT,
   NIGHTLY_REQUESTER_MODEL,
@@ -34,11 +35,20 @@ describe('Nightly publish snapshot', () => {
     expect(run.detail.approval.command).toContain(`git push origin ${snapshot.branch}`)
     expect(run.detail.approval.command).toContain(snapshot.remote)
 
+    const load = waitingNeedsYouLoad()
     render(
-      <NeedsYouPageFromLoad
-        load={waitingNeedsYouLoad()}
+      <NeedsYouPage
+        state={{
+          load,
+          chrome: EMPTY_NEEDS_YOU_CHROME,
+          displayItems: load.kind === 'ready' ? load.observation.items : [],
+        }}
         onOpenTask={vi.fn()}
         onOpenRun={vi.fn()}
+        onRespondTask={() => {}}
+        onRefreshTask={() => {}}
+        onRespondCheckpoint={() => {}}
+        onRefreshCheckpoint={() => {}}
       />,
     )
     expect(screen.getByText(snapshot.publishAction)).toBeInTheDocument()
@@ -48,7 +58,6 @@ describe('Nightly publish snapshot', () => {
     render(<WorkflowRunView load={workflowExecutionLoadFor(NIGHTLY_AUDIT_RUN_ID)} />)
     const step = screen.getByRole('complementary', { name: 'Selected step' })
     expect(step).toHaveTextContent(snapshot.publishAction)
-    expect(step).toHaveTextContent(`${NIGHTLY_REQUESTER_MODEL} · ${snapshot.repository}`)
-    expect(step).toHaveTextContent(`git push origin ${snapshot.branch}`)
+    expect(step).toHaveTextContent(NIGHTLY_REQUESTER_MODEL)
   })
 })

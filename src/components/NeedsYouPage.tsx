@@ -6,10 +6,7 @@ import type {
   WorkflowRunId,
 } from '../model'
 import type { NeedsYouScreenState } from '../presentation'
-import {
-  EMPTY_NEEDS_YOU_CHROME,
-  type NeedsYouChrome,
-} from '../presentation/needsYouChrome'
+import type { NeedsYouChrome } from '../presentation/needsYouChrome'
 import { needsYouObservationWaitingCount } from '../presentation/needsYouDisplay'
 import { Icon } from './Icon'
 import { NeedsYouCard, type NeedsYouCardActions } from './NeedsYouCard'
@@ -67,35 +64,6 @@ export function NeedsYouPage({
   )
 }
 
-/** Legacy prop shape used by older unit tests that pass `load` only. */
-export function NeedsYouPageFromLoad({
-  load,
-  onOpenTask,
-  onOpenRun,
-}: {
-  readonly load: NeedsYouLoad
-  readonly onOpenTask: (taskId: TaskId) => void
-  readonly onOpenRun: (runId: WorkflowRunId) => void
-}) {
-  const state: NeedsYouScreenState = {
-    load,
-    chrome: EMPTY_NEEDS_YOU_CHROME,
-    displayItems: load.kind === 'ready' ? load.observation.items : [],
-    submittingKey: null,
-  }
-  return (
-    <NeedsYouPage
-      state={state}
-      onOpenTask={onOpenTask}
-      onOpenRun={onOpenRun}
-      onRespondTask={() => {}}
-      onRefreshTask={() => {}}
-      onRespondCheckpoint={() => {}}
-      onRefreshCheckpoint={() => {}}
-    />
-  )
-}
-
 function WaitingBadge({ load }: { readonly load: NeedsYouLoad }) {
   if (load.kind !== 'ready' || load.observation.coverage !== 'complete') {
     return null
@@ -114,7 +82,7 @@ function NeedsYouBody({
   readonly state: NeedsYouScreenState
   readonly actions: NeedsYouCardActions
 }) {
-  const { load, chrome, displayItems, submittingKey } = state
+  const { load, chrome, displayItems } = state
   if (load.kind === 'unavailable') {
     return <p role="status">{load.message}</p>
   }
@@ -133,7 +101,6 @@ function NeedsYouBody({
         <CardList
           items={displayItems}
           chrome={chrome}
-          submittingKey={submittingKey}
           focusResultSeq={chrome.focusResultSeq}
           focusItemId={chrome.focusItemId}
           actions={actions}
@@ -153,7 +120,6 @@ function NeedsYouBody({
       <CardList
         items={displayItems}
         chrome={chrome}
-        submittingKey={submittingKey}
         focusResultSeq={chrome.focusResultSeq}
         focusItemId={chrome.focusItemId}
         actions={actions}
@@ -165,14 +131,12 @@ function NeedsYouBody({
 function CardList({
   items,
   chrome,
-  submittingKey,
   focusResultSeq,
   focusItemId,
   actions,
 }: {
   readonly items: readonly NeedsYouItem[]
   readonly chrome: NeedsYouChrome
-  readonly submittingKey: string | null
   readonly focusResultSeq: number
   readonly focusItemId: string | null
   readonly actions: NeedsYouCardActions
@@ -184,7 +148,6 @@ function CardList({
           key={item.id}
           item={item}
           chrome={chrome}
-          submittingKey={submittingKey}
           focusResultSeq={focusResultSeq}
           focusItemId={focusItemId}
           unavailableId={UNAVAILABLE_ID}

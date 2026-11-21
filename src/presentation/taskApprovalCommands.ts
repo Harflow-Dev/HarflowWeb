@@ -9,6 +9,7 @@ import {
   approvalSubmittingState,
   currentApprovalRequest,
 } from './taskSessionApproval'
+import type { TaskApprovalRegistry } from './taskApprovalRegistry'
 import type { TaskScreenState } from './taskState'
 
 export type TaskApprovalCommandHost = {
@@ -17,42 +18,48 @@ export type TaskApprovalCommandHost = {
   publish(next: TaskScreenState): void
 }
 
-function flightKey(taskId: string, requestId: string): string {
-  return `${taskId}\u0000${requestId}`
-}
-
 /**
  * Respond / refresh approval for the open task. In-flight respond calls are
- * keyed by task id + request id here, not in the resettable chrome, so
- * leaving and returning to a task mid-call cannot submit twice.
+ * keyed on the shared TaskApprovalRegistry so Needs you and the task screen
+ * cannot double-submit the same request.
  */
 export class TaskApprovalCommands {
-  private readonly inFlight = new Set<string>()
-  /** Bumped when a respond starts or settles; a refresh read across it is stale. */
-  private respondEvents = 0
   private readonly host: TaskApprovalCommandHost
+  private readonly registry: TaskApprovalRegistry
   private readonly respond: RespondTaskApprovalUseCase
   private readonly refresh: RefreshTaskApprovalUseCase
 
   constructor(
     host: TaskApprovalCommandHost,
+    registry: TaskApprovalRegistry,
     respond: RespondTaskApprovalUseCase,
     refresh: RefreshTaskApprovalUseCase,
   ) {
     this.host = host
+    this.registry = registry
     this.respond = respond
     this.refresh = refresh
   }
 
-  /** Set the chrome mirror of the in-flight state for the open request. */
+  /**
+   * Mirror shared registry entries and the in-flight flag for the open
+   * request into task chrome so Needs you outcomes are visible here.
+   */
   withSubmitting(state: TaskScreenState): TaskScreenState {
     const request = currentApprovalRequest(state)
     const taskId = state.selectedTaskId
     const submitting =
       request !== null &&
       taskId !== null &&
-      this.inFlight.has(flightKey(taskId, request.requestId))
-    return approvalSubmittingState(state, submitting)
+      this.registry.isInFlight(taskId, request.requestId)
+    const synced: TaskScreenState = {
+      ...state,
+      approvalChrome: {
+        ...this.registry.asChrome(submitting),
+        focusResultSeq: state.approvalChrome.focusResultSeq,
+      },
+    }
+    return approvalSubmittingState(synced, submitting)
   }
 
   respondDecision(decision: ApprovalDecision): void {
@@ -60,10 +67,7 @@ export class TaskApprovalCommands {
     const sent = currentApprovalRequest(state)
     const taskId = state.selectedTaskId
     if (sent === null || taskId === null) return
-    const key = flightKey(taskId, sent.requestId)
-    if (this.inFlight.has(key)) return
-    this.inFlight.add(key)
-    this.respondEvents += 1
+    if (!this.registry.beginRespond(taskId, sent.requestId)) return
     this.host.publish(this.withSubmitting(state))
     void this.respond
       .execute({
@@ -74,11 +78,11 @@ export class TaskApprovalCommands {
         actionDigest: sent.actionDigest,
       })
       .then((outcome) => {
-        this.inFlight.delete(key)
-        this.respondEvents += 1
+        this.registry.endRespond(taskId, sent.requestId)
         if (this.host.isDisposed()) return
         const next = approvalRespondedState(
           this.host.getState(),
+          this.registry,
           taskId,
           sent,
           decision,
@@ -93,15 +97,25 @@ export class TaskApprovalCommands {
     const request = currentApprovalRequest(state)
     const taskId = state.selectedTaskId
     if (request === null || taskId === null) return
-    // A refresh never races an in-flight respond: the respond result wins.
-    if (this.inFlight.has(flightKey(taskId, request.requestId))) return
-    const started = this.respondEvents
+    if (this.registry.isInFlight(taskId, request.requestId)) return
+    const started = this.registry.respondGeneration()
     void this.refresh.execute(taskId, request.requestId).then((result) => {
-      if (this.host.isDisposed() || started !== this.respondEvents) return
+      if (
+        this.host.isDisposed() ||
+        started !== this.registry.respondGeneration()
+      ) {
+        return
+      }
       const current = this.host.getState()
       if (current.selectedTaskId !== (taskId as TaskId)) return
       this.host.publish(
-        approvalRefreshedState(current, taskId, request.requestId, result),
+        approvalRefreshedState(
+          current,
+          this.registry,
+          taskId,
+          request.requestId,
+          result,
+        ),
       )
     })
   }

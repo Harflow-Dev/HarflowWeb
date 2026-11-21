@@ -14,20 +14,63 @@ export type AnswerWorkflowAttentionCheckpointRequest = {
 }
 
 /**
+ * Typed top-level attention error codes other than `attention_checkpoint_stale`.
+ * Design has no copy for these; presentation draws a neutral read-only line.
+ */
+export type WorkflowCheckpointRefusalCode =
+  | 'interaction_already_answered'
+  | 'attention_checkpoint_unavailable'
+  | 'attention_checkpoint_required'
+
+/** Winner carried on `interaction_already_answered` when present. */
+export type WorkflowCheckpointInteraction = {
+  readonly answeredBy: 'caller' | 'monitor'
+  readonly answer: ApprovalDecision
+  readonly answeredAt: number
+}
+
+/**
  * Outcome of an attention-checkpoint answer. `checkpoint_stale` is the typed
  * top-level `error.code: "attention_checkpoint_stale"`: the answer and grants
- * were not applied. `unknown` means the call threw or timed out.
+ * were not applied. `refused` covers other typed attention codes.
+ * `unknown` means the call threw or timed out.
  */
 export type WorkflowCheckpointAnswerOutcome =
   | { readonly kind: 'accepted'; readonly attentionCheckpointId: string }
   | { readonly kind: 'checkpoint_stale' }
+  | {
+      readonly kind: 'refused'
+      readonly code: WorkflowCheckpointRefusalCode
+      readonly interaction?: WorkflowCheckpointInteraction
+    }
   | { readonly kind: 'unknown' }
 
 /**
- * Outcome of a read-only checkpoint refresh: the current token, no such
- * checkpoint, or a failed read (which learns nothing).
+ * One `pending_attention` row projected for Needs you refresh matching.
+ * Match cards by node id + path; the row's own token may differ from the
+ * root `attention_checkpoint_id`.
+ */
+export type WorkflowCheckpointPendingProjection = {
+  readonly attentionCheckpointId: string
+  readonly nodeId: string
+  readonly path: readonly string[]
+  readonly nodeTitle: string | null
+  readonly reason: string
+  readonly status: string
+  /** Action / exact-action prose drawn on the card. */
+  readonly exactAction: string
+}
+
+/**
+ * Outcome of a read-only checkpoint refresh: pending-row projections for the
+ * run, no such checkpoint, or a failed read (which learns nothing).
  */
 export type WorkflowCheckpointRefreshResult =
-  | { readonly kind: 'checkpoint'; readonly attentionCheckpointId: string }
+  | {
+      readonly kind: 'checkpoint'
+      /** Root token when present; not used to match a card. */
+      readonly attentionCheckpointId: string
+      readonly pending: readonly WorkflowCheckpointPendingProjection[]
+    }
   | { readonly kind: 'absent' }
   | { readonly kind: 'failed' }

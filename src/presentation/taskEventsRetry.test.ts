@@ -13,6 +13,7 @@ import {
   type EnginePort,
 } from '../application'
 import type { TaskEventsOlderLoad, TaskEventsOlderQuery } from '../model'
+import { TaskApprovalRegistry } from './taskApprovalRegistry'
 import { TaskSession } from './taskSession'
 
 async function flush(): Promise<void> {
@@ -46,6 +47,7 @@ function harness(answers: readonly ('transient' | 'expired' | 'ok')[]) {
     createLoadTaskChangesUseCase(port),
     createLoadTaskEventsUseCase(port),
     createLoadMessagingCapabilityUseCase(port),
+    new TaskApprovalRegistry(),
     {
       async execute() {
         return { kind: 'unknown' as const }

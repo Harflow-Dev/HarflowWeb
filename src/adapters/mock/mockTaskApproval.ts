@@ -1,6 +1,7 @@
 /**
  * Mock respond / refresh for task approval ledgers.
  */
+import type { CheckpointMutationStore } from './mockWorkflowCheckpoint'
 import {
   isAwaitingDecision,
   type ApprovalRespondOutcome,
@@ -47,11 +48,12 @@ function applyOverride(
   load: TaskLoad,
   store: ApprovalMutationStore,
 ): TaskLoad {
-  if (load.kind !== 'ready' || load.observation.approval === undefined) {
-    return load
-  }
-  const override = store.overrides.get(load.observation.taskId)
+  if (load.kind !== 'ready') return load
+  const taskId = load.observation.taskId
+  const override =
+    store.overrides.get(taskId) ?? store.engineAhead.get(taskId)
   if (override === undefined) return load
+  // Needs you may seed overrides for tasks whose feed has no approval field.
   const observation: TaskObservation = {
     ...load.observation,
     approval: override,
@@ -146,6 +148,7 @@ export async function mockRespondTaskApproval(
   getScenario: () => ScenarioDefinition,
   listeners: MockListenerSets,
   store: ApprovalMutationStore,
+  checkpoints: CheckpointMutationStore,
 ): Promise<ApprovalRespondOutcome> {
   const taskId = request.taskId as TaskId
   const load = resolveTaskLoadWithApprovals(getScenario(), taskId, store)
@@ -162,7 +165,7 @@ export async function mockRespondTaskApproval(
     taskId,
     resolveTaskLoadWithApprovals(getScenario(), taskId, store),
   )
-  publishNeedsYouApproval(() => getScenario(), listeners, taskId, next)
+  publishNeedsYouApproval(getScenario, listeners, store, checkpoints)
   return { kind: 'accepted', request: next }
 }
 
@@ -172,6 +175,7 @@ export async function mockRefreshTaskApproval(
   getScenario: () => ScenarioDefinition,
   listeners: MockListenerSets,
   store: ApprovalMutationStore,
+  checkpoints: CheckpointMutationStore,
 ): Promise<TaskApprovalRequest | null> {
   const load = resolveTaskLoadWithApprovals(getScenario(), taskId, store)
   const current = engineRow(load, taskId, store)
@@ -184,6 +188,6 @@ export async function mockRefreshTaskApproval(
     taskId,
     resolveTaskLoadWithApprovals(getScenario(), taskId, store),
   )
-  publishNeedsYouApproval(() => getScenario(), listeners, taskId, current)
+  publishNeedsYouApproval(getScenario, listeners, store, checkpoints)
   return current
 }

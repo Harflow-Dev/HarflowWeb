@@ -13,6 +13,7 @@ import {
   createLoadTaskUseCase,
 } from '../application'
 import type { TaskId } from '../model'
+import { TaskApprovalRegistry } from './taskApprovalRegistry'
 import { TaskSession } from './taskSession'
 import type { TaskScreenState } from './taskState'
 
@@ -30,6 +31,7 @@ async function openSession(
     createLoadTaskChangesUseCase(mock.engine),
     createLoadTaskEventsUseCase(mock.engine),
     createLoadMessagingCapabilityUseCase(mock.engine),
+    new TaskApprovalRegistry(),
     {
       async execute() {
         return { kind: 'unknown' as const }
@@ -101,17 +103,18 @@ describe('TaskSession queued message commands', () => {
       createLoadTaskChangesUseCase(mock.engine),
       createLoadTaskEventsUseCase(mock.engine),
       createLoadMessagingCapabilityUseCase(mock.engine),
-    {
-      async execute() {
-        return { kind: 'unknown' as const }
+      new TaskApprovalRegistry(),
+      {
+        async execute() {
+          return { kind: 'unknown' as const }
+        },
       },
-    },
-    {
-      async execute() {
-        return { kind: 'absent' as const }
+      {
+        async execute() {
+          return { kind: 'absent' as const }
+        },
       },
-    },
-  )
+    )
     session.start()
     session.openTask(MESSAGE_QUEUED_TASK_ID)
     expect(session.getState().load.kind).toBe('loading')

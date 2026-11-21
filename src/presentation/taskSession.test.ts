@@ -23,6 +23,7 @@ import {
   type TaskLoad,
 } from '../model'
 import { taskChangesKey } from '../adapters/mock/mockEngineCore'
+import { TaskApprovalRegistry } from './taskApprovalRegistry'
 import {
   pageEventsObservation,
   populatedEventsObservation,
@@ -322,6 +323,7 @@ function sessionFor(port: EnginePort): TaskSession {
     createLoadTaskChangesUseCase(port),
     createLoadTaskEventsUseCase(port),
     createLoadMessagingCapabilityUseCase(port),
+    new TaskApprovalRegistry(),
     {
       async execute() {
         return { kind: 'unknown' as const }

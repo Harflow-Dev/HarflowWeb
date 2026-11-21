@@ -1,15 +1,16 @@
 import type {
-  AnswerWorkflowAttentionCheckpointUseCase,
   RefreshTaskApprovalUseCase,
   RefreshWorkflowAttentionCheckpointUseCase,
-  RespondTaskApprovalUseCase,
 } from '../application'
 import type {
   ApprovalDecision,
+  ApprovalRespondOutcome,
   NeedsYouItem,
   NeedsYouTaskApproval,
   NeedsYouWorkflowApproval,
   TaskId,
+  WorkflowCheckpointAnswerOutcome,
+  WorkflowCheckpointPendingProjection,
   WorkflowRunId,
 } from '../model'
 import { mergeNeedsYouDisplay } from './needsYouDisplay'
@@ -25,18 +26,40 @@ import {
   type NeedsYouChrome,
 } from './needsYouChrome'
 import type { NeedsYouScreenState } from './needsYouState'
-import { withoutApprovalRefusal } from './taskApprovalChrome'
+import type { TaskApprovalRegistry } from './taskApprovalRegistry'
+
+function samePath(
+  a: readonly string[],
+  b: readonly string[],
+): boolean {
+  if (a.length !== b.length) return false
+  return a.every((part, i) => part === b[i])
+}
+
+/** Match a pending_attention projection to the card's node + path. */
+export function matchingPendingProjection(
+  item: NeedsYouWorkflowApproval,
+  pending: readonly WorkflowCheckpointPendingProjection[],
+): WorkflowCheckpointPendingProjection | null {
+  return (
+    pending.find(
+      (row) =>
+        row.nodeId === item.nodeId && samePath(row.path, item.path),
+    ) ?? null
+  )
+}
 
 export function applyTaskRespond(
   state: NeedsYouScreenState,
+  registry: TaskApprovalRegistry,
   item: NeedsYouTaskApproval,
   taskId: TaskId,
   decision: ApprovalDecision,
-  outcome: Awaited<ReturnType<RespondTaskApprovalUseCase['execute']>>,
-  key: string,
+  outcome: ApprovalRespondOutcome,
 ): NeedsYouScreenState {
   const { chrome, updatedItem } = taskRespondChrome(
     state.chrome,
+    registry,
     item,
     taskId,
     decision,
@@ -49,43 +72,54 @@ export function applyTaskRespond(
       : state.displayItems.map((row) =>
           row.id === item.id ? updatedItem : row,
         )
-  return {
-    ...state,
-    chrome,
-    displayItems,
-    submittingKey: state.submittingKey === key ? null : state.submittingKey,
-  }
+  return { ...state, chrome, displayItems }
 }
 
 export function applyTaskRefresh(
   state: NeedsYouScreenState,
+  registry: TaskApprovalRegistry,
   item: NeedsYouTaskApproval,
   taskId: TaskId,
   result: Awaited<ReturnType<RefreshTaskApprovalUseCase['execute']>>,
 ): NeedsYouScreenState {
-  if (result.kind !== 'row') return state
+  const { chrome: taskChrome, request } = registry.applyRefresh(
+    taskId,
+    item.requestId,
+    result,
+  )
+  if (request === null) return state
+  // Only replace when the refreshed row is the same request id (task-screen
+  // withApprovalOnLoad rule). Never swap the card onto a different request.
+  if (request.requestId !== item.requestId) {
+    return {
+      ...state,
+      chrome: withTaskApprovalChrome(
+        state.chrome,
+        {
+          ...taskChrome,
+          focusResultSeq: state.chrome.taskApprovals.focusResultSeq + 1,
+        },
+        item.id,
+      ),
+    }
+  }
   const updated: NeedsYouTaskApproval = {
     ...item,
-    requestId: result.request.requestId,
-    ownerRevision: result.request.ownerRevision,
-    request: result.request,
+    requestId: request.requestId,
+    ownerRevision: request.ownerRevision,
+    request,
   }
   const displayItems = state.displayItems.map((row) =>
     row.id === item.id ? updated : row,
   )
-  const taskApprovals = withoutApprovalRefusal(
-    state.chrome.taskApprovals,
-    taskId,
-    item.requestId,
+  const chrome: NeedsYouChrome = withTaskApprovalChrome(
+    state.chrome,
+    {
+      ...taskChrome,
+      focusResultSeq: state.chrome.taskApprovals.focusResultSeq + 1,
+    },
+    item.id,
   )
-  const chrome: NeedsYouChrome = {
-    ...withTaskApprovalChrome(
-      state.chrome,
-      { ...taskApprovals, focusResultSeq: taskApprovals.focusResultSeq + 1 },
-      item.id,
-    ),
-    retainedItems: state.chrome.retainedItems.filter((r) => r.id !== item.id),
-  }
   return { ...state, chrome, displayItems }
 }
 
@@ -94,10 +128,7 @@ export function applyCheckpointAnswer(
   item: NeedsYouWorkflowApproval,
   runId: WorkflowRunId,
   decision: ApprovalDecision,
-  outcome: Awaited<
-    ReturnType<AnswerWorkflowAttentionCheckpointUseCase['execute']>
-  >,
-  key: string,
+  outcome: WorkflowCheckpointAnswerOutcome,
 ): NeedsYouScreenState {
   const chrome = checkpointAnswerChrome(
     state.chrome,
@@ -107,10 +138,29 @@ export function applyCheckpointAnswer(
     outcome,
     item.id,
   )
+  return { ...state, chrome }
+}
+
+function refreshedCheckpointItem(
+  item: NeedsYouWorkflowApproval,
+  matched: WorkflowCheckpointPendingProjection,
+): NeedsYouWorkflowApproval {
   return {
-    ...state,
-    chrome,
-    submittingKey: state.submittingKey === key ? null : state.submittingKey,
+    ...item,
+    attentionCheckpointId: matched.attentionCheckpointId,
+    exactAction: matched.exactAction,
+    context: {
+      ...item.context,
+      step: matched.nodeTitle ?? item.context.step,
+    },
+  }
+}
+
+function withResultFocus(chrome: NeedsYouChrome, itemId: string): NeedsYouChrome {
+  return {
+    ...chrome,
+    focusResultSeq: chrome.focusResultSeq + 1,
+    focusItemId: itemId,
   }
 }
 
@@ -124,42 +174,33 @@ export function applyCheckpointRefresh(
   >,
 ): NeedsYouScreenState {
   if (result.kind !== 'checkpoint') return state
-  const sameToken = result.attentionCheckpointId === sentToken
-  let chrome = withoutCheckpointStale(state.chrome, runId, sentToken)
-  let displayItems = state.displayItems
-  if (!sameToken) {
-    const updated: NeedsYouWorkflowApproval = {
-      ...item,
-      attentionCheckpointId: result.attentionCheckpointId,
+  // No matching pending row means absent: keep the non-decidable chrome.
+  const matched = matchingPendingProjection(item, result.pending)
+  if (matched === null) return state
+  const cleared = withoutCheckpointStale(state.chrome, runId, sentToken)
+  if (matched.attentionCheckpointId !== sentToken) {
+    const updated = refreshedCheckpointItem(item, matched)
+    return {
+      ...state,
+      chrome: withResultFocus(cleared, item.id),
+      displayItems: state.displayItems.map((row) =>
+        row.id === item.id ? updated : row,
+      ),
     }
-    displayItems = state.displayItems.map((row) =>
-      row.id === item.id ? updated : row,
-    )
-    chrome = {
-      ...chrome,
-      retainedItems: chrome.retainedItems.filter((r) => r.id !== item.id),
-      focusResultSeq: chrome.focusResultSeq + 1,
-      focusItemId: item.id,
-    }
-  } else {
-    const entry = checkpointEntryFor(state.chrome, runId, sentToken)
-    if (entry?.kind === 'checkpoint_stale') {
-      chrome = withCheckpointEntry(
-        chrome,
+  }
+  const stale =
+    checkpointEntryFor(state.chrome, runId, sentToken)?.kind ===
+    'checkpoint_stale'
+  const chrome = stale
+    ? withCheckpointEntry(
+        cleared,
         runId,
         sentToken,
         { kind: 'checkpoint_stale' },
         item.id,
       )
-    } else {
-      chrome = {
-        ...chrome,
-        focusResultSeq: chrome.focusResultSeq + 1,
-        focusItemId: item.id,
-      }
-    }
-  }
-  return { ...state, chrome, displayItems }
+    : withResultFocus(cleared, item.id)
+  return { ...state, chrome }
 }
 
 export function applyNeedsYouLoad(

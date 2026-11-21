@@ -55,8 +55,8 @@ import {
   seededApprovalChromeState,
   type TaskApprovalSeed,
 } from './taskSessionApproval'
-import { retainedApprovalChrome } from './taskApprovalChrome'
 import { TaskApprovalCommands } from './taskApprovalCommands'
+import type { TaskApprovalRegistry } from './taskApprovalRegistry'
 import { MessagingCapabilityWatch } from './taskMessagingCapabilityWatch'
 import { TaskPaneObservers } from './taskSessionObservers'
 import type { EventsFactsRevealId } from './taskTopbarChips'
@@ -78,6 +78,7 @@ export class TaskSession {
   private readonly loadTask: LoadTaskUseCase
   private readonly capability: MessagingCapabilityWatch
   private readonly panes: TaskPaneObservers
+  private readonly registry: TaskApprovalRegistry
   private readonly approvals: TaskApprovalCommands
 
   constructor(
@@ -85,10 +86,12 @@ export class TaskSession {
     loadTaskChanges: LoadTaskChangesUseCase,
     loadTaskEvents: LoadTaskEventsUseCase,
     loadMessagingCapability: LoadMessagingCapabilityUseCase,
+    registry: TaskApprovalRegistry,
     respondApproval: RespondTaskApprovalUseCase,
     refreshApproval: RefreshTaskApprovalUseCase,
   ) {
     this.loadTask = loadTask
+    this.registry = registry
     this.capability = new MessagingCapabilityWatch(
       loadMessagingCapability,
       (load) => this.publish({ ...this.state, messagingCapability: load }),
@@ -106,6 +109,7 @@ export class TaskSession {
         getState: () => this.state,
         publish: (next) => this.publish(next),
       },
+      registry,
       respondApproval,
       refreshApproval,
     )
@@ -117,7 +121,9 @@ export class TaskSession {
     return () => { this.listeners.delete(listener) }
   }
 
-  getState(): TaskScreenState { return this.state }
+  getState(): TaskScreenState {
+    return this.approvals.withSubmitting(this.state)
+  }
 
   isDisposed(): boolean { return this.closed }
 
@@ -251,7 +257,9 @@ export class TaskSession {
   }
 
   seedTaskApprovalChrome(id: TaskId, seed: TaskApprovalSeed): void {
-    this.commit(seededApprovalChromeState(this.state, id, seed))
+    this.commit(
+      seededApprovalChromeState(this.state, this.registry, id, seed),
+    )
   }
 
   respondTaskApproval(decision: ApprovalDecision): void {
@@ -290,7 +298,7 @@ export class TaskSession {
         remembered,
         this.state.messagingCapability,
       ),
-      approvalChrome: retainedApprovalChrome(this.state.approvalChrome),
+      approvalChrome: this.registry.retainNonRefusal(),
     })
     this.observation = this.loadTask.observe(taskId, (load) =>
       this.applyLoad(load, gen, taskId),

@@ -14,6 +14,7 @@ import {
   type EnginePort,
 } from '../application'
 import type { TaskId, TaskLoad } from '../model'
+import { TaskApprovalRegistry } from './taskApprovalRegistry'
 import { TaskSession } from './taskSession'
 
 const RUNNING = SLOT_RELEASE_TASK_ID
@@ -41,6 +42,7 @@ function harness() {
     createLoadTaskChangesUseCase(port),
     createLoadTaskEventsUseCase(port),
     createLoadMessagingCapabilityUseCase(port),
+    new TaskApprovalRegistry(),
     {
       async execute() {
         return { kind: 'unknown' as const }

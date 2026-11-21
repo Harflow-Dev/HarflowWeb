@@ -118,7 +118,9 @@ function alreadyAnsweredResult(
   if (interaction === undefined) {
     return result(null, [APPROVAL_COPY.alreadyAnswered], false, false)
   }
-  // DECIDED.answeredCaller (Needs you / menu-bar): raceCaller title + recorded.
+  // DECIDED.answeredCaller (Needs you / menu-bar, and task screen when the
+  // race winner is the caller): raceCaller title + recorded. Design tables
+  // draw this for caller; the task screen uses it when interaction says so.
   if (interaction.answeredBy === 'caller') {
     return result(
       APPROVAL_COPY.raceCaller,

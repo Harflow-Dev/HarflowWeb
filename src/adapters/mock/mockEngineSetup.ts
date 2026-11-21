@@ -97,26 +97,35 @@ export function mockEnginePortCallbacks(runtime: MockEngineRuntime): {
   ) => Promise<WorkflowCheckpointRefreshResult>
 } {
   const { getScenario, listeners, approvals, checkpoints } = runtime
+  const checkpointDeps = {
+    getScenario,
+    listeners,
+    checkpoints,
+    approvals,
+  }
   return {
     resolveTask: (taskId) =>
       resolveTaskLoadWithApprovals(getScenario(), taskId, approvals),
     onRespondApproval: (request) =>
-      mockRespondTaskApproval(request, getScenario, listeners, approvals),
-    onRefreshApproval: (taskId, requestId) =>
-      mockRefreshTaskApproval(taskId, requestId, getScenario, listeners, approvals),
-    onAnswerCheckpoint: (request) =>
-      mockAnswerWorkflowAttentionCheckpoint(
+      mockRespondTaskApproval(
         request,
         getScenario,
         listeners,
+        approvals,
         checkpoints,
       ),
-    onRefreshCheckpoint: (workflowRunId) =>
-      mockRefreshWorkflowAttentionCheckpoint(
-        workflowRunId,
+    onRefreshApproval: (taskId, requestId) =>
+      mockRefreshTaskApproval(
+        taskId,
+        requestId,
         getScenario,
         listeners,
+        approvals,
         checkpoints,
       ),
+    onAnswerCheckpoint: (request) =>
+      mockAnswerWorkflowAttentionCheckpoint(request, checkpointDeps),
+    onRefreshCheckpoint: (workflowRunId) =>
+      mockRefreshWorkflowAttentionCheckpoint(workflowRunId, checkpointDeps),
   }
 }

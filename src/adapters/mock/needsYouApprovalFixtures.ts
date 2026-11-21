@@ -136,14 +136,22 @@ export function slotReleaseNeedsYouApproval(
   }
 }
 
+/** Pending-row node identity for the Nightly publish Needs you card. */
+export const NEEDS_YOU_PUBLISH_NODE_ID = 'open-pull-request' as const
+export const NEEDS_YOU_PUBLISH_PATH = [
+  'run-nightly-dependency-audit',
+  'open-pull-request',
+] as const
+
 export function nightlyPublishNeedsYouApproval(
   attentionCheckpointId: string = NEEDS_YOU_CHECKPOINT_TOKEN,
+  exactAction: string = NIGHTLY_PUBLISH_SNAPSHOT.publishAction,
 ): NeedsYouWorkflowApproval {
   return {
     kind: 'approval',
     id: 'approve-nightly-publish',
     actionLabel: 'Wants to publish',
-    exactAction: NIGHTLY_PUBLISH_SNAPSHOT.publishAction,
+    exactAction,
     detail: `${NIGHTLY_PUBLISH_SNAPSHOT.needsYouAccess} · ${NIGHTLY_REQUESTER_MODEL}`,
     approveLabel: 'Approve',
     rejectLabel: 'Reject',
@@ -155,6 +163,8 @@ export function nightlyPublishNeedsYouApproval(
       runId: NIGHTLY_AUDIT_RUN_ID,
     },
     attentionCheckpointId,
+    nodeId: NEEDS_YOU_PUBLISH_NODE_ID,
+    path: NEEDS_YOU_PUBLISH_PATH,
   }
 }
 

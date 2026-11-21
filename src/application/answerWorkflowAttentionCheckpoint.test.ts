@@ -61,6 +61,7 @@ describe('refreshWorkflowAttentionCheckpoint use case', () => {
       refreshWorkflowAttentionCheckpoint: vi.fn(async () => ({
         kind: 'checkpoint' as const,
         attentionCheckpointId: REQUEST.attentionCheckpointId,
+        pending: [],
       })),
     })
     expect(
@@ -70,6 +71,7 @@ describe('refreshWorkflowAttentionCheckpoint use case', () => {
     ).toEqual({
       kind: 'checkpoint',
       attentionCheckpointId: REQUEST.attentionCheckpointId,
+      pending: [],
     })
   })
 

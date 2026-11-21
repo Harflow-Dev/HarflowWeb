@@ -1,6 +1,6 @@
 /**
  * Respond / refresh for Needs you task approvals and workflow checkpoints.
- * In-flight keys are per request so leaving and returning cannot double-submit.
+ * Task in-flight keys live on the shared TaskApprovalRegistry.
  */
 import type {
   AnswerWorkflowAttentionCheckpointUseCase,
@@ -19,20 +19,20 @@ import {
   applyTaskRefresh,
   applyTaskRespond,
 } from './needsYouCommandApply'
+import {
+  checkpointFlightKey,
+  type NeedsYouChrome,
+} from './needsYouChrome'
 import type { NeedsYouScreenState } from './needsYouState'
+import {
+  taskApprovalFlightKey,
+  type TaskApprovalRegistry,
+} from './taskApprovalRegistry'
 
 export type NeedsYouCommandHost = {
   isDisposed(): boolean
   getState(): NeedsYouScreenState
   publish(next: NeedsYouScreenState): void
-}
-
-function taskFlightKey(taskId: string, requestId: string): string {
-  return `task:${taskId}\u0000${requestId}`
-}
-
-function checkpointFlightKey(runId: string, token: string): string {
-  return `cp:${runId}\u0000${token}`
 }
 
 function findDisplayItem(
@@ -42,14 +42,49 @@ function findDisplayItem(
   return state.displayItems.find((item) => item.id === itemId) ?? null
 }
 
+function withFlightKeys(
+  keys: readonly string[],
+  key: string,
+  present: boolean,
+): readonly string[] {
+  const rest = keys.filter((k) => k !== key)
+  return present ? [...rest, key] : rest
+}
+
+function withTaskFlight(
+  chrome: NeedsYouChrome,
+  key: string,
+  present: boolean,
+): NeedsYouChrome {
+  return {
+    ...chrome,
+    taskInFlight: withFlightKeys(chrome.taskInFlight, key, present),
+  }
+}
+
+function withCheckpointFlight(
+  chrome: NeedsYouChrome,
+  key: string,
+  present: boolean,
+): NeedsYouChrome {
+  return {
+    ...chrome,
+    checkpointInFlight: withFlightKeys(
+      chrome.checkpointInFlight,
+      key,
+      present,
+    ),
+  }
+}
+
 /**
- * Needs you approval commands. Task answers reuse the task approval use
- * cases; workflow checkpoints use the attention-checkpoint use cases.
+ * Needs you approval commands. Task answers reuse the shared registry and
+ * task approval use cases; workflow checkpoints use attention-checkpoint
+ * use cases with a local in-flight set.
  */
 export class NeedsYouCommands {
-  private readonly inFlight = new Set<string>()
-  private respondEvents = 0
   private readonly host: NeedsYouCommandHost
+  private readonly registry: TaskApprovalRegistry
   private readonly respondApproval: RespondTaskApprovalUseCase
   private readonly refreshApproval: RefreshTaskApprovalUseCase
   private readonly answerCheckpointUseCase: AnswerWorkflowAttentionCheckpointUseCase
@@ -57,12 +92,14 @@ export class NeedsYouCommands {
 
   constructor(
     host: NeedsYouCommandHost,
+    registry: TaskApprovalRegistry,
     respondApproval: RespondTaskApprovalUseCase,
     refreshApproval: RefreshTaskApprovalUseCase,
     answerCheckpoint: AnswerWorkflowAttentionCheckpointUseCase,
     refreshCheckpoint: RefreshWorkflowAttentionCheckpointUseCase,
   ) {
     this.host = host
+    this.registry = registry
     this.respondApproval = respondApproval
     this.refreshApproval = refreshApproval
     this.answerCheckpointUseCase = answerCheckpoint
@@ -75,11 +112,12 @@ export class NeedsYouCommands {
     if (item === null || !isNeedsYouTaskApproval(item)) return
     const taskId = item.context.taskId
     if (taskId === null) return
-    const key = taskFlightKey(taskId, item.requestId)
-    if (this.inFlight.has(key)) return
-    this.inFlight.add(key)
-    this.respondEvents += 1
-    this.host.publish({ ...state, submittingKey: key })
+    if (!this.registry.beginRespond(taskId, item.requestId)) return
+    const flightKey = taskApprovalFlightKey(taskId, item.requestId)
+    this.host.publish({
+      ...state,
+      chrome: withTaskFlight(state.chrome, flightKey, true),
+    })
     void this.respondApproval
       .execute({
         taskId,
@@ -89,12 +127,22 @@ export class NeedsYouCommands {
         actionDigest: item.request.actionDigest,
       })
       .then((outcome) => {
-        this.inFlight.delete(key)
-        this.respondEvents += 1
+        this.registry.endRespond(taskId, item.requestId)
         if (this.host.isDisposed()) return
         const current = this.host.getState()
+        const cleared = {
+          ...current,
+          chrome: withTaskFlight(current.chrome, flightKey, false),
+        }
         this.host.publish(
-          applyTaskRespond(current, item, taskId, decision, outcome, key),
+          applyTaskRespond(
+            cleared,
+            this.registry,
+            item,
+            taskId,
+            decision,
+            outcome,
+          ),
         )
       })
   }
@@ -105,13 +153,19 @@ export class NeedsYouCommands {
     if (item === null || !isNeedsYouTaskApproval(item)) return
     const taskId = item.context.taskId
     if (taskId === null) return
-    const key = taskFlightKey(taskId, item.requestId)
-    if (this.inFlight.has(key)) return
-    const started = this.respondEvents
+    if (this.registry.isInFlight(taskId, item.requestId)) return
+    const started = this.registry.respondGeneration()
     void this.refreshApproval.execute(taskId, item.requestId).then((result) => {
-      if (this.host.isDisposed() || started !== this.respondEvents) return
+      if (
+        this.host.isDisposed() ||
+        started !== this.registry.respondGeneration()
+      ) {
+        return
+      }
       const current = this.host.getState()
-      this.host.publish(applyTaskRefresh(current, item, taskId, result))
+      this.host.publish(
+        applyTaskRefresh(current, this.registry, item, taskId, result),
+      )
     })
   }
 
@@ -122,10 +176,11 @@ export class NeedsYouCommands {
     const runId = item.context.runId
     if (runId === null) return
     const key = checkpointFlightKey(runId, item.attentionCheckpointId)
-    if (this.inFlight.has(key)) return
-    this.inFlight.add(key)
-    this.respondEvents += 1
-    this.host.publish({ ...state, submittingKey: key })
+    if (state.chrome.checkpointInFlight.includes(key)) return
+    this.host.publish({
+      ...state,
+      chrome: withCheckpointFlight(state.chrome, key, true),
+    })
     void this.answerCheckpointUseCase
       .execute({
         workflowRunId: runId,
@@ -133,12 +188,14 @@ export class NeedsYouCommands {
         decision,
       })
       .then((outcome) => {
-        this.inFlight.delete(key)
-        this.respondEvents += 1
         if (this.host.isDisposed()) return
         const current = this.host.getState()
+        const cleared = {
+          ...current,
+          chrome: withCheckpointFlight(current.chrome, key, false),
+        }
         this.host.publish(
-          applyCheckpointAnswer(current, item, runId, decision, outcome, key),
+          applyCheckpointAnswer(cleared, item, runId, decision, outcome),
         )
       })
   }
@@ -150,11 +207,10 @@ export class NeedsYouCommands {
     const runId = item.context.runId
     if (runId === null) return
     const key = checkpointFlightKey(runId, item.attentionCheckpointId)
-    if (this.inFlight.has(key)) return
-    const started = this.respondEvents
+    if (state.chrome.checkpointInFlight.includes(key)) return
     const sentToken = item.attentionCheckpointId
     void this.refreshCheckpointUseCase.execute(runId).then((result) => {
-      if (this.host.isDisposed() || started !== this.respondEvents) return
+      if (this.host.isDisposed()) return
       const current = this.host.getState()
       this.host.publish(
         applyCheckpointRefresh(current, item, runId, sentToken, result),

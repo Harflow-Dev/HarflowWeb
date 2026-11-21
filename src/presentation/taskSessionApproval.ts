@@ -11,11 +11,10 @@ import type {
 } from '../model'
 import {
   refusalEntry,
-  withApprovalEntry,
-  withoutApprovalRefusal,
   type TaskApprovalChrome,
   type TaskApprovalSeedRefusal,
 } from './taskApprovalChrome'
+import type { TaskApprovalRegistry } from './taskApprovalRegistry'
 import type { TaskScreenState } from './taskState'
 
 export type TaskApprovalSeed = {
@@ -31,18 +30,21 @@ export function currentApprovalRequest(
 
 export function seededApprovalChromeState(
   state: TaskScreenState,
+  registry: TaskApprovalRegistry,
   taskId: TaskId,
   seed: TaskApprovalSeed,
 ): TaskScreenState | null {
   if (state.selectedTaskId !== taskId) return null
   if (state.load.kind !== 'ready') return null
   const revision = currentApprovalRequest(state)?.ownerRevision ?? 0
+  const entries = (seed.refusals ?? []).map((entry) =>
+    refusalEntry(taskId, entry.requestId, revision, entry.refusal),
+  )
+  registry.replaceEntries(entries)
   return {
     ...state,
     approvalChrome: {
-      entries: (seed.refusals ?? []).map((entry) =>
-        refusalEntry(taskId, entry.requestId, revision, entry.refusal),
-      ),
+      entries,
       submitting: false,
       focusResultSeq: 0,
     },
@@ -74,46 +76,30 @@ function withChrome(
  */
 export function approvalRespondedState(
   state: TaskScreenState,
+  registry: TaskApprovalRegistry,
   taskId: TaskId,
   sent: TaskApprovalRequest,
   decision: ApprovalDecision,
   outcome: ApprovalRespondOutcome,
 ): TaskScreenState {
-  const chrome = state.approvalChrome
-  if (outcome.kind === 'refused') {
-    return withChrome(
-      state,
-      withApprovalEntry(
-        chrome,
-        refusalEntry(taskId, sent.requestId, sent.ownerRevision, outcome.refusal),
-        state.selectedTaskId,
-      ),
-    )
-  }
-  if (outcome.kind === 'unknown') {
-    return withChrome(
-      state,
-      withApprovalEntry(
-        chrome,
-        {
-          kind: 'non_actionable',
-          taskId,
-          requestId: sent.requestId,
-          ownerRevision: sent.ownerRevision,
-        },
-        state.selectedTaskId,
-      ),
-    )
-  }
-  const merged = withApprovalOnLoad(state, taskId, outcome.request)
-  return withChrome(
-    merged,
-    withApprovalEntry(
-      merged.approvalChrome,
-      { kind: 'answered', taskId, requestId: sent.requestId, decision },
-      state.selectedTaskId,
-    ),
+  const { chrome, acceptedRequest } = registry.applyRespond(
+    taskId,
+    sent,
+    decision,
+    outcome,
+    state.selectedTaskId,
   )
+  if (acceptedRequest === null) {
+    return withChrome(state, {
+      ...chrome,
+      submitting: state.approvalChrome.submitting,
+    })
+  }
+  const merged = withApprovalOnLoad(state, taskId, acceptedRequest)
+  return withChrome(merged, {
+    ...chrome,
+    submitting: merged.approvalChrome.submitting,
+  })
 }
 
 /**
@@ -122,16 +108,17 @@ export function approvalRespondedState(
  */
 export function approvalRefreshedState(
   state: TaskScreenState,
+  registry: TaskApprovalRegistry,
   taskId: TaskId,
   requestId: string,
   result: ApprovalRefreshResult,
 ): TaskScreenState {
-  if (result.kind !== 'row') return state
-  const merged = withApprovalOnLoad(state, taskId, result.request)
-  const chrome = withoutApprovalRefusal(merged.approvalChrome, taskId, requestId)
+  const { chrome, request } = registry.applyRefresh(taskId, requestId, result)
+  if (request === null) return state
+  const merged = withApprovalOnLoad(state, taskId, request)
   return withChrome(merged, {
     ...chrome,
-    focusResultSeq: chrome.focusResultSeq + 1,
+    submitting: merged.approvalChrome.submitting,
   })
 }
 

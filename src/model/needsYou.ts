@@ -53,11 +53,15 @@ export type NeedsYouTaskApproval = NeedsYouApprovalBase & {
 
 /**
  * Workflow attention checkpoint on Needs you. Contract:
- * `attention_checkpoint_id` (and `runId` from context).
+ * `attention_checkpoint_id` (and `runId` from context). `nodeId` + `path`
+ * identify the pending_attention row so Refresh matches the card's own
+ * token, not the root run token.
  */
 export type NeedsYouWorkflowApproval = NeedsYouApprovalBase & {
   readonly context: NeedsYouWorkflowContext
   readonly attentionCheckpointId: string
+  readonly nodeId: string
+  readonly path: readonly string[]
 }
 
 /** One exact action. The label is not permission for the whole task. */

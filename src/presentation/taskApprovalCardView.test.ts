@@ -132,6 +132,24 @@ describe('taskApprovalCardView', () => {
     })
   })
 
+  it('answered-elsewhere: already_answered with caller interaction uses raceCaller', () => {
+    const entry = refusal('already_answered', {
+      interaction: {
+        answeredBy: 'caller',
+        answer: 'approve',
+        answeredAt: 1792000005,
+      },
+    })
+    const view = taskApprovalCardView(PENDING, entry)
+    expect(view.mode).toEqual({
+      kind: 'result',
+      title: APPROVAL_COPY.raceCaller,
+      lines: ['Oct 14, 2026, 5:46 PM', 'Recorded decision: approve'],
+      refresh: false,
+      refreshDisabled: false,
+    })
+  })
+
   it('refused: settled refusal → COPY.settled only', () => {
     const view = taskApprovalCardView(PENDING, refusal('settled'))
     expect(view.mode).toEqual({

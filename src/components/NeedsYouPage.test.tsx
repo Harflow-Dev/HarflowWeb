@@ -8,14 +8,44 @@ import {
   unavailableNeedsYouLoad,
   waitingNeedsYouLoad,
 } from '../adapters/mock/needsYouFixtures'
-import {
-  NEEDS_YOU_QUESTION_EXPLANATION,
-  NeedsYouPageFromLoad,
-} from './NeedsYouPage'
+import type { NeedsYouLoad, TaskId, WorkflowRunId } from '../model'
+import type { NeedsYouScreenState } from '../presentation'
+import { EMPTY_NEEDS_YOU_CHROME } from '../presentation/needsYouChrome'
+import { NEEDS_YOU_QUESTION_EXPLANATION, NeedsYouPage } from './NeedsYouPage'
 
 afterEach(() => {
   cleanup()
 })
+
+function needsYouStateFromLoad(load: NeedsYouLoad): NeedsYouScreenState {
+  return {
+    load,
+    chrome: EMPTY_NEEDS_YOU_CHROME,
+    displayItems: load.kind === 'ready' ? load.observation.items : [],
+  }
+}
+
+function NeedsYouPageFromLoad({
+  load,
+  onOpenTask,
+  onOpenRun,
+}: {
+  readonly load: NeedsYouLoad
+  readonly onOpenTask: (taskId: TaskId) => void
+  readonly onOpenRun: (runId: WorkflowRunId) => void
+}) {
+  return (
+    <NeedsYouPage
+      state={needsYouStateFromLoad(load)}
+      onOpenTask={onOpenTask}
+      onOpenRun={onOpenRun}
+      onRespondTask={() => {}}
+      onRefreshTask={() => {}}
+      onRespondCheckpoint={() => {}}
+      onRefreshCheckpoint={() => {}}
+    />
+  )
+}
 
 describe('NeedsYouPage', () => {
   it('renders typed waiting items as literal text and blocks unavailable actions', async () => {

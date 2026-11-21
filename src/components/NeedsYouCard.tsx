@@ -11,6 +11,7 @@ import {
   needsYouContextText,
 } from '../model'
 import type { NeedsYouChrome } from '../presentation/needsYouChrome'
+import { needsYouCardSubmitting } from '../presentation/needsYouCardSubmitting'
 import {
   needsYouTaskApprovalViewFor,
 } from '../presentation/needsYouApprovalCardView'
@@ -39,7 +40,6 @@ export type NeedsYouCardActions = {
 export function NeedsYouCard({
   item,
   chrome,
-  submittingKey,
   focusResultSeq,
   focusItemId,
   unavailableId,
@@ -47,7 +47,6 @@ export function NeedsYouCard({
 }: {
   readonly item: NeedsYouItem
   readonly chrome: NeedsYouChrome
-  readonly submittingKey: string | null
   readonly focusResultSeq: number
   readonly focusItemId: string | null
   readonly unavailableId: string
@@ -63,10 +62,12 @@ export function NeedsYouCard({
     )
   }
   if (isNeedsYouTaskApproval(item)) {
-    const taskId = item.context.taskId ?? ''
-    const submitting =
-      submittingKey === `task:${taskId}\u0000${item.requestId}`
-    const view = needsYouTaskApprovalViewFor(item, chrome.taskApprovals, submitting)
+    const submitting = needsYouCardSubmitting(item, chrome)
+    const view = needsYouTaskApprovalViewFor(
+      item,
+      chrome.taskApprovals,
+      submitting,
+    )
     return (
       <TaskApprovalNeedsYouCard
         itemId={item.id}
@@ -82,9 +83,7 @@ export function NeedsYouCard({
       runId === null
         ? null
         : checkpointEntryFor(chrome, runId, item.attentionCheckpointId)
-    const submitting =
-      runId !== null &&
-      submittingKey === `cp:${runId}\u0000${item.attentionCheckpointId}`
+    const submitting = needsYouCardSubmitting(item, chrome)
     const view = needsYouCheckpointCardView(item, entry, submitting)
     return (
       <CheckpointNeedsYouCard

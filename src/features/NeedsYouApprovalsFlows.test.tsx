@@ -10,6 +10,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { scenarioById, type ScenarioId } from '../adapters/mock'
 import { applyNewTaskSeed, createApp } from '../composition'
 import type { ApprovalRespondOutcome } from '../model'
+import { asTaskId } from '../model'
 import { APPROVAL_COPY, APPROVAL_MAC_COPY } from '../presentation'
 import { AppFeature } from './AppFeature'
 
@@ -183,5 +184,224 @@ describe('Needs you approval flows', () => {
     expect(
       within(commandCard()).getByRole('button', { name: APPROVAL_COPY.refresh }),
     ).toBeEnabled()
+  })
+
+  it('unknown survive leave and return as read-only', async () => {
+    const user = userEvent.setup()
+    const app = createApp('populated')
+    render(<AppFeature presenter={app.presenter} />)
+    await settle()
+    await act(async () => {
+      app.presenter.navigate('needs-you')
+      await Promise.resolve()
+    })
+    await settle()
+    vi.spyOn(app.mock.engine, 'respondTaskApproval').mockRejectedValue(
+      new Error('timeout'),
+    )
+    await user.click(
+      within(commandCard()).getByRole('button', {
+        name: APPROVAL_COPY.approveOnce,
+      }),
+    )
+    await settle()
+    await act(async () => {
+      app.presenter.navigate('new-task')
+      await Promise.resolve()
+    })
+    await act(async () => {
+      app.presenter.navigate('needs-you')
+      await Promise.resolve()
+    })
+    await settle()
+    expect(
+      within(commandCard()).getByText(APPROVAL_MAC_COPY.unconfirmed),
+    ).toBeInTheDocument()
+    expect(
+      within(commandCard()).queryByRole('button', {
+        name: APPROVAL_COPY.approveOnce,
+      }),
+    ).toBeNull()
+  })
+
+  it('in-flight Needs you respond disables the same request on the task screen', async () => {
+    const user = userEvent.setup()
+    const app = await mount('populated')
+    await act(async () => {
+      app.presenter.navigate('needs-you')
+      await Promise.resolve()
+    })
+    await settle()
+    const hold = deferred()
+    vi.spyOn(app.mock.engine, 'respondTaskApproval').mockImplementation(
+      () => hold.promise,
+    )
+    await user.click(
+      within(commandCard()).getByRole('button', {
+        name: APPROVAL_COPY.approveOnce,
+      }),
+    )
+    await act(async () => {
+      app.presenter.openTask(asTaskId('task-slot-release'))
+      await Promise.resolve()
+    })
+    await settle()
+    const taskCard = screen.getByRole('group', { name: APPROVAL_COPY.ariaLabel })
+    expect(
+      within(taskCard).getByRole('button', { name: APPROVAL_COPY.approveOnce }),
+    ).toBeDisabled()
+    await act(async () => {
+      hold.resolve({
+        kind: 'refused',
+        refusal: { reason: 'not_current' },
+      })
+      await Promise.resolve()
+    })
+  })
+
+  it('unknown on Needs you makes the task screen card read-only', async () => {
+    const user = userEvent.setup()
+    const app = createApp('populated')
+    render(<AppFeature presenter={app.presenter} />)
+    await settle()
+    await act(async () => {
+      app.presenter.navigate('needs-you')
+      await Promise.resolve()
+    })
+    await settle()
+    vi.spyOn(app.mock.engine, 'respondTaskApproval').mockRejectedValue(
+      new Error('timeout'),
+    )
+    await user.click(
+      within(commandCard()).getByRole('button', {
+        name: APPROVAL_COPY.approveOnce,
+      }),
+    )
+    await settle()
+    await act(async () => {
+      app.presenter.openTask(asTaskId('task-slot-release'))
+      await Promise.resolve()
+    })
+    await settle()
+    const taskCard = screen.getByRole('group', { name: APPROVAL_COPY.ariaLabel })
+    expect(
+      within(taskCard).getByText(APPROVAL_MAC_COPY.unconfirmed),
+    ).toBeInTheDocument()
+    expect(
+      within(taskCard).queryByRole('button', { name: APPROVAL_COPY.approveOnce }),
+    ).toBeNull()
+  })
+
+  it('checkpoint answer unknown stays read-only with Refresh', async () => {
+    const user = userEvent.setup()
+    const app = await mount('populated')
+    await act(async () => {
+      app.presenter.navigate('needs-you')
+      await Promise.resolve()
+    })
+    await settle()
+    vi.spyOn(app.mock.engine, 'answerWorkflowAttentionCheckpoint').mockRejectedValue(
+      new Error('timeout'),
+    )
+    await user.click(
+      within(publishCard()).getByRole('button', { name: APPROVAL_COPY.approve }),
+    )
+    await settle()
+    expect(
+      within(publishCard()).getByText(APPROVAL_MAC_COPY.unconfirmed),
+    ).toBeInTheDocument()
+    expect(
+      within(publishCard()).getByRole('button', { name: APPROVAL_COPY.refresh }),
+    ).toBeEnabled()
+  })
+
+  it('checkpoint answer accepted settles as Approved by you', async () => {
+    const user = userEvent.setup()
+    const app = await mount('populated')
+    await act(async () => {
+      app.presenter.navigate('needs-you')
+      await Promise.resolve()
+    })
+    await settle()
+    await user.click(
+      within(publishCard()).getByRole('button', { name: APPROVAL_COPY.approve }),
+    )
+    await settle()
+    // The settled card stays in place; its header (and region name) now
+    // reads the outcome instead of the action label.
+    const settled = screen.getByRole('region', {
+      name: APPROVAL_COPY.approvedByYou,
+    })
+    expect(
+      within(settled).getByText(APPROVAL_COPY.approvedByYou),
+    ).toBeInTheDocument()
+    expect(
+      within(settled).queryByRole('button', { name: APPROVAL_COPY.approve }),
+    ).toBeNull()
+    expect(
+      screen.queryByRole('region', { name: 'Wants to publish' }),
+    ).toBeNull()
+  })
+
+  it('same-token checkpoint Refresh through the session keeps stale', async () => {
+    const user = userEvent.setup()
+    const app = await mount('needs-you-checkpoint-stale')
+    const refreshSpy = vi
+      .spyOn(app.mock.engine, 'refreshWorkflowAttentionCheckpoint')
+      .mockResolvedValue({
+        kind: 'checkpoint',
+        attentionCheckpointId:
+          'attention:1111111111111111111111111111111111111111111111111111111111111111',
+        pending: [
+          {
+            attentionCheckpointId:
+              'attention:1111111111111111111111111111111111111111111111111111111111111111',
+            nodeId: 'open-pull-request',
+            path: ['run-nightly-dependency-audit', 'open-pull-request'],
+            nodeTitle: 'Open pull request',
+            reason: 'Caller guidance required',
+            status: 'paused',
+            exactAction:
+              'Push branch deps/audit-2026-11-03 and open a pull request in HarflowMCP',
+          },
+        ],
+      })
+    await user.click(
+      within(publishCard()).getByRole('button', { name: APPROVAL_COPY.refresh }),
+    )
+    await settle()
+    expect(refreshSpy).toHaveBeenCalled()
+    expect(
+      within(publishCard()).getByText(APPROVAL_COPY.checkpointChanged),
+    ).toBeInTheDocument()
+    expect(
+      within(publishCard()).queryByRole('button', { name: APPROVAL_COPY.approve }),
+    ).toBeNull()
+  })
+
+  it('stale checkpoint draft is never replayed after Refresh', async () => {
+    const user = userEvent.setup()
+    const app = await mount('needs-you-checkpoint-stale')
+    const answerSpy = vi.spyOn(
+      app.mock.engine,
+      'answerWorkflowAttentionCheckpoint',
+    )
+    await user.click(
+      within(publishCard()).getByRole('button', { name: APPROVAL_COPY.refresh }),
+    )
+    await settle()
+    expect(
+      within(publishCard()).getByRole('button', { name: APPROVAL_COPY.approve }),
+    ).toBeEnabled()
+    expect(answerSpy).not.toHaveBeenCalled()
+    await user.click(
+      within(publishCard()).getByRole('button', { name: APPROVAL_COPY.approve }),
+    )
+    await settle()
+    expect(answerSpy).toHaveBeenCalledTimes(1)
+    expect(answerSpy.mock.calls[0]?.[0]).toMatchObject({
+      attentionCheckpointId:
+        'attention:2222222222222222222222222222222222222222222222222222222222222222',
+    })
   })
 })

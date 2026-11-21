@@ -32,6 +32,7 @@ import { PresenterSession } from './presenterSession'
 import { ResourcesSession } from './resourcesSession'
 import { SettingsGeneralSession } from './settingsGeneralSession'
 import { StatisticsSession } from './statisticsSession'
+import { TaskApprovalRegistry } from './taskApprovalRegistry'
 import { TaskSession } from './taskSession'
 import { WorkflowEditorSession } from './workflowEditorSession'
 import { WorkflowExecutionSession } from './workflowExecutionSession'
@@ -79,6 +80,7 @@ export type AppChildSessions = {
 }
 
 export function createAppChildSessions(deps: AppSessionDeps): AppChildSessions {
+  const taskApprovals = new TaskApprovalRegistry()
   return {
     newTask: new PresenterSession({
       loadContext: deps.loadContext,
@@ -92,6 +94,7 @@ export function createAppChildSessions(deps: AppSessionDeps): AppChildSessions {
       deps.loadTaskChanges,
       deps.loadTaskEvents,
       deps.loadMessagingCapability,
+      taskApprovals,
       deps.respondTaskApproval,
       deps.refreshTaskApproval,
     ),
@@ -99,6 +102,7 @@ export function createAppChildSessions(deps: AppSessionDeps): AppChildSessions {
     settingsGeneral: new SettingsGeneralSession(deps.loadSettingsGeneral),
     needsYou: new NeedsYouSession(
       deps.loadNeedsYou,
+      taskApprovals,
       deps.respondTaskApproval,
       deps.refreshTaskApproval,
       deps.answerWorkflowAttentionCheckpoint,

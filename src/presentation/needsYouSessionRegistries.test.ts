@@ -195,8 +195,8 @@ describe('Needs you in-flight state comes from the registries', () => {
       .displayItems.find((item) => item.id === CHECKPOINT_ITEM.id)
     expect(card).toMatchObject({
       attentionCheckpointId: NEEDS_YOU_CHECKPOINT_TOKEN_NEXT,
-      exactAction: 'Caller guidance required',
-      detail: '',
+      exactAction: '',
+      detail: 'Caller guidance required',
     })
   })
 

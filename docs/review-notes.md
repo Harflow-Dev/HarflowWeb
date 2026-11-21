@@ -370,12 +370,16 @@ grant approvals, answer questions, or touch the task store.
   scope.
   Checkpoint Refresh rebuilds the card from the matching `pending_attention`
   row (node id + path), not the root token; a new token arrives with new
-  prose (the row's `reason`), step (`node_title`) and workflow name
-  (`workflow_name`), and is decidable at once with the new token and text. The
-  meta line (access / model) is not rebuilt because the contract row does not
-  carry it; a changed token drops the old one. The action label stays fixture
-  card copy, not a per-row fact. Only the submit is explicit: there is no
-  automatic replay of the earlier answer.
+  step (`node_title`) and title (`workflow_name`) from the contract row.
+  `reason` is not an action, so it is drawn in the meta slot and the command
+  slot stays empty; the card is read-only (Refresh only, short neutral line
+  `CHECKPOINT_PROSE_PENDING`, undrawn in Design) until the Needs you
+  observation delivers an item carrying the new token with its full action.
+  Only then is it decidable, from that observation item, so the person always
+  sees the full action before approving. The meta line (access / model) is
+  not rebuilt because the contract row does not carry it, and the action
+  label stays fixture card copy. There is no automatic replay of the earlier
+  answer.
   Typed checkpoint refusals other than `attention_checkpoint_stale`:
   `interaction_already_answered` (non-actionable, no Refresh; when the refusal
   carries the winner it is drawn in the task-side style from the present
@@ -387,6 +391,9 @@ grant approvals, answer questions, or touch the task store.
   same session-answer copy as the task card). Task-screen
   `already_answered` with `answeredBy: caller` also uses DECIDED.answeredCaller
   (`raceCaller`) — matches design tables; recorded here.
+  Mock note: the default scenarios deliberately show the slot-release task as
+  awaiting in the inbox while its task screen shows no approval; the
+  cross-surface state is opt-in via `crossSurfaceApprovals`.
   Copy gap (recorded): Needs you `answered-elsewhere` uses the design’s caller
   race title (`Already answered by the caller`); the contract still names only
   the channel.

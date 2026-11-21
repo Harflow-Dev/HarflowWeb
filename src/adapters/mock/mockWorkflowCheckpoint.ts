@@ -3,7 +3,6 @@
  */
 import type {
   AnswerWorkflowAttentionCheckpointRequest,
-  NeedsYouItem,
   NeedsYouLoad,
   NeedsYouWorkflowApproval,
   WorkflowCheckpointAnswerOutcome,
@@ -97,39 +96,6 @@ function findPublishItem(load: NeedsYouLoad): NeedsYouWorkflowApproval | null {
   return load.observation.items.find(isNeedsYouWorkflowApproval) ?? null
 }
 
-function withCheckpointProjection(
-  item: NeedsYouItem,
-  runId: string,
-  projection: WorkflowCheckpointPendingProjection,
-): NeedsYouItem {
-  if (!isNeedsYouWorkflowApproval(item)) return item
-  if (item.context.runId !== runId) return item
-  if (item.nodeId !== projection.nodeId) return item
-  return {
-    ...item,
-    attentionCheckpointId: projection.attentionCheckpointId,
-    exactAction: projection.reason,
-    detail: '',
-    context: {
-      ...item.context,
-      title: projection.workflowName ?? item.context.title,
-      step: projection.nodeTitle ?? item.context.step,
-    },
-  }
-}
-
-function applyProjectionToLoad(
-  load: NeedsYouLoad,
-  runId: string,
-  projection: WorkflowCheckpointPendingProjection,
-): NeedsYouLoad {
-  if (load.kind !== 'ready') return load
-  const items = load.observation.items.map((item) =>
-    withCheckpointProjection(item, runId, projection),
-  )
-  return { kind: 'ready', observation: { ...load.observation, items } }
-}
-
 export type CheckpointMockDeps = {
   readonly getScenario: () => ScenarioDefinition
   readonly listeners: MockListenerSets
@@ -184,11 +150,8 @@ export async function mockRefreshWorkflowAttentionCheckpoint(
       NIGHTLY_PUBLISH_SNAPSHOT.publishAction,
     )
   const projection = pendingProjectionFor(token, template)
-  const next =
-    existing === null
-      ? base
-      : applyProjectionToLoad(base, runId, projection)
-  for (const listener of listeners.needsYou) listener(next)
+  // The observation carries the current token with its full fixture prose.
+  publishComposedNeedsYou(getScenario, listeners, approvals, checkpoints)
   return {
     kind: 'checkpoint',
     attentionCheckpointId: token,

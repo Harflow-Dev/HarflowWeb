@@ -14,6 +14,7 @@ import type {
   WorkflowCheckpointPendingProjection,
   WorkflowRunId,
 } from '../model'
+import { isNeedsYouWorkflowApproval } from '../model'
 import { mergeNeedsYouDisplay } from './needsYouDisplay'
 import {
   checkpointAnswerChrome,
@@ -150,9 +151,11 @@ function refreshedCheckpointItem(
     ...item,
     attentionCheckpointId: matched.attentionCheckpointId,
     // Rebuilt from contract fields only: reason, node_title, workflow_name.
-    // The meta line is not carried by the row, so the old one is dropped.
-    exactAction: matched.reason,
-    detail: '',
+    // `reason` is not an action, so it goes to the meta slot and the command
+    // slot stays empty (card read-only) until the observation delivers an
+    // item with this token and its full action.
+    exactAction: '',
+    detail: matched.reason,
     context: {
       ...item.context,
       title: matched.workflowName ?? item.context.title,
@@ -183,6 +186,15 @@ export function applyCheckpointRefresh(
   const matched = matchingPendingProjection(item, result.pending)
   if (matched === null) return state
   const cleared = withoutCheckpointStale(state.chrome, runId, sentToken)
+  const current = state.displayItems.find((row) => row.id === item.id)
+  const observed =
+    current !== undefined &&
+    isNeedsYouWorkflowApproval(current) &&
+    current.attentionCheckpointId === matched.attentionCheckpointId
+  if (observed && matched.attentionCheckpointId !== sentToken) {
+    // The observation already delivered this token with its full action.
+    return { ...state, chrome: withResultFocus(cleared, item.id) }
+  }
   if (matched.attentionCheckpointId !== sentToken) {
     const updated = refreshedCheckpointItem(item, matched)
     return {

@@ -403,4 +403,30 @@ describe('Needs you approval flows', () => {
         'attention:2222222222222222222222222222222222222222222222222222222222222222',
     })
   })
+
+  it('the new checkpoint token survives a later task answer republish', async () => {
+    const user = userEvent.setup()
+    const app = await mount('needs-you-checkpoint-stale')
+    await user.click(
+      within(publishCard()).getByRole('button', { name: APPROVAL_COPY.refresh }),
+    )
+    await settle()
+    await user.click(
+      within(commandCard()).getByRole('button', {
+        name: APPROVAL_COPY.approveOnce,
+      }),
+    )
+    await settle()
+    const items = app.presenter.getState().needsYou.displayItems
+    const publish = items.find(
+      (item) => item.kind === 'approval' && 'attentionCheckpointId' in item,
+    )
+    expect(publish).toMatchObject({
+      attentionCheckpointId:
+        'attention:2222222222222222222222222222222222222222222222222222222222222222',
+    })
+    expect(
+      within(publishCard()).getByRole('button', { name: APPROVAL_COPY.approve }),
+    ).toBeEnabled()
+  })
 })

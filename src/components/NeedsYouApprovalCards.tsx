@@ -109,7 +109,9 @@ export function CheckpointNeedsYouCard({
         <span className="hd-approval__src">{view.source}</span>
       </div>
       <div className="hd-approval__body">
-        <div className="hd-approval__cmd">{view.command}</div>
+        {view.command === '' ? null : (
+          <div className="hd-approval__cmd">{view.command}</div>
+        )}
         <div className="hd-approval__meta">{view.meta}</div>
       </div>
       {view.mode.kind === 'decide' ? (

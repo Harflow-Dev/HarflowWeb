@@ -15,10 +15,11 @@ import { APPROVAL_COPY, APPROVAL_MAC_COPY } from './taskApprovalCopy'
 import { refusalEntry } from './taskApprovalChrome'
 import { needsYouTaskApprovalCardView } from './needsYouApprovalCardView'
 import {
+  CHECKPOINT_PROSE_PENDING,
   CHECKPOINT_REFUSAL_NEUTRAL,
   needsYouCheckpointCardView,
 } from './needsYouCheckpointCardView'
-import { applyCheckpointRefresh } from './needsYouCommandApply'
+import { applyCheckpointRefresh, applyNeedsYouLoad } from './needsYouCommandApply'
 import { EMPTY_NEEDS_YOU_CHROME } from './needsYouChrome'
 import { initialNeedsYouState } from './needsYouState'
 import { asWorkflowRunId } from '../model'
@@ -118,7 +119,7 @@ describe('needsYouCheckpointCardView', () => {
     })
   })
 
-  it('applyCheckpointRefresh with a new token rebuilds a decidable card', () => {
+  it('applyCheckpointRefresh with a new token is read-only until the observation delivers it', () => {
     const stale = nightlyPublishNeedsYouApproval(NEEDS_YOU_CHECKPOINT_TOKEN)
     const state = {
       ...initialNeedsYouState(),
@@ -159,21 +160,45 @@ describe('needsYouCheckpointCardView', () => {
     const updated = next.displayItems[0]
     expect(updated).toMatchObject({
       attentionCheckpointId: NEEDS_YOU_CHECKPOINT_TOKEN_NEXT,
-      exactAction: nextAction,
-      detail: '',
+      exactAction: '',
+      detail: nextAction,
       context: { title: 'Nightly dependency audit (renamed)' },
     })
     expect(next.chrome.checkpoints.some((e) => e.entry.kind === 'checkpoint_stale')).toBe(
       false,
     )
     if (updated === undefined || updated.kind !== 'approval') return
+    const readOnly = needsYouCheckpointCardView(updated as typeof stale, null)
+    expect(readOnly.settled).toBe(true)
+    expect(readOnly.command).toBe('')
+    expect(readOnly.meta).toBe(nextAction)
+    expect(readOnly.mode).toMatchObject({
+      kind: 'result',
+      lines: [CHECKPOINT_PROSE_PENDING],
+      refresh: true,
+    })
+    // The observation then delivers an item carrying the new token.
+    const observed = nightlyPublishNeedsYouApproval(
+      NEEDS_YOU_CHECKPOINT_TOKEN_NEXT,
+    )
+    const after = applyNeedsYouLoad(
+      next,
+      {
+        kind: 'ready',
+        observation: {
+          coverage: 'complete',
+          coverageNote: null,
+          items: [observed],
+        },
+      },
+      () => false,
+    )
     const decidable = needsYouCheckpointCardView(
-      updated as typeof stale,
+      after.displayItems[0] as typeof stale,
       null,
     )
-    expect(decidable.settled).toBe(false)
     expect(decidable.mode).toEqual({ kind: 'decide', disabled: false })
-    expect(decidable.command).toBe(nextAction)
+    expect(decidable.command).toBe(observed.exactAction)
   })
 
   it('applyCheckpointRefresh with the same token keeps stale', () => {

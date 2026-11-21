@@ -84,13 +84,31 @@ function applyAllTaskOverrides(
  * One composed Needs you publish from the current scenario plus every
  * task override, with answered checkpoint tokens removed.
  */
+/** Carry each run's current checkpoint token (full fixture prose kept). */
+function applyCheckpointTokens(
+  load: NeedsYouLoad,
+  store: CheckpointMutationStore,
+): NeedsYouLoad {
+  if (load.kind !== 'ready' || store.tokens.size === 0) return load
+  const items = load.observation.items.map((item) => {
+    if (!isNeedsYouWorkflowApproval(item)) return item
+    const runId = item.context.runId
+    const token = runId === null ? undefined : store.tokens.get(runId)
+    return token === undefined ? item : { ...item, attentionCheckpointId: token }
+  })
+  return { kind: 'ready', observation: { ...load.observation, items } }
+}
+
 export function composedNeedsYouLoad(
   scenario: ScenarioDefinition,
   approvals: ApprovalMutationStore,
   checkpoints: CheckpointMutationStore,
 ): NeedsYouLoad {
   return dropAnsweredCheckpoints(
-    applyAllTaskOverrides(resolveNeedsYouBaseLoad(scenario), approvals),
+    applyCheckpointTokens(
+      applyAllTaskOverrides(resolveNeedsYouBaseLoad(scenario), approvals),
+      checkpoints,
+    ),
     checkpoints,
   )
 }

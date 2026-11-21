@@ -94,6 +94,13 @@ function baseView(
 export const CHECKPOINT_REFUSAL_NEUTRAL =
   'This request is read-only here.' as const
 
+/**
+ * Neutral undrawn line for a card whose token changed on Refresh but whose
+ * full action has not arrived through the Needs you observation yet.
+ */
+export const CHECKPOINT_PROSE_PENDING =
+  'This request changed. Its full action is not shown yet.' as const
+
 function refusedResult(
   entry: Extract<NeedsYouCheckpointEntry, { kind: 'refused' }>,
   submitting: boolean,
@@ -178,6 +185,15 @@ export function needsYouCheckpointCardView(
         true,
       )
     default:
+      // An empty command slot means the token changed on Refresh and no
+      // observation item with the full action has replaced the card yet.
+      if (item.exactAction === '') {
+        return baseView(
+          item,
+          refreshableResult(CHECKPOINT_PROSE_PENDING, submitting),
+          true,
+        )
+      }
       return baseView(item, { kind: 'decide', disabled: submitting }, false)
   }
 }

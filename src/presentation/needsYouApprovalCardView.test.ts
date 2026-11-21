@@ -10,7 +10,6 @@ import {
   NEEDS_YOU_PUBLISH_NODE_ID,
   NEEDS_YOU_PUBLISH_PATH,
 } from '../adapters/mock/needsYouApprovalFixtures'
-import { NIGHTLY_PUBLISH_SNAPSHOT } from '../adapters/mock/nightlyPublishSnapshot'
 import { NIGHTLY_AUDIT_RUN_ID } from '../adapters/mock/workflowExecutionFixtures'
 import { APPROVAL_COPY, APPROVAL_MAC_COPY } from './taskApprovalCopy'
 import { refusalEntry } from './taskApprovalChrome'
@@ -135,7 +134,7 @@ describe('needsYouCheckpointCardView', () => {
       },
       displayItems: [stale],
     }
-    const nextAction = `${NIGHTLY_PUBLISH_SNAPSHOT.publishAction} (reviewed)`
+    const nextAction = 'Reviewer guidance required'
     const next = applyCheckpointRefresh(
       state,
       stale,
@@ -150,9 +149,9 @@ describe('needsYouCheckpointCardView', () => {
             nodeId: NEEDS_YOU_PUBLISH_NODE_ID,
             path: [...NEEDS_YOU_PUBLISH_PATH],
             nodeTitle: 'Open pull request',
-            reason: 'Caller guidance required',
+            reason: nextAction,
             status: 'paused',
-            exactAction: nextAction,
+            workflowName: 'Nightly dependency audit (renamed)',
           },
         ],
       },
@@ -161,6 +160,8 @@ describe('needsYouCheckpointCardView', () => {
     expect(updated).toMatchObject({
       attentionCheckpointId: NEEDS_YOU_CHECKPOINT_TOKEN_NEXT,
       exactAction: nextAction,
+      detail: '',
+      context: { title: 'Nightly dependency audit (renamed)' },
     })
     expect(next.chrome.checkpoints.some((e) => e.entry.kind === 'checkpoint_stale')).toBe(
       false,
@@ -207,7 +208,7 @@ describe('needsYouCheckpointCardView', () => {
             nodeTitle: 'Open pull request',
             reason: 'Caller guidance required',
             status: 'paused',
-            exactAction: NIGHTLY_PUBLISH_SNAPSHOT.publishAction,
+            workflowName: null,
           },
         ],
       },

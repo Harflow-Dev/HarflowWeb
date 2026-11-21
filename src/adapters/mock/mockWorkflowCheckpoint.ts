@@ -37,7 +37,6 @@ export type CheckpointMutationStore = {
   /** Attention checkpoint ids already answered this session. */
   readonly answeredIds: Set<string>
   /** Optional next exact-action prose after a token rotate. */
-  readonly nextExactAction: Map<string, string>
 }
 
 export function createCheckpointMutationStore(): CheckpointMutationStore {
@@ -46,7 +45,6 @@ export function createCheckpointMutationStore(): CheckpointMutationStore {
     engineAhead: new Map(),
     staleOnAnswer: new Set(),
     answeredIds: new Set(),
-    nextExactAction: new Map(),
   }
 }
 
@@ -55,7 +53,6 @@ export function clearCheckpointMutations(store: CheckpointMutationStore): void {
   store.engineAhead.clear()
   store.staleOnAnswer.clear()
   store.answeredIds.clear()
-  store.nextExactAction.clear()
 }
 
 /**
@@ -81,13 +78,9 @@ function currentToken(
 }
 
 function pendingProjectionFor(
-  store: CheckpointMutationStore,
-  runId: string,
   token: string,
   baseItem: NeedsYouWorkflowApproval,
 ): WorkflowCheckpointPendingProjection {
-  const exactAction =
-    store.nextExactAction.get(runId) ?? baseItem.exactAction
   return {
     attentionCheckpointId: token,
     nodeId: baseItem.nodeId,
@@ -95,9 +88,7 @@ function pendingProjectionFor(
     nodeTitle: baseItem.context.step,
     reason: 'Caller guidance required',
     status: 'paused',
-    exactAction,
-    actionLabel: baseItem.actionLabel,
-    detail: baseItem.detail,
+    workflowName: baseItem.context.title,
   }
 }
 
@@ -117,11 +108,11 @@ function withCheckpointProjection(
   return {
     ...item,
     attentionCheckpointId: projection.attentionCheckpointId,
-    exactAction: projection.exactAction,
-    actionLabel: projection.actionLabel ?? item.actionLabel,
-    detail: projection.detail ?? item.detail,
+    exactAction: projection.reason,
+    detail: '',
     context: {
       ...item.context,
+      title: projection.workflowName ?? item.context.title,
       step: projection.nodeTitle ?? item.context.step,
     },
   }
@@ -192,7 +183,7 @@ export async function mockRefreshWorkflowAttentionCheckpoint(
       token,
       NIGHTLY_PUBLISH_SNAPSHOT.publishAction,
     )
-  const projection = pendingProjectionFor(checkpoints, runId, token, template)
+  const projection = pendingProjectionFor(token, template)
   const next =
     existing === null
       ? base

@@ -149,12 +149,13 @@ function refreshedCheckpointItem(
   return {
     ...item,
     attentionCheckpointId: matched.attentionCheckpointId,
-    exactAction: matched.exactAction,
-    // A new token must not keep the old token's access / model line.
-    actionLabel: matched.actionLabel ?? item.actionLabel,
-    detail: matched.detail ?? '',
+    // Rebuilt from contract fields only: reason, node_title, workflow_name.
+    // The meta line is not carried by the row, so the old one is dropped.
+    exactAction: matched.reason,
+    detail: '',
     context: {
       ...item.context,
+      title: matched.workflowName ?? item.context.title,
       step: matched.nodeTitle ?? item.context.step,
     },
   }

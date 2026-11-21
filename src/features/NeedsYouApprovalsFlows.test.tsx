@@ -361,8 +361,7 @@ describe('Needs you approval flows', () => {
             nodeTitle: 'Open pull request',
             reason: 'Caller guidance required',
             status: 'paused',
-            exactAction:
-              'Push branch deps/audit-2026-11-03 and open a pull request in HarflowMCP',
+            workflowName: null,
           },
         ],
       })

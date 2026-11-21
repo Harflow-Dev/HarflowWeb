@@ -143,7 +143,7 @@ describe('Needs you in-flight state comes from the registries', () => {
           nodeTitle: 'Open pull request',
           reason: 'Caller guidance required',
           status: 'paused',
-          exactAction: 'A different action',
+          workflowName: null,
         },
       ],
     })
@@ -170,7 +170,7 @@ describe('Needs you in-flight state comes from the registries', () => {
     expect(entry?.entry.kind).toBe('answered')
   })
 
-  it('rebuilds meta and action label from a refreshed row, dropping stale meta when absent', async () => {
+  it('rebuilds a new-token card from contract fields and drops the old meta line', async () => {
     const h = await harness()
     h.session.refreshCheckpoint(CHECKPOINT_ITEM.id)
     h.refresh.resolve({
@@ -184,7 +184,7 @@ describe('Needs you in-flight state comes from the registries', () => {
           nodeTitle: 'Open pull request',
           reason: 'Caller guidance required',
           status: 'paused',
-          exactAction: 'New action',
+          workflowName: null,
         },
       ],
     })
@@ -195,7 +195,7 @@ describe('Needs you in-flight state comes from the registries', () => {
       .displayItems.find((item) => item.id === CHECKPOINT_ITEM.id)
     expect(card).toMatchObject({
       attentionCheckpointId: NEEDS_YOU_CHECKPOINT_TOKEN_NEXT,
-      exactAction: 'New action',
+      exactAction: 'Caller guidance required',
       detail: '',
     })
   })

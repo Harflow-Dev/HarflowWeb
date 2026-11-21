@@ -17,7 +17,6 @@ import {
 } from './needsYouApprovalFixtures'
 import { scenarioById } from './scenarios'
 import { NIGHTLY_AUDIT_RUN_ID } from './workflowExecutionFixtures'
-import { NIGHTLY_PUBLISH_SNAPSHOT } from './nightlyPublishSnapshot'
 
 describe('mockWorkflowCheckpoint', () => {
   it('refuses as checkpoint_stale then Refresh returns a new token', async () => {
@@ -56,9 +55,7 @@ describe('mockWorkflowCheckpoint', () => {
           nodeTitle: 'Open pull request',
           reason: 'Caller guidance required',
           status: 'paused',
-          exactAction: NIGHTLY_PUBLISH_SNAPSHOT.publishAction,
-          actionLabel: 'Wants to publish',
-          detail: expect.stringContaining('Codex'),
+          workflowName: 'Nightly dependency audit',
         },
       ],
     })

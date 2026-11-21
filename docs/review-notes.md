@@ -370,10 +370,12 @@ grant approvals, answer questions, or touch the task store.
   scope.
   Checkpoint Refresh rebuilds the card from the matching `pending_attention`
   row (node id + path), not the root token; a new token arrives with new
-  prose (and meta line / action label where the row carries them; a changed
-  token never keeps the old token's meta line) and is decidable at once with
-  the new token and text. Only the submit is explicit: there is no automatic
-  replay of the earlier answer.
+  prose (the row's `reason`), step (`node_title`) and workflow name
+  (`workflow_name`), and is decidable at once with the new token and text. The
+  meta line (access / model) is not rebuilt because the contract row does not
+  carry it; a changed token drops the old one. The action label stays fixture
+  card copy, not a per-row fact. Only the submit is explicit: there is no
+  automatic replay of the earlier answer.
   Typed checkpoint refusals other than `attention_checkpoint_stale`:
   `interaction_already_answered` (non-actionable, no Refresh; when the refusal
   carries the winner it is drawn in the task-side style from the present

@@ -40,13 +40,12 @@ export function seededApprovalChromeState(
   const entries = (seed.refusals ?? []).map((entry) =>
     refusalEntry(taskId, entry.requestId, revision, entry.refusal),
   )
-  registry.replaceEntries(entries)
+  registry.mergeSeedEntries(entries)
   return {
     ...state,
     approvalChrome: {
-      entries,
-      submitting: false,
-      focusResultSeq: 0,
+      ...registry.asChrome(),
+      focusResultSeq: state.approvalChrome.focusResultSeq,
     },
   }
 }
@@ -82,23 +81,22 @@ export function approvalRespondedState(
   decision: ApprovalDecision,
   outcome: ApprovalRespondOutcome,
 ): TaskScreenState {
-  const { chrome, acceptedRequest } = registry.applyRespond(
+  const { chrome, acceptedRequest, requestFocus } = registry.applyRespond(
     taskId,
     sent,
     decision,
     outcome,
     state.selectedTaskId,
   )
-  if (acceptedRequest === null) {
-    return withChrome(state, {
-      ...chrome,
-      submitting: state.approvalChrome.submitting,
-    })
-  }
-  const merged = withApprovalOnLoad(state, taskId, acceptedRequest)
+  const merged =
+    acceptedRequest === null
+      ? state
+      : withApprovalOnLoad(state, taskId, acceptedRequest)
   return withChrome(merged, {
     ...chrome,
     submitting: merged.approvalChrome.submitting,
+    focusResultSeq:
+      merged.approvalChrome.focusResultSeq + (requestFocus ? 1 : 0),
   })
 }
 
@@ -119,6 +117,7 @@ export function approvalRefreshedState(
   return withChrome(merged, {
     ...chrome,
     submitting: merged.approvalChrome.submitting,
+    focusResultSeq: merged.approvalChrome.focusResultSeq + 1,
   })
 }
 

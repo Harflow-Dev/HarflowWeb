@@ -9,13 +9,16 @@ import {
 } from '../model'
 import type { NeedsYouChrome } from './needsYouChrome'
 import { checkpointEntryFor } from './needsYouChrome'
-import { needsYouCardSubmitting } from './needsYouCardSubmitting'
 import { approvalEntryFor } from './taskApprovalChrome'
 
-function itemIsSettled(item: NeedsYouItem, chrome: NeedsYouChrome): boolean {
+function itemIsSettled(
+  item: NeedsYouItem,
+  chrome: NeedsYouChrome,
+  isSubmitting: (item: NeedsYouItem) => boolean,
+): boolean {
   // A card whose answer is still in flight must survive the observation
   // update the answer itself triggers, until its result entry is recorded.
-  if (needsYouCardSubmitting(item, chrome)) return true
+  if (isSubmitting(item)) return true
   if (isNeedsYouTaskApproval(item)) {
     const taskId = item.context.taskId ?? ''
     return approvalEntryFor(chrome.taskApprovals, taskId, item.request) !== null
@@ -38,6 +41,7 @@ export function mergeNeedsYouDisplay(
   previous: readonly NeedsYouItem[],
   next: readonly NeedsYouItem[],
   chrome: NeedsYouChrome,
+  isSubmitting: (item: NeedsYouItem) => boolean,
 ): readonly NeedsYouItem[] {
   const nextById = new Map(next.map((item) => [item.id, item]))
   const seen = new Set<string>()
@@ -49,7 +53,7 @@ export function mergeNeedsYouDisplay(
       seen.add(prev.id)
       continue
     }
-    if (itemIsSettled(prev, chrome)) {
+    if (itemIsSettled(prev, chrome, isSubmitting)) {
       result.push(prev)
       seen.add(prev.id)
     }

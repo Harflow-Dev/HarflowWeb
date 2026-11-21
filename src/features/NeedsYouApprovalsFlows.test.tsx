@@ -226,7 +226,7 @@ describe('Needs you approval flows', () => {
 
   it('in-flight Needs you respond disables the same request on the task screen', async () => {
     const user = userEvent.setup()
-    const app = await mount('populated')
+    const app = await mount('needs-you-cross-surface')
     await act(async () => {
       app.presenter.navigate('needs-you')
       await Promise.resolve()
@@ -261,7 +261,7 @@ describe('Needs you approval flows', () => {
 
   it('unknown on Needs you makes the task screen card read-only', async () => {
     const user = userEvent.setup()
-    const app = createApp('populated')
+    const app = createApp('needs-you-cross-surface')
     render(<AppFeature presenter={app.presenter} />)
     await settle()
     await act(async () => {

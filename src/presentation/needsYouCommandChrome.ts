@@ -12,6 +12,7 @@ import {
   withTaskApprovalChrome,
   type NeedsYouChrome,
 } from './needsYouChrome'
+import type { NeedsYouCheckpointEntry } from './needsYouCheckpointCardView'
 import type { TaskApprovalRegistry } from './taskApprovalRegistry'
 
 export function taskRespondChrome(
@@ -48,6 +49,34 @@ export function taskRespondChrome(
   return { chrome: nextChrome, updatedItem: updated }
 }
 
+function checkpointAnswerEntry(
+  item: NeedsYouWorkflowApproval,
+  decision: ApprovalDecision,
+  outcome: Awaited<
+    ReturnType<AnswerWorkflowAttentionCheckpointUseCase['execute']>
+  >,
+): NeedsYouCheckpointEntry {
+  switch (outcome.kind) {
+    case 'checkpoint_stale':
+      return { kind: 'checkpoint_stale' }
+    case 'refused':
+      return {
+        kind: 'refused',
+        code: outcome.code,
+        ...(outcome.interaction === undefined
+          ? {}
+          : { interaction: outcome.interaction }),
+      }
+    case 'unknown':
+      return {
+        kind: 'non_actionable',
+        attentionCheckpointId: item.attentionCheckpointId,
+      }
+    default:
+      return { kind: 'answered', decision }
+  }
+}
+
 export function checkpointAnswerChrome(
   chrome: NeedsYouChrome,
   item: NeedsYouWorkflowApproval,
@@ -58,41 +87,11 @@ export function checkpointAnswerChrome(
   >,
   itemId: string,
 ): NeedsYouChrome {
-  if (outcome.kind === 'checkpoint_stale') {
-    return withCheckpointEntry(
-      chrome,
-      runId,
-      item.attentionCheckpointId,
-      { kind: 'checkpoint_stale' },
-      itemId,
-    )
-  }
-  if (outcome.kind === 'refused') {
-    return withCheckpointEntry(
-      chrome,
-      runId,
-      item.attentionCheckpointId,
-      { kind: 'refused', code: outcome.code },
-      itemId,
-    )
-  }
-  if (outcome.kind === 'unknown') {
-    return withCheckpointEntry(
-      chrome,
-      runId,
-      item.attentionCheckpointId,
-      {
-        kind: 'non_actionable',
-        attentionCheckpointId: item.attentionCheckpointId,
-      },
-      itemId,
-    )
-  }
   return withCheckpointEntry(
     chrome,
     runId,
     item.attentionCheckpointId,
-    { kind: 'answered', decision },
+    checkpointAnswerEntry(item, decision, outcome),
     itemId,
   )
 }

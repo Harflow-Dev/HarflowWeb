@@ -19,15 +19,9 @@ import {
   applyTaskRefresh,
   applyTaskRespond,
 } from './needsYouCommandApply'
-import {
-  checkpointFlightKey,
-  type NeedsYouChrome,
-} from './needsYouChrome'
+import type { CheckpointAnswerRegistry } from './needsYouCheckpointRegistry'
 import type { NeedsYouScreenState } from './needsYouState'
-import {
-  taskApprovalFlightKey,
-  type TaskApprovalRegistry,
-} from './taskApprovalRegistry'
+import type { TaskApprovalRegistry } from './taskApprovalRegistry'
 
 export type NeedsYouCommandHost = {
   isDisposed(): boolean
@@ -42,49 +36,15 @@ function findDisplayItem(
   return state.displayItems.find((item) => item.id === itemId) ?? null
 }
 
-function withFlightKeys(
-  keys: readonly string[],
-  key: string,
-  present: boolean,
-): readonly string[] {
-  const rest = keys.filter((k) => k !== key)
-  return present ? [...rest, key] : rest
-}
-
-function withTaskFlight(
-  chrome: NeedsYouChrome,
-  key: string,
-  present: boolean,
-): NeedsYouChrome {
-  return {
-    ...chrome,
-    taskInFlight: withFlightKeys(chrome.taskInFlight, key, present),
-  }
-}
-
-function withCheckpointFlight(
-  chrome: NeedsYouChrome,
-  key: string,
-  present: boolean,
-): NeedsYouChrome {
-  return {
-    ...chrome,
-    checkpointInFlight: withFlightKeys(
-      chrome.checkpointInFlight,
-      key,
-      present,
-    ),
-  }
-}
-
 /**
  * Needs you approval commands. Task answers reuse the shared registry and
  * task approval use cases; workflow checkpoints use attention-checkpoint
- * use cases with a local in-flight set.
+ * use cases with the checkpoint answer registry.
  */
 export class NeedsYouCommands {
   private readonly host: NeedsYouCommandHost
   private readonly registry: TaskApprovalRegistry
+  private readonly checkpoints: CheckpointAnswerRegistry
   private readonly respondApproval: RespondTaskApprovalUseCase
   private readonly refreshApproval: RefreshTaskApprovalUseCase
   private readonly answerCheckpointUseCase: AnswerWorkflowAttentionCheckpointUseCase
@@ -93,6 +53,7 @@ export class NeedsYouCommands {
   constructor(
     host: NeedsYouCommandHost,
     registry: TaskApprovalRegistry,
+    checkpoints: CheckpointAnswerRegistry,
     respondApproval: RespondTaskApprovalUseCase,
     refreshApproval: RefreshTaskApprovalUseCase,
     answerCheckpoint: AnswerWorkflowAttentionCheckpointUseCase,
@@ -100,6 +61,7 @@ export class NeedsYouCommands {
   ) {
     this.host = host
     this.registry = registry
+    this.checkpoints = checkpoints
     this.respondApproval = respondApproval
     this.refreshApproval = refreshApproval
     this.answerCheckpointUseCase = answerCheckpoint
@@ -113,11 +75,8 @@ export class NeedsYouCommands {
     const taskId = item.context.taskId
     if (taskId === null) return
     if (!this.registry.beginRespond(taskId, item.requestId)) return
-    const flightKey = taskApprovalFlightKey(taskId, item.requestId)
-    this.host.publish({
-      ...state,
-      chrome: withTaskFlight(state.chrome, flightKey, true),
-    })
+    // Republish so the snapshot re-derives the card's submitting flag.
+    this.host.publish({ ...state })
     void this.respondApproval
       .execute({
         taskId,
@@ -129,14 +88,9 @@ export class NeedsYouCommands {
       .then((outcome) => {
         this.registry.endRespond(taskId, item.requestId)
         if (this.host.isDisposed()) return
-        const current = this.host.getState()
-        const cleared = {
-          ...current,
-          chrome: withTaskFlight(current.chrome, flightKey, false),
-        }
         this.host.publish(
           applyTaskRespond(
-            cleared,
+            this.host.getState(),
             this.registry,
             item,
             taskId,
@@ -175,27 +129,26 @@ export class NeedsYouCommands {
     if (item === null || !isNeedsYouWorkflowApproval(item)) return
     const runId = item.context.runId
     if (runId === null) return
-    const key = checkpointFlightKey(runId, item.attentionCheckpointId)
-    if (state.chrome.checkpointInFlight.includes(key)) return
-    this.host.publish({
-      ...state,
-      chrome: withCheckpointFlight(state.chrome, key, true),
-    })
+    const token = item.attentionCheckpointId
+    if (!this.checkpoints.beginAnswer(runId, token)) return
+    this.host.publish({ ...state })
     void this.answerCheckpointUseCase
       .execute({
         workflowRunId: runId,
-        attentionCheckpointId: item.attentionCheckpointId,
+        attentionCheckpointId: token,
         decision,
       })
       .then((outcome) => {
+        this.checkpoints.endAnswer(runId, token)
         if (this.host.isDisposed()) return
-        const current = this.host.getState()
-        const cleared = {
-          ...current,
-          chrome: withCheckpointFlight(current.chrome, key, false),
-        }
         this.host.publish(
-          applyCheckpointAnswer(cleared, item, runId, decision, outcome),
+          applyCheckpointAnswer(
+            this.host.getState(),
+            item,
+            runId,
+            decision,
+            outcome,
+          ),
         )
       })
   }
@@ -206,14 +159,25 @@ export class NeedsYouCommands {
     if (item === null || !isNeedsYouWorkflowApproval(item)) return
     const runId = item.context.runId
     if (runId === null) return
-    const key = checkpointFlightKey(runId, item.attentionCheckpointId)
-    if (state.chrome.checkpointInFlight.includes(key)) return
     const sentToken = item.attentionCheckpointId
+    if (this.checkpoints.isInFlight(runId, sentToken)) return
+    const started = this.checkpoints.generation()
     void this.refreshCheckpointUseCase.execute(runId).then((result) => {
-      if (this.host.isDisposed()) return
-      const current = this.host.getState()
+      // An answer that started or finished since this read began wins.
+      if (
+        this.host.isDisposed() ||
+        started !== this.checkpoints.generation()
+      ) {
+        return
+      }
       this.host.publish(
-        applyCheckpointRefresh(current, item, runId, sentToken, result),
+        applyCheckpointRefresh(
+          this.host.getState(),
+          item,
+          runId,
+          sentToken,
+          result,
+        ),
       )
     })
   }

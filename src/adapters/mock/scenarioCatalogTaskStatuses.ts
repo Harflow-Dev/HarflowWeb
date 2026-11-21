@@ -3,7 +3,6 @@
  * Migration: task-running and task-failed stay as legacy ids; task-running-stop
  * and task-failed-continue alias the same openTaskId seeds (duplicate catalog rows).
  */
-import { emptyNeedsYouLoad } from './needsYouFixtures'
 import { accepted, base, readyContext } from './scenarioBase'
 import type { ScenarioDefinition } from './scenarios'
 import type { TaskCommandChromeSeed } from './scenarioSeed'
@@ -158,9 +157,6 @@ export const TASK_STATUS_SCENARIOS: readonly ScenarioDefinition[] = [
     tasks,
     startOutcome: accepted,
     holdStart: false,
-    // The slot-release task also backs a Needs you approval in the default
-    // inbox; this scenario shows the plain running status, so the inbox is empty.
-    needsYou: emptyNeedsYouLoad(),
     seed: RUNNING_STOP_SEED,
   }),
   base({

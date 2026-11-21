@@ -57,6 +57,8 @@ describe('mockWorkflowCheckpoint', () => {
           reason: 'Caller guidance required',
           status: 'paused',
           exactAction: NIGHTLY_PUBLISH_SNAPSHOT.publishAction,
+          actionLabel: 'Wants to publish',
+          detail: expect.stringContaining('Codex'),
         },
       ],
     })

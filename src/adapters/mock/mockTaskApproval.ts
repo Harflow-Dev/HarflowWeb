@@ -47,13 +47,16 @@ export function clearApprovalMutations(store: ApprovalMutationStore): void {
 function applyOverride(
   load: TaskLoad,
   store: ApprovalMutationStore,
+  crossSurface: boolean,
 ): TaskLoad {
   if (load.kind !== 'ready') return load
+  // Inbox overrides reach a task feed with no approval only in scenarios
+  // that declare the cross-surface state.
+  if (!crossSurface && load.observation.approval === undefined) return load
   const taskId = load.observation.taskId
   const override =
     store.overrides.get(taskId) ?? store.engineAhead.get(taskId)
   if (override === undefined) return load
-  // Needs you may seed overrides for tasks whose feed has no approval field.
   const observation: TaskObservation = {
     ...load.observation,
     approval: override,
@@ -73,7 +76,7 @@ export function resolveTaskLoadWithApprovals(
       : scenario.tasks === 'default'
         ? taskLoadFor(taskId)
         : scenario.tasks(taskId)
-  return applyOverride(base, store)
+  return applyOverride(base, store, scenario.crossSurfaceApprovals === true)
 }
 
 function publishTask(

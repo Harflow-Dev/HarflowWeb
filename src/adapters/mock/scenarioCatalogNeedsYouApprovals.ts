@@ -87,4 +87,14 @@ export const NEEDS_YOU_APPROVAL_SCENARIOS: readonly ScenarioDefinition[] = [
       },
     },
   ),
+  base({
+    id: 'needs-you-cross-surface',
+    label: 'Needs you · Task approval on both surfaces',
+    description:
+      'Default waiting inbox whose task approval also shows on its task screen.',
+    context: readyContext(),
+    startOutcome: accepted,
+    holdStart: false,
+    crossSurfaceApprovals: true,
+  }),
 ]

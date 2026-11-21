@@ -191,6 +191,22 @@ describe('M05 task status screen copy', () => {
   )
 })
 
+describe('running task keeps its plain status with the default inbox', () => {
+  it.each(['task-running', 'task-running-stop'] as const)(
+    '%s shows Running 04:12 and no approval card',
+    async (scenario) => {
+      expect(scenarioById(scenario).needsYou).toEqual(
+        scenarioById('populated').needsYou,
+      )
+      await mount(scenario)
+      const main = screen.getByRole('main')
+      expect(within(main).getByText('Running 04:12')).toBeInTheDocument()
+      expect(within(main).queryByText('Needs you')).toBeNull()
+      expect(screen.queryByRole('group', { name: 'Approval needed' })).toBeNull()
+    },
+  )
+})
+
 describe('M05 pending empty body', () => {
   it('renders Design pending head and empty activity copy', async () => {
     await mount('task-pending')

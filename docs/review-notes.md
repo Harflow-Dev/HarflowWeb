@@ -370,9 +370,14 @@ grant approvals, answer questions, or touch the task store.
   scope.
   Checkpoint Refresh rebuilds the card from the matching `pending_attention`
   row (node id + path), not the root token; a new token arrives with new
-  prose and is decidable only after an explicit second submit (never replay).
+  prose (and meta line / action label where the row carries them; a changed
+  token never keeps the old token's meta line) and is decidable at once with
+  the new token and text. Only the submit is explicit: there is no automatic
+  replay of the earlier answer.
   Typed checkpoint refusals other than `attention_checkpoint_stale`:
-  `interaction_already_answered` (non-actionable, no Refresh),
+  `interaction_already_answered` (non-actionable, no Refresh; when the refusal
+  carries the winner it is drawn in the task-side style from the present
+  fields only — channel, answer and time — which is undrawn on Needs you),
   `attention_checkpoint_unavailable` and `attention_checkpoint_required`
   (non-actionable with Refresh) use a neutral undrawn read-only line
   (`CHECKPOINT_REFUSAL_NEUTRAL`) — Design has no copy. Own-answer checkpoint

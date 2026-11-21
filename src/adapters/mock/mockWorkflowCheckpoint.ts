@@ -96,6 +96,8 @@ function pendingProjectionFor(
     reason: 'Caller guidance required',
     status: 'paused',
     exactAction,
+    actionLabel: baseItem.actionLabel,
+    detail: baseItem.detail,
   }
 }
 
@@ -116,6 +118,8 @@ function withCheckpointProjection(
     ...item,
     attentionCheckpointId: projection.attentionCheckpointId,
     exactAction: projection.exactAction,
+    actionLabel: projection.actionLabel ?? item.actionLabel,
+    detail: projection.detail ?? item.detail,
     context: {
       ...item.context,
       step: projection.nodeTitle ?? item.context.step,

@@ -59,6 +59,13 @@ export type WorkflowCheckpointPendingProjection = {
   readonly status: string
   /** Action / exact-action prose drawn on the card. */
   readonly exactAction: string
+  /**
+   * Action label and meta (access / model) lines, only when the engine row
+   * carries them. When absent on a changed token the card drops its old
+   * meta line instead of keeping a stale one.
+   */
+  readonly actionLabel?: string
+  readonly detail?: string
 }
 
 /**

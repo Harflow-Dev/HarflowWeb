@@ -4,10 +4,14 @@
 import {
   needsYouContextText,
   type NeedsYouWorkflowApproval,
+  type WorkflowCheckpointInteraction,
   type WorkflowRunId,
 } from '../model'
 import { APPROVAL_COPY, APPROVAL_MAC_COPY } from './taskApprovalCopy'
-import type { ApprovalResultMode } from './taskApprovalResult'
+import {
+  answeredElsewhereResult,
+  type ApprovalResultMode,
+} from './taskApprovalResult'
 
 export type NeedsYouCheckpointEntry =
   | { readonly kind: 'checkpoint_stale' }
@@ -26,6 +30,8 @@ export type NeedsYouCheckpointEntry =
         | 'interaction_already_answered'
         | 'attention_checkpoint_unavailable'
         | 'attention_checkpoint_required'
+      /** Winner carried on interaction_already_answered, when present. */
+      readonly interaction?: WorkflowCheckpointInteraction
     }
 
 export type NeedsYouCheckpointOpenLink =
@@ -89,9 +95,17 @@ export const CHECKPOINT_REFUSAL_NEUTRAL =
   'This request is read-only here.' as const
 
 function refusedResult(
-  code: Extract<NeedsYouCheckpointEntry, { kind: 'refused' }>['code'],
+  entry: Extract<NeedsYouCheckpointEntry, { kind: 'refused' }>,
   submitting: boolean,
 ): ApprovalResultMode {
+  const code = entry.code
+  // The winner is drawn from its present fields, as on the task screen.
+  if (
+    code === 'interaction_already_answered' &&
+    entry.interaction !== undefined
+  ) {
+    return answeredElsewhereResult(entry.interaction)
+  }
   const refresh =
     code === 'attention_checkpoint_unavailable' ||
     code === 'attention_checkpoint_required'
@@ -156,7 +170,7 @@ export function needsYouCheckpointCardView(
         true,
       )
     case 'refused':
-      return baseView(item, refusedResult(entry.code, submitting), true)
+      return baseView(item, refusedResult(entry, submitting), true)
     case 'non_actionable':
       return baseView(
         item,

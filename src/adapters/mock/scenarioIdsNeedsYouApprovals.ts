@@ -4,3 +4,4 @@ export type NeedsYouApprovalsScenarioId =
   | 'needs-you-approval-expired'
   | 'needs-you-answered-elsewhere'
   | 'needs-you-checkpoint-stale'
+  | 'needs-you-cross-surface'

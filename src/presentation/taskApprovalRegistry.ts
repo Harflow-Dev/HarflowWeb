@@ -11,11 +11,7 @@ import type {
   TaskId,
 } from '../model'
 import {
-  EMPTY_TASK_APPROVAL,
-  approvalEntryFor,
   retainedApprovalChrome,
-  withApprovalEntry,
-  withoutApprovalRefusal,
   type TaskApprovalChrome,
   type TaskApprovalEntry,
 } from './taskApprovalChrome'
@@ -47,37 +43,6 @@ export class TaskApprovalRegistry {
     }
   }
 
-  /** Chrome snapshot with a focus bump when the open task matches. */
-  withEntry(
-    entry: TaskApprovalEntry,
-    selectedTaskId: string | null,
-  ): TaskApprovalChrome {
-    const next = withApprovalEntry(
-      { ...EMPTY_TASK_APPROVAL, entries: this.entries },
-      entry,
-      selectedTaskId,
-    )
-    this.entries = next.entries
-    return { ...next, submitting: false }
-  }
-
-  withoutRefusal(taskId: string, requestId: string): TaskApprovalChrome {
-    const next = withoutApprovalRefusal(
-      { ...EMPTY_TASK_APPROVAL, entries: this.entries },
-      taskId,
-      requestId,
-    )
-    this.entries = next.entries
-    return { ...next, submitting: false }
-  }
-
-  entryFor(
-    taskId: string,
-    request: TaskApprovalRequest,
-  ): TaskApprovalEntry | null {
-    return approvalEntryFor(this.asChrome(), taskId, request)
-  }
-
   /** Drop typed refusals; keep non_actionable and answered. */
   retainNonRefusal(): TaskApprovalChrome {
     const next = retainedApprovalChrome(this.asChrome())
@@ -85,11 +50,11 @@ export class TaskApprovalRegistry {
     return next
   }
 
-  /** Replace the full entry list (seeds). */
-  replaceEntries(entries: readonly TaskApprovalEntry[]): void {
-    this.entries = entries
-  }
-
+  /**
+   * Record a respond acknowledgement. The returned chrome never carries a
+   * focus counter: the host owns its own `focusResultSeq` and bumps it from
+   * its current value when `requestFocus` is true.
+   */
   applyRespond(
     taskId: TaskId,
     sent: Pick<TaskApprovalRequest, 'requestId' | 'ownerRevision'>,
@@ -99,6 +64,7 @@ export class TaskApprovalRegistry {
   ): {
     readonly chrome: TaskApprovalChrome
     readonly acceptedRequest: TaskApprovalRequest | null
+    readonly requestFocus: boolean
   } {
     const result = taskApprovalRespondedChrome(
       this.asChrome(),
@@ -109,9 +75,14 @@ export class TaskApprovalRegistry {
       selectedTaskId,
     )
     this.entries = result.chrome.entries
-    return result
+    return {
+      chrome: { ...result.chrome, focusResultSeq: 0 },
+      acceptedRequest: result.acceptedRequest,
+      requestFocus: result.chrome.focusResultSeq > 0,
+    }
   }
 
+  /** Apply a refresh result; focus is the host's to bump when `request` is set. */
   applyRefresh(
     taskId: TaskId,
     requestId: string,
@@ -127,7 +98,19 @@ export class TaskApprovalRegistry {
       result,
     )
     this.entries = next.chrome.entries
-    return next
+    return { chrome: { ...next.chrome, focusResultSeq: 0 }, request: next.request }
+  }
+
+  /**
+   * Merge seeded entries by task id: entries for the seeded tasks are
+   * replaced, entries for other tasks stay.
+   */
+  mergeSeedEntries(entries: readonly TaskApprovalEntry[]): void {
+    const seeded = new Set(entries.map((e) => e.taskId))
+    this.entries = [
+      ...this.entries.filter((e) => !seeded.has(e.taskId)),
+      ...entries,
+    ]
   }
 
   isInFlight(taskId: string, requestId: string): boolean {
@@ -153,9 +136,5 @@ export class TaskApprovalRegistry {
 
   respondGeneration(): number {
     return this.respondEvents
-  }
-
-  hasAnyInFlight(): boolean {
-    return this.inFlight.size > 0
   }
 }

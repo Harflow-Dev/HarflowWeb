@@ -299,6 +299,22 @@ describe('uncertain and untyped outcomes', () => {
     expect(document.activeElement).not.toBe(button(APPROVAL_COPY.approveOnce))
   })
 
+  it('keeps result focus moving across Refresh then Approve once', async () => {
+    const user = userEvent.setup()
+    const app = await mount('approval-stale')
+    const seeded = chrome(app).focusResultSeq
+    await user.click(button(APPROVAL_COPY.refresh))
+    await settle()
+    const afterRefresh = chrome(app).focusResultSeq
+    expect(afterRefresh).toBeGreaterThan(seeded)
+    expect(card().contains(document.activeElement)).toBe(true)
+    await user.click(button(APPROVAL_COPY.approveOnce))
+    await settle()
+    expect(chrome(app).focusResultSeq).toBeGreaterThan(afterRefresh)
+    expect(within(card()).getByText(APPROVAL_COPY.approvedByYou)).toBeVisible()
+    expect(card().contains(document.activeElement)).toBe(true)
+  })
+
   it('a stale revision is refused as not_current before row state', async () => {
     const app = await mount('approval-stale')
     const request: RespondTaskApprovalRequest = {

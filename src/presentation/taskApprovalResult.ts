@@ -5,6 +5,7 @@
  */
 import type {
   ApprovalDecision,
+  ApprovalRefusalInteraction,
   ApprovalRespondRefusal,
   ApprovalResponder,
   TaskApprovalRequest,
@@ -118,6 +119,13 @@ function alreadyAnsweredResult(
   if (interaction === undefined) {
     return result(null, [APPROVAL_COPY.alreadyAnswered], false, false)
   }
+  return answeredElsewhereResult(interaction)
+}
+
+/** Winner of an already-answered race, drawn from its present fields only. */
+export function answeredElsewhereResult(
+  interaction: ApprovalRefusalInteraction,
+): ApprovalResultMode {
   // DECIDED.answeredCaller (Needs you / menu-bar, and task screen when the
   // race winner is the caller): raceCaller title + recorded. Design tables
   // draw this for caller; the task screen uses it when interaction says so.

@@ -23,12 +23,10 @@ export type NeedsYouChrome = {
   readonly focusResultSeq: number
   readonly focusItemId: string | null
   /**
-   * Task respond keys currently in flight (`taskId\0requestId`), mirrored
-   * from the shared TaskApprovalRegistry for React re-renders.
+   * Ids of cards with an answer in flight. Derived on every snapshot from
+   * the task registry and the checkpoint registry; never stored.
    */
-  readonly taskInFlight: readonly string[]
-  /** Checkpoint answer keys currently in flight (`runId\0token`). */
-  readonly checkpointInFlight: readonly string[]
+  readonly submittingItemIds: readonly string[]
 }
 
 export const EMPTY_NEEDS_YOU_CHROME: NeedsYouChrome = {
@@ -36,12 +34,7 @@ export const EMPTY_NEEDS_YOU_CHROME: NeedsYouChrome = {
   checkpoints: [],
   focusResultSeq: 0,
   focusItemId: null,
-  taskInFlight: [],
-  checkpointInFlight: [],
-}
-
-export function checkpointFlightKey(runId: string, token: string): string {
-  return `${runId}\u0000${token}`
+  submittingItemIds: [],
 }
 
 export function checkpointEntryFor(
@@ -130,8 +123,7 @@ export function leaveNeedsYouChrome(chrome: NeedsYouChrome): NeedsYouChrome {
     ),
     focusResultSeq: 0,
     focusItemId: null,
-    taskInFlight: chrome.taskInFlight,
-    checkpointInFlight: chrome.checkpointInFlight,
+    submittingItemIds: [],
   }
 }
 

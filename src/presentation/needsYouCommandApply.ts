@@ -6,6 +6,7 @@ import type {
   ApprovalDecision,
   ApprovalRespondOutcome,
   NeedsYouItem,
+  NeedsYouLoad,
   NeedsYouTaskApproval,
   NeedsYouWorkflowApproval,
   TaskId,
@@ -149,6 +150,9 @@ function refreshedCheckpointItem(
     ...item,
     attentionCheckpointId: matched.attentionCheckpointId,
     exactAction: matched.exactAction,
+    // A new token must not keep the old token's access / model line.
+    actionLabel: matched.actionLabel ?? item.actionLabel,
+    detail: matched.detail ?? '',
     context: {
       ...item.context,
       step: matched.nodeTitle ?? item.context.step,
@@ -205,7 +209,8 @@ export function applyCheckpointRefresh(
 
 export function applyNeedsYouLoad(
   state: NeedsYouScreenState,
-  load: import('../model').NeedsYouLoad,
+  load: NeedsYouLoad,
+  isSubmitting: (item: NeedsYouItem) => boolean,
 ): NeedsYouScreenState {
   const nextItems =
     load.kind === 'ready' ? load.observation.items : ([] as NeedsYouItem[])
@@ -213,6 +218,7 @@ export function applyNeedsYouLoad(
     state.displayItems,
     nextItems,
     state.chrome,
+    isSubmitting,
   )
   return { ...state, load, displayItems }
 }

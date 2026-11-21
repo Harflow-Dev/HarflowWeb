@@ -83,6 +83,12 @@ export type ScenarioDefinition = {
   readonly startOutcome: StartTaskOutcome
   readonly holdStart: boolean
   readonly seed?: NewTaskScenarioSeed
+  /**
+   * Cross-surface state: inbox task approvals also show on the task screen
+   * of the same task even when its feed carries no approval. Declared only by
+   * the scenarios that exercise Needs you and task-screen interplay.
+   */
+  readonly crossSurfaceApprovals?: boolean
 }
 
 export { SCENARIOS }

@@ -7,10 +7,14 @@ import type {
 } from '../application'
 import type {
   ApprovalDecision,
+  NeedsYouItem,
   NeedsYouLoad,
   ObservationHandle,
 } from '../model'
-import { isNeedsYouTaskApproval } from '../model'
+import {
+  isNeedsYouTaskApproval,
+  isNeedsYouWorkflowApproval,
+} from '../model'
 import {
   EMPTY_NEEDS_YOU_CHROME,
   leaveNeedsYouChrome,
@@ -21,6 +25,7 @@ import { refusalEntry } from './taskApprovalChrome'
 import { applyNeedsYouLoad } from './needsYouCommandApply'
 import { NeedsYouCommands } from './needsYouCommands'
 import { initialNeedsYouState, type NeedsYouScreenState } from './needsYouState'
+import { CheckpointAnswerRegistry } from './needsYouCheckpointRegistry'
 import type { TaskApprovalRegistry } from './taskApprovalRegistry'
 
 export type NeedsYouListener = (state: NeedsYouScreenState) => void
@@ -43,6 +48,7 @@ export class NeedsYouSession {
   private readonly listeners = new Set<NeedsYouListener>()
   private readonly loadNeedsYou: LoadNeedsYouUseCase
   private readonly registry: TaskApprovalRegistry
+  private readonly checkpoints = new CheckpointAnswerRegistry()
   private readonly commands: NeedsYouCommands
 
   constructor(
@@ -62,6 +68,7 @@ export class NeedsYouSession {
         publish: (next) => this.publish(next),
       },
       registry,
+      this.checkpoints,
       respondApproval,
       refreshApproval,
       answerCheckpoint,
@@ -77,15 +84,35 @@ export class NeedsYouSession {
     }
   }
 
+  /** Whether this card has an answer in flight, from the live registries. */
+  private isSubmitting = (item: NeedsYouItem): boolean => {
+    if (isNeedsYouTaskApproval(item)) {
+      const taskId = item.context.taskId
+      return taskId !== null && this.registry.isInFlight(taskId, item.requestId)
+    }
+    if (isNeedsYouWorkflowApproval(item)) {
+      const runId = item.context.runId
+      return (
+        runId !== null &&
+        this.checkpoints.isInFlight(runId, item.attentionCheckpointId)
+      )
+    }
+    return false
+  }
+
   getState(): NeedsYouScreenState {
+    const submittingItemIds = this.state.displayItems
+      .filter(this.isSubmitting)
+      .map((item) => item.id)
     return {
       ...this.state,
       chrome: {
         ...this.state.chrome,
+        submittingItemIds,
         taskApprovals: {
           ...this.registry.asChrome(),
           focusResultSeq: this.state.chrome.taskApprovals.focusResultSeq,
-          submitting: this.state.chrome.taskInFlight.length > 0,
+          submitting: submittingItemIds.length > 0,
         },
       },
     }
@@ -159,13 +186,12 @@ export class NeedsYouSession {
           entry.refusal,
         )
       })
-      this.registry.replaceEntries(entries)
+      this.registry.mergeSeedEntries(entries)
       chrome = {
         ...chrome,
         taskApprovals: {
-          entries,
-          submitting: false,
-          focusResultSeq: 0,
+          ...this.registry.asChrome(),
+          focusResultSeq: chrome.taskApprovals.focusResultSeq,
         },
       }
     }
@@ -210,7 +236,7 @@ export class NeedsYouSession {
 
   private applyLoad(load: NeedsYouLoad, gen: number): void {
     if (this.disposed || gen !== this.observationEpoch) return
-    this.publish(applyNeedsYouLoad(this.state, load))
+    this.publish(applyNeedsYouLoad(this.state, load, this.isSubmitting))
   }
 
   private publish(next: NeedsYouScreenState): void {

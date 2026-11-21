@@ -327,7 +327,7 @@ grant approvals, answer questions, or touch the task store.
   approvals do not render as an empty approved list. Specimen paths and
   readiness sentences are not this computer.
   No install, store, notification, credential, PATH, or OS settings.
-- Needs you waiting shows the three fixture approvals and the question. Task
+- Needs you waiting shows the two fixture approvals and the question. Task
   approval cards reuse the task-screen respond/refresh stack (Monitor channel,
   D1–D4). The workflow publish card uses `Approve` (Design `56b49cb` specimen)
   and answers through `attention_checkpoint_id`. Question Send/reply stay
@@ -338,18 +338,48 @@ grant approvals, answer questions, or touch the task store.
   checkpoints count while present). **Count difference vs drawings:**
   `approval-expired` and `answered-elsewhere` show **2 waiting** while the
   drawings keep **3** (only the card was replaced). Settled or refused cards
-  stay in place until the person leaves Needs you. Menu-bar approval states
+  stay in place until the person leaves Needs you; leave keeps shared
+  non_actionable / answered task entries and checkpoint non_actionable /
+  answered / refused entries, and drops typed refusals and checkpoint_stale.
+  Menu-bar approval states
   (`menu-bar/approval-stale`, `menu-bar/answered-elsewhere`,
   `menu-bar/busy-approve-once`, `menu-bar/busy-approve-once-minimum`) are
   skipped — the Web has no menu bar surface (same as other menu-bar skips in
   provenance). The Nightly publish card’s Open run opens the mapped run screen
   and does not approve it. That card and the run detail share one snapshot:
   branch `deps/audit-2026-11-03`, Codex · gpt-6-astra, HarflowMCP, and the same
-  publish action. Leaving the run cancels its observation. Unmapped Open task
-  stays disabled. Mapped Open task navigates to that task and does not start
-  one. Main-pane loading uses the approved Design `9d19fd7` skeleton. Question
-  replies, workflow `interaction_already_answered`, and Needs you minimum-window
-  variants of these approval states stay out of scope.
+  publish action. The graph specimen’s branch, model, and “on HarflowMCP”
+  wording are adapted to that request. Leaving the run cancels its
+  observation. The next Workflows click returns to an editor or launch form
+  that was already open, and shows the list only when neither is open.
+  Editor and form drafts stay. Every graph node’s status and selected state
+  are in a list. Unmapped Open task stays disabled. Mapped Open task
+  navigates to that task and does not start one. Graph / Parallel toggles the
+  Nightly Parallel lanes from the same observation (Design `f2a30d7`
+  `workflow-run/parallel`). Topbar stays Needs you rather than the Parallel
+  specimen’s Running chrome. Lane model `Codex · gpt-6` is adapted to
+  `Codex · gpt-6-astra`. Lane actions and composers stay disabled. recovery is
+  not built. The empty state is complete coverage with zero items.
+  Main-pane loading uses the approved Design `9d19fd7` skeleton (title real;
+  badge and cards placeholders; no proposal “Loading requests…” copy). It does
+  not claim full sidebar `SB` or minimum-window acceptance. Unavailable remains
+  a proposal. Loading and unavailable do not say nothing needs you and do not
+  show a zero badge. Partial coverage shows known items with an incomplete
+  mark. The Nightly row’s attention glyph is not counted. Question replies
+  and Needs you minimum-window variants of these approval states stay out of
+  scope.
+  Checkpoint Refresh rebuilds the card from the matching `pending_attention`
+  row (node id + path), not the root token; a new token arrives with new
+  prose and is decidable only after an explicit second submit (never replay).
+  Typed checkpoint refusals other than `attention_checkpoint_stale`:
+  `interaction_already_answered` (non-actionable, no Refresh),
+  `attention_checkpoint_unavailable` and `attention_checkpoint_required`
+  (non-actionable with Refresh) use a neutral undrawn read-only line
+  (`CHECKPOINT_REFUSAL_NEUTRAL`) — Design has no copy. Own-answer checkpoint
+  heads use “Approved by you” / “Rejected by you” (undrawn on Needs you;
+  same session-answer copy as the task card). Task-screen
+  `already_answered` with `answeredBy: caller` also uses DECIDED.answeredCaller
+  (`raceCaller`) — matches design tables; recorded here.
   Copy gap (recorded): Needs you `answered-elsewhere` uses the design’s caller
   race title (`Already answered by the caller`); the contract still names only
   the channel.
